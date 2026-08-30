@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Kambada — tokens de marca
+   Paleta extraída do site em produção (somoskambada.com.br) em 2026-08-30.
+   Ver docs/identidade-visual.md. Não alterar sem validação do Alexandre.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Cores da marca */
+  --color-kambada-amarelo: #ffcc29;
+  --color-kambada-amarelo-escuro: #e0af14;
+  --color-kambada-grafite: #1d1e20;
+  --color-kambada-preto: #000000;
+  --color-kambada-branco: #ffffff;
+  --color-kambada-neblina: #f1f1f1;
+  --color-kambada-cinza: #5e6266;
+
+  /* Tipografia */
+  --font-display: var(--font-poppins), "Poppins", system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+}
+
+:root {
+  --fundo: var(--color-kambada-grafite);
+  --texto: var(--color-kambada-branco);
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--font-sans);
+}
+
+/* Foco visível em toda a interface — requisito do Gate 4 (acessibilidade). */
+:focus-visible {
+  outline: 3px solid var(--color-kambada-amarelo);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

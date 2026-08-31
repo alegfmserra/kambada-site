@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans, Poppins } from "next/font/google";
+import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import Cabecalho from "@/components/Cabecalho";
 import Rodape from "@/components/Rodape";
-import { SITE } from "@/lib/site";
+import { EH_PRODUCAO, SITE } from "@/lib/site";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -25,8 +26,6 @@ export const metadata: Metadata = {
     template: "%s | Somos Kambada",
   },
   description: SITE.descricao,
-  // A imagem de compartilhamento vem de src/app/opengraph-image.png,
-  // gerada por scripts/gerar-icones.mjs — o Next a associa sozinho.
   openGraph: {
     type: "website",
     locale: "pt_BR",
@@ -34,15 +33,38 @@ export const metadata: Metadata = {
     url: SITE.url,
   },
   alternates: { canonical: "/" },
+  robots: EH_PRODUCAO
+    ? { index: true, follow: true }
+    : { index: false, follow: false },
 };
+
+/**
+ * Aplica o tema salvo antes de a página pintar, para não haver o flash de
+ * fundo escuro em quem escolheu claro (e vice-versa). Precisa ser síncrono e
+ * inline; por isso não passa pelo React.
+ */
+const SCRIPT_TEMA = `
+(function () {
+  try {
+    var t = localStorage.getItem('kambada-tema');
+    if (t === 'claro' || t === 'escuro') {
+      document.documentElement.dataset.tema = t;
+    }
+  } catch (e) {}
+})();
+`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
       className={`${poppins.variable} ${dmSans.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-kambada-grafite text-kambada-branco">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+      </head>
+      <body className="flex min-h-full flex-col bg-fundo text-texto">
         <a
           href="#conteudo"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded-md focus:bg-kambada-amarelo focus:px-4 focus:py-2 focus:font-semibold focus:text-kambada-grafite"
@@ -54,6 +76,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <Rodape />
+        <BotaoWhatsApp />
       </body>
     </html>
   );

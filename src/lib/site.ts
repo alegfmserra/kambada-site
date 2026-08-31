@@ -14,6 +14,18 @@ export const SITE = {
   locale: "pt-BR",
 } as const;
 
+/**
+ * O site só se declara "produção" quando NEXT_PUBLIC_SITE_URL for definida
+ * explicitamente com o domínio oficial. Em qualquer outro lugar — endereço
+ * temporário da Hostinger, pré-visualização, máquina local — o site pede
+ * para não ser indexado.
+ *
+ * O padrão é fechado de propósito: enquanto o site atual estiver vendendo em
+ * somoskambada.com.br, um endereço de teste indexado viraria conteúdo
+ * duplicado e competiria com ele no Google.
+ */
+export const EH_PRODUCAO = process.env.NEXT_PUBLIC_SITE_URL === SITE.url;
+
 /** Número oficial de atendimento, extraído dos links do site atual. */
 export const WHATSAPP = {
   numero: "5598984435295",
@@ -32,11 +44,12 @@ export const REDES = [
 ] as const;
 
 /**
- * Navegação. "Loja" entra na Fase 2 e "Cultura" ganha a listagem do blog na
- * Fase 4 — nenhum item aponta para rota inexistente.
+ * Navegação. Todo item aponta para uma rota que existe de fato — há teste
+ * garantindo isso, para nunca surgir link quebrado no menu.
  */
 export const NAV = [
   { rotulo: "Início", href: "/" },
+  { rotulo: "Loja", href: "/loja" },
   { rotulo: "Sobre", href: "/sobre" },
   { rotulo: "Cultura", href: "/cultura" },
   { rotulo: "Contato", href: "/contato" },

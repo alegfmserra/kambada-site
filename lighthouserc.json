@@ -4,8 +4,10 @@
       "startServerCommand": "npm run start",
       "url": [
         "http://localhost:3000/",
+        "http://localhost:3000/loja",
         "http://localhost:3000/sobre",
         "http://localhost:3000/cultura",
+        "http://localhost:3000/cultura/matraca-o-instrumento-que-dita-o-ritmo",
         "http://localhost:3000/contato"
       ],
       "numberOfRuns": 1,

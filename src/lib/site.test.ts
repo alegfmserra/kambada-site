@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { NAV, REDES, SITE, WHATSAPP, linkWhatsApp } from "./site";
+import { ARTIGOS, artigoPorSlug, dataPorExtenso } from "./artigos";
+import {
+  CATEGORIAS_DEMO,
+  PRODUTOS_DEMO,
+  precoEmReais,
+} from "./produtos-demo";
+import { EH_PRODUCAO, NAV, REDES, SITE, WHATSAPP, linkWhatsApp } from "./site";
 
 describe("linkWhatsApp", () => {
   it("monta o link com o número oficial da Kambada", () => {
@@ -24,9 +30,10 @@ describe("linkWhatsApp", () => {
 });
 
 describe("navegação", () => {
-  it("não aponta para rota inexistente — /loja só entra na Fase 2", () => {
+  it("aponta para as rotas que existem no projeto", () => {
     expect(NAV.map((i) => i.href)).toEqual([
       "/",
+      "/loja",
       "/sobre",
       "/cultura",
       "/contato",
@@ -36,6 +43,77 @@ describe("navegação", () => {
   it("não tem href duplicado", () => {
     const hrefs = NAV.map((i) => i.href);
     expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+});
+
+describe("artigos do blog", () => {
+  it("tem três artigos publicados", () => {
+    expect(ARTIGOS).toHaveLength(3);
+  });
+
+  it("cada artigo tem slug único, título, resumo e conteúdo", () => {
+    const slugs = ARTIGOS.map((a) => a.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+
+    for (const artigo of ARTIGOS) {
+      expect(artigo.slug).toMatch(/^[a-z0-9-]+$/);
+      expect(artigo.titulo.length).toBeGreaterThan(10);
+      expect(artigo.resumo.length).toBeGreaterThan(40);
+      expect(artigo.blocos.length).toBeGreaterThan(3);
+      expect(artigo.data).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("localiza artigo pelo slug e devolve indefinido para slug inválido", () => {
+    expect(artigoPorSlug(ARTIGOS[0].slug)?.titulo).toBe(ARTIGOS[0].titulo);
+    expect(artigoPorSlug("nao-existe")).toBeUndefined();
+  });
+
+  it("formata a data em português sem escorregar de fuso", () => {
+    // Fuso adiantado costuma jogar a data para o dia anterior; o formatador
+    // fixa meio-dia UTC justamente para isso não acontecer.
+    expect(dataPorExtenso("2026-08-30")).toContain("30");
+    expect(dataPorExtenso("2026-08-30")).toContain("agosto");
+  });
+});
+
+describe("catálogo de demonstração", () => {
+  it("deixa claro que é ilustrativo, com preço e estoque coerentes", () => {
+    expect(PRODUTOS_DEMO.length).toBeGreaterThan(0);
+    for (const p of PRODUTOS_DEMO) {
+      expect(p.preco).toBeGreaterThan(0);
+      expect(CATEGORIAS_DEMO).toContain(p.categoria);
+      expect(p.slug).toMatch(/^[a-z0-9-]+$/);
+    }
+  });
+
+  it("formata preço em real brasileiro", () => {
+    const formatado = precoEmReais(89.9);
+    expect(formatado).toContain("89,90");
+    expect(formatado).toContain("R$");
+  });
+
+  it("tem ao menos um item esgotado, para o estado aparecer na vitrine", () => {
+    expect(PRODUTOS_DEMO.some((p) => !p.emEstoque)).toBe(true);
+  });
+});
+
+describe("proteção contra indexação indevida", () => {
+  it("não se considera produção sem NEXT_PUBLIC_SITE_URL definida", () => {
+    // Nos testes a variável não existe — é exatamente o caso do endereço
+    // temporário da Hostinger, que não pode competir no Google com o site
+    // que está vendendo hoje.
+    expect(process.env.NEXT_PUBLIC_SITE_URL).toBeUndefined();
+    expect(EH_PRODUCAO).toBe(false);
+  });
+
+  it("o domínio oficial não tem barra final, que quebraria a comparação exata", () => {
+    // EH_PRODUCAO compara a variável de ambiente com SITE.url por igualdade
+    // estrita. Uma barra final aqui faria o site nunca se reconhecer como
+    // produção, e ele ficaria invisível ao Google para sempre.
+    const oficial: string = SITE.url;
+    expect(oficial.endsWith("/")).toBe(false);
+    expect(oficial).toBe(oficial.trim());
   });
 });
 

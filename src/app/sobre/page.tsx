@@ -21,23 +21,23 @@ const NUMEROS = [
 export default function Sobre() {
   return (
     <>
-      <section className="border-b border-white/10">
+      <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
           <h1 className="max-w-3xl font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
             Somos Kambada: uma turma que{" "}
-            <span className="text-kambada-amarelo">veste cultura</span>
+            <span className="destaque">veste cultura</span>
           </h1>
-          <p className="mt-6 text-lg text-kambada-branco/80">
+          <p className="mt-6 text-lg text-texto-suave">
             Se achega e conhece nossa coleção!
           </p>
         </div>
       </section>
 
-      <section className="border-b border-white/10">
+      <section className="border-b border-borda">
         <div className="mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:px-6 lg:grid-cols-[2fr_1fr]">
           <div>
             <h2 className="font-display text-3xl font-bold">Sobre a Kambada</h2>
-            <div className="mt-8 space-y-6 text-lg leading-relaxed text-kambada-branco/80">
+            <div className="mt-8 space-y-6 text-lg leading-relaxed text-texto-suave">
               <p>
                 A Kambada nasceu de uma brincadeira em família. Sempre fomos
                 apaixonados pelo São João maranhense com suas cores, danças e
@@ -64,7 +64,7 @@ export default function Sobre() {
                 nosso Maranhão. Cada produto que criamos carrega um pedacinho
                 dessa história, do som das matracas ao sorriso do nosso povo.
               </p>
-              <p className="font-display text-xl font-semibold text-kambada-amarelo">
+              <p className="font-display text-xl font-semibold text-texto">
                 Vem fazer parte da nossa Kambada! Não se preocupe, vem sem medo
                 de dançar e de conhecer o nosso Maranhão!
               </p>
@@ -75,12 +75,12 @@ export default function Sobre() {
             {NUMEROS.map((numero) => (
               <div
                 key={numero.rotulo}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-8"
+                className="rounded-2xl border border-borda bg-superficie p-8"
               >
-                <p className="font-display text-5xl font-extrabold text-kambada-amarelo">
-                  {numero.valor}
+                <p className="font-display text-5xl font-extrabold">
+                  <span className="destaque">{numero.valor}</span>
                 </p>
-                <p className="mt-2 text-kambada-branco/70">{numero.rotulo}</p>
+                <p className="mt-3 text-texto-suave">{numero.rotulo}</p>
               </div>
             ))}
             <Link

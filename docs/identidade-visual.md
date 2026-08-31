@@ -40,6 +40,25 @@ Valores computados diretamente do site em produção. Tokens em `src/app/globals
 
 **Regra de contraste:** amarelo `#FFCC29` sobre grafite dá ~10:1 e passa folgado em AAA. O inverso — texto grafite sobre amarelo — também passa. O que **não** pode é amarelo sobre branco (~1.7:1): reprova em qualquer nível.
 
+## 3.1 Os dois temas
+
+O site tem tema claro e escuro. A escolha fica salva no navegador; sem escolha, segue a preferência do sistema.
+
+**O escuro é o tema da marca** — é o que o site em produção usa, e nele o amarelo é cor de letra.
+
+**No claro há uma restrição dura:** `#FFCC29` sobre branco dá ~1,7:1 de contraste e reprova em qualquer nível de acessibilidade. A solução foi **não inventar outra cor de marca**: no tema claro o amarelo deixa de ser cor de letra e vira **marca-texto** — fundo amarelo com letra grafite, ~11:1. A classe `.destaque` faz essa troca sozinha.
+
+| Papel | Escuro | Claro |
+|---|---|---|
+| Fundo | `#1D1E20` | `#FFFFFF` |
+| Texto | branco | `#1D1E20` |
+| Superfície (cartões) | branco a 3% | `#F7F7F5` |
+| Trecho em destaque | letra `#FFCC29` | fundo `#FFCC29`, letra grafite |
+| Botão primário | `#FFCC29` com letra grafite | igual |
+| Rodapé | preto | preto |
+
+O rodapé permanece escuro nos dois temas: é a assinatura visual da marca.
+
 ## 4. Tipografia
 
 O site atual carrega três famílias — DM Sans, Poppins e Inter — fazendo o trabalho de duas.

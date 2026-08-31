@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { NAV, REDES, SITE, WHATSAPP, linkWhatsApp } from "@/lib/site";
+import { NAV, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
 export default function Rodape() {
   return (
-    <footer className="border-t border-white/10 bg-kambada-preto">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
+    <footer className="border-t border-borda bg-superficie-forte text-kambada-branco">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 pb-28 sm:px-6 md:grid-cols-3">
         <div>
           <Image
             src="/marca/kambada-logo-horizontal-amarelo.png"
@@ -43,13 +43,14 @@ export default function Rodape() {
           </h2>
           <ul className="mt-4 space-y-2.5">
             <li>
+              {/* Sem número escrito: o link já leva para a conversa. */}
               <a
                 href={linkWhatsApp()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-kambada-branco/70 transition-colors hover:text-kambada-amarelo"
               >
-                WhatsApp {WHATSAPP.exibicao}
+                Falar no WhatsApp
               </a>
             </li>
             {REDES.map((rede) => (

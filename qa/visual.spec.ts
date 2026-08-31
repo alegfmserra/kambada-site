@@ -96,8 +96,8 @@ test("o tema alterna, persiste e é capturado no claro", async ({
   const fundoClaro = await page.evaluate(
     () => getComputedStyle(document.body).backgroundColor,
   );
-  // Off-white #FAF8F3 — branco puro cansa a vista em leitura longa.
-  expect(fundoClaro).toBe("rgb(250, 248, 243)");
+  // Bege #F3EEE4 — branco e off-white foram considerados agressivos à vista.
+  expect(fundoClaro).toBe("rgb(243, 238, 228)");
 
   await page.screenshot({
     path: `qa/screenshots/${DATA}/tema-claro/home.png`,

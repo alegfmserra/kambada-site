@@ -10,10 +10,10 @@
  * comercial que ninguém aprovou. No lugar da descrição, a vitrine mostra as
  * variações reais (tamanhos e cores contados no estoque).
  *
- * ⚠️ Divergência de preço detectada entre as fontes, a confirmar com o
- * Alexandre: o catálogo do Mercado Pago (2026-06-13) traz "Camisa" a R$ 80,00
- * e o estoque traz camisa adulta a R$ 89,90. Aqui vale o ESTOQUE, por ser a
- * fonte mais recente e a que a listagem do Bling (2026-08-29) também usa.
+ * Preço da camisa adulta: R$ 89,90, CONFIRMADO pelo Alexandre em 2026-08-31.
+ * O catálogo do Mercado Pago (2026-06-13) trazia R$ 80,00 e está defasado —
+ * vale o estoque. Quando o catálogo passar a vir do Bling, esse é o valor que
+ * deve estar lá.
  *
  * Na Fase 2 este arquivo é substituído pela consulta ao Bling.
  */

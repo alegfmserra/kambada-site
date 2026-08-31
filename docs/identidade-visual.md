@@ -50,9 +50,9 @@ O site tem tema claro e escuro. A escolha fica salva no navegador; sem escolha, 
 
 | Papel | Escuro | Claro |
 |---|---|---|
-| Fundo | `#1D1E20` | `#FAF8F3` (off-white quente) |
+| Fundo | `#1D1E20` | `#F3EEE4` (bege neutro) |
 | Texto | branco | `#1D1E20` |
-| Superfície (cartões) | branco a 3% | `#F2EFE7` |
+| Superfície (cartões) | branco a 3% | `#FBF8F2` (mais claro que o fundo) |
 | Trecho em destaque | letra `#FFCC29` | fundo `#FFCC29`, letra grafite |
 | Botão primário | `#FFCC29` com letra grafite | igual |
 | Rodapé | preto | preto |

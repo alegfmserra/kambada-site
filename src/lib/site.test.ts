@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ARTIGOS, artigoPorSlug, dataPorExtenso } from "./artigos";
+import { FOTOS, GALERIA_SOBRE } from "./fotos";
 import {
   CATEGORIAS,
   PRODUTOS,
@@ -78,6 +79,30 @@ describe("artigos do blog", () => {
     // fixa meio-dia UTC justamente para isso não acontecer.
     expect(dataPorExtenso("2026-08-30")).toContain("30");
     expect(dataPorExtenso("2026-08-30")).toContain("agosto");
+  });
+});
+
+describe("fotos", () => {
+  it("toda foto tem texto alternativo descritivo", () => {
+    for (const [chave, foto] of Object.entries(FOTOS)) {
+      expect(foto.arquivo, chave).toMatch(/^\/fotos\/[a-z0-9-]+\.webp$/);
+      // Alt curto demais não descreve nada a quem usa leitor de tela.
+      expect(foto.alt.length, chave).toBeGreaterThan(25);
+      expect(foto.alt, chave).not.toMatch(/^(foto|imagem|img)\b/i);
+      expect(foto.largura, chave).toBeGreaterThan(0);
+      expect(foto.altura, chave).toBeGreaterThan(0);
+    }
+  });
+
+  it("não repete a mesma foto dentro da galeria", () => {
+    const arquivos = GALERIA_SOBRE.map((f) => f.arquivo);
+    expect(new Set(arquivos).size).toBe(arquivos.length);
+  });
+
+  it("as fotos de categoria apontam para arquivos distintos", () => {
+    const usadas = CATEGORIAS.filter((c) => c.foto).map((c) => c.foto!.arquivo);
+    expect(usadas.length).toBeGreaterThan(0);
+    expect(new Set(usadas).size).toBe(usadas.length);
   });
 });
 

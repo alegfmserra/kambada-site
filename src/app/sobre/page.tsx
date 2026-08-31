@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import { FOTOS, GALERIA_SOBRE } from "@/lib/fotos";
 
 /**
  * Sobre. O texto é o mesmo publicado hoje em /kambada — preservado
@@ -22,14 +24,27 @@ export default function Sobre() {
   return (
     <>
       <section className="border-b border-borda">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-          <h1 className="max-w-3xl font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
-            Somos Kambada: uma turma que{" "}
-            <span className="destaque">veste cultura</span>
-          </h1>
-          <p className="mt-6 text-lg text-texto-suave">
-            Se achega e conhece nossa coleção!
-          </p>
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1fr_0.9fr]">
+          <div>
+            <h1 className="max-w-3xl font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
+              Somos Kambada: uma turma que{" "}
+              <span className="destaque">veste cultura</span>
+            </h1>
+            <p className="mt-6 text-lg text-texto-suave">
+              Se achega e conhece nossa coleção!
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-3xl">
+            <Image
+              src={FOTOS.familiaMaosDadas.arquivo}
+              alt={FOTOS.familiaMaosDadas.alt}
+              width={FOTOS.familiaMaosDadas.largura}
+              height={FOTOS.familiaMaosDadas.altura}
+              priority
+              sizes="(max-width: 1024px) 100vw, 42vw"
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </section>
 
@@ -90,6 +105,34 @@ export default function Sobre() {
               Quer nos conhecer melhor? Dá uma passada na nossa Cultura →
             </Link>
           </aside>
+        </div>
+      </section>
+
+      <section>
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
+            Galeria
+          </h2>
+          <p className="mt-3 max-w-2xl leading-relaxed text-texto-suave">
+            Conheça um pouco mais do gosto de ser maranhense que só, do gosto de
+            ser Kambada.
+          </p>
+          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {GALERIA_SOBRE.map((foto) => (
+              <li
+                key={foto.arquivo}
+                className="relative aspect-[3/4] overflow-hidden rounded-2xl"
+              >
+                <Image
+                  src={foto.arquivo}
+                  alt={foto.alt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover"
+                />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     </>

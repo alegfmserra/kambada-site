@@ -18,10 +18,15 @@
  * Na Fase 2 este arquivo é substituído pela consulta ao Bling.
  */
 
+import type { Foto } from "./fotos";
+import { FOTOS } from "./fotos";
+
 export type Categoria = {
   slug: string;
   nome: string;
   chamada: string;
+  /** Foto de vitrine. Pareôs ainda não têm foto no acervo. */
+  foto?: Foto;
 };
 
 export type Produto = {
@@ -40,24 +45,28 @@ export const CATEGORIAS: Categoria[] = [
     nome: "Camisas",
     chamada:
       "Estampadas com as lendas e símbolos do nosso Maranhão. Vista-se de história e identidade.",
+    foto: FOTOS.camisaIlhaEncantada,
   },
   {
     slug: "matracas",
     nome: "Matracas",
     chamada:
       "Aqui quem dita o ritmo é a matraca. Feitas e pintadas à mão, uma por uma.",
+    foto: FOTOS.catMatracas,
   },
   {
     slug: "ecobags",
     nome: "Ecobags",
     chamada:
       "Bolsa de feira, de praia e de arraial. Cabe tudo e ainda conta história.",
+    foto: FOTOS.catEcobags,
   },
   {
     slug: "bones",
     nome: "Bonés",
     chamada:
       'Com o charme da ilha, perfeitos para curtir o reggae na praça ou se proteger a "moleira".',
+    foto: FOTOS.catBones,
   },
   {
     slug: "pareos",
@@ -68,6 +77,7 @@ export const CATEGORIAS: Categoria[] = [
     slug: "necessaires",
     nome: "Necessaires",
     chamada: "Pequenas, práticas e com a nossa cara.",
+    foto: FOTOS.catNecessaires,
   },
 ];
 

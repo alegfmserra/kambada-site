@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import {
-  CATEGORIAS_DEMO,
-  PRODUTOS_DEMO,
-  precoEmReais,
-} from "@/lib/produtos-demo";
+import Link from "next/link";
+import AvisoDemonstracao from "@/components/AvisoDemonstracao";
+import BarraCategorias from "@/components/BarraCategorias";
+import CartaoProduto from "@/components/CartaoProduto";
+import { CATEGORIAS, produtosDaCategoria } from "@/lib/catalogo";
 import { linkWhatsApp } from "@/lib/site";
-
-/**
- * Vitrine de demonstração. Prova o formato da loja antes da integração.
- * O aviso no topo é obrigatório: nenhum destes produtos é real.
- */
 
 export const metadata: Metadata = {
   title: "Loja",
@@ -30,79 +25,43 @@ export default function Loja() {
             Cada peça carrega o som da matraca, o gingado do reggae e as cores
             do nosso Bumba Meu Boi.
           </p>
-
-          <div
-            role="note"
-            className="mt-10 rounded-2xl border-2 border-dashed border-kambada-amarelo-escuro bg-superficie p-5"
-          >
-            <p className="font-display font-semibold text-texto">
-              ⚠️ Prévia — catálogo ilustrativo
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-texto-suave">
-              Os produtos e preços desta página foram inventados só para mostrar
-              como a loja vai funcionar. <strong>Nada aqui é real.</strong> O
-              catálogo verdadeiro — com produtos, fotos, preços e estoque — virá
-              direto do Bling na próxima fase, e o carrinho passará a funcionar
-              de verdade.
-            </p>
+          <div className="mt-10">
+            <AvisoDemonstracao />
           </div>
         </div>
       </section>
 
-      {CATEGORIAS_DEMO.map((categoria) => {
-        const itens = PRODUTOS_DEMO.filter((p) => p.categoria === categoria);
-        return (
-          <section key={categoria} className="border-b border-borda">
-            <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <BarraCategorias />
+
+      {CATEGORIAS.map((categoria) => (
+        <section
+          key={categoria.slug}
+          id={categoria.slug}
+          className="border-b border-borda scroll-mt-24"
+        >
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                {categoria}
+                {categoria.nome}
               </h2>
-              <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {itens.map((produto) => (
-                  <li
-                    key={produto.slug}
-                    className="flex flex-col rounded-2xl border border-borda bg-superficie p-6"
-                  >
-                    {/* Sem foto: usar imagem de produto real numa demonstração
-                        daria a entender que o item existe. */}
-                    <div
-                      aria-hidden="true"
-                      className="mb-5 flex h-40 items-center justify-center rounded-xl border border-dashed border-borda text-3xl"
-                    >
-                      🦀
-                    </div>
-                    <h3 className="font-display text-lg font-semibold">
-                      {produto.nome}
-                    </h3>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-texto-suave">
-                      {produto.descricao}
-                    </p>
-                    <p className="mt-4 font-display text-xl font-bold">
-                      {precoEmReais(produto.preco)}
-                    </p>
-                    {produto.emEstoque ? (
-                      <a
-                        href={linkWhatsApp(
-                          `Oi! Tenho interesse na peça "${produto.nome}". Ainda tem disponível?`,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-5 rounded-full bg-kambada-amarelo px-5 py-3 text-center font-display text-sm font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-                      >
-                        Pedir pelo WhatsApp
-                      </a>
-                    ) : (
-                      <p className="mt-5 rounded-full border border-borda px-5 py-3 text-center font-display text-sm font-semibold text-texto-tenue">
-                        Esgotado
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <Link
+                href={`/loja/${categoria.slug}`}
+                className="font-display text-sm font-semibold text-texto-suave underline underline-offset-4 hover:text-kambada-amarelo-escuro"
+              >
+                Ver só {categoria.nome.toLowerCase()} →
+              </Link>
             </div>
-          </section>
-        );
-      })}
+            <p className="mt-3 max-w-2xl leading-relaxed text-texto-suave">
+              {categoria.chamada}
+            </p>
+            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {produtosDaCategoria(categoria.slug).map((produto) => (
+                <CartaoProduto key={produto.slug} produto={produto} />
+              ))}
+            </ul>
+          </div>
+        </section>
+      ))}
 
       <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">

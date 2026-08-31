@@ -133,11 +133,54 @@ test("o WhatsApp está acessível sem expor o número", async ({ page }) => {
   expect(texto).not.toMatch(/\(?\d{2}\)?\s?9\d{4}[-\s]?\d{4}/);
 });
 
-test("a loja avisa que o catálogo é ilustrativo", async ({ page }) => {
+test("a loja avisa que o pedido é pelo WhatsApp", async ({ page }) => {
   await page.goto("/loja");
   await page.waitForLoadState("networkidle");
 
-  const aviso = page.getByRole("note");
+  const aviso = page.getByRole("note").first();
   await expect(aviso).toBeVisible();
-  await expect(aviso).toContainText(/Nada aqui é real/i);
+  await expect(aviso).toContainText(/pedido é\s+fechado no WhatsApp/i);
+});
+
+test("o menu superior leva a cada categoria da loja", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "submenu é do desktop");
+
+  await page.goto("/");
+  await page.getByRole("button", { name: /Abrir categorias da loja/i }).click();
+
+  const submenu = page.locator("#submenu-loja");
+  await expect(submenu).toBeVisible();
+
+  const links = submenu.locator("a");
+  // "Toda a loja" + as categorias.
+  expect(await links.count()).toBeGreaterThanOrEqual(4);
+
+  await submenu.getByRole("link", { name: "Matracas" }).click();
+  await expect(page).toHaveURL(/\/loja\/matracas$/);
+  await expect(page.locator("h1")).toHaveText("Matracas");
+});
+
+test("cada página de categoria abre e lista produtos", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "basta um breakpoint");
+
+  for (const slug of [
+    "camisas",
+    "matracas",
+    "ecobags",
+    "bones",
+    "pareos",
+    "necessaires",
+  ]) {
+    await page.goto(`/loja/${slug}`);
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("h1")).toHaveCount(1);
+    expect(
+      await page.locator("li:has(h3)").count(),
+      `categoria ${slug} sem produtos`,
+    ).toBeGreaterThan(0);
+  }
 });

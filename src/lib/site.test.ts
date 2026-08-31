@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { ARTIGOS, artigoPorSlug, dataPorExtenso } from "./artigos";
 import {
-  CATEGORIAS_DEMO,
-  PRODUTOS_DEMO,
+  CATEGORIAS,
+  PRODUTOS,
+  categoriaPorSlug,
+  disponibilidade,
   precoEmReais,
-} from "./produtos-demo";
+  precoExibido,
+  produtosDaCategoria,
+} from "./catalogo";
 import { EH_PRODUCAO, NAV, REDES, SITE, WHATSAPP, linkWhatsApp } from "./site";
 
 describe("linkWhatsApp", () => {
@@ -77,13 +81,31 @@ describe("artigos do blog", () => {
   });
 });
 
-describe("catálogo de demonstração", () => {
-  it("deixa claro que é ilustrativo, com preço e estoque coerentes", () => {
-    expect(PRODUTOS_DEMO.length).toBeGreaterThan(0);
-    for (const p of PRODUTOS_DEMO) {
-      expect(p.preco).toBeGreaterThan(0);
-      expect(CATEGORIAS_DEMO).toContain(p.categoria);
+describe("catálogo", () => {
+  it("todo produto tem slug único e pertence a uma categoria existente", () => {
+    const slugs = PRODUTOS.map((p) => p.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+
+    const validas = new Set(CATEGORIAS.map((c) => c.slug));
+    for (const p of PRODUTOS) {
       expect(p.slug).toMatch(/^[a-z0-9-]+$/);
+      expect(validas.has(p.categoria), `categoria de ${p.slug}`).toBe(true);
+      expect(p.preco).toBeGreaterThan(0);
+      expect(p.variacoes.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("nenhuma categoria fica vazia — vitrine sem produto é link quebrado", () => {
+    for (const c of CATEGORIAS) {
+      expect(produtosDaCategoria(c.slug).length, c.nome).toBeGreaterThan(0);
+    }
+  });
+
+  it("faixa de preço nunca é invertida", () => {
+    for (const p of PRODUTOS) {
+      if (p.precoMaximo) {
+        expect(p.precoMaximo, p.slug).toBeGreaterThanOrEqual(p.preco);
+      }
     }
   });
 
@@ -93,8 +115,31 @@ describe("catálogo de demonstração", () => {
     expect(formatado).toContain("R$");
   });
 
-  it("tem ao menos um item esgotado, para o estado aparecer na vitrine", () => {
-    expect(PRODUTOS_DEMO.some((p) => !p.emEstoque)).toBe(true);
+  it("mostra faixa quando há variação de preço, e valor único quando não há", () => {
+    const comFaixa = PRODUTOS.find((p) => p.precoMaximo);
+    expect(comFaixa).toBeDefined();
+    expect(precoExibido(comFaixa!)).toContain(" a ");
+
+    const semFaixa = PRODUTOS.find((p) => !p.precoMaximo)!;
+    expect(precoExibido(semFaixa)).not.toContain(" a ");
+  });
+
+  it("não expõe o saldo exato de estoque na vitrine", () => {
+    const poucas = disponibilidade({ ...PRODUTOS[0], quantidade: 3 });
+    expect(poucas.texto).toBe("Últimas unidades");
+    expect(poucas.texto).not.toMatch(/\d/);
+
+    expect(disponibilidade({ ...PRODUTOS[0], quantidade: 0 }).disponivel).toBe(
+      false,
+    );
+    expect(disponibilidade({ ...PRODUTOS[0], quantidade: 40 }).texto).toBe(
+      "Disponível",
+    );
+  });
+
+  it("localiza categoria pelo slug e recusa slug inválido", () => {
+    expect(categoriaPorSlug("camisas")?.nome).toBe("Camisas");
+    expect(categoriaPorSlug("nao-existe")).toBeUndefined();
   });
 });
 

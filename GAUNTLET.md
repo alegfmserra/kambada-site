@@ -133,6 +133,58 @@ O catálogo de `/loja` e os três artigos **foram inventados por mim** para esta
 
 ---
 
+## Rodada 4 — 2026-08-31 — Catálogo real e navegação por categoria
+
+**Escopo:** substituição do catálogo inventado pelos **produtos reais** da Kambada, páginas próprias por categoria, submenu de categorias no cabeçalho e barra de atalhos dentro da loja.
+
+### O catálogo deixou de ser fictício
+
+O Alexandre autorizou usar as planilhas. Os dados vieram de `Estoque_Kambada (1).xlsx`, aba "Estoque" — contagem de 2026-08-29, 101 modelos e 1.378 peças. São reais: nome do produto, preço, variações (tamanhos e cores) e saldo.
+
+**O que continua não existindo, e por isso não foi inventado:** descrição de produto e foto. A planilha não tem esses campos, e escrever texto comercial que ninguém aprovou seria criar informação. No lugar da descrição, o cartão mostra **as variações reais** contadas no estoque.
+
+**Divergência de preço encontrada entre as fontes** — registrada em `src/lib/catalogo.ts` e pendente de confirmação: o catálogo do Mercado Pago (2026-06-13) traz "Camisa" a **R$ 80,00**; o estoque e a listagem do Bling (2026-08-29) trazem camisa adulta a **R$ 89,90**. Prevaleceu o estoque, por ser a fonte mais recente.
+
+O saldo exato **não vai para a vitrine**: aparece "Disponível", "Últimas unidades" (5 ou menos) ou "Esgotado". Há teste garantindo que nenhum número de estoque vaze para a tela.
+
+### Tentativa 1 — ❌ falhou no Gate 3
+
+| Gate | Resultado |
+|---|---|
+| 1 | ✅ |
+| 2 | ✅ 21/21 |
+| 3 | ❌ 1 de 28 falhou |
+
+**Falha:** `o menu superior leva a cada categoria da loja` — `#submenu-loja` não aparecia após o clique.
+
+**Causa: defeito real de usabilidade, não do teste.** O submenu abria por passagem do mouse (`onMouseEnter`) e o botão alternava. O Playwright — como qualquer pessoa usando mouse — passa o cursor antes de clicar: o hover abria, o clique fechava, e **o botão parecia quebrado**.
+
+**Correção na raiz:** o submenu passou a abrir **só por clique**. Menu que abre no hover não existe em tela de toque, atrapalha quem navega por teclado e cria justamente essa ambiguidade. Fecha com **Escape** ou clique fora — dois caminhos que antes não existiam.
+
+### Tentativa 2 — ✅ todos os gates verdes
+
+| Gate | Resultado | Evidência |
+|---|---|---|
+| **1** | ✅ | `tsc`=0 · `eslint`=0 · `build`=0, com as 6 categorias pré-renderizadas |
+| **2** | ✅ | Vitest **21/21** |
+| **3** | ✅ | Playwright **28 passaram** |
+| **4** | ✅ | Lighthouse nas 6 páginas: **100/100/100/100** |
+| **5** | ✅ | Identidade preservada nos dois temas |
+
+### Verificações novas no Gate 2
+
+- Nenhuma categoria fica vazia — vitrine sem produto é link quebrado no menu.
+- Faixa de preço nunca invertida (mínimo maior que máximo).
+- Todo produto pertence a uma categoria que existe.
+- O rótulo de disponibilidade não contém dígito — o saldo não vaza.
+
+### Verificações novas no Gate 3
+
+- O submenu do cabeçalho abre e navega até a categoria certa.
+- As seis páginas de categoria abrem e listam produtos.
+
+---
+
 ### Pendências abertas ao fim da rodada
 
 Nenhuma bloqueia as Fases 0 e 1. Todas afetam fases seguintes:

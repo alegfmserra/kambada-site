@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { ARTIGOS } from "@/lib/artigos";
+import { CATEGORIAS } from "@/lib/catalogo";
 import { NAV, SITE } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -17,5 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...paginas, ...artigos];
+  const categorias: MetadataRoute.Sitemap = CATEGORIAS.map((categoria) => ({
+    url: new URL(`/loja/${categoria.slug}`, SITE.url).toString(),
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+  return [...paginas, ...categorias, ...artigos];
 }

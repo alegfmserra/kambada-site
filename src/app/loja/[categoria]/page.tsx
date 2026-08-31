@@ -4,16 +4,19 @@ import { notFound } from "next/navigation";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
-import {
-  CATEGORIAS,
-  categoriaPorSlug,
-  produtosDaCategoria,
-} from "@/lib/catalogo";
+import { buscarCatalogo } from "@/lib/bling/produtos";
+import { CATEGORIAS, categoriaPorSlug } from "@/lib/catalogo";
 import { linkWhatsApp } from "@/lib/site";
 
 /** Tipado à mão: PageProps só existe depois do build. */
 type Props = { params: Promise<{ categoria: string }> };
 
+export const revalidate = 600;
+
+/**
+ * As rotas vêm da lista local de categorias, não do Bling: são curadoria
+ * nossa e precisam existir no build mesmo se o ERP estiver fora do ar.
+ */
 export function generateStaticParams() {
   return CATEGORIAS.map((c) => ({ categoria: c.slug }));
 }
@@ -35,7 +38,8 @@ export default async function Categoria({ params }: Props) {
   const categoria = categoriaPorSlug(slug);
   if (!categoria) notFound();
 
-  const produtos = produtosDaCategoria(categoria.slug);
+  const catalogo = await buscarCatalogo();
+  const produtos = catalogo.produtos.filter((p) => p.categoria === slug);
 
   return (
     <>

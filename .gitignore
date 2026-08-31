@@ -35,6 +35,11 @@ yarn-error.log*
 # ...mas o modelo documentado tem de ir para o repositório.
 !.env.example
 
+# Tokens do Bling gravados em disco. São credenciais vivas: quem tiver o
+# refresh_token acessa o ERP inteiro. NUNCA podem ir para o repositório.
+/.dados/
+*bling-tokens*.json
+
 # QA — os screenshots do Gate 3 são versionados de propósito;
 # relatórios brutos e artefatos de execução, não.
 /playwright-report/

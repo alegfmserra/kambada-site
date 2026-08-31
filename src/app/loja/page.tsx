@@ -4,7 +4,7 @@ import Link from "next/link";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
-import { CATEGORIAS, produtosDaCategoria } from "@/lib/catalogo";
+import { buscarCatalogo } from "@/lib/bling/produtos";
 import { linkWhatsApp } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,7 +14,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/loja" },
 };
 
-export default function Loja() {
+export const revalidate = 600;
+
+export default async function Loja() {
+  const { categorias, produtos } = await buscarCatalogo();
+  const daCategoria = (slug: string) =>
+    produtos.filter((p) => p.categoria === slug);
+
   return (
     <>
       <section className="border-b border-borda">
@@ -34,7 +40,7 @@ export default function Loja() {
 
       <BarraCategorias />
 
-      {CATEGORIAS.map((categoria) => (
+      {categorias.map((categoria) => (
         <section
           key={categoria.slug}
           id={categoria.slug}
@@ -72,7 +78,7 @@ export default function Loja() {
               </Link>
             )}
             <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {produtosDaCategoria(categoria.slug).map((produto) => (
+              {daCategoria(categoria.slug).map((produto) => (
                 <CartaoProduto key={produto.slug} produto={produto} />
               ))}
             </ul>

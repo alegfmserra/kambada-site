@@ -185,6 +185,81 @@ O saldo exato **não vai para a vitrine**: aparece "Disponível", "Últimas unid
 
 ---
 
+## Rodada 5 — 2026-08-31 — Fotos da marca
+
+**Escopo:** 14 fotos do acervo (de 87 entregues) integradas à home, ao Sobre e à loja. Seleção feita por folhas de contato; processamento em `scripts/preparar-fotos.mjs` (rotação, redimensionamento por uso real, WebP a 80%). Total de 2,5 MB.
+
+| Gate | Resultado |
+|---|---|
+| 1 | ✅ |
+| 2 | ✅ 24/24 — inclui teste que reprova texto alternativo genérico ou curto demais |
+| 3 | ✅ 28 verificações |
+| 4 | ✅ **99**/100/100/100 na home (as fotos custam 1 ponto), 100 nas outras cinco |
+| 5 | ✅ |
+
+**Pareôs ficaram sem foto de propósito:** não há nenhuma no acervo, e usar imagem de outro produto seria enganoso. O layout trata a ausência.
+
+---
+
+## Rodada 6 — 2026-08-31 — Fase 2: integração com o Bling
+
+**Escopo:** cliente completo da API v3, OAuth com renovação automática, limitador de requisições, webhook de estoque, e catálogo com queda para o local. Cinco ciclos de revisão, conforme pedido.
+
+### Antes de escrever: conferir a documentação
+
+Os endpoints foram confirmados na documentação e numa implementação de referência, não deduzidos. Um achado que teria custado caro: **o endpoint de OAuth fica em `www.bling.com.br`, enquanto a API fica em `api.bling.com.br`.** Supor o mesmo host quebraria a autorização com erro nada óbvio. Há teste travando esse endereço.
+
+### Ciclo 1 — construção ✅
+
+Cliente, tokens, limitador, rotas e 38 testes. Todos os gates verdes.
+
+### Ciclo 2 — revisão do próprio código: **3 defeitos encontrados** ✅
+
+1. **🔴 Os tokens do Bling iriam para o GitHub.** O arquivo `.dados/bling-tokens.json` não estava no `.gitignore`. O refresh_token dá acesso ao ERP inteiro — seria um vazamento sério. Corrigido, e verificado com `git check-ignore`.
+2. **🔴 Renovação de token concorrente.** Várias requisições encontrando o token vencido ao mesmo tempo disparariam vários refresh. Como o Bling pode rotacionar o refresh_token a cada uso, o segundo chegaria com credencial invalidada e a conexão cairia. Agora todas compartilham a mesma renovação — com três testes cobrindo o caso, inclusive o de falha não deixar a promessa presa.
+3. **🟡 Ternário sem efeito** no webhook (`? "page" : "page"`). Simplificado.
+
+### Ciclo 3 — revisão de arquitetura: **uma decisão minha revertida** ✅
+
+Eu havia feito as categorias virem do Bling. Errado: o Bling só tem `descricao`, enquanto a chamada de cada vitrine e a foto são curadoria feita à mão. Uma renomeação no ERP apagaria esse trabalho e deixaria seções sem texto e sem imagem.
+
+Invertido: **a lista local de categorias manda; do Bling vêm os produtos**, encaixados pelo slug. Somaram-se duas defesas: produto de categoria desconhecida fica de fora (ficaria órfão, sem página), e se nenhum produto casar, cai para o catálogo local em vez de servir uma loja vazia.
+
+As páginas de loja passaram a consumir `buscarCatalogo()` com ISR de 10 minutos. Como a queda para o local é automática, o site hoje serve exatamente o que servia antes — e passa a servir do Bling no instante em que a autorização for feita, sem mais nenhuma alteração de código.
+
+### Ciclo 4 — verificação funcional ✅
+
+Servidor real, rotas exercitadas:
+
+| Verificação | Resultado |
+|---|---|
+| Webhook sem segredo | **401** — falha fechada |
+| Webhook com segredo errado | **401** |
+| Webhook GET (diagnóstico) | 200, informa se está configurado |
+| Loja sem o Bling autorizado | **200, com os produtos reais** — a queda funciona |
+| URL de autorização | testada por unidade: host correto, `state` presente, **sem client_secret** |
+
+Gauntlet completo: 45 testes, 28 verificações visuais, Lighthouse **100/100/100/100 nas seis páginas**.
+
+### Ciclo 5 — auditoria de segredos ✅
+
+| Verificação | Resultado |
+|---|---|
+| Segredo no código versionado | nenhum |
+| Segredo no JS/HTML entregue ao navegador | nenhum |
+| `.env.local` e `.dados/` fora do git | confirmado |
+| Variáveis `NEXT_PUBLIC_` | só a URL do site e a chave **pública** do Mercado Pago |
+
+Documentação em `docs/bling.md`, com o passo a passo da autorização e as decisões justificadas.
+
+### O que falta para a Fase 2 ficar completa
+
+Só o que depende do Alexandre: **abrir `/api/bling/autorizar` e aprovar**. Antes disso, conferir se o "Link de redirecionamento" no aplicativo do Bling bate exatamente com o ambiente. E cadastrar o webhook, com o segredo já gerado no `.env.local`.
+
+**Fotos dos produtos continuam pendentes** — o Bling só devolve imagem se ela estiver cadastrada lá.
+
+---
+
 ### Pendências abertas ao fim da rodada
 
 Nenhuma bloqueia as Fases 0 e 1. Todas afetam fases seguintes:

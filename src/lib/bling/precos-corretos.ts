@@ -104,10 +104,23 @@ export const PRECOS_CORRETOS: Record<string, PrecoCorreto> = {
  * substituídos. "Pareô" não tem filho: era um produto simples avulso, sem
  * estrutura de variação nenhuma.
  *
+ * "Ecobag Pequena" e "Ecobag Grande" são o padrão antigo da Fase 3 — a
+ * estampa virou o produto-pai, com Mini/Grande como variação dentro dele
+ * (ver /api/bling/criar-ecobags). "Ecobag Grande" era um produto simples
+ * avulso, sem variação — igual ao caso do Pareô antes da Fase 1.
+ *
  * Inativar, e não apagar: os registros estão amarrados a notas fiscais já
  * emitidas.
  */
-export const A_INATIVAR = ["Camisa", "Camisa Unissex", "Boné", "Necessaire", "Pareô"];
+export const A_INATIVAR = [
+  "Camisa",
+  "Camisa Unissex",
+  "Boné",
+  "Necessaire",
+  "Pareô",
+  "Ecobag Pequena",
+  "Ecobag Grande",
+];
 
 /**
  * Produtos existentes no Bling que ficaram FORA desta correção, de propósito.

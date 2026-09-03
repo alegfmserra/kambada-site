@@ -58,20 +58,32 @@ export const NAV = [
 
 /**
  * Casos de encomenda corporativa — kits, placas e porta-chaves feitos sob
- * medida para eventos e empresas (Senac, entre outros vistos em fotos de
- * produto de 2026-09-03).
+ * medida para eventos e empresas.
  *
- * Vazio de propósito: usar o nome ou a marca de um cliente publicamente é
- * decisão do CLIENTE tanto quanto da Kambada — não presumo autorização só
- * porque a peça apareceu numa foto interna. Fica pendente de confirmação,
- * cliente a cliente, antes de qualquer nome entrar aqui.
+ * Cada nome aqui precisa de autorização do PRÓPRIO cliente, confirmada
+ * pelo Alexandre — não basta a peça ter aparecido numa foto interna:
+ *
+ * - Senac: autorizado. Contrato assinado, autorização registrada no
+ *   orçamento — confirmado pelo Alexandre em 2026-09-03.
+ * - Ildo Rocha: autorização verbal existe, mas o Alexandre pediu
+ *   explicitamente para NÃO publicar ainda (2026-09-03). Fica de fora até
+ *   ele confirmar.
+ *
+ * Qualquer nome novo entra do mesmo jeito: só depois de confirmação
+ * explícita, cliente a cliente.
  */
 export type CasoEncomenda = {
   empresa: string;
   descricao: string;
 };
 
-export const ENCOMENDAS_PORTFOLIO: CasoEncomenda[] = [];
+export const ENCOMENDAS_PORTFOLIO: CasoEncomenda[] = [
+  {
+    empresa: "Senac Fecomércio Sesc",
+    descricao:
+      "Kit de boas-vindas e peças personalizadas para a comemoração dos 80 anos do Senac em São Luís.",
+  },
+];
 
 /**
  * Medidores de analytics já em uso no site atual — migram na Fase 1.

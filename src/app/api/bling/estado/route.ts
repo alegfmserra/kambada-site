@@ -87,15 +87,20 @@ export async function GET(requisicao: Request) {
    * custaria a vitrine inteira; ler o dado cru custa uma requisição.
    */
   let bruto: unknown = undefined;
-  const idBruto = url.searchParams.get("bruto");
-  if (idBruto && autorizado) {
-    try {
-      bruto = await chamarBling<unknown>(`/produtos/${idBruto}`, {
-        revalidar: 0,
-      });
-    } catch (e) {
-      bruto = { erro: e instanceof Error ? e.message : String(e) };
-    }
+  const alvo = url.searchParams.get("bruto");
+  if (alvo && autorizado) {
+    // Só leitura, e só caminho reconhecível: este parâmetro não vira uma
+    // porta aberta para o ERP, mesmo protegido pelo segredo.
+    const caminho = /^\d+$/.test(alvo)
+      ? `/produtos/${alvo}`
+      : /^\/[a-zA-Z0-9/_\-?=&[\]]+$/.test(alvo)
+        ? alvo
+        : null;
+    bruto = caminho
+      ? await chamarBling<unknown>(caminho, { revalidar: 0 }).catch((e) => ({
+          erro: e instanceof Error ? e.message : String(e),
+        }))
+      : { erro: "caminho recusado" };
   }
 
   const porCategoria: Record<string, number> = {};

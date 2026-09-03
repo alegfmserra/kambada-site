@@ -1,7 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { buscarCatalogo } from "@/lib/bling/produtos";
+import { listarTudo } from "@/lib/bling/cliente";
+import { buscarCatalogo, paraSlug } from "@/lib/bling/produtos";
+import type { CategoriaBling, ProdutoBling } from "@/lib/bling/tipos";
 import { estaAutorizado } from "@/lib/bling/tokens";
+import { CATEGORIAS } from "@/lib/catalogo";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +36,47 @@ export async function GET(requisicao: Request) {
   const autorizado = await estaAutorizado();
   const catalogo = await buscarCatalogo();
 
+  /**
+   * ?detalhe=1 mostra o que o Bling realmente devolveu, para descobrir por
+   * que um produto não casou com nenhuma categoria do site. Sem isto, só
+   * resta adivinhar.
+   */
+  let detalhe: unknown = undefined;
+  if (url.searchParams.get("detalhe") === "1" && autorizado) {
+    try {
+      const [categoriasBling, produtosBling] = await Promise.all([
+        listarTudo<CategoriaBling>("/categorias/produtos"),
+        listarTudo<ProdutoBling>("/produtos?criterio=2"),
+      ]);
+
+      const slugsDoSite = CATEGORIAS.map((c) => c.slug);
+      const idParaSlug = new Map(
+        categoriasBling.map((c) => [c.id, paraSlug(c.descricao)]),
+      );
+
+      detalhe = {
+        categoriasNoBling: categoriasBling.map((c) => ({
+          id: c.id,
+          descricao: c.descricao,
+          slugGerado: paraSlug(c.descricao),
+          casaComOSite: slugsDoSite.includes(paraSlug(c.descricao)),
+        })),
+        slugsQueOSiteEspera: slugsDoSite,
+        totalDeProdutosNoBling: produtosBling.length,
+        amostraDeProdutos: produtosBling.slice(0, 12).map((p) => ({
+          id: p.id,
+          nome: p.nome,
+          preco: p.preco,
+          formato: p.formato,
+          idCategoria: p.categoria?.id ?? null,
+          slugDaCategoria: idParaSlug.get(p.categoria?.id ?? -1) ?? null,
+        })),
+      };
+    } catch (e) {
+      detalhe = { erro: e instanceof Error ? e.message : String(e) };
+    }
+  }
+
   const porCategoria: Record<string, number> = {};
   for (const p of catalogo.produtos) {
     porCategoria[p.categoria] = (porCategoria[p.categoria] ?? 0) + 1;
@@ -51,5 +95,6 @@ export async function GET(requisicao: Request) {
       redirectUri: process.env.BLING_REDIRECT_URI ?? null,
       arquivoDeTokens: process.env.BLING_TOKENS_ARQUIVO ?? "(padrão)",
     },
+    ...(detalhe ? { detalhe } : {}),
   });
 }

@@ -6,13 +6,21 @@ import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
 export const dynamic = "force-dynamic";
 
 /**
- * Cria produtos novos no Bling — Fase 1 da reestruturação "estampa é
- * produto", aprovada pelo Alexandre em 2026-09-03.
+ * Cria produtos novos no Bling — Fases 1 e 4, aprovadas pelo Alexandre em
+ * 2026-09-03.
  *
- * Bonés, Necessaires e Pareôs viviam como 1 cadastro genérico + variações
- * por estampa (o padrão antigo). O padrão novo, que já vale para Camisas,
- * é a estampa ser o produto em si — mais fácil de controlar estoque por
- * peça, e pronto para virar anúncio individual num marketplace algum dia.
+ * FASE 1: Bonés, Necessaires e Pareôs viviam como 1 cadastro genérico +
+ * variações por estampa (o padrão antigo). O padrão novo, que já vale para
+ * Camisas, é a estampa ser o produto em si — mais fácil de controlar
+ * estoque por peça, e pronto para virar anúncio individual num marketplace
+ * algum dia.
+ *
+ * FASE 4: Papelaria, Brindes e Decoração — categorias que a loja nunca
+ * teve. Todo item aqui foi conferido contra a listagem inteira do Bling
+ * antes de entrar nesta lista: nenhum nome já existia, então não há
+ * correção de preço envolvida, só cadastro novo. Mandala e as Placas de
+ * Madeira não têm custo real ainda (a planilha marca como pendente); não
+ * afeta a criação porque o Bling só guarda preço de venda por produto.
  *
  * Cada criação é uma dupla de chamadas: POST /produtos (cadastro), depois
  * POST /estoques com operação "B" (Balanço) para lançar o saldo inicial —
@@ -60,6 +68,32 @@ const NOVOS: NovoProduto[] = [
   { slug: "pareo-mosaico", nome: "Pareô Mosaico", preco: 89.9, quantidade: 15, origem: "Pareôs" },
   { slug: "pareo-reggae-roots", nome: "Pareô Reggae Roots", preco: 89.9, quantidade: 17, origem: "Pareôs" },
   { slug: "pareo-revoada-guaras", nome: "Pareô Revoada dos Guarás", preco: 89.9, quantidade: 14, origem: "Pareôs" },
+
+  /**
+   * Fase 4 (2026-09-03) — Papelaria, Brindes e Decoração. Nenhum destes
+   * nomes existia no Bling (conferido contra a listagem inteira antes de
+   * escrever aqui), então não há ambiguidade de "qual produto é este":
+   * são criações novas, não correções de algo que já existisse sob outro
+   * nome. Preço e quantidade vêm de Estoque_Kambada, já reconciliada com o
+   * Cadastro Mestre.
+   *
+   * Mandala e as três Placas de Madeira não têm custo real ainda — a
+   * própria planilha marca como pendente de precificar. Isso não afeta a
+   * criação: o Bling não guarda custo por produto (só o preço de venda),
+   * então só o venda importa aqui.
+   */
+  { slug: "canetas-ecologicas", nome: "Canetas Ecológicas", preco: 8, quantidade: 50, origem: "Papelaria" },
+  { slug: "chaveiros-sortidos", nome: "Chaveiros Sortidos", preco: 15, quantidade: 20, origem: "Brindes" },
+
+  { slug: "bloco-caderninho-ecologico", nome: "Bloco Anotação Caderninho Ecológico", preco: 17, quantidade: 52, origem: "Papelaria" },
+  { slug: "kit-ecologico", nome: "Kit Ecológico", preco: 80, quantidade: 30, origem: "Papelaria" },
+  { slug: "kambada-goods", nome: "Kambada Goods", preco: 10, quantidade: 10, origem: "Papelaria" },
+  { slug: "joguinhos-divertido", nome: "Joguinhos Divertido", preco: 10, quantidade: 0, origem: "Papelaria" },
+
+  { slug: "mandala-modelos-diversos", nome: "Mandala Modelos Diversos", preco: 250, quantidade: 2, origem: "Decoração" },
+  { slug: "placa-reta", nome: "Placa de Madeira Reta", preco: 190, quantidade: 4, origem: "Decoração" },
+  { slug: "placa-redonda", nome: "Placa de Madeira Redonda", preco: 120, quantidade: 3, origem: "Decoração" },
+  { slug: "placa-grande", nome: "Placa de Madeira Grande", preco: 160, quantidade: 0, origem: "Decoração" },
 ];
 
 function segredoConfere(recebido: string | null): boolean {

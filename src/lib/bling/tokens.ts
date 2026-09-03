@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import type { RespostaToken, TokensSalvos } from "./tipos";
 import { ErroBling } from "./tipos";
 
@@ -13,10 +14,14 @@ import { ErroBling } from "./tipos";
  * Onde guardamos: um arquivo JSON no caminho de BLING_TOKENS_ARQUIVO. Sem
  * banco de dados, é a opção honesta para este porte de projeto.
  *
- * ⚠️ Limitação conhecida: se o disco da hospedagem for efêmero (recriado a
- * cada deploy), o arquivo se perde e é preciso autorizar de novo. Na Hostinger
- * o processo tem disco persistente, então funciona — mas o caminho é
- * configurável justamente para poder apontar para um volume que persista.
+ * ⚠️ O caminho PRECISA ficar fora da pasta da aplicação. Comprovado em
+ * produção em 2026-09-02: a Hostinger recria o diretório do app a cada
+ * implantação, e um caminho relativo (`.dados/…`) é apagado junto — a loja
+ * perdia a conexão e exigia autorização manual a cada atualização.
+ *
+ * Por isso o padrão agora é a pasta pessoal do usuário do sistema, que
+ * sobrevive ao deploy. Caminho relativo ainda é aceito, mas só faz sentido em
+ * desenvolvimento.
  */
 
 const URL_TOKEN = "https://www.bling.com.br/Api/v3/oauth/token";
@@ -25,8 +30,12 @@ const URL_AUTORIZACAO = "https://www.bling.com.br/Api/v3/oauth/authorize";
 /** Renova com folga, para nunca usar um token que expira no meio da chamada. */
 const MARGEM_MS = 5 * 60 * 1000;
 
-function arquivoTokens(): string {
-  return process.env.BLING_TOKENS_ARQUIVO ?? ".dados/bling-tokens.json";
+export function arquivoTokens(): string {
+  const configurado = process.env.BLING_TOKENS_ARQUIVO;
+  if (configurado) return configurado;
+
+  // Fora da pasta da aplicação, para sobreviver a cada implantação.
+  return join(homedir(), ".kambada", "bling-tokens.json");
 }
 
 function credenciais(): { id: string; segredo: string } {

@@ -1,9 +1,11 @@
 import { timingSafeEqual } from "node:crypto";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { NextResponse } from "next/server";
 import { listarTudo } from "@/lib/bling/cliente";
 import { buscarCatalogo, paraSlug } from "@/lib/bling/produtos";
 import type { CategoriaBling, ProdutoBling } from "@/lib/bling/tipos";
-import { estaAutorizado } from "@/lib/bling/tokens";
+import { arquivoTokens, estaAutorizado } from "@/lib/bling/tokens";
 import { CATEGORIAS } from "@/lib/catalogo";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +96,14 @@ export async function GET(requisicao: Request) {
       webhookSecret: Boolean(process.env.BLING_WEBHOOK_SECRET),
       redirectUri: process.env.BLING_REDIRECT_URI ?? null,
       arquivoDeTokens: process.env.BLING_TOKENS_ARQUIVO ?? "(padrão)",
+    },
+    // Para diagnosticar perda de tokens entre implantações: mostra onde o
+    // arquivo é procurado, se ele existe, e os caminhos do servidor.
+    armazenamento: {
+      caminhoUsado: arquivoTokens(),
+      arquivoExiste: existsSync(arquivoTokens()),
+      pastaDaAplicacao: process.cwd(),
+      pastaPessoal: homedir(),
     },
     ...(detalhe ? { detalhe } : {}),
   });

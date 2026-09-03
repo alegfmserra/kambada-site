@@ -30,8 +30,21 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Todas as rotas, menos os estáticos versionados acima.
-        source: "/:caminho((?!_next/static).*)",
+        // Rotas de API nunca podem ser cacheadas: webhook, diagnóstico e
+        // callback do OAuth precisam refletir o estado do instante. Uma
+        // resposta guardada por 60 segundos aqui esconde a realidade e
+        // atrapalha justamente quando se está investigando um problema.
+        source: "/api/:caminho*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
+        // Páginas: o navegador revalida sempre, o CDN guarda no máximo 60s.
+        source: "/:caminho((?!_next/static|api/).*)",
         headers: [
           {
             key: "Cache-Control",

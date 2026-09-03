@@ -94,18 +94,36 @@ Assine os eventos de **produto** e **estoque**. Para conferir se a rota está de
 
 ---
 
-## Achado de 2026-09-03: o Bling não tem categorias
+## Achado de 2026-09-03: o que a listagem do Bling não devolve
 
-O diagnóstico com `?detalhe=1` mostrou, com dois sinais independentes:
+Medido contra a conta real. `GET /produtos` devolve **apenas**: id, nome, codigo, preco, precoCusto, tipo, situacao, formato, descricaoCurta, imagemURL.
 
-- `/categorias/produtos` devolveu **lista vazia** (a chamada não falhou — a conta simplesmente não tem categoria de produto cadastrada);
-- todos os produtos da amostra vêm com `categoria.id = null`.
+Não devolve `categoria`, não devolve `estoque`, não devolve `variacoes`. O código lia os três dali. Quatro defeitos iam disparar juntos no dia em que houvesse casamento:
 
-Consequência: nenhum produto pode casar com as seis categorias do site, e a loja segue no catálogo local — que é exatamente o comportamento desenhado.
+| Defeito | Efeito na loja |
+|---|---|
+| `formato: "V"` é o produto-PAI, e o filtro estava invertido | cada tamanho virava um produto na vitrine |
+| sem `categoria` na listagem | nenhum produto casava com prateleira alguma |
+| sem `estoque` na listagem | saldo zero em tudo: a loja inteira "Esgotado" |
+| o preço do Bling é o de produção | camisa a R$ 33,80 em vez de R$ 89,90 |
 
-**Não é defeito de código.** É estado do ERP. Enquanto os produtos não tiverem categoria no Bling, ou o casamento não for feito por outro critério, `origem` continuará `"local"`.
+Os testes anteriores passavam porque o fixture inventava os campos ausentes. Fixture inventado testa a ficção, não o sistema — foram refeitos sobre uma amostra da conta real.
 
-Outros dois pontos observados na amostra, que precisam de decisão do dono antes de qualquer troca de fonte:
+### Como ficou
 
-1. **Preço.** O `preco` do Bling traz `Camisa = 33,80`, enquanto o preço de venda confirmado é `89,90`. Ligar o Bling hoje derrubaria os preços da vitrine.
-2. **Variações.** Os 120 registros misturam pai (`formato: "V"`, ex.: "Camisa Alusiva São Luís") e filho (`formato: "S"`, ex.: "… Tamanho:GG"). Sem agrupar por pai, cada tamanho viraria um produto na loja.
+- **Categoria pelo nome.** A conta tem uma única categoria, a "Categoria padrão" (id 13568333), com tudo dentro; não há o que casar. O nome, por outro lado, é regular. O que não casa fica de fora e é reportado em `naoClassificados` — hoje: Bermuda Brim, Bermuda Linho, Bloquinho, Lápis Plantável, Livro Trilíngue, Livro Vermelho, Porta-chave.
+- **Saldo em lote**, por `/estoques/saldos`; o do produto-pai é a soma dos filhos, porque quem guarda peça é a variação.
+- **Fonte explícita.** `BLING_FONTE_DO_CATALOGO`, padrão `local`. O código já lê o Bling inteiro; falta o preço de venda estar certo lá.
+
+### Conferir antes de virar a chave
+
+```
+/api/bling/estado?token=SEGREDO&simular=1
+```
+
+Monta a vitrine a partir do Bling sem trocar a fonte. Em 2026-09-03 devolveu 31 produtos, com tamanhos agrupados e saldos somados corretamente.
+
+### O que depende do dono
+
+1. **Preço de venda.** Está com o valor de produção em quase toda a conta. Isso não afeta só o site: o mesmo campo alimenta nota fiscal e marketplace. Que o campo é mesmo o de venda, prova-o a "Camisa Unissex" a R$ 80 — e `precoCusto` está zerado em todos os produtos.
+2. **Fotos.** Dos 39 produtos mostráveis, só a "Matraca Kambada Grande com Suporte" tem imagem no Bling.

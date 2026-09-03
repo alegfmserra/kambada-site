@@ -102,6 +102,26 @@ export const FOTOS = {
     largura: 800,
     altura: 1067,
   },
+  // Encomenda Senac — origem: comercial/Vendas B2B, preparadas por
+  // scripts/preparar-fotos-encomendas.mjs (2026-09-03).
+  encomendaSenacMostruario: {
+    arquivo: "/fotos/encomenda-senac-mostruario.webp",
+    alt: "Mostruário com matracas, ecobags, placas de porta-chaves, marcadores magnéticos e lápis personalizados feitos para o Senac",
+    largura: 1200,
+    altura: 1600,
+  },
+  encomendaSenacIlhaDoAmor: {
+    arquivo: "/fotos/encomenda-senac-ilha-do-amor.webp",
+    alt: "Ecobag e caderno personalizados com a arte Ilha do Amor e a marca Senac Fecomércio Sesc 80 anos",
+    largura: 960,
+    altura: 1280,
+  },
+  encomendaSenacKitCompleto: {
+    arquivo: "/fotos/encomenda-senac-kit-completo.webp",
+    alt: "Kit personalizado para o Senac com ecobag, matraca-chaveiro, lápis e necessaire da linha Tradição",
+    largura: 1200,
+    altura: 1600,
+  },
 } as const satisfies Record<string, Foto>;
 
 /** Galeria da página Sobre — a marca vista por quem a veste e por quem a faz. */

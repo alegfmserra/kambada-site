@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
 
 /**
@@ -97,18 +98,33 @@ export default function Encomendas() {
             <h2 className="font-display text-3xl font-bold sm:text-4xl">
               Empresas que confiaram na Kambada
             </h2>
-            <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 space-y-12">
               {ENCOMENDAS_PORTFOLIO.map((caso) => (
-                <li
-                  key={caso.empresa}
-                  className="rounded-2xl border border-borda bg-superficie p-6"
-                >
-                  <h3 className="font-display text-lg font-semibold">
+                <li key={caso.empresa}>
+                  <h3 className="font-display text-2xl font-semibold">
                     {caso.empresa}
                   </h3>
-                  <p className="mt-2 leading-relaxed text-texto-suave">
+                  <p className="mt-2 max-w-2xl leading-relaxed text-texto-suave">
                     {caso.descricao}
                   </p>
+                  {caso.fotos.length > 0 ? (
+                    <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {caso.fotos.map((foto) => (
+                        <li
+                          key={foto.arquivo}
+                          className="relative aspect-[3/4] overflow-hidden rounded-2xl"
+                        >
+                          <Image
+                            src={foto.arquivo}
+                            alt={foto.alt}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover"
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </li>
               ))}
             </ul>

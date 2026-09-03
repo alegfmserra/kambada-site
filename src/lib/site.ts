@@ -5,6 +5,8 @@
  * fica ausente e vira pendência — nunca é preenchido por suposição.
  */
 
+import { FOTOS, type Foto } from "./fotos";
+
 export const SITE = {
   nome: "Kambada",
   nomeCompleto: "Somos Kambada",
@@ -75,13 +77,20 @@ export const NAV = [
 export type CasoEncomenda = {
   empresa: string;
   descricao: string;
+  /** Prova visual — sem foto, "já fizemos" fica só na palavra. */
+  fotos: Foto[];
 };
 
 export const ENCOMENDAS_PORTFOLIO: CasoEncomenda[] = [
   {
     empresa: "Senac Fecomércio Sesc",
     descricao:
-      "Kit de boas-vindas e peças personalizadas para a comemoração dos 80 anos do Senac em São Luís.",
+      "Duas encomendas — Congresso Financeiro e Restaurante Escola — com kit de boas-vindas, matracas, ecobags e placas personalizadas para a comemoração dos 80 anos do Senac em São Luís.",
+    fotos: [
+      FOTOS.encomendaSenacMostruario,
+      FOTOS.encomendaSenacIlhaDoAmor,
+      FOTOS.encomendaSenacKitCompleto,
+    ],
   },
 ];
 

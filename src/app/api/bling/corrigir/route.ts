@@ -164,12 +164,25 @@ async function guardarCopia(originais: unknown[]): Promise<string> {
   return caminho;
 }
 
-async function aplicar(passos: Passo[]) {
+/**
+ * Quantos passos por chamada.
+ *
+ * Cada passo custa três requisições (ler, gravar, reler) a 3 req/s. Os 113
+ * produtos de uma vez levariam uns dois minutos e estourariam o tempo da
+ * requisição no meio — deixando a correção pela metade e sem relatório.
+ *
+ * Como o plano é recalculado a cada chamada e marca "já correto" o que
+ * terminou, basta chamar de novo até zerar. Retomar é o comportamento normal.
+ */
+const MAXIMO_PADRAO = 20;
+
+async function aplicar(passos: Passo[], maximo: number) {
   const originais: unknown[] = [];
   const feitos: Record<string, unknown>[] = [];
 
   for (const passo of passos) {
     if (passo.acao === "pular") continue;
+    if (feitos.length >= maximo) break;
 
     try {
       // Relemos o produto inteiro: a atualização devolve o objeto completo
@@ -184,8 +197,15 @@ async function aplicar(passos: Passo[]) {
       if (passo.acao === "inativar") {
         corpo.situacao = "I";
       } else {
+        /**
+         * Só o preço de venda. O `precoCusto` aparece na LISTAGEM mas não no
+         * produto individual, e mandá-lo no PUT não surte efeito — medido em
+         * 2026-09-03: o preço passou de 19 para 55 e o custo continuou 0.
+         *
+         * Escrever um campo que o Bling ignora daria a impressão de que o
+         * custo foi corrigido quando não foi. Fica de fora, e documentado.
+         */
         corpo.preco = passo.para!.venda;
-        corpo.precoCusto = passo.para!.custo;
       }
 
       await chamarBling(`/produtos/${passo.id}`, {
@@ -252,8 +272,23 @@ async function responder(requisicao: Request, escrever: boolean) {
     });
   }
 
-  const resultado = await aplicar(passos);
-  return NextResponse.json({ modo: "aplicado", resumo, ...resultado });
+  const pedido = Number(url.searchParams.get("maximo"));
+  const maximo =
+    Number.isInteger(pedido) && pedido > 0 && pedido <= 40
+      ? pedido
+      : MAXIMO_PADRAO;
+
+  const resultado = await aplicar(passos, maximo);
+  const pendentes =
+    passos.filter((p) => p.acao !== "pular").length - resultado.feitos.length;
+
+  return NextResponse.json({
+    modo: "aplicado",
+    resumo,
+    // Quantos ainda faltam. Chame de novo até zerar.
+    pendentes,
+    ...resultado,
+  });
 }
 
 export async function GET(requisicao: Request) {

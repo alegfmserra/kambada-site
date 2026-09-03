@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { NextResponse } from "next/server";
 import { chamarBling, listarTudo } from "@/lib/bling/cliente";
-import { buscarCatalogo, paraSlug } from "@/lib/bling/produtos";
+import { buscarCatalogo, montarDoBling, paraSlug } from "@/lib/bling/produtos";
 import type { CategoriaBling, ProdutoBling } from "@/lib/bling/tipos";
 import { arquivoTokens, estaAutorizado } from "@/lib/bling/tokens";
 import { CATEGORIAS } from "@/lib/catalogo";
@@ -103,6 +103,33 @@ export async function GET(requisicao: Request) {
       : { erro: "caminho recusado" };
   }
 
+  /**
+   * ?simular=1 monta a vitrine a partir do Bling ainda que a fonte oficial
+   * seja a local. Serve para conferir o resultado ANTES de virar a chave —
+   * ver a loja quebrar em produção não é forma de descobrir isso.
+   */
+  let simulacao: unknown = undefined;
+  if (url.searchParams.get("simular") === "1" && autorizado) {
+    try {
+      const c = await montarDoBling();
+      simulacao = {
+        origem: c.origem,
+        motivo: c.motivo ?? null,
+        naoClassificados: c.naoClassificados ?? [],
+        produtos: c.produtos.map((p) => ({
+          nome: p.nome,
+          categoria: p.categoria,
+          preco: p.preco,
+          precoMaximo: p.precoMaximo ?? null,
+          quantidade: p.quantidade,
+          variacoes: p.variacoes,
+        })),
+      };
+    } catch (e) {
+      simulacao = { erro: e instanceof Error ? e.message : String(e) };
+    }
+  }
+
   const porCategoria: Record<string, number> = {};
   for (const p of catalogo.produtos) {
     porCategoria[p.categoria] = (porCategoria[p.categoria] ?? 0) + 1;
@@ -131,5 +158,6 @@ export async function GET(requisicao: Request) {
     },
     ...(detalhe ? { detalhe } : {}),
     ...(bruto ? { bruto } : {}),
+    ...(simulacao ? { simulacao } : {}),
   });
 }

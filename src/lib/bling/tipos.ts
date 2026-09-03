@@ -28,13 +28,33 @@ export type ProdutoBling = {
   nome: string;
   codigo?: string;
   preco?: number;
+  /** "Preço de custo". Em 2026-09-03 estava zerado em toda a conta. */
+  precoCusto?: number;
   situacao?: string; // "A" = ativo
-  formato?: string; // "S" simples, "V" variação, "E" com variações
+  /**
+   * Conferido contra a API em 2026-09-03, porque a suposição anterior estava
+   * invertida e teria posto cada tamanho na vitrine como um produto:
+   *
+   * - "V" = produto-PAI, o que tem variações. É ele que vai para a vitrine.
+   * - "S" = produto simples OU um FILHO de variação.
+   *
+   * O que separa um filho de um produto simples é `variacao.produtoPai` —
+   * campo que só existe no produto individual. Ver `ehFilhoDeVariacao`.
+   */
+  formato?: string;
   tipo?: string;
   descricaoCurta?: string;
   imagemURL?: string;
+  /** Só no produto individual. A LISTAGEM não devolve este campo. */
   categoria?: { id: number; descricao?: string };
+  /** Só no produto individual. A LISTAGEM não devolve este campo. */
   estoque?: { saldoVirtualTotal?: number };
+  /** Só no produto individual. Identifica o filho de uma variação. */
+  variacao?: {
+    nome?: string;
+    ordem?: number;
+    produtoPai?: { id: number };
+  };
   midia?: {
     imagens?: {
       externas?: { link: string }[];

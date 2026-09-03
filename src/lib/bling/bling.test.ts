@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { CATEGORIAS } from "../catalogo";
 import { Limitador, dormir } from "./limitador";
-import { converterProduto, paraSlug } from "./produtos";
+import {
+  categoriaPeloNome,
+  ehFilhoDeVariacao,
+  nomesDeProdutosPai,
+  paiDoProduto,
+  paraSlug,
+  rotuloDaVariacao,
+} from "./produtos";
 import type { ProdutoBling } from "./tipos";
 import { urlDeAutorizacao } from "./tokens";
 
@@ -77,78 +85,141 @@ describe("paraSlug", () => {
   });
 });
 
-function produtoBling(extra: Partial<ProdutoBling> = {}): ProdutoBling {
-  return { id: 42, nome: "Camiseta Tradição", preco: 89.9, ...extra };
+/**
+ * Amostra da conta real, copiada da listagem do Bling em 2026-09-03.
+ *
+ * Os nomes e o `formato` são os de verdade, de propósito: os testes que
+ * existiam antes usavam um produto imaginado, com campos que a listagem não
+ * devolve (`variacoes`, `estoque`), e por isso passavam enquanto a vitrine
+ * quebrava em produção. Fixture inventado testa a ficção, não o sistema.
+ */
+function amostraDaConta(): ProdutoBling[] {
+  const p = (
+    id: number,
+    nome: string,
+    formato: "V" | "S",
+    preco: number,
+  ): ProdutoBling => ({ id, nome, formato, preco });
+
+  return [
+    p(16698811377, "Camisa Alusiva São Luís", "V", 33.8),
+    p(16698811627, "Camisa Alusiva São Luís Tamanho:PP", "S", 33.8),
+    p(16698811628, "Camisa Alusiva São Luís Tamanho:GG", "S", 33.8),
+    p(16689774472, "Camisa", "V", 33.8),
+    p(16698811900, "Camisa Tradição Texto", "V", 33.8),
+    p(16698811901, "Camisa Tradição Texto Tamanho:M", "S", 33.8),
+    p(16689778352, "Boné", "V", 19),
+    p(16698805934, "Boné Cor/Estampa:Guarás Bege", "S", 19),
+    p(16689786870, "Bloquinho", "S", 9),
+    p(16689777073, "Bermuda Brim", "S", 75),
+  ];
 }
 
-describe("converterProduto", () => {
-  it("converte o essencial e gera slug único pelo id", () => {
-    const p = converterProduto(produtoBling(), "camisas");
-    expect(p.nome).toBe("Camiseta Tradição");
-    expect(p.slug).toBe("camiseta-tradicao-42");
-    expect(p.preco).toBe(89.9);
-    expect(p.categoria).toBe("camisas");
+describe("produto-pai e filho de variação", () => {
+  const todos = amostraDaConta();
+  const pais = nomesDeProdutosPai(todos);
+
+  it("reconhece o produto-pai pelo formato V", () => {
+    // Conferido contra a API: "V" é o PAI, não a variação. A suposição
+    // invertida punha cada tamanho na vitrine como se fosse outro produto.
+    expect(pais).toContain("Camisa Alusiva São Luís");
+    expect(pais).toContain("Boné");
+    expect(pais).not.toContain("Bloquinho");
   });
 
-  it("dois produtos de mesmo nome não colidem, porque o id entra no slug", () => {
-    const a = converterProduto(produtoBling({ id: 1 }), "camisas");
-    const b = converterProduto(produtoBling({ id: 2 }), "camisas");
-    expect(a.slug).not.toBe(b.slug);
+  it("testa o nome mais longo primeiro, para não trocar o pai", () => {
+    // "Camisa Tradição Texto Tamanho:M" começa com "Camisa", que também é um
+    // pai. Sem ordenar por tamanho, o filho iria para o produto errado.
+    const filho = todos.find(
+      (x) => x.nome === "Camisa Tradição Texto Tamanho:M",
+    )!;
+    expect(paiDoProduto(filho, pais)).toBe("Camisa Tradição Texto");
   });
 
-  it("usa o menor preço das variações quando o produto-pai não tem preço", () => {
-    const p = converterProduto(
-      produtoBling({
-        preco: 0,
-        variacoes: [
-          { id: 1, nome: "Mini", preco: 110 },
-          { id: 2, nome: "Grande", preco: 145 },
-        ],
-      }),
-      "matracas",
+  it("trata como filho o que tem o nome do pai como prefixo", () => {
+    const filho = todos.find((x) => x.nome.endsWith("Tamanho:GG"))!;
+    expect(ehFilhoDeVariacao(filho, pais)).toBe(true);
+  });
+
+  it("não confunde produto avulso com filho de variação", () => {
+    for (const nome of ["Bloquinho", "Bermuda Brim"]) {
+      const avulso = todos.find((x) => x.nome === nome)!;
+      expect(ehFilhoDeVariacao(avulso, pais)).toBe(false);
+    }
+  });
+
+  it("aceita a prova direta do produto individual, quando ela existe", () => {
+    const filho: ProdutoBling = {
+      id: 1,
+      nome: "Nome que não lembra pai nenhum",
+      formato: "S",
+      variacao: { nome: "Tamanho:G", produtoPai: { id: 99 } },
+    };
+    expect(ehFilhoDeVariacao(filho, [])).toBe(true);
+  });
+});
+
+describe("rotuloDaVariacao", () => {
+  it("tira o nome do pai e o nome do atributo", () => {
+    expect(rotuloDaVariacao("Boné Cor/Estampa:Guarás Bege", "Boné")).toBe(
+      "Guarás Bege",
     );
-    expect(p.preco).toBe(110);
-    expect(p.precoMaximo).toBe(145);
-    expect(p.variacoes).toEqual(["Mini", "Grande"]);
+    expect(
+      rotuloDaVariacao("Camisa Alusiva São Luís Tamanho:GG", "Camisa Alusiva São Luís"),
+    ).toBe("GG");
   });
 
-  it("não inventa faixa de preço quando só há uma variação", () => {
-    const p = converterProduto(
-      produtoBling({ preco: 0, variacoes: [{ id: 1, nome: "Único", preco: 55 }] }),
-      "bones",
-    );
-    expect(p.preco).toBe(55);
-    expect(p.precoMaximo).toBeUndefined();
+  it("não devolve vazio quando não há o que tirar", () => {
+    expect(rotuloDaVariacao("Único", "Boné")).toBe("Único");
+    expect(rotuloDaVariacao("Boné Estampa:", "Boné")).toBe("Estampa:");
+  });
+});
+
+describe("categoriaPeloNome", () => {
+  it("põe cada produto real na prateleira certa", () => {
+    const esperado: [string, string][] = [
+      ["Camisa Lendas e Carrancas", "camisas"],
+      ["Matraca Kambada Play", "matracas"],
+      ["Ecobag Pequena", "ecobags"],
+      ["Boné", "bones"],
+      ["Pareô", "pareos"],
+      ["Necessaire", "necessaires"],
+    ];
+    for (const [nome, slug] of esperado) {
+      expect(categoriaPeloNome(nome)).toBe(slug);
+    }
   });
 
-  it("ignora variação sem preço em vez de tratar como zero", () => {
-    const p = converterProduto(
-      produtoBling({
-        preco: 0,
-        variacoes: [
-          { id: 1, nome: "P" },
-          { id: 2, nome: "M", preco: 89.9 },
-        ],
-      }),
+  it("deixa de fora o que não tem vitrine, em vez de chutar", () => {
+    // Estes existem no Bling e não têm seção no site. Entrar numa prateleira
+    // errada seria pior do que ficar de fora e ser reportado.
+    for (const nome of [
+      "Bermuda Brim",
+      "Bloquinho",
+      "Lápis Plantável",
+      "Livro Trilíngue",
+      "Porta-chave",
+    ]) {
+      expect(categoriaPeloNome(nome)).toBeNull();
+    }
+  });
+
+  it("não casa por pedaço solto no meio do nome", () => {
+    // "Camisa Boizinho com Fio de Matraca" é camisa, não matraca.
+    expect(categoriaPeloNome("Camisa Boizinho com Fio de Matraca")).toBe(
       "camisas",
     );
-    expect(p.preco).toBe(89.9);
-  });
-
-  it("produto sem variação recebe a opção Único, nunca lista vazia", () => {
-    expect(converterProduto(produtoBling(), "camisas").variacoes).toEqual([
-      "Único",
-    ]);
-  });
-
-  it("estoque ausente vira zero, não indefinido", () => {
-    expect(converterProduto(produtoBling(), "camisas").quantidade).toBe(0);
     expect(
-      converterProduto(
-        produtoBling({ estoque: { saldoVirtualTotal: 27 } }),
-        "camisas",
-      ).quantidade,
-    ).toBe(27);
+      categoriaPeloNome("Ecobag Pequena Estampa:Boizinho com fio de matraca"),
+    ).toBe("ecobags");
+  });
+
+  it("só devolve slug que a vitrine realmente tem", () => {
+    const slugsDoSite = new Set(CATEGORIAS.map((c) => c.slug));
+    for (const p of amostraDaConta()) {
+      const slug = categoriaPeloNome(p.nome);
+      if (slug) expect(slugsDoSite.has(slug)).toBe(true);
+    }
   });
 });
 

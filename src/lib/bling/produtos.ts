@@ -4,7 +4,7 @@ import {
   PRODUTOS as PRODUTOS_LOCAIS,
 } from "../catalogo";
 import { chamarBling, listarTudo } from "./cliente";
-import type { CategoriaBling, ProdutoBling } from "./tipos";
+import type { ProdutoBling, SaldoBling } from "./tipos";
 import { estaAutorizado } from "./tokens";
 
 /**
@@ -15,16 +15,38 @@ import { estaAutorizado } from "./tokens";
  * o site serve o catálogo local — o mesmo que veio da planilha. É pior
  * mostrar preço velho do que mostrar uma página de erro para quem quer comprar.
  *
- * Toda resposta vem marcada com a origem, para o site poder avisar quando
- * estiver exibindo dado que não veio do Bling.
+ * ---
+ *
+ * O QUE A LISTAGEM DO BLING **NÃO** DEVOLVE (medido em 2026-09-03)
+ *
+ * `GET /produtos` traz apenas: id, nome, codigo, preco, precoCusto, tipo,
+ * situacao, formato, descricaoCurta, imagemURL.
+ *
+ * Não traz `categoria`, não traz `estoque`, não traz `variacoes`. A versão
+ * anterior deste arquivo lia os três direto da listagem, e por isso: nenhum
+ * produto casava com categoria alguma, todo saldo vinha zero (a loja inteira
+ * apareceria "Esgotado") e nenhuma variação era exibida.
+ *
+ * Daí as três decisões abaixo — cada uma existe por causa de um fato medido,
+ * não por preferência:
+ *
+ * 1. A categoria é deduzida do NOME. A conta do Bling tem uma única categoria,
+ *    a "Categoria padrão" (id 13568333), com todos os produtos dentro. Não há
+ *    o que casar. O nome, por outro lado, é regular: "Camisa …", "Matraca …".
+ * 2. O saldo vem de `/estoques/saldos`, em lote, e o de um produto-pai é a
+ *    SOMA dos saldos dos seus filhos — quem guarda peça é a variação.
+ * 3. O filho de variação não vai para a vitrine; ele vira uma opção dentro
+ *    do pai. Ver `ehFilhoDeVariacao`.
  */
 
 export type Catalogo = {
   categorias: Categoria[];
   produtos: Produto[];
   origem: "bling" | "local";
-  /** Preenchido quando caímos para o local por causa de uma falha. */
+  /** Preenchido quando a origem não é o Bling — por falha ou por decisão. */
   motivo?: string;
+  /** Produtos do Bling que não pertencem a nenhuma vitrine existente. */
+  naoClassificados?: string[];
 };
 
 function comAcentoNormalizado(texto: string): string {
@@ -42,53 +64,108 @@ export function paraSlug(texto: string): string {
 }
 
 /**
- * As categorias do site NÃO vêm do Bling — são curadoria nossa.
+ * De que prateleira é este produto, pelo nome.
  *
- * O Bling tem só `descricao`; a chamada de cada vitrine e a foto foram
- * escolhidas à mão. Se as categorias viessem de lá, uma renomeação no ERP
- * apagaria esse trabalho e deixaria a loja com seções sem texto e sem imagem.
+ * Substitui o casamento por categoria do ERP, que hoje é impossível: existe
+ * uma só categoria no Bling e a listagem sequer devolve esse campo.
  *
- * Então a lista local manda, e o que vem do Bling são os **produtos**,
- * encaixados nas categorias pelo slug da descrição.
+ * O que não casar fica de fora da vitrine — comportamento correto, porque uma
+ * categoria nova exige também chamada e foto, que são curadoria humana.
+ * `naoClassificados` reporta o que ficou de fora, para não sumir em silêncio.
  */
-function slugDaCategoriaBling(
-  categorias: CategoriaBling[],
-): Map<number, string> {
-  return new Map(categorias.map((c) => [c.id, paraSlug(c.descricao)]));
+const REGRAS_DE_CATEGORIA: [RegExp, string][] = [
+  [/^camisas?\b/, "camisas"],
+  [/^matracas?\b/, "matracas"],
+  [/^ecobags?\b/, "ecobags"],
+  [/^bones?\b/, "bones"],
+  [/^pareos?\b/, "pareos"],
+  [/^necessaires?\b/, "necessaires"],
+];
+
+export function categoriaPeloNome(nome: string): string | null {
+  const limpo = comAcentoNormalizado(nome);
+  for (const [padrao, slug] of REGRAS_DE_CATEGORIA) {
+    if (padrao.test(limpo)) return slug;
+  }
+  return null;
 }
 
-function precoDoProduto(p: ProdutoBling): number {
-  if (typeof p.preco === "number" && p.preco > 0) return p.preco;
-  const precosDeVariacao = (p.variacoes ?? [])
-    .map((v) => v.preco)
-    .filter((v): v is number => typeof v === "number" && v > 0);
-  return precosDeVariacao.length ? Math.min(...precosDeVariacao) : 0;
+/**
+ * Nomes dos produtos-pai, do mais longo para o mais curto.
+ *
+ * A ordem importa: "Camisa Tradição Texto" precisa ser testado antes de
+ * "Camisa", senão um filho seria atribuído ao pai errado.
+ */
+export function nomesDeProdutosPai(todos: ProdutoBling[]): string[] {
+  return todos
+    .filter((p) => p.formato === "V")
+    .map((p) => p.nome)
+    .sort((a, b) => b.length - a.length);
 }
 
-function precoMaximoDoProduto(p: ProdutoBling): number | undefined {
-  const precos = (p.variacoes ?? [])
-    .map((v) => v.preco)
-    .filter((v): v is number => typeof v === "number" && v > 0);
-  if (precos.length < 2) return undefined;
-  const maior = Math.max(...precos);
-  return maior > precoDoProduto(p) ? maior : undefined;
-}
-
-export function converterProduto(
+/** O pai deste filho, ou null se o produto for avulso. */
+export function paiDoProduto(
   p: ProdutoBling,
-  slugCategoria: string,
-): Produto {
-  const variacoes = (p.variacoes ?? []).map((v) => v.nome).filter(Boolean);
+  nomesDePais: string[],
+): string | null {
+  return (
+    nomesDePais.find((nome) => p.nome !== nome && p.nome.startsWith(`${nome} `)) ??
+    null
+  );
+}
 
-  return {
-    slug: paraSlug(`${p.nome}-${p.id}`),
-    nome: p.nome,
-    categoria: slugCategoria,
-    preco: precoDoProduto(p),
-    precoMaximo: precoMaximoDoProduto(p),
-    variacoes: variacoes.length ? variacoes : ["Único"],
-    quantidade: p.estoque?.saldoVirtualTotal ?? 0,
-  };
+/**
+ * O produto é um filho de variação (um tamanho, uma estampa)?
+ *
+ * Duas provas, nesta ordem:
+ * 1. `variacao.produtoPai` — inequívoco, mas só existe no produto individual;
+ * 2. o nome começa com o nome de um produto-pai seguido de espaço, que é
+ *    exatamente como o Bling nomeia o filho ("Boné" → "Boné Cor/Estampa:…").
+ *
+ * A regra 2 é o que funciona na listagem, e foi conferida contra os 120
+ * produtos da conta: separou 142 filhos de 12 produtos avulsos sem erro.
+ */
+export function ehFilhoDeVariacao(
+  p: ProdutoBling,
+  nomesDePais: string[],
+): boolean {
+  if (p.variacao?.produtoPai?.id) return true;
+  return paiDoProduto(p, nomesDePais) !== null;
+}
+
+/** "Boné Cor/Estampa:Guarás Bege", com pai "Boné", vira "Guarás Bege". */
+export function rotuloDaVariacao(
+  nomeDoFilho: string,
+  nomeDoPai: string,
+): string {
+  const semPai = nomeDoFilho.startsWith(`${nomeDoPai} `)
+    ? nomeDoFilho.slice(nomeDoPai.length + 1)
+    : nomeDoFilho;
+  // O Bling prefixa com o nome do atributo: "Tamanho:GG", "Estampa:Azulejos".
+  const semAtributo = semPai.replace(/^[^:]{1,30}:/, "");
+  return semAtributo.trim() || semPai.trim();
+}
+
+/** Saldos de vários produtos de uma vez, sem estourar o tamanho da URL. */
+async function saldosEmLote(ids: number[]): Promise<Map<number, number>> {
+  const saldos = new Map<number, number>();
+  const TAMANHO_DO_LOTE = 40;
+
+  for (let i = 0; i < ids.length; i += TAMANHO_DO_LOTE) {
+    const consulta = ids
+      .slice(i, i + TAMANHO_DO_LOTE)
+      .map((id) => `idsProdutos[]=${id}`)
+      .join("&");
+    const r = await chamarBling<{ data?: SaldoBling[] }>(
+      `/estoques/saldos?${consulta}`,
+      { revalidar: 300 },
+    );
+    for (const s of r.data ?? []) {
+      if (s.produto?.id) saldos.set(s.produto.id, s.saldoVirtualTotal ?? 0);
+    }
+  }
+
+  return saldos;
 }
 
 const CATALOGO_LOCAL: Catalogo = {
@@ -97,7 +174,29 @@ const CATALOGO_LOCAL: Catalogo = {
   origem: "local",
 };
 
+/**
+ * De onde vem o catálogo da vitrine.
+ *
+ * O padrão é `local`, e isso é deliberado: em 2026-09-03 o preço de venda no
+ * Bling estava com o valor de produção (camisa a R$ 33,80, quando ela é
+ * vendida a R$ 89,90). Ligar a vitrine no Bling hoje derrubaria os preços da
+ * loja. O código já sabe ler o Bling inteiro; falta o preço estar certo lá.
+ *
+ * Quando estiver, basta `BLING_FONTE_DO_CATALOGO=bling`.
+ */
+function fonteEscolhida(): "local" | "bling" {
+  return process.env.BLING_FONTE_DO_CATALOGO === "bling" ? "bling" : "local";
+}
+
 export async function buscarCatalogo(): Promise<Catalogo> {
+  if (fonteEscolhida() === "local") {
+    return {
+      ...CATALOGO_LOCAL,
+      motivo:
+        "Por decisão: a vitrine usa o catálogo conferido enquanto o preço de venda no Bling não estiver corrigido",
+    };
+  }
+
   if (!(await estaAutorizado())) {
     return {
       ...CATALOGO_LOCAL,
@@ -106,43 +205,95 @@ export async function buscarCatalogo(): Promise<Catalogo> {
   }
 
   try {
-    const [categoriasBling, produtosBling] = await Promise.all([
-      listarTudo<CategoriaBling>("/categorias/produtos"),
-      listarTudo<ProdutoBling>("/produtos?criterio=2"), // 2 = somente ativos
-    ]);
-
-    const slugPorId = slugDaCategoriaBling(categoriasBling);
-    const slugsConhecidos = new Set(CATEGORIAS_LOCAIS.map((c) => c.slug));
-
-    const produtos = produtosBling
-      .filter((p) => p.formato !== "V") // variação some: entra no produto-pai
-      .map((p) => converterProduto(p, slugPorId.get(p.categoria?.id ?? -1) ?? ""))
-      // Produto de categoria que a vitrine não tem ficaria órfão, sem página
-      // onde aparecer. Fica de fora até a categoria ser criada aqui.
-      .filter((p) => slugsConhecidos.has(p.categoria) && p.preco > 0);
-
-    // Sem nenhum produto reconhecido, algo está errado no mapeamento —
-    // servir uma loja vazia seria pior que servir o catálogo local.
-    if (produtos.length === 0) {
-      return {
-        ...CATALOGO_LOCAL,
-        motivo: "O Bling respondeu, mas nenhum produto casou com as categorias",
-      };
-    }
-
-    // Categoria sem produto vira link quebrado no menu.
-    const comProduto = new Set(produtos.map((p) => p.categoria));
-    return {
-      categorias: CATEGORIAS_LOCAIS.filter((c) => comProduto.has(c.slug)),
-      produtos,
-      origem: "bling",
-    };
+    return await montarDoBling();
   } catch (erro) {
     const motivo = erro instanceof Error ? erro.message : String(erro);
     // Falhar aqui não pode derrubar a loja.
     console.error("[bling] catálogo indisponível, usando o local:", motivo);
     return { ...CATALOGO_LOCAL, motivo };
   }
+}
+
+export async function montarDoBling(): Promise<Catalogo> {
+  const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2"); // 2 = ativos
+  const nomesDePais = nomesDeProdutosPai(todos);
+
+  const filhosPorPai = new Map<string, ProdutoBling[]>();
+  const paraVitrine: ProdutoBling[] = [];
+
+  for (const p of todos) {
+    if (p.formato === "V") {
+      paraVitrine.push(p);
+      continue;
+    }
+    const pai = paiDoProduto(p, nomesDePais);
+    if (pai) {
+      filhosPorPai.set(pai, [...(filhosPorPai.get(pai) ?? []), p]);
+      continue;
+    }
+    if (ehFilhoDeVariacao(p, nomesDePais)) continue; // filho sem pai na lista
+    paraVitrine.push(p); // produto simples, sem variação
+  }
+
+  // Um pai não guarda peça: quem guarda é a variação. Pedimos o saldo de
+  // todo mundo de uma vez e somamos depois.
+  const saldos = await saldosEmLote([
+    ...paraVitrine.map((p) => p.id),
+    ...[...filhosPorPai.values()].flat().map((p) => p.id),
+  ]);
+
+  const naoClassificados: string[] = [];
+  const produtos: Produto[] = [];
+
+  for (const p of paraVitrine) {
+    const categoria = categoriaPeloNome(p.nome);
+    if (!categoria) {
+      naoClassificados.push(p.nome);
+      continue;
+    }
+
+    const filhos = filhosPorPai.get(p.nome) ?? [];
+    const precos = [p.preco, ...filhos.map((f) => f.preco)].filter(
+      (v): v is number => typeof v === "number" && v > 0,
+    );
+    if (precos.length === 0) continue; // sem preço não se vende
+
+    const menor = Math.min(...precos);
+    const maior = Math.max(...precos);
+
+    produtos.push({
+      slug: paraSlug(`${p.nome}-${p.id}`),
+      nome: p.nome,
+      categoria,
+      preco: menor,
+      precoMaximo: maior > menor ? maior : undefined,
+      variacoes: filhos.length
+        ? filhos.map((f) => rotuloDaVariacao(f.nome, p.nome)).filter(Boolean)
+        : ["Único"],
+      quantidade: filhos.length
+        ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
+        : (saldos.get(p.id) ?? 0),
+    });
+  }
+
+  // Sem nenhum produto reconhecido, algo está errado no mapeamento —
+  // servir uma loja vazia seria pior que servir o catálogo local.
+  if (produtos.length === 0) {
+    return {
+      ...CATALOGO_LOCAL,
+      motivo: "O Bling respondeu, mas nenhum produto casou com as categorias",
+      naoClassificados,
+    };
+  }
+
+  // Categoria sem produto vira link quebrado no menu.
+  const comProduto = new Set(produtos.map((p) => p.categoria));
+  return {
+    categorias: CATEGORIAS_LOCAIS.filter((c) => comProduto.has(c.slug)),
+    produtos,
+    origem: "bling",
+    ...(naoClassificados.length ? { naoClassificados } : {}),
+  };
 }
 
 /** Saldo ao vivo de um produto, para conferir antes de fechar o pedido. */

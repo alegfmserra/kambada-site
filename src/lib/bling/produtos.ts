@@ -133,7 +133,13 @@ export function ehFilhoDeVariacao(
   return paiDoProduto(p, nomesDePais) !== null;
 }
 
-/** "Boné Cor/Estampa:Guarás Bege", com pai "Boné", vira "Guarás Bege". */
+/**
+ * "Boné Cor/Estampa:Guarás Bege", com pai "Boné", vira "Guarás Bege".
+ *
+ * Quando a peça tem mais de um atributo, o Bling junta tudo com ponto e
+ * vírgula: "Estampa:Caboclo de Pena;Boi Frontal:Boi Frontal". Sem tratar,
+ * isso ia inteiro para a vitrine, com dois-pontos e repetição.
+ */
 export function rotuloDaVariacao(
   nomeDoFilho: string,
   nomeDoPai: string,
@@ -141,9 +147,16 @@ export function rotuloDaVariacao(
   const semPai = nomeDoFilho.startsWith(`${nomeDoPai} `)
     ? nomeDoFilho.slice(nomeDoPai.length + 1)
     : nomeDoFilho;
-  // O Bling prefixa com o nome do atributo: "Tamanho:GG", "Estampa:Azulejos".
-  const semAtributo = semPai.replace(/^[^:]{1,30}:/, "");
-  return semAtributo.trim() || semPai.trim();
+
+  const partes = semPai
+    .split(";")
+    // O Bling prefixa com o nome do atributo: "Tamanho:GG", "Estampa:Azulejos".
+    .map((parte) => parte.replace(/^[^:]{1,30}:/, "").trim())
+    .filter(Boolean);
+
+  // "Boi Frontal:Boi Frontal" vira "Boi Frontal" uma vez só.
+  const semRepeticao = [...new Set(partes)];
+  return semRepeticao.join(" · ") || semPai.trim();
 }
 
 /** Saldos de vários produtos de uma vez, sem estourar o tamanho da URL. */

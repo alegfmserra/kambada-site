@@ -169,6 +169,16 @@ describe("rotuloDaVariacao", () => {
     ).toBe("GG");
   });
 
+  it("junta os atributos múltiplos sem dois-pontos e sem repetir", () => {
+    // Caso real da conta: a matraca tem estampa e boi frontal.
+    expect(
+      rotuloDaVariacao(
+        "Matraca Kambada Grande com Suporte Estampa:Caboclo de Pena;Boi Frontal:Boi Frontal",
+        "Matraca Kambada Grande com Suporte",
+      ),
+    ).toBe("Caboclo de Pena · Boi Frontal");
+  });
+
   it("não devolve vazio quando não há o que tirar", () => {
     expect(rotuloDaVariacao("Único", "Boné")).toBe("Único");
     expect(rotuloDaVariacao("Boné Estampa:", "Boné")).toBe("Estampa:");

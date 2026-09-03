@@ -91,9 +91,16 @@ export const PRECOS_CORRETOS: Record<string, PrecoCorreto> = {
  * também está cadastrada individualmente, o estoque das camisas aparece em
  * dobro no Bling.
  *
- * Inativar, e não apagar: o registro está amarrado à NF-e já emitida.
+ * "Camisa Unissex" foi um lote de emergência (fornecedor trocado às pressas),
+ * comprado a ~R$34, vendido a R$80. Já foi todo vendido — confirmado pelo
+ * Alexandre em 2026-09-03 — e não compram mais desse lote. O Cadastro Mestre
+ * tem o mesmo item como "Camisa Unissex Emergencial" (SKU15), marcado
+ * DESCONTINUADO.
+ *
+ * Inativar, e não apagar: os registros estão amarrados a notas fiscais já
+ * emitidas.
  */
-export const A_INATIVAR = ["Camisa"];
+export const A_INATIVAR = ["Camisa", "Camisa Unissex"];
 
 /**
  * Produtos existentes no Bling que ficaram FORA desta correção, de propósito.
@@ -102,6 +109,12 @@ export const A_INATIVAR = ["Camisa"];
  * (ex.: "Bloquinho" pode ser "Bloco Anotação Caderninho Ecológico" a R$ 17 ou
  * "Kambada Goods" a R$ 10). Chutar preço de venda em cadastro que alimenta
  * nota fiscal seria pior do que deixar como está e avisar.
+ *
+ * "Lápis Plantável" É a mesma peça que a planilha de estoque chama de "Lápis
+ * Ecológicos Sortido" — confirmado pelo Alexandre em 2026-09-03 (lápis de
+ * madeira reflorestada com cápsula biodegradável de sementes). O preço já
+ * batia (R$ 8 nos dois lados), então não precisou de correção — fica na
+ * lista só porque o nome ainda diverge entre Bling e planilha.
  */
 export const FORA_DA_CORRECAO = [
   "Bermuda Brim",

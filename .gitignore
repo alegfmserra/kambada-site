@@ -16,6 +16,10 @@
 # next.js
 /.next/
 /out/
+# escritos e reescritos pelo próprio `next dev` a cada execução — não são
+# documentação do projeto, são orientação de API gerada pela ferramenta.
+/AGENTS.md
+/CLAUDE.md
 
 # production
 /build

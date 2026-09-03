@@ -79,6 +79,21 @@ export const CATEGORIAS: Categoria[] = [
     chamada: "Pequenas, práticas e com a nossa cara.",
     foto: FOTOS.catNecessaires,
   },
+  {
+    slug: "papelaria",
+    nome: "Papelaria",
+    chamada: "Para anotar, escrever e desenhar — sempre com um toque sustentável.",
+  },
+  {
+    slug: "brindes",
+    nome: "Brindes",
+    chamada: "Mimos pequenos, com a nossa cara, pra presentear ou levar de lembrança.",
+  },
+  {
+    slug: "decoracao",
+    nome: "Decoração",
+    chamada: "Para decorar seu lar com a arte do Maranhão.",
+  },
 ];
 
 export const PRODUTOS: Produto[] = [
@@ -353,6 +368,143 @@ export const PRODUTOS: Produto[] = [
     preco: 20,
     variacoes: ["Único"],
     quantidade: 30,
+  },
+
+  // --- Papelaria ---
+  // Nenhum destes tinha seção na loja antes de 2026-09-03. Preço e
+  // quantidade conferidos direto no Bling na mesma data. Livro Trilíngue e
+  // Livro Vermelho nunca tiveram contagem física registrada em lugar
+  // nenhum — o saldo real é 0 porque ninguém colocou outro número, não
+  // porque a peça esgotou.
+  {
+    slug: "caneta-ecologica",
+    nome: "Caneta Ecológica",
+    categoria: "papelaria",
+    preco: 8,
+    variacoes: ["Único"],
+    quantidade: 50,
+  },
+  {
+    slug: "lapis-plantavel",
+    nome: "Lápis Plantável",
+    categoria: "papelaria",
+    preco: 8,
+    variacoes: ["Único"],
+    quantidade: 600,
+  },
+  {
+    slug: "bloco-caderninho-ecologico",
+    nome: "Bloco de Anotação — Caderninho Ecológico",
+    categoria: "papelaria",
+    preco: 17,
+    variacoes: ["Único"],
+    quantidade: 52,
+  },
+  {
+    slug: "kit-ecologico",
+    nome: "Kit Ecológico",
+    categoria: "papelaria",
+    preco: 80,
+    variacoes: ["Único"],
+    quantidade: 30,
+  },
+  {
+    slug: "kambada-goods",
+    nome: "Kambada Goods",
+    categoria: "papelaria",
+    preco: 10,
+    variacoes: ["Único"],
+    quantidade: 10,
+  },
+  {
+    slug: "joguinhos-divertido",
+    nome: "Joguinhos Divertido",
+    categoria: "papelaria",
+    preco: 10,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
+  {
+    slug: "livro-trilingue",
+    nome: "Livro Trilíngue",
+    categoria: "papelaria",
+    preco: 15,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
+  {
+    slug: "livro-vermelho-historinha",
+    nome: "Livro Vermelho — Historinha",
+    categoria: "papelaria",
+    preco: 20,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
+
+  // --- Brindes ---
+  // "Bloquinho" já existia no Bling antes desta reestruturação, com saldo
+  // nunca contado. Pode ser o mesmo item que a planilha chama de
+  // "Joguinhos Divertido" (a nota fiscal chamou os dois de "BRINDE") — não
+  // fundidos aqui de propósito, é decisão do Alexandre.
+  {
+    slug: "chaveiro-sortido",
+    nome: "Chaveiro",
+    categoria: "brindes",
+    preco: 15,
+    variacoes: ["Sortido"],
+    quantidade: 20,
+  },
+  {
+    slug: "porta-chave",
+    nome: "Porta-chave",
+    categoria: "brindes",
+    preco: 55,
+    variacoes: ["Caboclo de Pena"],
+    quantidade: 5,
+  },
+  {
+    slug: "bloquinho",
+    nome: "Bloquinho",
+    categoria: "brindes",
+    preco: 9,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
+
+  // --- Decoração ---
+  // Custo real ainda não fechado (a própria planilha marca como pendente
+  // de precificar) — só o preço de venda está confirmado.
+  {
+    slug: "mandala-modelos-diversos",
+    nome: "Mandala",
+    categoria: "decoracao",
+    preco: 250,
+    variacoes: ["Único"],
+    quantidade: 2,
+  },
+  {
+    slug: "placa-madeira-reta",
+    nome: "Placa de Madeira — Reta",
+    categoria: "decoracao",
+    preco: 190,
+    variacoes: ["Único"],
+    quantidade: 4,
+  },
+  {
+    slug: "placa-madeira-redonda",
+    nome: "Placa de Madeira — Redonda",
+    categoria: "decoracao",
+    preco: 120,
+    variacoes: ["Único"],
+    quantidade: 3,
+  },
+  {
+    slug: "placa-madeira-grande",
+    nome: "Placa de Madeira — Grande",
+    categoria: "decoracao",
+    preco: 160,
+    variacoes: ["Único"],
+    quantidade: 0,
   },
 ];
 

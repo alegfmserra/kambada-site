@@ -73,6 +73,16 @@ export function paraSlug(texto: string): string {
  * categoria nova exige também chamada e foto, que são curadoria humana.
  * `naoClassificados` reporta o que ficou de fora, para não sumir em silêncio.
  */
+/**
+ * Papelaria, Brindes e Decoração (2026-09-03) ficam de fora desta lista de
+ * propósito: os nomes reais no Bling — "Kit Ecológico", "Kambada Goods",
+ * "Joguinhos Divertido", "Livro Trilíngue"... — não compartilham um
+ * prefixo comum como "Camisa X" ou "Boné X". Casamento por regex não
+ * serve aqui; precisaria de uma tabela de nome exato, que ainda não foi
+ * escrita porque a vitrine hoje lê do catálogo local (ver
+ * BLING_FONTE_DO_CATALOGO em produtos.ts), não do Bling. Se a fonte virar
+ * "bling" um dia, essas três categorias precisam de tratamento à parte.
+ */
 const REGRAS_DE_CATEGORIA: [RegExp, string][] = [
   [/^camisas?\b/, "camisas"],
   [/^matracas?\b/, "matracas"],

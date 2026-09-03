@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CATEGORIAS } from "../catalogo";
+import { alvoDoProduto } from "./precos-corretos";
 import { Limitador, dormir } from "./limitador";
 import {
   categoriaPeloNome,
@@ -156,6 +157,49 @@ describe("produto-pai e filho de variação", () => {
       variacao: { nome: "Tamanho:G", produtoPai: { id: 99 } },
     };
     expect(ehFilhoDeVariacao(filho, [])).toBe(true);
+  });
+});
+
+describe("alvoDoProduto — herança de preço entre pai e variação", () => {
+  const pais = nomesDeProdutosPai(amostraDaConta());
+
+  it("um tamanho herda o preço da peça", () => {
+    const filho: ProdutoBling = {
+      id: 1,
+      nome: "Camisa Tradição Texto Tamanho:M",
+      formato: "S",
+    };
+    expect(alvoDoProduto(filho, pais)?.venda).toBe(89.9);
+  });
+
+  it("um produto-pai NUNCA herda de outro produto-pai", () => {
+    /**
+     * O defeito que este teste tranca: "Camisa Alusiva São Luís" começa com
+     * "Camisa ", que também é um cadastro do Bling. Sem a guarda de formato,
+     * ela seria tratada como variação do cadastro genérico — e o plano de
+     * correção mandava inativar o catálogo inteiro de camisas.
+     */
+    const pai: ProdutoBling = {
+      id: 2,
+      nome: "Camisa Alusiva São Luís",
+      formato: "V",
+    };
+    // Casa direto pelo próprio nome, não pela herança.
+    expect(alvoDoProduto(pai, pais)?.venda).toBe(89.9);
+
+    const paiSemTabela: ProdutoBling = {
+      id: 3,
+      nome: "Camisa Que Não Está Na Tabela",
+      formato: "V",
+    };
+    expect(alvoDoProduto(paiSemTabela, pais)).toBeNull();
+  });
+
+  it("produto avulso não herda de quem só compartilha o começo do nome", () => {
+    // "Camisa Unissex" é formato S e NÃO tem produtoPai — é produto avulso.
+    // Como "Camisa" não está na tabela aprovada, ele fica de fora.
+    const avulso: ProdutoBling = { id: 4, nome: "Camisa Unissex", formato: "S" };
+    expect(alvoDoProduto(avulso, pais)).toBeNull();
   });
 });
 

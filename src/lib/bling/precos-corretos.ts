@@ -126,6 +126,11 @@ export function alvoDoProduto(
   const direto = PRECOS_CORRETOS[p.nome];
   if (direto) return direto;
 
+  // Um produto-pai nunca herda de outro. "Camisa Alusiva São Luís" começa com
+  // "Camisa ", que também é um cadastro — sem esta guarda, um pai seria
+  // tratado como variação de outro.
+  if (p.formato === "V") return null;
+
   const pai = nomesDePais.find(
     (nome) => p.nome !== nome && p.nome.startsWith(`${nome} `),
   );

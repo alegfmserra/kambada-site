@@ -49,12 +49,52 @@ type Passo = {
   motivo?: string;
 };
 
+/**
+ * Quais registros serão inativados, provados um a um.
+ *
+ * O nome NÃO basta aqui. "Camisa Alusiva São Luís" começa com "Camisa ", e
+ * pelo nome pareceria variação do cadastro genérico — inativá-la levaria
+ * junto o catálogo inteiro de camisas. A prova é `variacao.produtoPai`, que
+ * só vem no produto individual, e que separou "Camisa Estampa:Caboclo de
+ * Pena" (variação de verdade) de "Camisa Unissex" (produto avulso a R$ 80).
+ *
+ * Heurística de nome serve para montar vitrine. Não serve para escrever no ERP.
+ */
+async function idsParaInativar(todos: ProdutoBling[]): Promise<Set<number>> {
+  const ids = new Set<number>();
+
+  for (const nome of A_INATIVAR) {
+    const raiz =
+      todos.find((p) => p.nome === nome && p.formato === "V") ??
+      todos.find((p) => p.nome === nome);
+    if (!raiz) continue;
+    ids.add(raiz.id);
+
+    for (const candidato of todos) {
+      if (candidato.id === raiz.id) continue;
+      if (!candidato.nome.startsWith(`${nome} `)) continue;
+      const det = await chamarBling<{ data: ProdutoBling }>(
+        `/produtos/${candidato.id}`,
+        { revalidar: 0 },
+      );
+      if (det.data.variacao?.produtoPai?.id === raiz.id) ids.add(candidato.id);
+    }
+  }
+
+  return ids;
+}
+
 async function montarPlano(apenas: number | null): Promise<Passo[]> {
   const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2");
   const nomesDePais = nomesDeProdutosPai(todos);
+  // Um produto-pai nunca é variação de outro, por mais que o nome sugira.
   const paiDe = (p: ProdutoBling) =>
-    nomesDePais.find((n) => p.nome !== n && p.nome.startsWith(`${n} `)) ?? null;
+    p.formato === "V"
+      ? null
+      : (nomesDePais.find((n) => p.nome !== n && p.nome.startsWith(`${n} `)) ??
+        null);
 
+  const inativar = await idsParaInativar(todos);
   const passos: Passo[] = [];
 
   for (const p of todos) {
@@ -62,7 +102,7 @@ async function montarPlano(apenas: number | null): Promise<Passo[]> {
 
     const raiz = paiDe(p) ?? p.nome;
 
-    if (A_INATIVAR.includes(p.nome) || A_INATIVAR.includes(raiz)) {
+    if (inativar.has(p.id)) {
       passos.push({
         id: p.id,
         nome: p.nome,

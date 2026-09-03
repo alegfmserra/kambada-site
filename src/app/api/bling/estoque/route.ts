@@ -65,6 +65,18 @@ const ALVOS: AlvoDeEstoque[] = [
     saldoAlvo: 88,
     origem: "NF-e 26 (remessa Fenace, 2026-08-31) e planilha de contagem física",
   },
+  /**
+   * Lápis Plantável (= "Lápis Ecológicos Sortido" na planilha, confirmado
+   * pelo Alexandre em 2026-09-03) nunca teve saldo lançado no Bling — ficou
+   * de fora de toda correção anterior porque o PREÇO já estava certo, e só
+   * o preço era o que essas rotas corrigiam. O saldo é outra coisa.
+   */
+  {
+    id: 16689787486,
+    nome: "Lápis Plantável",
+    saldoAlvo: 600,
+    origem: "Planilha de contagem física Estoque_Kambada, 2026-08-29",
+  },
 ];
 
 function segredoConfere(recebido: string | null): boolean {

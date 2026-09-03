@@ -85,7 +85,14 @@ async function idsParaInativar(todos: ProdutoBling[]): Promise<Set<number>> {
 }
 
 async function montarPlano(apenas: number | null): Promise<Passo[]> {
-  const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2");
+  // Esta rota gira em lotes: cada chamada precisa ver o resultado da
+  // chamada anterior. Sem `revalidar: 0`, o Next reaproveita a mesma
+  // listagem por até 10 minutos — medido em produção em 2026-09-03: dois
+  // lotes seguidos recalcularam o MESMO plano e corrigiram os MESMOS 20
+  // produtos de novo, porque liam a mesma fotografia velha do catálogo.
+  const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2", {
+    revalidar: 0,
+  });
   const nomesDePais = nomesDeProdutosPai(todos);
   // Um produto-pai nunca é variação de outro, por mais que o nome sugira.
   const paiDe = (p: ProdutoBling) =>

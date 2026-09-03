@@ -78,14 +78,21 @@ export async function chamarBling<T>(
  */
 export async function listarTudo<T>(
   caminho: string,
-  { limite = 100, maximoDePaginas = 50 } = {},
+  {
+    limite = 100,
+    maximoDePaginas = 50,
+    revalidar,
+  }: { limite?: number; maximoDePaginas?: number; revalidar?: number } = {},
 ): Promise<T[]> {
   const itens: T[] = [];
 
   for (let pagina = 1; pagina <= maximoDePaginas; pagina++) {
     const separador = caminho.includes("?") ? "&" : "?";
     const url = `${caminho}${separador}pagina=${pagina}&limite=${limite}`;
-    const resposta = await chamarBling<{ data?: T[] }>(url);
+    const resposta = await chamarBling<{ data?: T[] }>(
+      url,
+      revalidar !== undefined ? { revalidar } : undefined,
+    );
     const lote = resposta.data ?? [];
 
     itens.push(...lote);

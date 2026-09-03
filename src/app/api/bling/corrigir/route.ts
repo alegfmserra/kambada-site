@@ -103,6 +103,11 @@ async function montarPlano(apenas: number | null): Promise<Passo[]> {
     const raiz = paiDe(p) ?? p.nome;
 
     if (inativar.has(p.id)) {
+      // Já inativo: não reconta como pendente, senão o plano nunca convergia.
+      if (p.situacao === "I") {
+        passos.push({ id: p.id, nome: p.nome, acao: "pular", motivo: "já inativo" });
+        continue;
+      }
       passos.push({
         id: p.id,
         nome: p.nome,
@@ -135,7 +140,12 @@ async function montarPlano(apenas: number | null): Promise<Passo[]> {
 
     const venda = p.preco ?? 0;
     const custo = p.precoCusto ?? 0;
-    if (venda === alvo.venda && custo === alvo.custo) {
+    // Só o preço de venda decide "já correto". O custo nunca entra nesta
+    // comparação: o Bling não grava `precoCusto` por este endpoint (medido
+    // em 2026-09-03 — o PUT muda o preço e o custo permanece intocado), então
+    // comparar contra `alvo.custo` nunca bateria e o produto voltaria a
+    // "corrigir" para sempre, mesmo já certo.
+    if (venda === alvo.venda) {
       passos.push({ id: p.id, nome: p.nome, acao: "pular", motivo: "já correto" });
       continue;
     }

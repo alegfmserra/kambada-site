@@ -1,0 +1,223 @@
+import { timingSafeEqual } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { NextResponse } from "next/server";
+import { chamarBling, listarTudo } from "@/lib/bling/cliente";
+import {
+  A_INATIVAR,
+  FORA_DA_CORRECAO,
+  alvoDoProduto,
+} from "@/lib/bling/precos-corretos";
+import { nomesDeProdutosPai } from "@/lib/bling/produtos";
+import { arquivoTokens } from "@/lib/bling/tokens";
+import type { ProdutoBling } from "@/lib/bling/tipos";
+
+export const dynamic = "force-dynamic";
+
+/**
+ * Corrige preço de venda e custo dos produtos no Bling.
+ *
+ * ESTA ROTA ESCREVE NO ERP. Por isso:
+ *
+ * - **GET só ensaia.** Devolve o plano, produto a produto, sem tocar em nada.
+ * - **POST aplica**, e ainda exige `aplicar=1` — para um clique errado não
+ *   virar 120 alterações em cadastro que emite nota fiscal.
+ * - `apenas=ID` restringe a um produto, que é como a primeira execução deve
+ *   ser feita: um produto, conferido no Bling, e só então o resto.
+ * - Antes de escrever, o produto original inteiro é gravado em disco, na
+ *   pasta persistente. Sem cópia do valor anterior, não há volta.
+ *
+ * A atualização é feita relendo o produto inteiro e devolvendo-o com dois
+ * campos trocados — nunca montando um objeto novo, que apagaria o resto.
+ */
+
+function segredoConfere(recebido: string | null): boolean {
+  const esperado = process.env.REVALIDATE_SECRET;
+  if (!esperado || !recebido) return false;
+  const a = Buffer.from(recebido);
+  const b = Buffer.from(esperado);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+type Passo = {
+  id: number;
+  nome: string;
+  acao: "corrigir" | "inativar" | "pular";
+  de?: { venda: number; custo: number };
+  para?: { venda: number; custo: number };
+  motivo?: string;
+};
+
+async function montarPlano(apenas: number | null): Promise<Passo[]> {
+  const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2");
+  const nomesDePais = nomesDeProdutosPai(todos);
+  const paiDe = (p: ProdutoBling) =>
+    nomesDePais.find((n) => p.nome !== n && p.nome.startsWith(`${n} `)) ?? null;
+
+  const passos: Passo[] = [];
+
+  for (const p of todos) {
+    if (apenas !== null && p.id !== apenas) continue;
+
+    const raiz = paiDe(p) ?? p.nome;
+
+    if (A_INATIVAR.includes(p.nome) || A_INATIVAR.includes(raiz)) {
+      passos.push({
+        id: p.id,
+        nome: p.nome,
+        acao: "inativar",
+        motivo: "cadastro genérico que duplica o estoque das camisas",
+      });
+      continue;
+    }
+
+    if (FORA_DA_CORRECAO.includes(p.nome) || FORA_DA_CORRECAO.includes(raiz)) {
+      passos.push({
+        id: p.id,
+        nome: p.nome,
+        acao: "pular",
+        motivo: "sem correspondência inequívoca na planilha",
+      });
+      continue;
+    }
+
+    const alvo = alvoDoProduto(p, nomesDePais);
+    if (!alvo) {
+      passos.push({
+        id: p.id,
+        nome: p.nome,
+        acao: "pular",
+        motivo: "não está na tabela aprovada",
+      });
+      continue;
+    }
+
+    const venda = p.preco ?? 0;
+    const custo = p.precoCusto ?? 0;
+    if (venda === alvo.venda && custo === alvo.custo) {
+      passos.push({ id: p.id, nome: p.nome, acao: "pular", motivo: "já correto" });
+      continue;
+    }
+
+    passos.push({
+      id: p.id,
+      nome: p.nome,
+      acao: "corrigir",
+      de: { venda, custo },
+      para: { venda: alvo.venda, custo: alvo.custo },
+    });
+  }
+
+  return passos;
+}
+
+/** Grava os originais antes de qualquer escrita. Sem isso, não há volta. */
+async function guardarCopia(originais: unknown[]): Promise<string> {
+  const carimbo = new Date().toISOString().replace(/[:.]/g, "-");
+  const caminho = join(
+    dirname(arquivoTokens()),
+    `backup-produtos-${carimbo}.json`,
+  );
+  await mkdir(dirname(caminho), { recursive: true });
+  await writeFile(caminho, JSON.stringify(originais, null, 2), "utf8");
+  return caminho;
+}
+
+async function aplicar(passos: Passo[]) {
+  const originais: unknown[] = [];
+  const feitos: Record<string, unknown>[] = [];
+
+  for (const passo of passos) {
+    if (passo.acao === "pular") continue;
+
+    try {
+      // Relemos o produto inteiro: a atualização devolve o objeto completo
+      // com dois campos trocados. Montar um objeto novo apagaria o resto.
+      const atual = await chamarBling<{ data: Record<string, unknown> }>(
+        `/produtos/${passo.id}`,
+        { revalidar: 0 },
+      );
+      const corpo = { ...atual.data };
+      originais.push(corpo);
+
+      if (passo.acao === "inativar") {
+        corpo.situacao = "I";
+      } else {
+        corpo.preco = passo.para!.venda;
+        corpo.precoCusto = passo.para!.custo;
+      }
+
+      await chamarBling(`/produtos/${passo.id}`, {
+        metodo: "PUT",
+        corpo,
+      });
+
+      // Relê para provar o que ficou gravado, em vez de supor.
+      const depois = await chamarBling<{ data: ProdutoBling }>(
+        `/produtos/${passo.id}`,
+        { revalidar: 0 },
+      );
+      feitos.push({
+        id: passo.id,
+        nome: passo.nome,
+        acao: passo.acao,
+        conferido: {
+          preco: depois.data.preco,
+          precoCusto: depois.data.precoCusto,
+          situacao: depois.data.situacao,
+          nome: depois.data.nome,
+        },
+      });
+    } catch (e) {
+      feitos.push({
+        id: passo.id,
+        nome: passo.nome,
+        acao: passo.acao,
+        erro: e instanceof Error ? e.message : String(e),
+      });
+      // Para na primeira falha: seguir escrevendo depois de um erro
+      // desconhecido é como se descobre um estrago grande.
+      break;
+    }
+  }
+
+  const copia = originais.length ? await guardarCopia(originais) : null;
+  return { feitos, copiaDosOriginais: copia };
+}
+
+async function responder(requisicao: Request, escrever: boolean) {
+  const url = new URL(requisicao.url);
+  if (!segredoConfere(url.searchParams.get("token"))) {
+    return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
+  }
+
+  const apenasBruto = url.searchParams.get("apenas");
+  const apenas = apenasBruto && /^\d+$/.test(apenasBruto) ? Number(apenasBruto) : null;
+
+  const passos = await montarPlano(apenas);
+  const resumo = {
+    corrigir: passos.filter((p) => p.acao === "corrigir").length,
+    inativar: passos.filter((p) => p.acao === "inativar").length,
+    pular: passos.filter((p) => p.acao === "pular").length,
+  };
+
+  if (!escrever || url.searchParams.get("aplicar") !== "1") {
+    return NextResponse.json({
+      modo: "ensaio — nada foi escrito no Bling",
+      resumo,
+      passos,
+    });
+  }
+
+  const resultado = await aplicar(passos);
+  return NextResponse.json({ modo: "aplicado", resumo, ...resultado });
+}
+
+export async function GET(requisicao: Request) {
+  return responder(requisicao, false);
+}
+
+export async function POST(requisicao: Request) {
+  return responder(requisicao, true);
+}

@@ -91,3 +91,21 @@ Assine os eventos de **produto** e **estoque**. Para conferir se a rota está de
 
 - **Fotos dos produtos.** O `imagemURL` e `midia.imagens` já estão tipados, mas só valem se as imagens estiverem cadastradas no Bling. Hoje a loja usa fotos por categoria.
 - **Criação de pedido de venda.** É da Fase 3, junto com o pagamento. O escopo já foi concedido.
+
+---
+
+## Achado de 2026-09-03: o Bling não tem categorias
+
+O diagnóstico com `?detalhe=1` mostrou, com dois sinais independentes:
+
+- `/categorias/produtos` devolveu **lista vazia** (a chamada não falhou — a conta simplesmente não tem categoria de produto cadastrada);
+- todos os produtos da amostra vêm com `categoria.id = null`.
+
+Consequência: nenhum produto pode casar com as seis categorias do site, e a loja segue no catálogo local — que é exatamente o comportamento desenhado.
+
+**Não é defeito de código.** É estado do ERP. Enquanto os produtos não tiverem categoria no Bling, ou o casamento não for feito por outro critério, `origem` continuará `"local"`.
+
+Outros dois pontos observados na amostra, que precisam de decisão do dono antes de qualquer troca de fonte:
+
+1. **Preço.** O `preco` do Bling traz `Camisa = 33,80`, enquanto o preço de venda confirmado é `89,90`. Ligar o Bling hoje derrubaria os preços da vitrine.
+2. **Variações.** Os 120 registros misturam pai (`formato: "V"`, ex.: "Camisa Alusiva São Luís") e filho (`formato: "S"`, ex.: "… Tamanho:GG"). Sem agrupar por pai, cada tamanho viraria um produto na loja.

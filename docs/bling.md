@@ -123,6 +123,30 @@ Os testes anteriores passavam porque o fixture inventava os campos ausentes. Fix
 
 Monta a vitrine a partir do Bling sem trocar a fonte. Em 2026-09-03 devolveu 31 produtos, com tamanhos agrupados e saldos somados corretamente.
 
+### Correção de preços: `/api/bling/corrigir`
+
+Rotina que põe o preço de venda e o custo certos em cada produto, e inativa o cadastro genérico "Camisa".
+
+- `GET` **só ensaia** — devolve o plano, produto a produto, sem tocar em nada.
+- `POST` aplica, e ainda exige `aplicar=1`.
+- `apenas=ID` restringe a um produto. É assim que a primeira execução deve ser feita.
+- Antes de escrever, o produto original inteiro vai para `~/.kambada/backup-produtos-<data>.json`.
+- A atualização relê o produto e devolve o objeto completo com dois campos trocados — montar um objeto novo apagaria o resto.
+- Para na primeira falha.
+
+**O ensaio já evitou um estrago.** A primeira versão mandava inativar 20 produtos em vez de 2: "Camisa Alusiva São Luís" começa com "Camisa ", que também é um cadastro, e foi tratada como variação dele. Aplicar aquele plano teria inativado o catálogo inteiro de camisas. A lista de inativação passou a ser provada pelo campo `variacao.produtoPai`, que só vem no produto individual — e foi ele que separou "Camisa Estampa:Caboclo de Pena" (variação de verdade) de "Camisa Unissex" (produto avulso a R$ 80). Heurística de nome monta vitrine; não escreve no ERP.
+
+### Escopo: a autorização atual é só de leitura
+
+`PUT /produtos/{id}` devolve:
+
+```json
+{"error":{"type":"insufficient_scope"},
+ "error_description":"The request requires higher privileges than provided by the access token"}
+```
+
+Para escrever é preciso marcar a permissão de **escrita em Produtos** (e em **Estoques**, para o ajuste de saldo) no aplicativo do Bling, e **autorizar de novo** — o escopo fica gravado no token, então mudar a marcação sem reautorizar não surte efeito.
+
 ### O que depende do dono
 
 1. **Preço de venda.** Está com o valor de produção em quase toda a conta. Isso não afeta só o site: o mesmo campo alimenta nota fiscal e marketplace. Que o campo é mesmo o de venda, prova-o a "Camisa Unissex" a R$ 80 — e `precoCusto` está zerado em todos os produtos.

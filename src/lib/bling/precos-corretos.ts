@@ -97,10 +97,17 @@ export const PRECOS_CORRETOS: Record<string, PrecoCorreto> = {
  * tem o mesmo item como "Camisa Unissex Emergencial" (SKU15), marcado
  * DESCONTINUADO.
  *
+ * "Boné", "Necessaire" e "Pareô" são o padrão ANTIGO — Fase 2 da
+ * reestruturação "estampa é produto" (2026-09-03): a Fase 1 já criou os 12
+ * produtos novos, um por estampa (ver /api/bling/criar-produtos). Estes três
+ * — o genérico de cada categoria e seus filhos por variação — ficam
+ * substituídos. "Pareô" não tem filho: era um produto simples avulso, sem
+ * estrutura de variação nenhuma.
+ *
  * Inativar, e não apagar: os registros estão amarrados a notas fiscais já
  * emitidas.
  */
-export const A_INATIVAR = ["Camisa", "Camisa Unissex"];
+export const A_INATIVAR = ["Camisa", "Camisa Unissex", "Boné", "Necessaire", "Pareô"];
 
 /**
  * Produtos existentes no Bling que ficaram FORA desta correção, de propósito.

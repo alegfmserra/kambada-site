@@ -10,7 +10,7 @@ import {
 } from "@/lib/bling/precos-corretos";
 import { nomesDeProdutosPai } from "@/lib/bling/produtos";
 import { arquivoTokens } from "@/lib/bling/tokens";
-import type { ProdutoBling } from "@/lib/bling/tipos";
+import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
 
 export const dynamic = "force-dynamic";
 
@@ -215,6 +215,8 @@ async function aplicar(passos: Passo[]) {
         nome: passo.nome,
         acao: passo.acao,
         erro: e instanceof Error ? e.message : String(e),
+        // O corpo diz o motivo. "403" sozinho não permite agir.
+        respostaDoBling: e instanceof ErroBling ? e.corpo : undefined,
       });
       // Para na primeira falha: seguir escrevendo depois de um erro
       // desconhecido é como se descobre um estrago grande.

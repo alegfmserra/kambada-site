@@ -373,9 +373,8 @@ export const PRODUTOS: Produto[] = [
   // --- Papelaria ---
   // Nenhum destes tinha seção na loja antes de 2026-09-03. Preço e
   // quantidade conferidos direto no Bling na mesma data. Livro Trilíngue e
-  // Livro Vermelho nunca tiveram contagem física registrada em lugar
-  // nenhum — o saldo real é 0 porque ninguém colocou outro número, não
-  // porque a peça esgotou.
+  // Livro Vermelho aparecem esgotados porque estão mesmo sem estoque —
+  // confirmado pelo Alexandre em 2026-09-03, não é lacuna de contagem.
   {
     slug: "caneta-ecologica",
     nome: "Caneta Ecológica",
@@ -424,6 +423,25 @@ export const PRODUTOS: Produto[] = [
     variacoes: ["Único"],
     quantidade: 0,
   },
+  // Bloco de anotação em papel kraft, com decoração de arte cultural
+  // maranhense — confirmado pelo Alexandre em 2026-09-03. NÃO é o mesmo
+  // item que "Joguinhos Divertido" (essa dúvida já foi resolvida). Sem
+  // variação por estampa por enquanto — existem várias estampas, mas
+  // oferecer escolha complica demais por ora; a ideia é, no futuro, a
+  // estampa virar variação, como em Ecobags e Camisas.
+  //
+  // Ainda em aberto: pode ser o MESMO produto que "Bloco Anotação
+  // Caderninho Ecológico" (R$17, mais abaixo) — os dois têm preço
+  // diferente (R$9 × R$17) e são cadastros distintos no Bling. Não
+  // fundidos aqui de propósito.
+  {
+    slug: "bloquinho",
+    nome: "Bloquinho",
+    categoria: "papelaria",
+    preco: 9,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
   {
     slug: "livro-trilingue",
     nome: "Livro Trilíngue",
@@ -442,10 +460,6 @@ export const PRODUTOS: Produto[] = [
   },
 
   // --- Brindes ---
-  // "Bloquinho" já existia no Bling antes desta reestruturação, com saldo
-  // nunca contado. Pode ser o mesmo item que a planilha chama de
-  // "Joguinhos Divertido" (a nota fiscal chamou os dois de "BRINDE") — não
-  // fundidos aqui de propósito, é decisão do Alexandre.
   {
     slug: "chaveiro-sortido",
     nome: "Chaveiro",
@@ -461,14 +475,6 @@ export const PRODUTOS: Produto[] = [
     preco: 55,
     variacoes: ["Caboclo de Pena"],
     quantidade: 5,
-  },
-  {
-    slug: "bloquinho",
-    nome: "Bloquinho",
-    categoria: "brindes",
-    preco: 9,
-    variacoes: ["Único"],
-    quantidade: 0,
   },
 
   // --- Decoração ---

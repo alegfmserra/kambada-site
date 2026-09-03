@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { NextResponse } from "next/server";
-import { listarTudo } from "@/lib/bling/cliente";
+import { chamarBling, listarTudo } from "@/lib/bling/cliente";
 import { buscarCatalogo, paraSlug } from "@/lib/bling/produtos";
 import type { CategoriaBling, ProdutoBling } from "@/lib/bling/tipos";
 import { arquivoTokens, estaAutorizado } from "@/lib/bling/tokens";
@@ -79,6 +79,25 @@ export async function GET(requisicao: Request) {
     }
   }
 
+  /**
+   * ?bruto=ID devolve o produto exatamente como o Bling o entrega.
+   *
+   * Existe porque a documentação e o comportamento real divergiram quanto ao
+   * campo `formato` e à ligação entre variação e produto-pai. Adivinhar aqui
+   * custaria a vitrine inteira; ler o dado cru custa uma requisição.
+   */
+  let bruto: unknown = undefined;
+  const idBruto = url.searchParams.get("bruto");
+  if (idBruto && autorizado) {
+    try {
+      bruto = await chamarBling<unknown>(`/produtos/${idBruto}`, {
+        revalidar: 0,
+      });
+    } catch (e) {
+      bruto = { erro: e instanceof Error ? e.message : String(e) };
+    }
+  }
+
   const porCategoria: Record<string, number> = {};
   for (const p of catalogo.produtos) {
     porCategoria[p.categoria] = (porCategoria[p.categoria] ?? 0) + 1;
@@ -106,5 +125,6 @@ export async function GET(requisicao: Request) {
       pastaPessoal: homedir(),
     },
     ...(detalhe ? { detalhe } : {}),
+    ...(bruto ? { bruto } : {}),
   });
 }

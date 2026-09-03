@@ -399,13 +399,44 @@ export const PRODUTOS: Produto[] = [
     variacoes: ["Único"],
     quantidade: 52,
   },
+  // Kit Ecológico saiu do genérico R$80/Único e virou uma estampa por
+  // produto, achado nas fotos de produto de 2026-09-03 e confirmado pelo
+  // Alexandre — preço certo é R$85. Quantidade em ZERO de propósito: a
+  // planilha só tinha "30 unidades" numa linha só, sem separar por
+  // estampa, e não há fonte confiável para repartir esse número entre as
+  // 4 artes. Pode haver mais estampas além destas 4 — só essas foram
+  // fotografadas até agora.
   {
-    slug: "kit-ecologico",
-    nome: "Kit Ecológico",
+    slug: "kit-ecologico-guaras",
+    nome: "Kit Ecológico — Guarás",
     categoria: "papelaria",
-    preco: 80,
+    preco: 85,
     variacoes: ["Único"],
-    quantidade: 30,
+    quantidade: 0,
+  },
+  {
+    slug: "kit-ecologico-bumba-meu-boi",
+    nome: "Kit Ecológico — Bumba Meu Boi",
+    categoria: "papelaria",
+    preco: 85,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
+  {
+    slug: "kit-ecologico-cazumba",
+    nome: "Kit Ecológico — Cazumbá",
+    categoria: "papelaria",
+    preco: 85,
+    variacoes: ["Único"],
+    quantidade: 0,
+  },
+  {
+    slug: "kit-ecologico-ilha-do-amor",
+    nome: "Kit Ecológico — Ilha do Amor",
+    categoria: "papelaria",
+    preco: 85,
+    variacoes: ["Único"],
+    quantidade: 0,
   },
   {
     slug: "kambada-goods",

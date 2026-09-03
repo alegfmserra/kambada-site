@@ -86,9 +86,25 @@ const NOVOS: NovoProduto[] = [
   { slug: "chaveiros-sortidos", nome: "Chaveiros Sortidos", preco: 15, quantidade: 20, origem: "Brindes" },
 
   { slug: "bloco-caderninho-ecologico", nome: "Bloco Anotação Caderninho Ecológico", preco: 17, quantidade: 52, origem: "Papelaria" },
-  { slug: "kit-ecologico", nome: "Kit Ecológico", preco: 80, quantidade: 30, origem: "Papelaria" },
   { slug: "kambada-goods", nome: "Kambada Goods", preco: 10, quantidade: 10, origem: "Papelaria" },
   { slug: "joguinhos-divertido", nome: "Joguinhos Divertido", preco: 10, quantidade: 0, origem: "Papelaria" },
+
+  /**
+   * "Kit Ecológico" saiu do genérico R$80/Único e virou uma estampa por
+   * produto — mesmo padrão de Boné/Necessaire/Pareô. Preço corrigido para
+   * R$85 (confirmado pelo Alexandre em 2026-09-03; a planilha original
+   * tinha R$80, desatualizado). Quantidade em ZERO de propósito: a
+   * planilha só tinha "30 unidades, Único" numa linha só, sem separar por
+   * estampa, e não existe fonte confiável para repartir esse número entre
+   * as 4 artes. Fica pendente de contagem real, não é chute.
+   *
+   * As 4 estampas vistas nas fotos de 2026-09-03 (pasta "Fotos dos
+   * Produtos"). Pode haver mais — só essas 4 foram fotografadas até agora.
+   */
+  { slug: "kit-ecologico-guaras", nome: "Kit Ecológico Guarás", preco: 85, quantidade: 0, origem: "Papelaria" },
+  { slug: "kit-ecologico-bumba-meu-boi", nome: "Kit Ecológico Bumba Meu Boi", preco: 85, quantidade: 0, origem: "Papelaria" },
+  { slug: "kit-ecologico-cazumba", nome: "Kit Ecológico Cazumbá", preco: 85, quantidade: 0, origem: "Papelaria" },
+  { slug: "kit-ecologico-ilha-do-amor", nome: "Kit Ecológico Ilha do Amor", preco: 85, quantidade: 0, origem: "Papelaria" },
 
   { slug: "mandala-modelos-diversos", nome: "Mandala Modelos Diversos", preco: 250, quantidade: 2, origem: "Decoração" },
   { slug: "placa-reta", nome: "Placa de Madeira Reta", preco: 190, quantidade: 4, origem: "Decoração" },

@@ -109,6 +109,10 @@ export const PRECOS_CORRETOS: Record<string, PrecoCorreto> = {
  * (ver /api/bling/criar-ecobags). "Ecobag Grande" era um produto simples
  * avulso, sem variação — igual ao caso do Pareô antes da Fase 1.
  *
+ * "Kit Ecológico" (R$80, sem variação) virou 4 produtos por estampa a
+ * R$85 — achado nas fotos de produto de 2026-09-03, confirmado pelo
+ * Alexandre. O preço antigo também estava errado, não só a estrutura.
+ *
  * Inativar, e não apagar: os registros estão amarrados a notas fiscais já
  * emitidas.
  */
@@ -120,6 +124,7 @@ export const A_INATIVAR = [
   "Pareô",
   "Ecobag Pequena",
   "Ecobag Grande",
+  "Kit Ecológico",
 ];
 
 /**

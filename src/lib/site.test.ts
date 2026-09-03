@@ -39,6 +39,7 @@ describe("navegação", () => {
     expect(NAV.map((i) => i.href)).toEqual([
       "/",
       "/loja",
+      "/encomendas",
       "/sobre",
       "/cultura",
       "/contato",

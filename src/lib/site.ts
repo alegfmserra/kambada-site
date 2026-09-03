@@ -50,10 +50,28 @@ export const REDES = [
 export const NAV = [
   { rotulo: "Início", href: "/" },
   { rotulo: "Loja", href: "/loja" },
+  { rotulo: "Encomendas", href: "/encomendas" },
   { rotulo: "Sobre", href: "/sobre" },
   { rotulo: "Cultura", href: "/cultura" },
   { rotulo: "Contato", href: "/contato" },
 ] as const;
+
+/**
+ * Casos de encomenda corporativa — kits, placas e porta-chaves feitos sob
+ * medida para eventos e empresas (Senac, entre outros vistos em fotos de
+ * produto de 2026-09-03).
+ *
+ * Vazio de propósito: usar o nome ou a marca de um cliente publicamente é
+ * decisão do CLIENTE tanto quanto da Kambada — não presumo autorização só
+ * porque a peça apareceu numa foto interna. Fica pendente de confirmação,
+ * cliente a cliente, antes de qualquer nome entrar aqui.
+ */
+export type CasoEncomenda = {
+  empresa: string;
+  descricao: string;
+};
+
+export const ENCOMENDAS_PORTFOLIO: CasoEncomenda[] = [];
 
 /**
  * Medidores de analytics já em uso no site atual — migram na Fase 1.

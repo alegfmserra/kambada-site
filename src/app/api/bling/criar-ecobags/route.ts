@@ -14,12 +14,22 @@ export const dynamic = "force-dynamic";
  * o mesmo das Camisas: a estampa é o produto-PAI, o tamanho é a variação
  * dentro dele. "Ecobag Revoada dos Guarás" com filhos "Mini" e "Grande".
  *
- * Uma peça (pai + variações) nasce num ÚNICO POST /produtos — o schema
- * aceita um array `variacoes` aninhado, com `variacao.produtoPai.cloneInfo`
- * (visto em developer.bling.com.br/referencia, 2026-09-03). O estoque, por
- * outro lado, vive no FILHO (cada tamanho tem seu próprio saldo, como já
- * acontece em Camisas) — por isso o saldo é lançado depois, por variação,
- * não no pai.
+ * ACHADO EM PRODUÇÃO (2026-09-03): `variacao.produtoPai.cloneInfo: true`
+ * faz o filho COPIAR o preço do pai, e ignora o `preco` que eu mandava
+ * dentro de cada item de `variacoes`. Passou despercebido no primeiro teste
+ * (Carcará, uma variação só, mesmo preço do pai por coincidência) e só
+ * apareceu no segundo (Caboclo de Pena, Mini R$40 + Grande R$55): o filho
+ * Grande nasceu com R$40, herdado do pai. Por isso a rota NUNCA confia no
+ * preço de criação — sempre confere e corrige cada filho depois, com o
+ * mesmo padrão de releitura usado no resto da integração.
+ *
+ * IDEMPOTENTE DE PROPÓSITO: se o pai já existe, a rota não pula a peça
+ * inteira — ela vai direto conferir/corrigir os filhos. Foi assim que o
+ * preço errado do Caboclo de Pena foi corrigido, só rodando de novo depois
+ * do ajuste de código, sem precisar de um script avulso.
+ *
+ * O estoque vive no FILHO (cada tamanho tem seu próprio saldo, como já
+ * acontece em Camisas), nunca no pai.
  *
  * "Caboclo de Pena Laranja/Marrom" (Grande) e "Caboclo de Pena" (Mini): a
  * planilha descreve a cor só na linha Grande. Tratado como a MESMA estampa
@@ -59,13 +69,12 @@ function segredoConfere(recebido: string | null): boolean {
   return timingSafeEqual(a, b);
 }
 
-async function nomesExistentes(): Promise<Set<string>> {
-  const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2", { revalidar: 0 });
-  return new Set(todos.map((p) => p.nome));
-}
-
 function precoDoTamanho(rotulo: "Mini" | "Grande"): number {
   return rotulo === "Mini" ? VENDA_MINI : VENDA_GRANDE;
+}
+
+function nomePai(e: NovaEcobag): string {
+  return `Ecobag ${e.estampa}`;
 }
 
 async function responder(requisicao: Request, escrever: boolean) {
@@ -77,14 +86,21 @@ async function responder(requisicao: Request, escrever: boolean) {
   const apenas = url.searchParams.get("apenas");
   const alvos = ECOBAGS.filter((e) => apenas === null || e.slug === apenas);
 
-  const nomePai = (e: NovaEcobag) => `Ecobag ${e.estampa}`;
-  const existentes = await nomesExistentes();
+  // Sempre lido fresco (revalidar:0): a rota roda em rodadas sucessivas
+  // dentro da mesma janela de minutos, e o cache padrão de 10 min do Next
+  // já causou dado velho numa rota irmã (/corrigir) nesta mesma sessão.
+  const todosAtuais = await listarTudo<ProdutoBling>("/produtos?criterio=2", {
+    revalidar: 0,
+  });
+  const paisExistentes = new Map(
+    todosAtuais.filter((p) => p.formato === "V").map((p) => [p.nome, p]),
+  );
+
   const plano = alvos.map((e) => ({
     slug: e.slug,
     nomePai: nomePai(e),
     tamanhos: e.tamanhos,
-    acao: existentes.has(nomePai(e)) ? "pular" : "criar",
-    motivo: existentes.has(nomePai(e)) ? "já existe" : undefined,
+    acao: paisExistentes.has(nomePai(e)) ? "conferir" : "criar",
   }));
 
   if (!escrever || url.searchParams.get("aplicar") !== "1") {
@@ -93,109 +109,136 @@ async function responder(requisicao: Request, escrever: boolean) {
 
   const feitos: Record<string, unknown>[] = [];
   for (const item of plano) {
-    if (item.acao === "pular") continue;
     const e = ECOBAGS.find((x) => x.slug === item.slug)!;
 
     try {
-      const corpo = {
-        nome: item.nomePai,
-        preco: precoDoTamanho(e.tamanhos[0].rotulo),
-        tipo: "P",
-        situacao: "A",
-        formato: "V",
-        categoria: { id: ID_CATEGORIA },
-        variacoes: e.tamanhos.map((t, i) => ({
-          nome: `${item.nomePai} Tamanho:${t.rotulo}`,
-          preco: precoDoTamanho(t.rotulo),
+      let idPai: number;
+
+      if (item.acao === "criar") {
+        const corpo = {
+          nome: item.nomePai,
+          preco: precoDoTamanho(e.tamanhos[0].rotulo),
           tipo: "P",
           situacao: "A",
-          formato: "S",
+          formato: "V",
           categoria: { id: ID_CATEGORIA },
-          variacao: {
-            nome: `Tamanho:${t.rotulo}`,
-            ordem: i + 1,
-            produtoPai: { cloneInfo: true },
-          },
-        })),
-      };
-
-      const criado = await chamarBling<{
-        data: {
-          id: number;
-          variations?: { saved?: { id: number }[] };
+          variacoes: e.tamanhos.map((t, i) => ({
+            nome: `${item.nomePai} Tamanho:${t.rotulo}`,
+            preco: precoDoTamanho(t.rotulo),
+            tipo: "P",
+            situacao: "A",
+            formato: "S",
+            categoria: { id: ID_CATEGORIA },
+            variacao: {
+              nome: `Tamanho:${t.rotulo}`,
+              ordem: i + 1,
+              produtoPai: { cloneInfo: true },
+            },
+          })),
         };
-      }>("/produtos", { metodo: "POST", corpo });
+        const criado = await chamarBling<{ data: { id: number } }>("/produtos", {
+          metodo: "POST",
+          corpo,
+        });
+        idPai = criado.data.id;
+      } else {
+        idPai = paisExistentes.get(item.nomePai)!.id;
+      }
 
-      const idPai = criado.data.id;
-
-      // Relê o pai inteiro pra ver a lista real de filhos que o Bling criou —
-      // não confia na resposta do POST pra saber os ids das variações.
-      const paiLido = await chamarBling<{
-        data: { nome: string; situacao: string; formato: string };
-      }>(`/produtos/${idPai}`, { revalidar: 0 });
-
-      const todosAtuais = await listarTudo<ProdutoBling>("/produtos?criterio=2", {
+      // Relista sempre — se acabou de criar, a lista carregada no início da
+      // função ainda não tem os filhos novos. Acha por prefixo de nome e
+      // confirma cada um pelo campo oficial (variacao.produtoPai) — nunca só
+      // pelo prefixo, que também bateria com qualquer produto avulso que
+      // comece com o mesmo texto.
+      const listaAtual = await listarTudo<ProdutoBling>("/produtos?criterio=2", {
         revalidar: 0,
       });
-      const filhos = todosAtuais.filter(
-        (p) => p.nome !== item.nomePai && p.nome.startsWith(`${item.nomePai} `),
+      const candidatos = listaAtual.filter(
+        (p) => p.id !== idPai && p.nome.startsWith(`${item.nomePai} `),
       );
 
-      // Confirma cada filho por leitura individual (variacao.produtoPai) e
-      // lança o saldo dele — é o filho que guarda estoque, não o pai.
       const filhosConferidos = [];
-      for (const filho of filhos) {
+      for (const candidato of candidatos) {
         const lido = await chamarBling<{
           data: {
+            id: number;
             nome: string;
             preco: number;
             variacao?: { nome?: string; produtoPai?: { id: number } };
           };
-        }>(`/produtos/${filho.id}`, { revalidar: 0 });
+        }>(`/produtos/${candidato.id}`, { revalidar: 0 });
 
-        const rotulo = e.tamanhos.find((t) => lido.data.variacao?.nome === `Tamanho:${t.rotulo}`);
-        const paiConfere = lido.data.variacao?.produtoPai?.id === idPai;
+        if (lido.data.variacao?.produtoPai?.id !== idPai) continue; // não é filho de verdade
 
-        if (rotulo && paiConfere) {
-          await chamarBling("/estoques", {
-            metodo: "POST",
-            corpo: {
-              produto: { id: filho.id },
-              deposito: { id: ID_DEPOSITO },
-              operacao: "B",
-              quantidade: rotulo.quantidade,
-              observacoes: `Reestruturação Ecobags (estampa=pai) — planilha de estoque 2026-08-29. Lançado em ${new Date().toISOString().slice(0, 10)}.`,
-            },
+        const tamanho = e.tamanhos.find(
+          (t) => lido.data.variacao?.nome === `Tamanho:${t.rotulo}`,
+        );
+        if (!tamanho) continue; // filho de tamanho que esta peça não deveria ter
+
+        const precoCerto = precoDoTamanho(tamanho.rotulo);
+        let precoFinal = lido.data.preco;
+
+        if (lido.data.preco !== precoCerto) {
+          // cloneInfo:true copiou o preço do pai na criação — corrige por
+          // cima, relendo o objeto inteiro antes de gravar (nunca monta um
+          // corpo novo, que apagaria o resto dos campos do produto).
+          const atual = await chamarBling<{ data: Record<string, unknown> }>(
+            `/produtos/${candidato.id}`,
+            { revalidar: 0 },
+          );
+          const corpoCorrigido = { ...atual.data, preco: precoCerto };
+          await chamarBling(`/produtos/${candidato.id}`, {
+            metodo: "PUT",
+            corpo: corpoCorrigido,
           });
+          const relido = await chamarBling<{ data: { preco: number } }>(
+            `/produtos/${candidato.id}`,
+            { revalidar: 0 },
+          );
+          precoFinal = relido.data.preco;
         }
 
+        // Lança o saldo. Idempotente por natureza — "B" (Balanço) sempre
+        // define o valor absoluto, então rodar de novo não duplica nada.
+        await chamarBling("/estoques", {
+          metodo: "POST",
+          corpo: {
+            produto: { id: candidato.id },
+            deposito: { id: ID_DEPOSITO },
+            operacao: "B",
+            quantidade: tamanho.quantidade,
+            observacoes: `Reestruturação Ecobags (estampa=pai) — planilha de estoque 2026-08-29. Lançado em ${new Date().toISOString().slice(0, 10)}.`,
+          },
+        });
         const saldo = await chamarBling<{ data?: { saldoVirtualTotal?: number }[] }>(
-          `/estoques/saldos?idsProdutos[]=${filho.id}`,
+          `/estoques/saldos?idsProdutos[]=${candidato.id}`,
           { revalidar: 0 },
         );
 
         filhosConferidos.push({
-          id: filho.id,
+          id: candidato.id,
           nome: lido.data.nome,
-          preco: lido.data.preco,
-          produtoPaiConfere: paiConfere,
+          precoAntesDaCorrecao: lido.data.preco,
+          precoFinal,
+          precoCerto,
           saldoConferido: saldo.data?.[0]?.saldoVirtualTotal ?? null,
-          saldoEsperado: rotulo?.quantidade ?? null,
+          saldoEsperado: tamanho.quantidade,
         });
       }
 
       feitos.push({
         slug: item.slug,
+        acao: item.acao,
         idPai,
-        nomePai: paiLido.data.nome,
-        situacaoPai: paiLido.data.situacao,
-        formatoPai: paiLido.data.formato,
+        nomePai: item.nomePai,
         filhosEsperados: e.tamanhos.length,
-        filhosEncontrados: filhos.length,
+        filhosEncontrados: filhosConferidos.length,
         filhos: filhosConferidos,
         bateu:
-          filhos.length === e.tamanhos.length &&
-          filhosConferidos.every((f) => f.produtoPaiConfere && f.saldoConferido === f.saldoEsperado),
+          filhosConferidos.length === e.tamanhos.length &&
+          filhosConferidos.every(
+            (f) => f.precoFinal === f.precoCerto && f.saldoConferido === f.saldoEsperado,
+          ),
       });
     } catch (err) {
       feitos.push({

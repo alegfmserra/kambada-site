@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { chamarBling, listarTudo } from "@/lib/bling/cliente";
 import { buscarCatalogo, montarDoBling, paraSlug } from "@/lib/bling/produtos";
 import type { CategoriaBling, ProdutoBling } from "@/lib/bling/tipos";
-import { arquivoTokens, estaAutorizado } from "@/lib/bling/tokens";
+import { arquivoTokens, estaAutorizado, lerTokens } from "@/lib/bling/tokens";
 import { CATEGORIAS } from "@/lib/catalogo";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +37,10 @@ export async function GET(requisicao: Request) {
 
   const autorizado = await estaAutorizado();
   const catalogo = await buscarCatalogo();
+
+  // Quais permissões o Bling concedeu. Decide o que a integração pode fazer
+  // além de ler — e é melhor saber antes de prometer do que ao tentar.
+  const escopo = (await lerTokens())?.escopo ?? null;
 
   /**
    * ?detalhe=1 mostra o que o Bling realmente devolveu, para descobrir por
@@ -137,6 +141,7 @@ export async function GET(requisicao: Request) {
 
   return NextResponse.json({
     autorizadoNoBling: autorizado,
+    escopoConcedido: escopo,
     origemDoCatalogo: catalogo.origem,
     motivoDaQueda: catalogo.motivo ?? null,
     totalDeProdutos: catalogo.produtos.length,

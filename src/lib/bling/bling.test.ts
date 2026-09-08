@@ -244,18 +244,49 @@ describe("categoriaPeloNome", () => {
     }
   });
 
+  it("põe Papelaria, Brindes e Decoração pela tabela de nome exato", () => {
+    // Nomes copiados da conta real (leitura de 2026-09-08). Estas três
+    // famílias não têm prefixo comum, então casam por nome exato — e é por
+    // isso que renomear no Bling exige mexer aqui.
+    const esperado: [string, string][] = [
+      ["Canetas Ecológicas", "papelaria"],
+      ["Lápis Plantável", "papelaria"],
+      ["Bloco Anotação Caderninho Ecológico", "papelaria"],
+      ["Bloquinho", "papelaria"],
+      ["Kit Ecológico Guarás", "papelaria"],
+      ["Kit Ecológico Bumba Meu Boi", "papelaria"],
+      ["Kit Ecológico Cazumbá", "papelaria"],
+      ["Kit Ecológico Ilha do Amor", "papelaria"],
+      ["Kambada Goods", "papelaria"],
+      ["Joguinhos Divertido", "papelaria"],
+      ["Livro Trilíngue", "papelaria"],
+      ["Livro Vermelho (Historinha)", "papelaria"],
+      ["Chaveiros Sortidos", "brindes"],
+      ["Porta-chave", "brindes"],
+      ["Mandala Modelos Diversos", "decoracao"],
+      ["Placa de Madeira Reta", "decoracao"],
+      ["Placa de Madeira Redonda", "decoracao"],
+      ["Placa de Madeira Grande", "decoracao"],
+    ];
+    for (const [nome, slug] of esperado) {
+      expect(categoriaPeloNome(nome)).toBe(slug);
+    }
+  });
+
   it("deixa de fora o que não tem vitrine, em vez de chutar", () => {
-    // Estes existem no Bling e não têm seção no site. Entrar numa prateleira
-    // errada seria pior do que ficar de fora e ser reportado.
-    for (const nome of [
-      "Bermuda Brim",
-      "Bloquinho",
-      "Lápis Plantável",
-      "Livro Trilíngue",
-      "Porta-chave",
-    ]) {
+    // As bermudas existem no Bling e não têm seção no site. Entrar numa
+    // prateleira errada seria pior do que ficar de fora e ser reportado.
+    for (const nome of ["Bermuda Brim", "Bermuda Linho"]) {
       expect(categoriaPeloNome(nome)).toBeNull();
     }
+  });
+
+  it("produto renomeado no Bling cai fora, não na prateleira errada", () => {
+    // A tabela é de nome exato justamente para isto: renomeada no ERP, a peça
+    // some da vitrine e aparece em naoClassificados — em vez de virar
+    // Decoração por semelhança, onde ninguém notaria o erro.
+    expect(categoriaPeloNome("Placa Reta de Madeira")).toBeNull();
+    expect(categoriaPeloNome("Kit Ecológico Novo")).toBeNull();
   });
 
   it("não casa por pedaço solto no meio do nome", () => {

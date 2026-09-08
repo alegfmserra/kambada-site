@@ -74,14 +74,9 @@ export function paraSlug(texto: string): string {
  * `naoClassificados` reporta o que ficou de fora, para não sumir em silêncio.
  */
 /**
- * Papelaria, Brindes e Decoração (2026-09-03) ficam de fora desta lista de
- * propósito: os nomes reais no Bling — "Kit Ecológico", "Kambada Goods",
- * "Joguinhos Divertido", "Livro Trilíngue"... — não compartilham um
- * prefixo comum como "Camisa X" ou "Boné X". Casamento por regex não
- * serve aqui; precisaria de uma tabela de nome exato, que ainda não foi
- * escrita porque a vitrine hoje lê do catálogo local (ver
- * BLING_FONTE_DO_CATALOGO em produtos.ts), não do Bling. Se a fonte virar
- * "bling" um dia, essas três categorias precisam de tratamento à parte.
+ * Famílias cujo nome no Bling carrega o próprio tipo como prefixo:
+ * "Camisa Tradição", "Boné Guarás Bege", "Ecobag Caboclo de Pena".
+ * Aqui o prefixo é o dado, e a regra acompanha estampa nova sem manutenção.
  */
 const REGRAS_DE_CATEGORIA: [RegExp, string][] = [
   [/^camisas?\b/, "camisas"],
@@ -92,12 +87,54 @@ const REGRAS_DE_CATEGORIA: [RegExp, string][] = [
   [/^necessaires?\b/, "necessaires"],
 ];
 
+/**
+ * Papelaria, Brindes e Decoração (categorias criadas em 2026-09-03) não têm
+ * prefixo comum: "Kit Ecológico Cazumbá", "Kambada Goods", "Mandala Modelos
+ * Diversos", "Porta-chave". Regex de prefixo não serve — daí a tabela de nome
+ * exato, indexada pelo slug do nome (imune a acento, caixa e pontuação).
+ *
+ * **Exata de propósito.** Um produto renomeado no Bling deixa de casar e cai em
+ * `naoClassificados`, onde aparece no diagnóstico. Uma regra frouxa o
+ * silenciaria na prateleira errada, que é o erro caro: a heurística de nome
+ * monta vitrine, não decide curadoria.
+ */
+const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
+  // Papelaria
+  "canetas-ecologicas": "papelaria",
+  "lapis-plantavel": "papelaria",
+  "bloco-anotacao-caderninho-ecologico": "papelaria",
+  "bloquinho": "papelaria",
+  "kit-ecologico-guaras": "papelaria",
+  "kit-ecologico-bumba-meu-boi": "papelaria",
+  "kit-ecologico-cazumba": "papelaria",
+  "kit-ecologico-ilha-do-amor": "papelaria",
+  "kambada-goods": "papelaria",
+  "joguinhos-divertido": "papelaria",
+  "livro-trilingue": "papelaria",
+  "livro-vermelho-historinha": "papelaria",
+  // Brindes
+  "chaveiros-sortidos": "brindes",
+  "porta-chave": "brindes",
+  // Decoração
+  "mandala-modelos-diversos": "decoracao",
+  "placa-de-madeira-reta": "decoracao",
+  "placa-de-madeira-redonda": "decoracao",
+  "placa-de-madeira-grande": "decoracao",
+};
+
+/**
+ * Bermuda Brim e Bermuda Linho continuam **fora da vitrine de propósito**: não
+ * têm prateleira em `catalogo.ts`, e prateleira nova exige nome, chamada e foto
+ * — curadoria humana, não decisão de código. Seguem reportadas em
+ * `naoClassificados` até que alguém decida onde moram.
+ */
+
 export function categoriaPeloNome(nome: string): string | null {
   const limpo = comAcentoNormalizado(nome);
   for (const [padrao, slug] of REGRAS_DE_CATEGORIA) {
     if (padrao.test(limpo)) return slug;
   }
-  return null;
+  return CATEGORIA_POR_NOME_EXATO[paraSlug(nome)] ?? null;
 }
 
 /**
@@ -200,12 +237,16 @@ const CATALOGO_LOCAL: Catalogo = {
 /**
  * De onde vem o catálogo da vitrine.
  *
- * O padrão é `local`, e isso é deliberado: em 2026-09-03 o preço de venda no
- * Bling estava com o valor de produção (camisa a R$ 33,80, quando ela é
- * vendida a R$ 89,90). Ligar a vitrine no Bling hoje derrubaria os preços da
- * loja. O código já sabe ler o Bling inteiro; falta o preço estar certo lá.
+ * O motivo histórico do padrão `local` **acabou**: em 2026-09-03 o preço de
+ * venda no Bling ainda era o de produção (camisa a R$ 33,80 em vez de
+ * R$ 89,90), e servir dali derrubaria os preços da loja. A correção foi
+ * aplicada; a leitura de 2026-09-08 confirmou 45 produtos, preço certo e
+ * 607 peças de saldo.
  *
- * Quando estiver, basta `BLING_FONTE_DO_CATALOGO=bling`.
+ * O padrão em código continua `local` de propósito: quem liga é a variável de
+ * ambiente `BLING_FONTE_DO_CATALOGO=bling`, e desligar em um incidente passa a
+ * ser mudança de configuração, não deploy de código. A queda automática para o
+ * catálogo local segue valendo se o Bling falhar.
  */
 function fonteEscolhida(): "local" | "bling" {
   return process.env.BLING_FONTE_DO_CATALOGO === "bling" ? "bling" : "local";

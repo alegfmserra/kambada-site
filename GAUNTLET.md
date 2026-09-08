@@ -268,3 +268,81 @@ Nenhuma bloqueia as Fases 0 e 1. Todas afetam fases seguintes:
 2. **Credenciais do Bling** — necessárias para a Fase 2. Só o Alexandre pode gerar, no painel do Bling.
 3. **Hospedagem** — decidido Hostinger Web Apps hosting (Node.js); o plano atual é Website Builder e não executa Next.js. Contratação pendente.
 4. **Regras de negócio** — frete, cupom, política de troca e tratamento de produto sem estoque continuam indefinidos. Nada será implementado por suposição.
+
+---
+
+## Rodada 7 — 2026-09-08 — Papelaria, Brindes e Decoração no casamento com o Bling
+
+**Lacuna de registro reconhecida:** entre 02/09 e 03/09 houve **30 commits** — diagnóstico
+da listagem do Bling, correção de preços no ERP, ajuste de saldo, reestruturação
+estampa=produto em quatro famílias, três categorias novas e a página de Encomendas — **sem
+uma única rodada registrada aqui**. Escrita em ERP de produção passou sem gate anotado.
+Este documento voltou a ser mantido nesta data.
+
+**Escopo desta rodada:** as categorias Papelaria, Brindes e Decoração foram criadas no
+catálogo local em 03/09 e as regras de casamento com o Bling não acompanharam. Vinte
+produtos caíam em `naoClassificados` e ficavam fora da vitrine em silêncio — entre eles os
+quatro Kits Ecológicos a R$ 85 e as três Placas de Madeira.
+
+### Gates
+
+| Gate | Resultado |
+|---|---|
+| 1 — Build, lint, type-check | ✅ os três em zero |
+| 2 — Testes | ✅ **55/55** (eram 45; entraram os 18 nomes reais da conta, o caso das bermudas e o caso do produto renomeado) |
+| 3 — QA visual | ✅ 28 passaram, 8 puladas de propósito |
+| 4 — Lighthouse | ✅ **100/100/100/100 nas 6 páginas** — ver o falso vermelho abaixo |
+| 5 — Identidade visual | ✅ sem divergência: a mudança não toca em apresentação |
+
+### O falso vermelho do Gate 4, e por que ele volta se não for consertado
+
+Primeira execução: **SEO 0,69 em todas as 6 páginas**, audit reprovado *"Page is blocked
+from indexing"*.
+
+Não era regressão. É a blindagem de `src/lib/site.ts`: o site só se declara produção quando
+`NEXT_PUBLIC_SITE_URL` for exatamente o domínio oficial; em qualquer outro endereço ele pede
+`noindex`, para que o endereço temporário da Hostinger não vire conteúdo duplicado
+competindo no Google com o site que **está vendendo hoje**. A decisão está certa; o gate é
+que media o ambiente errado.
+
+Confirmado por medição: refeito o build declarando o domínio real, **SEO volta a 1,0 nas 6
+páginas**, sem tocar em uma linha do site.
+
+`NEXT_PUBLIC_*` é gravada no bundle em tempo de **build**, não de execução — então a
+correção não cabia no `startServerCommand` do `lighthouserc.json`. Entrou
+`scripts/build-qa.mjs`, e `npm run qa:lighthouse` passou a buildar por ele antes de medir.
+O Gate 4 agora afere o site como ele será no domínio real.
+
+> Gate que fica vermelho por decisão correta ensina a ignorar gate. Era o pior tipo de
+> alarme falso, e por isso virou conserto e não nota de rodapé.
+
+### Medido contra a conta real, depois do deploy
+
+| | Antes | Depois |
+|---|---:|---:|
+| Produtos vindos do Bling | 45 | **63** |
+| Fora da vitrine | 20 | **2** |
+
+Os 2 que sobram são **Bermuda Brim** e **Bermuda Linho** — fora de propósito: não têm
+prateleira, e prateleira nova exige nome, chamada e foto, que são curadoria humana.
+
+### Decisão de desenho: tabela de nome exato, não regex
+
+As seis famílias antigas casam por prefixo porque o nome carrega o tipo ("Camisa Tradição",
+"Boné Guarás Bege") — e assim estampa nova entra sozinha. As três novas não têm prefixo
+comum ("Kit Ecológico Cazumbá", "Kambada Goods", "Mandala Modelos Diversos",
+"Porta-chave"), então casam por **nome exato**, indexado pelo slug.
+
+Exata de propósito: produto renomeado no ERP deixa de casar e **aparece em
+`naoClassificados`**, em vez de ser silenciado numa prateleira errada — que é o erro caro,
+porque ninguém o vê. Há teste cobrindo os dois casos.
+
+### O que esta rodada apurou e não conserta
+
+1. **Oito dos dezoito produtos novos estão com saldo zero**, entre eles os **quatro Kits
+   Ecológicos a R$ 85**. Não é defeito da virada: o catálogo local já os traz zerados, e o
+   comentário em `catalogo.ts` explica por quê — a planilha trazia "30 unidades" numa linha
+   só, sem separar por estampa, e não havia como repartir sem chutar. Continua valendo:
+   **falta contagem por estampa**, não código.
+2. **Papelaria, Brindes e Decoração não têm foto de vitrine.** Renderizam sem imagem. Pareôs
+   também não têm, como já registrado.

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "qa:visual": "playwright test",
-    "qa:lighthouse": "lhci autorun",
+    "qa:build": "node scripts/build-qa.mjs",
+    "qa:lighthouse": "npm run qa:build && lhci autorun",
     "icones": "node scripts/gerar-icones.mjs"
   },
   "dependencies": {

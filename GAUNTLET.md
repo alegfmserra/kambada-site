@@ -402,3 +402,62 @@ do resto da loja.
 **A foto.** O espaço reservado continua sendo o caranguejo, agora em tamanho grande. O tipo `Produto`
 ainda não tem campo de imagem e o Bling tem foto em 1 de 39 produtos. São dois trabalhos: cadastrar as
 fotos no Bling e ensinar o catálogo a lê-las.
+
+---
+
+## Rodada 9 — 2026-10-08 — O build de produção sai do Turbopack
+
+**Sintoma:** três implantações seguidas falharam na Hostinger em 08/10, entre 00:18 e 00:44.
+
+**O que elimina o código como suspeito:** uma das três falhas foi do commit `d5d9ac8` — o **mesmo**
+commit que havia construído com sucesso em 08/09 e que está no ar desde então. Mesmo código, mesmo
+`package-lock`, resultado diferente. Logo, a mudança não veio de nós.
+
+### O erro, como o log da Hostinger o entrega
+
+```
+FATAL: An unexpected Turbopack error occurred
+Error [TurbopackInternalError]: Failed to write app endpoint /page
+Caused by:
+- [project]/src/app/globals.css [app-client] (css)
+- creating new process
+- node process exited before we could connect to it with exit status: 0
+...
+- Execution of PostCssTransformedAsset::process failed
+- Execution of evaluate_webpack_loader failed
+```
+
+O Turbopack tenta **abrir um processo filho** para rodar o PostCSS (Tailwind) sobre o `globals.css`, e
+esse processo morre antes de conectar — **com status 0**, isto é, sem sequer reportar erro próprio.
+Isso é assinatura de limite de recurso do contêiner de build (memória ou número de processos), não de
+CSS inválido: o mesmo arquivo compila nesta máquina sem reclamar.
+
+### A correção
+
+`npm run build` passa a usar **webpack** em vez de Turbopack:
+
+```
+"build": "next build --webpack"
+```
+
+A opção está documentada na própria versão instalada (`node_modules/next/dist/docs`, CLI do
+`next build`: *"--webpack — Build using Webpack"*). O `scripts/build-qa.mjs` acompanha, para o Gate 4
+medir o mesmo artefato que vai ao ar.
+
+**O `next dev` continua no Turbopack**, que é onde a velocidade dele importa. A troca vale só para o
+build de produção, que precisa ser reprodutível no ambiente de deploy — e lá o Turbopack não está sendo.
+
+> **Honestidade sobre o diagnóstico:** a causa-raiz (memória? limite de processos?) é **inferência
+> minha a partir do log**; não tenho acesso ao contêiner de build da Hostinger para provar. O que está
+> provado é que o Turbopack quebra lá e o webpack compila o mesmo código aqui, com a mesma tabela de
+> rotas. Se o deploy falhar de novo, o próximo passo é olhar memória do plano, não o código.
+
+### Gates
+
+| Gate | Resultado |
+|---|---|
+| 1 — Build (webpack), lint, type-check | ✅ os três em zero · tabela de rotas idêntica à do Turbopack |
+| 2 — Testes | ✅ 55/55 |
+| 3 — QA visual | ✅ 28 passaram, 8 puladas de propósito |
+| 4 — Lighthouse | ✅ assertivas aprovadas · 100/100/100/100, home com performance 0,99 |
+| 5 — Identidade visual | ✅ troca de empacotador não altera apresentação |

@@ -20,7 +20,7 @@
  */
 import { execSync } from "node:child_process";
 
-execSync("npx next build", {
+execSync("npx next build --webpack", {
   stdio: "inherit",
   env: { ...process.env, NEXT_PUBLIC_SITE_URL: "https://somoskambada.com.br" },
 });

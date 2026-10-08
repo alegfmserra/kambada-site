@@ -15,10 +15,18 @@ const poppins = Poppins({
   display: "swap",
 });
 
+/**
+ * "optional" no texto corrido (08/10/2026): com "swap", no celular o
+ * parágrafo de abertura era desenhado de novo quando a fonte chegava, 2,2 s
+ * depois — e era isso que o Google media como fim do carregamento (LCP
+ * 3,7 s). Com "optional", se a fonte não chega a tempo na primeira visita, o
+ * texto fica na fonte do sistema (com medidas ajustadas pelo next/font) e não
+ * pula; da segunda visita em diante, a fonte já está em cache.
+ */
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
-  display: "swap",
+  display: "optional",
 });
 
 export const metadata: Metadata = {

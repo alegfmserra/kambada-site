@@ -40,7 +40,7 @@ type ProdutoCompleto = Record<string, unknown> & {
 };
 
 /** O Bling devolve o NCM com pontos ("6109.10.00"); compara-se só os dígitos. */
-const digitos = (ncm?: string) => (ncm ?? "").replace(/D/g, "");
+const digitos = (ncm?: string) => (ncm ?? "").replace(/\D/g, "");
 
 async function guardarCopia(originais: unknown[]): Promise<string> {
   const carimbo = new Date().toISOString().replace(/[:.]/g, "-");

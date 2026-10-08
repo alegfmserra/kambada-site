@@ -9,6 +9,9 @@ import { compravelOnline } from "@/lib/frete/embalagens";
 import { ErroFrete, freteConfigurado } from "@/lib/frete/melhorEnvio";
 import { lerUltimaRecusa } from "@/lib/mercadopago/assinatura";
 import { conferirChave, mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
+import { adminConfigurado } from "@/lib/admin/sessao";
+import { conferirEmail } from "@/lib/email/enviar";
+import { listarRegistros } from "@/lib/pedidos/registro";
 
 export const dynamic = "force-dynamic";
 
@@ -53,11 +56,13 @@ export async function GET(requisicao: Request) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 
-  const [pedidos, contatos, formas, chaveMp] = await Promise.all([
+  const [pedidos, contatos, formas, chaveMp, email, registros] = await Promise.all([
     tentarLer("/pedidos/vendas?limite=1"),
     tentarLer("/contatos?limite=1"),
     tentarLer("/formas-pagamentos?limite=100"),
     mercadoPagoConfigurado() ? conferirChave() : Promise.resolve(null),
+    conferirEmail(),
+    listarRegistros(1000),
   ]);
 
   const catalogo = await buscarCatalogo();
@@ -101,6 +106,13 @@ export async function GET(requisicao: Request) {
     },
     // A chave existir não basta: aqui o Mercado Pago confirma que ela vale.
     mercadoPago: chaveMp ?? "sem chave configurada",
+    // Login no Gmail testado sem mandar e-mail nenhum.
+    emailDeConfirmacao: email,
+    posVenda: {
+      pedidosRegistrados: registros.length,
+      notaFiscalAutomatica: process.env.BLING_EMITIR_NFE === "1",
+      areaDeControleComSenha: adminConfigurado(),
+    },
     // Para investigar assinatura recusada (401) sem expor o segredo: só o
     // tamanho e se sobrou espaço/quebra de linha ao colar. A assinatura do
     // Mercado Pago tem 64 caracteres.

@@ -18,6 +18,17 @@ import type { NextConfig } from "next";
  *   correto aqui, e é o que traz a velocidade de volta.
  */
 const nextConfig: NextConfig = {
+  /**
+   * Fotos em WebP (08/10/2026). Sem isto, o Next entregava JPEG — e no celular
+   * a foto principal da página inicial levava 3,7 s para aparecer (Lighthouse
+   * móvel). AVIF ficou de fora de propósito: comprime mais, mas codificar é
+   * lento no servidor, e a primeira visita de cada tamanho pagaria a conta.
+   * O cache de 30 dias evita recodificar a mesma foto a cada visita.
+   */
+  images: {
+    formats: ["image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+  },
   async headers() {
     return [
       {

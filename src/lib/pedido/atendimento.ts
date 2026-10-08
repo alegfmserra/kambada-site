@@ -21,8 +21,13 @@ export const MOTIVOS = [
   },
   {
     id: "defeito",
-    rotulo: "Troca ou defeito",
-    dica: "Peça com defeito, tamanho ou estampa trocada. Fotos ajudam muito.",
+    rotulo: "Defeito ou peça danificada",
+    dica: "Até 90 dias depois de receber. Frete por nossa conta. Fotos ajudam muito.",
+  },
+  {
+    id: "troca",
+    rotulo: "Trocar por outra estampa ou tamanho",
+    dica: "Peça sem uso, até 30 dias. Sem defeito, o frete da troca é por conta do cliente.",
   },
 ] as const;
 

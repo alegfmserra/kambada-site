@@ -47,7 +47,12 @@ export async function chamarBling<T>(
           cache: metodo === "GET" ? undefined : "no-store",
         });
 
-        if (resposta.ok) return (await resposta.json()) as T;
+        if (resposta.ok) {
+          // 204 (lançar estoque, por exemplo) vem sem corpo. Ler como JSON
+          // daria erro — e erro aqui faria a ESCRITA ser repetida.
+          const texto = await resposta.text();
+          return (texto ? JSON.parse(texto) : {}) as T;
+        }
 
         const texto = await resposta.text();
         throw new ErroBling(

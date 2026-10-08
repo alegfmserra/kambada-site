@@ -13,7 +13,8 @@
 
 import { chamarBling } from "../bling/cliente";
 import { buscarPedidoPorNumeroLoja, numeroLojaDe } from "../bling/pedidos";
-import { buscarPagamentosDoPedido, type Pagamento } from "../mercadopago/cliente";
+import { buscarPagamento, buscarPagamentosDoPedido, type Pagamento } from "../mercadopago/cliente";
+import { lerRegistro } from "../pedidos/registro";
 import { lerRetrato } from "./pedido";
 
 export const FORMATO_REFERENCIA = /^KMB-\d{8}-[0-9A-F]{6}$/;
@@ -79,6 +80,29 @@ async function nomeDaSituacao(id: number): Promise<string> {
   return nome;
 }
 
+/** Situação e rastreio de um pedido no Bling — usado aqui e na página de controle. */
+export async function situacaoNoBling(
+  idPedido: number,
+): Promise<{ situacao: string; rastreios: { servico?: string; codigo: string }[] }> {
+  const p = await chamarBling<PedidoBling>(`/pedidos/vendas/${idPedido}`, { revalidar: 0 });
+  const idSituacao = p.data?.situacao?.id;
+  return {
+    situacao: idSituacao ? await nomeDaSituacao(idSituacao) : "Em processamento",
+    rastreios: (p.data?.transporte?.volumes ?? [])
+      .filter((v) => v.codigoRastreamento)
+      .map((v) => ({ servico: v.servico, codigo: v.codigoRastreamento as string })),
+  };
+}
+
+/** Bling fora do ar: o pagamento aprovado já é informação útil para o cliente. */
+async function situacaoNoBlingSegura(idPedido: number) {
+  try {
+    return await situacaoNoBling(idPedido);
+  } catch {
+    return { situacao: "Recebido — em separação", rastreios: [] };
+  }
+}
+
 export async function acompanharPedido(
   refBruta: string,
   emailBruto: string,
@@ -87,6 +111,31 @@ export async function acompanharPedido(
   const email = normalizarEmail(emailBruto);
   if (!FORMATO_REFERENCIA.test(ref) || !email.includes("@")) return null;
 
+  // 1º: o registro próprio do site (pedidos a partir de 08/10/2026).
+  const registro = await lerRegistro(ref);
+  if (registro) {
+    const pagamento = await buscarPagamento(registro.pagamentoId);
+    const emails = [registro.cliente.email, pagamento.payer?.email]
+      .filter((e): e is string => Boolean(e))
+      .map(normalizarEmail);
+    if (!emails.includes(email)) return null;
+    const aprovado = pagamento.status === "approved";
+    return {
+      ref,
+      feitoEm: registro.criadoEm,
+      itens: registro.itens.map((i) => ({ nome: i.nome, quantidade: i.quantidade, preco: i.preco })),
+      entrega: {
+        descricao: registro.entrega.descricao,
+        valor: registro.entrega.valor,
+        retirada: registro.entrega.retirada,
+      },
+      total: registro.total,
+      pagamento: { ...situacaoDoPagamento(pagamento.status), aprovado },
+      pedido: aprovado ? await situacaoNoBlingSegura(registro.bling.idPedido) : null,
+    };
+  }
+
+  // 2º: pedido sem registro (anterior a ele) — reconstruído do Mercado Pago.
   const pagamentos = await buscarPagamentosDoPedido(ref);
   const pagamento = pagamentoQueVale(pagamentos);
   if (!pagamento || pagamento.external_reference !== ref) return null;
@@ -105,20 +154,10 @@ export async function acompanharPedido(
   if (aprovado) {
     try {
       const idPedido = await buscarPedidoPorNumeroLoja(numeroLojaDe(pagamento.id));
-      if (idPedido) {
-        const p = await chamarBling<PedidoBling>(`/pedidos/vendas/${idPedido}`, { revalidar: 0 });
-        const idSituacao = p.data?.situacao?.id;
-        pedido = {
-          situacao: idSituacao ? await nomeDaSituacao(idSituacao) : "Em processamento",
-          rastreios: (p.data?.transporte?.volumes ?? [])
-            .filter((v) => v.codigoRastreamento)
-            .map((v) => ({ servico: v.servico, codigo: v.codigoRastreamento as string })),
-        };
-      } else {
-        pedido = { situacao: "Recebido — em separação", rastreios: [] };
-      }
+      pedido = idPedido
+        ? await situacaoNoBlingSegura(idPedido)
+        : { situacao: "Recebido — em separação", rastreios: [] };
     } catch {
-      // Bling fora do ar: o pagamento aprovado já é informação útil.
       pedido = { situacao: "Recebido — em separação", rastreios: [] };
     }
   }

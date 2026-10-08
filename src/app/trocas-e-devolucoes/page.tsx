@@ -11,10 +11,14 @@ export const metadata: Metadata = {
 /**
  * Política de trocas e devoluções.
  *
- * Base legal: Código de Defesa do Consumidor (Lei 8.078/1990), arts. 18, 26 e
- * 49. Texto redigido em 08/10/2026 para revisão do Alexandre; a regra de troca
- * por tamanho/estampa (sem defeito) é decisão comercial e ficou em aberto, a
- * combinar caso a caso, até ele definir.
+ * Orientação do Alexandre (08/10/2026): devolução só nas hipóteses legais —
+ * defeito/dano (CDC arts. 18 e 26) e arrependimento em 7 dias (CDC art. 49;
+ * Decreto 7.962/2013, art. 5º). Troca por gosto (outra estampa ou tamanho, sem
+ * defeito) não é obrigação legal: é cortesia, e o frete fica com o cliente —
+ * informado ANTES da compra (CDC arts. 6º, III, e 31). Limite: a cortesia não
+ * pode esvaziar o arrependimento; dentro dos 7 dias o cliente ainda pode
+ * devolver sem custo (art. 51, I, veda cláusula que o restrinja).
+ * O prazo de 30 dias da troca por gosto é proposta a confirmar.
  */
 export default function PaginaTrocas() {
   return (
@@ -36,30 +40,44 @@ export default function PaginaTrocas() {
             </p>
             <p className="mt-3">
               Devolvemos <strong>tudo o que você pagou, inclusive o frete</strong>, pelo mesmo meio de
-              pagamento — o estorno é feito no Mercado Pago. A postagem de volta a gente combina com
-              você pelo WhatsApp. Só pedimos que a peça volte bem embalada, do jeito que chegou.
+              pagamento — o estorno é feito no Mercado Pago (Decreto 7.962/2013, art. 5º). O envio de
+              volta é por nossa conta: a gente combina a postagem com você pelo WhatsApp. Só pedimos
+              que a peça volte bem embalada, do jeito que chegou.
             </p>
           </article>
 
           <article>
-            <h2 className="font-display text-2xl font-bold">A peça chegou com defeito?</h2>
+            <h2 className="font-display text-2xl font-bold">Chegou com defeito ou danificada?</h2>
             <p className="mt-3">
               Avise em até <strong>90 dias</strong> depois de receber (Código de Defesa do
-              Consumidor, art. 26) e mande fotos pela conversa — elas aceleram tudo.
+              Consumidor, art. 26) e mande fotos pela conversa — elas aceleram tudo. Se a peça chegou
+              danificada pelo transporte, avise assim que abrir a embalagem.
             </p>
             <p className="mt-3">
-              Se o defeito não for resolvido em até 30 dias, você escolhe: troca por uma peça igual,
-              devolução do valor pago ou abatimento proporcional no preço (art. 18, § 1º). Nesses
-              casos, o frete é por nossa conta.
+              Se o problema não for resolvido em até 30 dias, você escolhe: troca por uma peça igual,
+              devolução do valor pago ou abatimento proporcional no preço (art. 18, § 1º).{" "}
+              <strong>Nesses casos, todo frete é por nossa conta.</strong>
             </p>
           </article>
 
           <article>
-            <h2 className="font-display text-2xl font-bold">Quer outro tamanho ou outra estampa?</h2>
+            <h2 className="font-display text-2xl font-bold">Quer trocar por outra estampa ou tamanho?</h2>
             <p className="mt-3">
-              A peça não tem defeito, mas o tamanho não serviu ou você ficou com vontade de outra
-              estampa? Fale com a gente. Como trabalhamos com lotes pequenos, a troca depende do
-              estoque — e combinamos tudo pelo WhatsApp.
+              A peça está perfeita, mas você preferiu outra estampa — trocou o Guará pela Carranca —
+              ou o tamanho não serviu? A gente troca com prazer, como cortesia da casa:
+            </p>
+            <ul className="mt-3 list-disc space-y-1 pl-6">
+              <li>em até <strong>30 dias</strong> depois de receber;</li>
+              <li>com a peça sem uso, com a etiqueta;</li>
+              <li>conforme o estoque — trabalhamos com lotes pequenos;</li>
+              <li>
+                <strong>o frete de ida e de volta fica por sua conta</strong>, porque a troca não é por
+                defeito. Comprou com retirada no ateliê? Aí a troca é lá mesmo, sem frete.
+              </li>
+            </ul>
+            <p className="mt-3 text-sm text-texto-suave">
+              Ainda está nos 7 dias do recebimento? Você também pode simplesmente desistir da compra,
+              sem custo, e comprar a outra estampa — vale o que for melhor para você.
             </p>
           </article>
 

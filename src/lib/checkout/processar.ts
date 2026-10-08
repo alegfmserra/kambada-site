@@ -16,7 +16,9 @@
 import { registrarPedidoNoBling } from "../bling/pedidos";
 import { emCentavos } from "../loja/dinheiro";
 import { buscarPagamento, totalDoRetratoEmCentavos } from "../mercadopago/cliente";
+import { lerRegistro } from "../pedidos/registro";
 import { lerRetrato } from "./pedido";
+import { executarPosVenda } from "./posVenda";
 
 export type ResultadoProcessamento =
   | {
@@ -77,5 +79,19 @@ export async function processarPagamento(idPagamento: string): Promise<Resultado
   }
 
   const r = await registrarPedidoNoBling(retrato, pagamento);
+
+  // Pós-venda (registro, estoque, nota, e-mail). Roda para pedido recém-criado
+  // ou já registrado (retoma etapa que falhou). Pedido antigo sem registro —
+  // anterior a esta função, como os testes cancelados de 08/10 — fica de fora:
+  // um aviso reenviado não pode baixar estoque nem mandar e-mail por eles.
+  try {
+    if (r.situacao === "criado" || (await lerRegistro(retrato.ref))) {
+      await executarPosVenda(retrato, pagamento, r.idPedido);
+    }
+  } catch (e) {
+    // O pedido já existe no Bling; falha aqui não pode virar "pagamento perdido".
+    console.error(`[pos-venda] ${retrato.ref}:`, e instanceof Error ? e.message : e);
+  }
+
   return { ok: true, ...r, ref: retrato.ref, retirada: retrato.frete.retirada === true };
 }

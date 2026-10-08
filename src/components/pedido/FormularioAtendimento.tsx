@@ -27,7 +27,7 @@ export default function FormularioAtendimento({ refInicial }: { refInicial: stri
           ref: ref.trim().toUpperCase(),
           nome: nome.trim(),
           descricao: descricao.trim(),
-          recebidoEm: motivo === "devolucao" || motivo === "defeito" ? recebidoEm : undefined,
+          recebidoEm: motivo !== "entrega" && motivo !== "reclamacao" ? recebidoEm : undefined,
         }),
       ),
       "_blank",
@@ -35,7 +35,7 @@ export default function FormularioAtendimento({ refInicial }: { refInicial: stri
     );
   }
 
-  const pedeData = motivo === "devolucao" || motivo === "defeito";
+  const pedeData = motivo !== "entrega" && motivo !== "reclamacao";
 
   return (
     <form onSubmit={enviar} noValidate className="max-w-2xl space-y-8">

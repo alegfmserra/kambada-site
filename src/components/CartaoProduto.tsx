@@ -1,12 +1,13 @@
+import Link from "next/link";
 import type { Produto } from "@/lib/catalogo";
 import { disponibilidade, precoExibido } from "@/lib/catalogo";
-import { linkWhatsApp } from "@/lib/site";
 
 export default function CartaoProduto({ produto }: { produto: Produto }) {
   const estoque = disponibilidade(produto);
+  const href = `/loja/${produto.categoria}/${produto.slug}`;
 
   return (
-    <li className="flex flex-col rounded-2xl border border-borda bg-superficie p-6">
+    <li className="group relative flex flex-col rounded-2xl border border-borda bg-superficie p-6 transition-colors hover:border-kambada-amarelo-escuro">
       {/* Sem foto ainda: as imagens dos produtos entram junto com o Bling. */}
       <div
         aria-hidden="true"
@@ -16,7 +17,17 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
       </div>
 
       <h3 className="font-display text-lg leading-snug font-semibold">
-        {produto.nome}
+        {/*
+          O link cobre o cartão inteiro (via `after:absolute`), para que o alvo
+          de toque seja o cartão e não só o texto — mas quem lê com leitor de
+          tela ouve apenas o nome da peça, que é o rótulo certo.
+        */}
+        <Link
+          href={href}
+          className="after:absolute after:inset-0 group-hover:text-kambada-amarelo-escuro"
+        >
+          {produto.nome}
+        </Link>
       </h3>
 
       <p className="mt-2 flex-1 text-sm leading-relaxed text-texto-suave">
@@ -28,32 +39,20 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
         {precoExibido(produto)}
       </p>
 
-      <p
-        className={
-          estoque.disponivel
-            ? "mt-1 text-xs font-medium text-texto-tenue"
-            : "mt-1 text-xs font-medium text-texto-tenue"
-        }
-      >
+      <p className="mt-1 text-xs font-medium text-texto-tenue">
         {estoque.texto}
       </p>
 
-      {estoque.disponivel ? (
-        <a
-          href={linkWhatsApp(
-            `Oi! Tenho interesse na peça "${produto.nome}". Ainda tem disponível?`,
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 rounded-full bg-kambada-amarelo px-5 py-3 text-center font-display text-sm font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-        >
-          Pedir pelo WhatsApp
-        </a>
-      ) : (
-        <p className="mt-4 rounded-full border border-borda px-5 py-3 text-center font-display text-sm font-semibold text-texto-tenue">
-          Esgotado
-        </p>
-      )}
+      <p
+        aria-hidden="true"
+        className={
+          estoque.disponivel
+            ? "mt-4 rounded-full bg-kambada-amarelo px-5 py-3 text-center font-display text-sm font-semibold text-kambada-grafite transition-colors group-hover:bg-kambada-amarelo-escuro"
+            : "mt-4 rounded-full border border-borda px-5 py-3 text-center font-display text-sm font-semibold text-texto-tenue"
+        }
+      >
+        {estoque.disponivel ? "Ver peça" : "Esgotado"}
+      </p>
     </li>
   );
 }

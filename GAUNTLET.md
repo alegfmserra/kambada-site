@@ -346,3 +346,59 @@ porque ninguém o vê. Há teste cobrindo os dois casos.
    **falta contagem por estampa**, não código.
 2. **Papelaria, Brindes e Decoração não têm foto de vitrine.** Renderizam sem imagem. Pareôs
    também não têm, como já registrado.
+
+---
+
+## Rodada 8 — 2026-10-08 — Fase 2 no ar e página de produto
+
+**Marco:** a variável `BLING_FONTE_DO_CATALOGO=bling` entrou no painel da Hostinger e a vitrine
+passou a servir o ERP. Medido em produção: `origemDoCatalogo: "bling"`, **63 produtos**, sem queda.
+**A Fase 2 está concluída e em produção** — o site serve preço e estoque reais do Bling.
+
+**Escopo desta rodada:** a loja não tinha página de produto. A grade mostrava nome e preço e acabava
+ali — sem rota por peça, sem dado estruturado, sem lugar para a foto entrar. Era também o que
+impedia começar o carrinho: não se adiciona ao carrinho a partir de uma grade.
+
+### O que entrou
+
+- Rota `/loja/[categoria]/[produto]` com preço, faixa de preço quando há, variações reais,
+  disponibilidade, trilha de navegação e a mensagem de WhatsApp já preenchida com a peça.
+- Dado estruturado `schema.org/Product` com preço e disponibilidade — é o que faz a peça aparecer
+  com preço no resultado de busca, e vale mesmo sem carrinho.
+- O cartão da grade virou link para a peça. O link cobre o cartão inteiro via `after:inset-0`, para
+  que o alvo de toque seja o cartão, mas o rótulo lido por leitor de tela continua sendo só o nome.
+- Peça esgotada deixa de ser beco sem saída: ganha "me avise quando voltar", que abre o WhatsApp.
+
+### Gates
+
+| Gate | Resultado |
+|---|---|
+| 1 — Build, lint, type-check | ✅ os três em zero |
+| 2 — Testes | ✅ 55/55 |
+| 3 — QA visual | ✅ 28 passaram, 8 puladas de propósito |
+| 4 — Lighthouse | ✅ **100/100/100/100 nas 6 páginas** |
+| 5 — Identidade visual | ✅ paleta, tipografia e tom preservados |
+
+### Verificação funcional, porque build não prova que a página abre
+
+Servidor de produção local, rotas exercitadas de verdade:
+
+| Verificação | Resultado |
+|---|---|
+| Página de produto | **200**, com `<title>` correto |
+| Produto inexistente | **404** — não entrega página vazia |
+| Grade → peça | os 3 links de `/loja/matracas` apontam para a rota nova |
+| Dado estruturado | `"@type":"Product"` com preço e marca corretos |
+
+### Decisão de desenho: nenhuma rota de produto é pré-gerada
+
+`generateStaticParams` devolve lista vazia de propósito. O catálogo vem do Bling e muda sem aviso —
+estampa nova entra, peça sai de linha. Pré-gerar congelaria a lista no instante do build e produziria
+**404 em produto que existe**. Cada peça é renderizada sob demanda e cacheada pelos mesmos 10 minutos
+do resto da loja.
+
+### O que esta rodada não resolve
+
+**A foto.** O espaço reservado continua sendo o caranguejo, agora em tamanho grande. O tipo `Produto`
+ainda não tem campo de imagem e o Bling tem foto em 1 de 39 produtos. São dois trabalhos: cadastrar as
+fotos no Bling e ensinar o catálogo a lê-las.

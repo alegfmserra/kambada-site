@@ -49,6 +49,14 @@ type ProdutoCompleto = Record<string, unknown> & {
 const quantasImagens = (p: ProdutoCompleto) =>
   (p.midia?.imagens?.internas?.length ?? 0) + (p.midia?.imagens?.externas?.length ?? 0);
 
+/** Onde a foto mora: guardada no Bling (internas) ou só o nosso link (externas). */
+const ondeEstao = (p: ProdutoCompleto) => ({
+  guardadasNoBling: p.midia?.imagens?.internas?.length ?? 0,
+  linksExternos: p.midia?.imagens?.externas?.length ?? 0,
+});
+
+const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function guardarCopia(originais: unknown[]): Promise<string> {
   const carimbo = new Date().toISOString().replace(/[:.]/g, "-");
   const caminho = join(dirname(arquivoTokens()), `backup-fotos-${carimbo}.json`);
@@ -87,7 +95,13 @@ async function responder(requisicao: Request, escrever: boolean) {
       const ja = quantasImagens(atual.data);
 
       if (ja > 0) {
-        passos.push({ id, nome: atual.data.nome, acao: "pular", motivo: `já tem ${ja} imagem(ns)` });
+        passos.push({
+          id,
+          nome: atual.data.nome,
+          acao: "pular",
+          motivo: `já tem ${ja} imagem(ns)`,
+          ...ondeEstao(atual.data),
+        });
         continue;
       }
       if (!aplicar) {
@@ -107,17 +121,24 @@ async function responder(requisicao: Request, escrever: boolean) {
       await chamarBling(`/produtos/${id}`, { metodo: "PUT", corpo });
       escritos++;
 
-      const depois = await chamarBling<{ data: ProdutoCompleto }>(`/produtos/${id}`, { revalidar: 0 });
+      // O Bling baixa a imagem com alguns segundos de atraso (visto em
+      // 08/10/2026: a releitura imediata dá zero e, um minuto depois, a foto
+      // está lá). Relê até três vezes antes de concluir que não ficou.
+      let depois = await chamarBling<{ data: ProdutoCompleto }>(`/produtos/${id}`, { revalidar: 0 });
+      for (let tentativa = 0; tentativa < 3 && quantasImagens(depois.data) === 0; tentativa++) {
+        await esperar(4000);
+        depois = await chamarBling<{ data: ProdutoCompleto }>(`/produtos/${id}`, { revalidar: 0 });
+      }
       const agora = quantasImagens(depois.data);
       passos.push({
         id,
         nome: depois.data.nome,
         acao: "anexada",
         link,
-        conferido: { imagensNoBling: agora, ficou: agora > 0 },
+        conferido: { imagensNoBling: agora, ficou: agora > 0, ...ondeEstao(depois.data) },
       });
-      // Gravou mas não ficou: não é erro de rede, é o Bling recusando em
-      // silêncio. Para aqui — repetir em 26 produtos não muda o resultado.
+      // Gravou e, mesmo esperando, não ficou: é o Bling recusando em
+      // silêncio. Para aqui — repetir nos outros não muda o resultado.
       if (agora === 0) break;
     } catch (e) {
       passos.push({

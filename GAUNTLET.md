@@ -507,3 +507,51 @@ build de produção, que precisa ser reprodutível no ambiente de deploy — e l
 Peça → carrinho → checkout → cotação real (CEP 01310-100: cinco transportadoras, mais barata
 R$ 26,10) → total; e frete grátis com duas matracas (R$ 370). **Não testado:** pagamento real e
 criação de pedido no Bling — dependem do Mercado Pago e da forma de pagamento no Bling.
+
+---
+
+## Rodada 11 — 2026-10-08 — Pagamento real, retirada no ateliê e pós-venda
+
+### Primeiro pagamento real
+
+Pix de R$ 20,68 (Lápis Plantável R$ 8,00 + SEDEX R$ 12,68), aprovado às 07:14. Taxa Mercado Pago
+R$ 0,20. O pedido **não** entrou no Bling na hora: o aviso do Mercado Pago foi recusado com 401
+(assinatura inválida). Depois, a página de sucesso criou o **pedido nº 1 no Bling**
+(id 27075266943). Isso provou que o site tem permissão de escrita no Bling para pedido e contato.
+
+**Diagnóstico do 401**, sem expor segredo, com um raio-X guardado na memória do servidor:
+- o aviso chega com número na query, `x-request-id` e carimbo de hora;
+- a assinatura salva na Hostinger tem 64 caracteres e não tem espaço sobrando;
+- a Hostinger não altera o `x-request-id`;
+- nenhuma variação do cálculo bate.
+
+**Conclusão:** a assinatura cadastrada na Hostinger não é a que o Mercado Pago usa. Correção
+manual: copiar de novo a assinatura do painel. Afrouxar a conferência foi recusado pelo sistema
+de permissões, e com razão. Para nenhuma venda se perder até lá:
+- a página de "pendente" relê o pagamento e leva à confirmação quando o Pix aprova;
+- existe uma rota administrativa, com senha, para reprocessar um pagamento.
+
+### O que entrou
+
+- **Retirada no ateliê**: grátis, sempre disponível, inclusive se a transportadora cair. Antes do
+  pagamento aparecem só cidade e bairro; o endereço completo, só com o pagamento aprovado.
+  Verificado no build: 0 arquivos públicos com o endereço. No Bling sai com `fretePorConta 9`
+  (sem ocorrência de transporte); no Mercado Pago, sem envio.
+- **Aviso "adicionado ao carrinho"**: painel não-modal com a foto, o total do carrinho e quanto
+  falta para o frete grátis, com os botões finalizar e continuar. Pausa com o mouse ou o foco,
+  fecha com Esc, anuncia por `aria-live`. O ícone do carrinho pulsa.
+- **/pedido**: acompanhamento por número do pedido + e-mail, que precisam bater juntos. Mostra a
+  situação no Mercado Pago e no Bling e o rastreio. Limite de 10 consultas a cada 10 minutos. O
+  e-mail nunca vai na URL.
+- **/pedido/atendimento** e **/trocas-e-devolucoes**, com base no CDC, arts. 18, 26 e 49. A
+  coluna "Seu pedido" entrou no rodapé.
+
+### Gates
+
+| Gate | Resultado |
+|---|---|
+| 1 — Build, lint, type-check | ✅ zero nos três |
+| 2 — Testes | ✅ 111/111 (+14: retirada, acompanhamento sem vazar pedido alheio, mensagem de atendimento) |
+| 3 — QA visual | ✅ 32 passaram; o teste do aviso de carrinho é pulado no catálogo local e foi conferido em produção |
+| 4 — Lighthouse em produção | ✅ 1/1/1 em /pedido, /pedido/atendimento, /trocas-e-devolucoes, página da peça e checkout · SEO 0,69 = `noindex` do domínio temporário |
+| 5 — Identidade | ✅ tokens da marca; amarelo como fundo no tema claro |

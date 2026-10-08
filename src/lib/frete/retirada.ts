@@ -18,7 +18,7 @@ export const RETIRADA = {
   nome: "Retirar no ateliê",
   local: "São Luís — bairro do Olho d'Água",
   /** O que o cliente lê antes de pagar. */
-  explicacao: "Grátis. O endereço completo chega depois da confirmação do pagamento.",
+  explicacao: "O endereço completo aparece depois da confirmação do pagamento.",
 } as const;
 
 /** A opção no mesmo formato das transportadoras, para a tela tratar igual. */

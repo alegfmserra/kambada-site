@@ -39,6 +39,9 @@ type ProdutoCompleto = Record<string, unknown> & {
   tributacao?: Record<string, unknown> & { ncm?: string; origem?: number };
 };
 
+/** O Bling devolve o NCM com pontos ("6109.10.00"); compara-se só os dígitos. */
+const digitos = (ncm?: string) => (ncm ?? "").replace(/D/g, "");
+
 async function guardarCopia(originais: unknown[]): Promise<string> {
   const carimbo = new Date().toISOString().replace(/[:.]/g, "-");
   const caminho = join(dirname(arquivoTokens()), `backup-fiscal-${carimbo}.json`);
@@ -54,12 +57,14 @@ async function responder(requisicao: Request, escrever: boolean) {
   }
 
   const catalogo = await buscarCatalogo();
-  // Lista plana: cada produto do site e cada variação dele, com o nome do pai
-  // (é o nome do pai que define o tipo da peça).
+  // Só os produtos PAI: no Bling, a variação herda o NCM do pai (conferido em
+  // 08/10/2026 — gravado o pai, a variação GG passou a mostrar o mesmo NCM).
+  // `variacoes=1` inclui as variações, para conferir.
+  const comVariacoes = url.searchParams.get("variacoes") === "1";
   const alvos = catalogo.produtos.flatMap((p) => {
     const ids = new Set<number>();
     if (p.idBling) ids.add(p.idBling);
-    for (const o of p.opcoes ?? []) ids.add(o.idBling);
+    if (comVariacoes) for (const o of p.opcoes ?? []) ids.add(o.idBling);
     return [...ids].map((id) => ({ id, nomePai: p.nome }));
   });
 
@@ -84,7 +89,7 @@ async function responder(requisicao: Request, escrever: boolean) {
       const origemAtual = atual.data.tributacao?.origem;
       const base = { id, produto: atual.data.nome, ncmAtual, origemAtual, ncmDasNotas: regra.ncm, fonte: regra.fonte, alerta: regra.alerta };
 
-      if (ncmAtual === regra.ncm && origemAtual === 0) {
+      if (digitos(ncmAtual) === regra.ncm && origemAtual === 0) {
         passos.push({ ...base, acao: "ok" });
         continue;
       }
@@ -100,7 +105,7 @@ async function responder(requisicao: Request, escrever: boolean) {
       };
       await chamarBling(`/produtos/${id}`, { metodo: "PUT", corpo });
       const depois = await chamarBling<{ data: ProdutoCompleto }>(`/produtos/${id}`, { revalidar: 0 });
-      const ficou = depois.data.tributacao?.ncm === regra.ncm;
+      const ficou = digitos(depois.data.tributacao?.ncm) === regra.ncm;
       passos.push({ ...base, acao: "ajustado", conferido: { ncm: depois.data.tributacao?.ncm, ficou } });
       if (!ficou) break;
     } catch (e) {

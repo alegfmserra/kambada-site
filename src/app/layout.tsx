@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Poppins } from "next/font/google";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import Cabecalho from "@/components/Cabecalho";
+import AvisoAdicionado from "@/components/carrinho/AvisoAdicionado";
 import { ProvedorCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import Rodape from "@/components/Rodape";
 import { EH_PRODUCAO, SITE } from "@/lib/site";
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <ProvedorCarrinho>
           <Cabecalho />
+          <AvisoAdicionado />
           <main id="conteudo" className="flex-1">
             {children}
           </main>

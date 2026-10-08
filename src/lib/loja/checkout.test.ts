@@ -23,6 +23,7 @@ import { aplicarRegraDaLoja } from "../frete/cotar";
 import { compravelOnline, embalagemDe } from "../frete/embalagens";
 import { interpretarCotacao, montarCorpoCotacao, nomeDaEntrega } from "../frete/melhorEnvio";
 import { faltaParaFreteGratis, normalizarCep, temFreteGratis } from "../frete/regras";
+import { ID_RETIRADA, opcaoRetirada, RETIRADA } from "../frete/retirada";
 import { assinaturaValida, lerCabecalhoAssinatura, montarManifest } from "../mercadopago/assinatura";
 import { montarPreferencia, totalDoRetratoEmCentavos } from "../mercadopago/cliente";
 import { emCentavos } from "./dinheiro";
@@ -101,6 +102,13 @@ function retratoExemplo(gratis = false): RetratoPedido {
     ],
     frete: { servico: "Correios PAC", valor: gratis ? 0 : 24.37, prazo: 9, gratis },
     cliente: clienteValido,
+  };
+}
+
+function retratoRetirada(): RetratoPedido {
+  return {
+    ...retratoExemplo(),
+    frete: { servico: "Retirar no ateliê", valor: 0, prazo: 0, gratis: false, retirada: true },
   };
 }
 
@@ -240,6 +248,16 @@ describe("carrinho no navegador", () => {
     expect(msg).toContain("— grátis (até 7 dias úteis)");
     expect(msg).toContain("Total: R$ 269,70");
   });
+
+  it("retirada no ateliê sai como grátis e sem prazo de transporte", () => {
+    const msg = semNbsp(mensagemWhatsAppPedido(
+      [item(1)],
+      { descricao: "Retirar no ateliê — São Luís — bairro do Olho d'Água", preco: 0, prazoDias: 0, gratis: false },
+      { nome: "Maria da Silva", cep: "65065-060", cidade: "São Luís", uf: "MA" },
+    ));
+    expect(msg).toContain("Entrega: Retirar no ateliê — São Luís — bairro do Olho d'Água — grátis");
+    expect(msg).not.toContain("dias úteis");
+  });
 });
 
 describe("validação no servidor", () => {
@@ -357,12 +375,28 @@ describe("retrato do pedido e preferência", () => {
   it("a preferência leva itens, frete, até 3x e o retrato em texto", () => {
     const pref = montarPreferencia(retratoExemplo(), "https://somoskambada.com.br", new Date("2026-10-08T12:00:00Z"));
     expect(pref.items).toHaveLength(2);
-    expect(pref.shipments.cost).toBe(24.37);
+    expect(pref.shipments?.cost).toBe(24.37);
     expect(pref.payment_methods.installments).toBe(3);
     expect(pref.notification_url).toBe("https://somoskambada.com.br/api/webhooks/mercadopago");
     expect(pref.external_reference).toBe("KMB-20261008-ABC123");
     expect(lerRetrato(pref.metadata.pedido)?.ref).toBe("KMB-20261008-ABC123");
     expect(pref.expiration_date_to).toBe("2026-10-09T12:00:00.000Z");
+  });
+
+  it("na retirada, a preferência não declara envio e o total é só das peças", () => {
+    const pref = montarPreferencia(retratoRetirada(), "https://somoskambada.com.br");
+    expect(pref).not.toHaveProperty("shipments");
+    expect(totalDoRetratoEmCentavos(retratoRetirada())).toBe(17980 + 18500);
+    expect(valorConfere(36480, 0, 364.8)).toBe(true);
+  });
+
+  it("a opção de retirada é grátis e o código público não traz o endereço", () => {
+    const o = opcaoRetirada();
+    expect(o).toMatchObject({ id: ID_RETIRADA, preco: 0, retirada: true });
+    expect(ID_RETIRADA).toBeLessThan(1); // fora da faixa de IDs do Melhor Envio
+    const publico = JSON.stringify({ o, RETIRADA });
+    expect(publico).toContain("Olho d'Água");
+    expect(publico).not.toMatch(/Bom Jesus|38/);
   });
 
   it("o total do pedido soma itens e frete em centavos", () => {
@@ -428,6 +462,14 @@ describe("pedido no Bling", () => {
     const p = montarPedido({ retrato: retratoExemplo(true), pagamento, idContato: 1, idForma: 1 });
     expect(p.transporte.frete).toBe(0);
     expect(p.observacoesInternas).toContain("FRETE GRÁTIS");
+  });
+
+  it("retirada no ateliê: sem transporte (código 9), sem frete, sem etiqueta", () => {
+    const p = montarPedido({ retrato: retratoRetirada(), pagamento, idContato: 1, idForma: 1 });
+    expect(p.transporte).toEqual({ fretePorConta: 9, frete: 0 });
+    expect(p.parcelas[0].valor).toBe(364.8);
+    expect(p.observacoesInternas).toContain("RETIRADA NO ATELIÊ");
+    expect(p.observacoesInternas).not.toContain("Frete cobrado");
   });
 
   it("o contato vai como pessoa física não contribuinte", () => {

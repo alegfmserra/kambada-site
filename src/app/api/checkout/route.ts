@@ -5,6 +5,7 @@ import { lerDadosCliente } from "@/lib/checkout/cliente";
 import { novaReferencia, VERSAO_RETRATO, type RetratoPedido } from "@/lib/checkout/pedido";
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
+import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 import {
   criarPreferencia,
@@ -25,7 +26,7 @@ export const dynamic = "force-dynamic";
  * não viu.
  */
 export async function POST(requisicao: Request) {
-  if (!mercadoPagoConfigurado() || !freteConfigurado()) {
+  if (!mercadoPagoConfigurado()) {
     return NextResponse.json(
       {
         erro: "O pagamento online está sendo configurado. Finalize pelo WhatsApp.",
@@ -54,6 +55,13 @@ export async function POST(requisicao: Request) {
   if (!Number.isSafeInteger(freteId)) {
     return NextResponse.json({ erro: "Escolha uma opção de frete." }, { status: 422 });
   }
+  const retirada = freteId === ID_RETIRADA;
+  if (!retirada && !freteConfigurado()) {
+    return NextResponse.json(
+      { erro: "A entrega está sendo configurada. Escolha a retirada ou finalize pelo WhatsApp." },
+      { status: 503 },
+    );
+  }
 
   const catalogo = await buscarCatalogo();
   const validacao = validarCarrinho(pedido, catalogo);
@@ -65,13 +73,25 @@ export async function POST(requisicao: Request) {
   }
 
   try {
-    const opcoes = await cotarCarrinho(cliente.cep, validacao.itens, validacao.subtotalCentavos);
-    const frete = opcoes.find((o) => o.id === freteId);
-    if (!frete) {
-      return NextResponse.json(
-        { erro: "As opções de frete mudaram. Escolha de novo.", motivo: "frete_mudou" },
-        { status: 409 },
-      );
+    // Retirada: nada a cotar — frete zero, sem transporte.
+    let freteDoRetrato: RetratoPedido["frete"];
+    if (retirada) {
+      freteDoRetrato = { servico: RETIRADA.nome, valor: 0, prazo: 0, gratis: false, retirada: true };
+    } else {
+      const opcoes = await cotarCarrinho(cliente.cep, validacao.itens, validacao.subtotalCentavos);
+      const frete = opcoes.find((o) => o.id === freteId);
+      if (!frete) {
+        return NextResponse.json(
+          { erro: "As opções de frete mudaram. Escolha de novo.", motivo: "frete_mudou" },
+          { status: 409 },
+        );
+      }
+      freteDoRetrato = {
+        servico: nomeDaEntrega(frete.transportadora, frete.servico),
+        valor: frete.precoCobrado,
+        prazo: frete.prazoDias,
+        gratis: frete.gratis,
+      };
     }
 
     const retrato: RetratoPedido = {
@@ -83,12 +103,7 @@ export async function POST(requisicao: Request) {
         p: i.precoUnitario,
         n: i.rotulo && i.rotulo !== "Único" ? `${i.nome} (${i.rotulo})` : i.nome,
       })),
-      frete: {
-        servico: nomeDaEntrega(frete.transportadora, frete.servico),
-        valor: frete.precoCobrado,
-        prazo: frete.prazoDias,
-        gratis: frete.gratis,
-      },
+      frete: freteDoRetrato,
       cliente,
     };
 

@@ -206,3 +206,45 @@ test("sem Mercado Pago configurado, o checkout diz a verdade e não quebra", asy
   await page.goto("/checkout");
   await expect(page.getByText("O pagamento pelo site está em configuração.")).toBeVisible();
 });
+
+test("acompanhar pedido: dados errados não revelam nada", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "basta um breakpoint");
+
+  await page.goto("/pedido?ref=KMB-20261008-ABC123");
+  await expect(page.locator("h1")).toHaveText("Acompanhar pedido");
+  // O número vem preenchido pelo link; o e-mail nunca vem na URL.
+  await expect(page.getByLabel("Número do pedido")).toHaveValue("KMB-20261008-ABC123");
+  await page.getByLabel("E-mail usado na compra").fill("ninguem@exemplo.com");
+  await page.getByRole("button", { name: "Ver meu pedido" }).click();
+  await expect(page.getByRole("heading", { name: "Não encontramos este pedido" })).toBeVisible();
+  expect(page.url()).not.toContain("ninguem");
+});
+
+test("trocas e devoluções e o atendimento estão no ar e ligados entre si", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "basta um breakpoint");
+
+  await page.goto("/trocas-e-devolucoes");
+  await expect(page.getByRole("heading", { name: "Desistiu da compra?" })).toBeVisible();
+  await page.getByRole("link", { name: "Abrir um atendimento" }).click();
+  await expect(page).toHaveURL(/\/pedido\/atendimento$/);
+  await expect(page.getByLabel("Devolução — desisti da compra")).toBeVisible();
+  // O rodapé leva ao pós-venda de qualquer página.
+  await expect(page.getByRole("navigation", { name: "Seu pedido" })).toBeVisible();
+});
+
+test("ao adicionar ao carrinho, o aviso aparece com os dois caminhos", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "basta um breakpoint");
+
+  await page.goto("/loja/matracas");
+  await page.locator("li:has(h3) a").first().click();
+  const botao = page.getByRole("button", { name: "Adicionar ao carrinho" });
+  // Catálogo local (sem Bling) não tem carrinho: aí não há o que testar aqui.
+  test.skip((await botao.count()) === 0, "catálogo sem IDs do Bling neste ambiente");
+
+  await botao.click();
+  const aviso = page.getByRole("region", { name: "Peça adicionada ao carrinho" });
+  await expect(aviso).toBeVisible();
+  await expect(aviso.getByRole("link", { name: "Ver carrinho e finalizar" })).toBeVisible();
+  await aviso.getByRole("button", { name: "Continuar comprando" }).click();
+  await expect(aviso).toBeHidden();
+});

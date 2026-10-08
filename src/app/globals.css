@@ -158,3 +158,32 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Aviso "adicionado ao carrinho" e pulso do ícone. O bloco de
+   prefers-reduced-motion acima já zera as duas animações para quem pede. */
+@keyframes aviso-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.aviso-entrada {
+  animation: aviso-entrada 220ms ease-out;
+}
+
+@keyframes pulso-carrinho {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.45);
+  }
+}
+.pulso-carrinho {
+  animation: pulso-carrinho 450ms ease-out;
+}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
+import { RETIRADA } from "@/lib/frete/retirada";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -17,6 +18,8 @@ type OpcaoFrete = {
   precoOriginal: number;
   prazoDias: number;
   gratis: boolean;
+  /** Retirada no ateliê: sem transporte, sem custo. */
+  retirada?: boolean;
 };
 
 type Campos = {
@@ -151,14 +154,23 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       body: JSON.stringify({ cep: cepDigitos, itens: pedido }),
     })
       .then(async (r) => {
-        const d = (await r.json()) as { opcoes?: OpcaoFrete[]; erro?: string; problemas?: string[] };
+        const d = (await r.json()) as {
+          opcoes?: OpcaoFrete[];
+          erro?: string;
+          aviso?: string;
+          problemas?: string[];
+        };
         if (!r.ok) {
           setAviso(d.erro ?? "Não conseguimos calcular o frete.");
           setProblemas(d.problemas ?? []);
           return;
         }
-        setOpcoes(d.opcoes ?? []);
-        setFreteId(d.opcoes?.[0]?.id ?? null);
+        const lista = d.opcoes ?? [];
+        setOpcoes(lista);
+        // Padrão: a entrega mais barata. A retirada só vem marcada se for a
+        // única opção (transportadora fora do ar ou CEP sem atendimento).
+        setFreteId((lista.find((o) => !o.retirada) ?? lista[0])?.id ?? null);
+        if (d.aviso) setAviso(d.aviso);
       })
       .catch(() => setAviso("Sem conexão para calcular o frete. Tente de novo."))
       .finally(() => setCotando(false));
@@ -302,7 +314,9 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         </fieldset>
 
         <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-4 font-display text-xl font-bold">2. Entrega</legend>
+          <legend className="mb-4 font-display text-xl font-bold">
+            {freteEscolhido?.retirada ? "2. Endereço (para a nota fiscal)" : "2. Entrega"}
+          </legend>
           {campo("cep", "CEP", { auto: "postal-code", modo: "numeric", largura: "" })}
           <div className="hidden sm:block" />
           {pagamentoOnline && (
@@ -344,12 +358,16 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                         {o.nome}
                       </span>
                       <span className="block text-sm text-texto-suave">
-                        até {o.prazoDias} {o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem
+                        {o.retirada
+                          ? RETIRADA.explicacao
+                          : `até ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem`}
                       </span>
                     </span>
                   </span>
                   <span className="text-right font-display font-bold">
-                    {o.gratis ? (
+                    {o.retirada ? (
+                      <span className="destaque font-semibold">Grátis</span>
+                    ) : o.gratis ? (
                       <>
                         <span className="destaque font-semibold">Grátis</span>
                         <span className="block text-xs font-normal text-texto-tenue line-through">
@@ -386,8 +404,14 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
             <dd>{formatarReais(subtotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt>Frete</dt>
-            <dd>{freteEscolhido ? (freteEscolhido.gratis ? "Grátis" : formatarReais(freteEscolhido.preco)) : "—"}</dd>
+            <dt>{freteEscolhido?.retirada ? "Retirada no ateliê" : "Frete"}</dt>
+            <dd>
+              {freteEscolhido
+                ? freteEscolhido.gratis || freteEscolhido.retirada
+                  ? "Grátis"
+                  : formatarReais(freteEscolhido.preco)
+                : "—"}
+            </dd>
           </div>
           <div className="flex justify-between pt-2 font-display text-lg font-bold">
             <dt>Total</dt>

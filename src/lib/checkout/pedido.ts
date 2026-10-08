@@ -22,7 +22,8 @@ export type RetratoPedido = {
   /** Referência nossa, também em `external_reference` do pagamento. */
   ref: string;
   itens: { id: number; q: number; p: number; n: string }[];
-  frete: { servico: string; valor: number; prazo: number; gratis: boolean };
+  /** `retirada`: o cliente busca no ateliê — sem transporte, sem frete. */
+  frete: { servico: string; valor: number; prazo: number; gratis: boolean; retirada?: boolean };
   cliente: DadosCliente;
 };
 

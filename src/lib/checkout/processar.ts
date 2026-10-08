@@ -19,7 +19,14 @@ import { buscarPagamento, totalDoRetratoEmCentavos } from "../mercadopago/client
 import { lerRetrato } from "./pedido";
 
 export type ResultadoProcessamento =
-  | { ok: true; situacao: "criado" | "ja_existia"; idPedido: number; ref: string }
+  | {
+      ok: true;
+      situacao: "criado" | "ja_existia";
+      idPedido: number;
+      ref: string;
+      /** Retirada no ateliê: a página de sucesso mostra o endereço. */
+      retirada: boolean;
+    }
   | { ok: false; motivo: "nao_aprovado"; status: string; ref?: string }
   | { ok: false; motivo: "sem_retrato" | "referencia_divergente" | "valor_divergente"; ref?: string };
 
@@ -70,5 +77,5 @@ export async function processarPagamento(idPagamento: string): Promise<Resultado
   }
 
   const r = await registrarPedidoNoBling(retrato, pagamento);
-  return { ok: true, ...r, ref: retrato.ref };
+  return { ok: true, ...r, ref: retrato.ref, retirada: retrato.frete.retirada === true };
 }

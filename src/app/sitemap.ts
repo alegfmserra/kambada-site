@@ -25,5 +25,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...paginas, ...categorias, ...artigos];
+  const politicas: MetadataRoute.Sitemap = [
+    { url: new URL("/trocas-e-devolucoes", SITE.url).toString(), changeFrequency: "yearly", priority: 0.3 },
+  ];
+
+  return [...paginas, ...categorias, ...artigos, ...politicas];
 }

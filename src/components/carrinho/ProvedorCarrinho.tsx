@@ -34,9 +34,14 @@ import {
 
 const CHAVE = "kambada:carrinho:v1";
 
+/** A última adição — alimenta o aviso "adicionado ao carrinho". */
+export type UltimaAdicao = { item: ItemCarrinho; vez: number };
+
 type ContextoCarrinho = {
   itens: ItemCarrinho[];
   pronto: boolean;
+  ultimaAdicao: UltimaAdicao | null;
+  fecharAviso: () => void;
   adicionar: (item: ItemCarrinho) => void;
   alterarQuantidade: (idBling: number, quantidade: number) => void;
   remover: (idBling: number) => void;
@@ -85,7 +90,15 @@ export function ProvedorCarrinho({ children }: { children: ReactNode }) {
     }
   }, [itens, pronto]);
 
-  const adicionar = useCallback((item: ItemCarrinho) => setItens((a) => adicionarItem(a, item)), []);
+  const [ultimaAdicao, setUltimaAdicao] = useState<UltimaAdicao | null>(null);
+  const fecharAviso = useCallback(() => setUltimaAdicao(null), []);
+
+  const adicionar = useCallback((item: ItemCarrinho) => {
+    setItens((a) => adicionarItem(a, item));
+    // `vez` muda a cada clique: duas adições seguidas da mesma peça reabrem
+    // o aviso e reiniciam o tempo dele.
+    setUltimaAdicao({ item, vez: Date.now() });
+  }, []);
   const alterarQuantidade = useCallback(
     (idBling: number, quantidade: number) => setItens((a) => alterarItem(a, idBling, quantidade)),
     [],
@@ -97,6 +110,8 @@ export function ProvedorCarrinho({ children }: { children: ReactNode }) {
     () => ({
       itens,
       pronto,
+      ultimaAdicao,
+      fecharAviso,
       adicionar,
       alterarQuantidade,
       remover,
@@ -104,7 +119,7 @@ export function ProvedorCarrinho({ children }: { children: ReactNode }) {
       subtotal: subtotalEmCentavos(itens) / 100,
       pecas: totalDePecas(itens),
     }),
-    [itens, pronto, adicionar, alterarQuantidade, remover, esvaziar],
+    [itens, pronto, ultimaAdicao, fecharAviso, adicionar, alterarQuantidade, remover, esvaziar],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

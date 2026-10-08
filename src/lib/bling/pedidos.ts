@@ -159,34 +159,48 @@ export function montarPedido(params: {
         }${pagamento.payment_type_id ? ` · ${pagamento.payment_type_id}` : ""}`,
       },
     ],
-    transporte: {
-      // 0 = frete contratado pelo remetente (CIF): a loja contrata o envio
-      // pelo Melhor Envio, mesmo quando o cliente paga o valor. Enquadramento
-      // fiscal final: Glauco.
-      fretePorConta: 0,
-      frete: Number(frete.valor.toFixed(2)),
-      quantidadeVolumes: 1,
-      etiqueta: {
-        nome: cliente.nome,
-        endereco: cliente.logradouro,
-        numero: cliente.numero,
-        complemento: cliente.complemento,
-        municipio: cliente.cidade,
-        uf: cliente.uf,
-        cep: formatarCep(cliente.cep),
-        bairro: cliente.bairro,
-        nomePais: "BRASIL",
-      },
-    },
-    observacoes: `Pedido feito no site da Kambada — ${retrato.ref}.`,
+    transporte: frete.retirada
+      ? {
+          // 9 = Sem Ocorrência de Transporte (especificação OpenAPI do Bling,
+          // conferida em 08/10/2026): o cliente retira no ateliê, e a nota
+          // sai sem transporte — decisão do Alexandre.
+          fretePorConta: 9,
+          frete: 0,
+        }
+      : {
+          // 0 = frete contratado pelo remetente (CIF): a loja contrata o envio
+          // pelo Melhor Envio, mesmo quando o cliente paga o valor.
+          // Enquadramento fiscal final: Glauco.
+          fretePorConta: 0,
+          frete: Number(frete.valor.toFixed(2)),
+          quantidadeVolumes: 1,
+          etiqueta: {
+            nome: cliente.nome,
+            endereco: cliente.logradouro,
+            numero: cliente.numero,
+            complemento: cliente.complemento,
+            municipio: cliente.cidade,
+            uf: cliente.uf,
+            cep: formatarCep(cliente.cep),
+            bairro: cliente.bairro,
+            nomePais: "BRASIL",
+          },
+        },
+    observacoes: frete.retirada
+      ? `Pedido feito no site da Kambada — ${retrato.ref}. Retirada no ateliê.`
+      : `Pedido feito no site da Kambada — ${retrato.ref}.`,
     observacoesInternas: [
       `Pagamento Mercado Pago #${pagamento.id} aprovado${
         pagamento.date_approved ? ` em ${pagamento.date_approved}` : ""
       }.`,
-      `Envio escolhido: ${frete.servico} (${frete.prazo} dias úteis).`,
-      frete.gratis
-        ? "FRETE GRÁTIS para o cliente — o custo do envio é da loja; apurar na etiqueta."
-        : `Frete cobrado do cliente: R$ ${frete.valor.toFixed(2)}.`,
+      frete.retirada
+        ? "RETIRADA NO ATELIÊ — sem frete e sem transporte. Combinar dia e horário com o cliente pelo WhatsApp."
+        : `Envio escolhido: ${frete.servico} (${frete.prazo} dias úteis).`,
+      frete.retirada
+        ? ""
+        : frete.gratis
+          ? "FRETE GRÁTIS para o cliente — o custo do envio é da loja; apurar na etiqueta."
+          : `Frete cobrado do cliente: R$ ${frete.valor.toFixed(2)}.`,
       taxaMp ? `Taxa Mercado Pago: R$ ${taxaMp.toFixed(2)} (custo de canal).` : "",
       `Referência do site: ${retrato.ref}.`,
     ]

@@ -4,6 +4,7 @@ import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { ErroFrete, freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
 import { faltaParaFreteGratis, FRETE_GRATIS_A_PARTIR_DE, normalizarCep } from "@/lib/frete/regras";
+import { opcaoRetirada } from "@/lib/frete/retirada";
 import { emReais } from "@/lib/loja/dinheiro";
 
 export const dynamic = "force-dynamic";
@@ -44,20 +45,22 @@ export async function POST(requisicao: Request) {
     );
   }
 
-  try {
-    const opcoes = await cotarCarrinho(cep, validacao.itens, validacao.subtotalCentavos);
-    if (opcoes.length === 0) {
-      return NextResponse.json(
-        { erro: "Nenhuma transportadora atende este CEP. Fale com a gente no WhatsApp." },
-        { status: 422 },
-      );
-    }
-    const subtotal = emReais(validacao.subtotalCentavos);
-    return NextResponse.json({
+  const subtotal = emReais(validacao.subtotalCentavos);
+  const resposta = (entregas: ReturnType<typeof opcaoRetirada>[], aviso?: string) =>
+    NextResponse.json({
       subtotal,
       freteGratisAPartirDe: FRETE_GRATIS_A_PARTIR_DE,
       faltaParaFreteGratis: faltaParaFreteGratis(subtotal),
-      opcoes: opcoes.map((o) => ({
+      // A retirada no ateliê vale para qualquer CEP e entra sempre por
+      // último: o padrão continua sendo a entrega mais barata.
+      opcoes: [...entregas, opcaoRetirada()],
+      aviso,
+    });
+
+  try {
+    const opcoes = await cotarCarrinho(cep, validacao.itens, validacao.subtotalCentavos);
+    return resposta(
+      opcoes.map((o) => ({
         id: o.id,
         nome: nomeDaEntrega(o.transportadora, o.servico),
         servico: o.servico,
@@ -66,15 +69,20 @@ export async function POST(requisicao: Request) {
         precoOriginal: o.preco,
         prazoDias: o.prazoDias,
         gratis: o.gratis,
+        retirada: false,
       })),
-    });
+      opcoes.length === 0
+        ? "Nenhuma transportadora atende este CEP. Você pode retirar no ateliê ou falar com a gente no WhatsApp."
+        : undefined,
+    );
   } catch (erro) {
     const status = erro instanceof ErroFrete ? erro.status : 0;
     // Sem dado pessoal no log: só o código e a mensagem técnica.
     console.error("[frete] cotação falhou:", status, erro instanceof Error ? erro.message : erro);
-    return NextResponse.json(
-      { erro: "Não conseguimos calcular o frete agora. Tente de novo ou fale no WhatsApp." },
-      { status: 502 },
+    // A transportadora fora do ar não impede quem quer retirar.
+    return resposta(
+      [],
+      "Não conseguimos calcular a entrega agora. Você pode retirar no ateliê, tentar de novo ou falar no WhatsApp.",
     );
   }
 }

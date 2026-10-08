@@ -58,6 +58,13 @@ export const NAV = [
   { rotulo: "Contato", href: "/contato" },
 ] as const;
 
+/** Pós-venda — no rodapé de todas as páginas. */
+export const POS_VENDA = [
+  { rotulo: "Acompanhar pedido", href: "/pedido" },
+  { rotulo: "Reclamação, troca ou devolução", href: "/pedido/atendimento" },
+  { rotulo: "Trocas e devoluções", href: "/trocas-e-devolucoes" },
+] as const;
+
 /**
  * Casos de encomenda corporativa — kits, placas e porta-chaves feitos sob
  * medida para eventos e empresas.

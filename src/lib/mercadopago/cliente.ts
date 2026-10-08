@@ -110,10 +110,15 @@ export function montarPreferencia(retrato: RetratoPedido, urlDoSite: string, ago
         street_number: cliente.numero,
       },
     },
-    shipments: {
-      mode: "not_specified",
-      cost: Number(retrato.frete.valor.toFixed(2)),
-    },
+    // Retirada no ateliê: não há envio a declarar.
+    ...(retrato.frete.retirada
+      ? {}
+      : {
+          shipments: {
+            mode: "not_specified",
+            cost: Number(retrato.frete.valor.toFixed(2)),
+          },
+        }),
     payment_methods: { installments: PARCELAS_MAXIMAS },
     back_urls: {
       success: `${urlDoSite}/checkout/sucesso`,
@@ -155,10 +160,23 @@ export type Pagamento = {
   installments?: number;
   metadata?: Record<string, unknown>;
   fee_details?: { type: string; amount: number }[];
+  date_created?: string;
+  payer?: { email?: string };
 };
 
 export async function buscarPagamento(id: string | number): Promise<Pagamento> {
   return chamar<Pagamento>(`/v1/payments/${encodeURIComponent(String(id))}`);
+}
+
+/**
+ * Pagamentos de um pedido nosso, do mais recente para o mais antigo. Um
+ * pedido pode ter mais de um (cartão recusado e depois Pix aprovado).
+ */
+export async function buscarPagamentosDoPedido(ref: string): Promise<Pagamento[]> {
+  const r = await chamar<{ results?: Pagamento[] }>(
+    `/v1/payments/search?external_reference=${encodeURIComponent(ref)}&sort=date_created&criteria=desc&limit=10`,
+  );
+  return r.results ?? [];
 }
 
 /** Total do retrato (itens + frete) em centavos — o que o pagamento tem de valer. */

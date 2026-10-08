@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import EsvaziarCarrinho from "@/components/carrinho/EsvaziarCarrinho";
+import BlocoRetirada from "@/components/checkout/BlocoRetirada";
 import { processarPagamento, type ResultadoProcessamento } from "@/lib/checkout/processar";
 import { mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
 import { linkWhatsApp } from "@/lib/site";
@@ -59,6 +60,17 @@ export default async function PaginaSucesso({ searchParams }: Props) {
         {ref && (
           <p className="mt-6 font-display text-sm text-texto-tenue">
             Número do pedido: <strong className="text-texto">{ref}</strong>
+          </p>
+        )}
+        {resultado?.ok && resultado.retirada && <BlocoRetirada refPedido={ref} />}
+        {ref && (
+          <p className="mt-6 text-sm">
+            <Link
+              href={`/pedido?ref=${encodeURIComponent(ref)}`}
+              className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
+            >
+              Acompanhar este pedido
+            </Link>
           </p>
         )}
         {(falhou || (resultado && !resultado.ok && resultado.motivo !== "nao_aprovado")) && (

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCarrinho } from "./ProvedorCarrinho";
 
 export default function IconeCarrinho() {
-  const { pecas, pronto } = useCarrinho();
+  const { pecas, pronto, ultimaAdicao } = useCarrinho();
   const rotulo =
     pronto && pecas > 0
       ? `Carrinho, ${pecas} ${pecas === 1 ? "peça" : "peças"}`
@@ -22,8 +22,12 @@ export default function IconeCarrinho() {
       </svg>
       {pronto && pecas > 0 && (
         <span
+          // Nova `key` a cada adição: o React recria o selo e o pulso toca de novo.
+          key={ultimaAdicao?.vez ?? 0}
           aria-hidden="true"
-          className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-kambada-amarelo px-1 font-display text-xs font-bold text-kambada-grafite"
+          className={`absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-kambada-amarelo px-1 font-display text-xs font-bold text-kambada-grafite ${
+            ultimaAdicao ? "pulso-carrinho" : ""
+          }`}
         >
           {pecas > 99 ? "99+" : pecas}
         </span>

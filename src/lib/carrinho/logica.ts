@@ -125,7 +125,10 @@ export function mensagemWhatsAppPedido(
   return [
     "Oi! Quero fechar este pedido pelo site:",
     ...linhas,
-    `Entrega: ${entrega.descricao} — ${entrega.gratis ? "grátis" : real(entrega.preco)} (até ${entrega.prazoDias} dias úteis)`,
+    // prazo 0 = retirada no ateliê: não há transporte, então não há prazo.
+    `Entrega: ${entrega.descricao} — ${entrega.gratis || entrega.preco === 0 ? "grátis" : real(entrega.preco)}${
+      entrega.prazoDias > 0 ? ` (até ${entrega.prazoDias} dias úteis)` : ""
+    }`,
     `Total: ${real(total)}`,
     "",
     `Nome: ${cliente.nome}`,

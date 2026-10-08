@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { NAV, REDES, SITE, linkWhatsApp } from "@/lib/site";
+import { NAV, POS_VENDA, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
 export default function Rodape() {
   return (
     <footer className="border-t border-borda bg-superficie-forte text-kambada-branco">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 pb-28 sm:px-6 md:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 pb-28 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
           <Image
             src="/marca/kambada-logo-horizontal-amarelo.png"
@@ -25,6 +25,24 @@ export default function Rodape() {
           </h2>
           <ul className="mt-4 space-y-2.5">
             {NAV.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="text-sm text-kambada-branco/70 transition-colors hover:text-kambada-amarelo"
+                >
+                  {item.rotulo}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-label="Seu pedido">
+          <h2 className="font-display text-sm font-semibold tracking-wide text-kambada-amarelo uppercase">
+            Seu pedido
+          </h2>
+          <ul className="mt-4 space-y-2.5">
+            {POS_VENDA.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}

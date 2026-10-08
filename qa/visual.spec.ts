@@ -185,3 +185,24 @@ test("cada página de categoria abre e lista produtos", async ({
     ).toBeGreaterThan(0);
   }
 });
+
+test("o carrinho vazio abre e convida a voltar à loja", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "basta um breakpoint");
+
+  await page.goto("/carrinho");
+  await expect(page.getByRole("heading", { name: "Seu carrinho está vazio" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ver a loja" })).toBeVisible();
+  // O ícone do cabeçalho anuncia o estado para leitor de tela.
+  await expect(page.getByRole("link", { name: "Carrinho, vazio" })).toBeVisible();
+});
+
+test("sem Mercado Pago configurado, o checkout diz a verdade e não quebra", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440", "basta um breakpoint");
+
+  // No ambiente de teste não há credencial: é exatamente o estado de produção
+  // antes de o Alexandre ligar o pagamento no painel.
+  await page.goto("/checkout");
+  await expect(page.getByText("O pagamento pelo site está em configuração.")).toBeVisible();
+});

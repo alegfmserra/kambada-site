@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
 import { buscarCatalogo } from "@/lib/bling/produtos";
+import { embalagemDe } from "@/lib/frete/embalagens";
 import {
   categoriaPorSlug,
   disponibilidade,
@@ -74,6 +76,15 @@ export default async function PaginaProduto({ params }: Props) {
     produto.precoMaximo !== undefined && produto.precoMaximo !== produto.preco;
   const umaVariacaoSo =
     produto.variacoes.length === 1 && produto.variacoes[0] === "Único";
+
+  /**
+   * Opções que podem ir para o carrinho: precisam de ID no Bling e de
+   * embalagem conhecida para o frete. Peça sem nenhuma delas é vendida pelo
+   * WhatsApp — melhor do que cotar frete com medida inventada.
+   */
+  const opcoesCompraveis = produto.idBling
+    ? (produto.opcoes ?? []).filter((o) => embalagemDe(produto, o) !== null)
+    : [];
 
   /**
    * Dado estruturado para o Google. Vale a pena mesmo sem carrinho: é o que
@@ -160,7 +171,29 @@ export default async function PaginaProduto({ params }: Props) {
                 {estoque.texto}
               </p>
 
-              {!umaVariacaoSo && (
+              {opcoesCompraveis.length > 0 && estoque.disponivel && (
+                <>
+                  <AdicionarAoCarrinho
+                    slug={produto.slug}
+                    categoria={produto.categoria}
+                    nome={produto.nome}
+                    opcoes={opcoesCompraveis}
+                  />
+                  <p className="mt-2 text-sm text-texto-suave">
+                    Prefere conversar antes?{" "}
+                    <a
+                      href={linkWhatsApp(`Oi! Tenho uma dúvida sobre a peça "${produto.nome}".`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-kambada-amarelo-escuro underline"
+                    >
+                      Chame no WhatsApp
+                    </a>
+                  </p>
+                </>
+              )}
+
+              {opcoesCompraveis.length === 0 && !umaVariacaoSo && (
                 <div className="mt-8">
                   <h2 className="font-display text-sm font-semibold text-texto-tenue uppercase">
                     Opções disponíveis
@@ -182,6 +215,9 @@ export default async function PaginaProduto({ params }: Props) {
                 </div>
               )}
 
+              {/* Sem carrinho para esta peça (sem embalagem conhecida, ou
+                  catálogo local sem ID do Bling): o WhatsApp é a compra. */}
+              {!(opcoesCompraveis.length > 0 && estoque.disponivel) && (
               <div className="mt-10">
                 {estoque.disponivel ? (
                   <a
@@ -219,6 +255,7 @@ export default async function PaginaProduto({ params }: Props) {
                   </>
                 )}
               </div>
+              )}
 
               <p className="mt-8 border-t border-borda pt-6 text-sm leading-relaxed text-texto-suave">
                 Feito em São Luís do Maranhão. Preço e disponibilidade saem

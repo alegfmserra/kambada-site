@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AlternadorTema from "@/components/AlternadorTema";
+import IconeCarrinho from "@/components/carrinho/IconeCarrinho";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { NAV } from "@/lib/site";
 
@@ -138,6 +139,7 @@ export default function Cabecalho() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <IconeCarrinho />
           <AlternadorTema />
           <button
             type="button"

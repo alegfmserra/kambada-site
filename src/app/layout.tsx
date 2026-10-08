@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Poppins } from "next/font/google";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import Cabecalho from "@/components/Cabecalho";
+import { ProvedorCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import Rodape from "@/components/Rodape";
 import { EH_PRODUCAO, SITE } from "@/lib/site";
 import "./globals.css";
@@ -71,12 +72,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Pular para o conteúdo
         </a>
-        <Cabecalho />
-        <main id="conteudo" className="flex-1">
-          {children}
-        </main>
-        <Rodape />
-        <BotaoWhatsApp />
+        <ProvedorCarrinho>
+          <Cabecalho />
+          <main id="conteudo" className="flex-1">
+            {children}
+          </main>
+          <Rodape />
+          <BotaoWhatsApp />
+        </ProvedorCarrinho>
       </body>
     </html>
   );

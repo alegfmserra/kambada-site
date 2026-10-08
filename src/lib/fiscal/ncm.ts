@@ -44,17 +44,13 @@ export function ncmDoProduto(nomeBruto: string): RegraNcm | null {
     };
   }
   if (n.startsWith("matraca")) {
-    if (/play/.test(n) || /pequena com suporte/.test(n)) {
-      return {
-        ncm: "92060000",
-        fonte: "NF 27 — Matraca Kambada Play / Matraca Pequena com Suporte",
-        alerta: "As outras matracas saíram com 44201100. Um NCM só para todas — decisão do Glauco.",
-      };
-    }
+    // Todas em 44201100: é o que o Bling JÁ tinha nas cinco matracas (08/10)
+    // e o da maioria dos modelos na NF 27. Trocar duas para 92060000 criaria
+    // divergência dentro do próprio Bling — fica para o Glauco unificar.
     return {
       ncm: "44201100",
-      fonte: "NF 27 — Matraca Mini / Grande / Grande c/ Suporte",
-      alerta: "Matraca Play e Pequena c/ Suporte saíram com 92060000. Unificar com o Glauco.",
+      fonte: "NF 27 — Matraca Mini / Grande / Grande c/ Suporte (e o cadastro atual do Bling)",
+      alerta: "Na NF 27, Matraca Play e Pequena c/ Suporte saíram com 92060000. Unificar com o Glauco.",
     };
   }
   if (/^kit ecologico|^kit anotacao|^bloco anotacao|caderninho/.test(n)) {

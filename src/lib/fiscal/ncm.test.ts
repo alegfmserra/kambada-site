@@ -14,9 +14,9 @@ describe("NCM pelas notas já emitidas", () => {
     expect(ncmDoProduto("Kambada Goods")?.ncm).toBe("48202000");
   });
 
-  it("matracas seguem a nota de cada modelo — e levam o alerta da divergência", () => {
-    expect(ncmDoProduto("Matraca Kambada Play")?.ncm).toBe("92060000");
-    expect(ncmDoProduto("Matraca Kambada Pequena com Suporte")?.ncm).toBe("92060000");
+  it("matracas ficam todas no NCM que o Bling já tinha — com o alerta da divergência da NF 27", () => {
+    expect(ncmDoProduto("Matraca Kambada Play")?.ncm).toBe("44201100");
+    expect(ncmDoProduto("Matraca Kambada Pequena com Suporte")?.ncm).toBe("44201100");
     expect(ncmDoProduto("Matraca Kambada Grande com Suporte")?.ncm).toBe("44201100");
     expect(ncmDoProduto("Matraca Kambada Grande com Suporte")?.alerta).toBeTruthy();
   });

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
-import { mensagemWhatsApp } from "@/lib/carrinho/logica";
+import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -58,7 +58,7 @@ function mascaraTelefone(v: string) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
-export default function FormularioCheckout() {
+export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnline: boolean }) {
   const { itens, pronto, subtotal } = useCarrinho();
   const [campos, setCampos] = useState<Campos>(VAZIO);
   const [erros, setErros] = useState<Partial<Record<keyof Campos, string>>>({});
@@ -173,6 +173,34 @@ export default function FormularioCheckout() {
       refAviso.current?.focus();
       return;
     }
+
+    // Pagamento pelo site ainda não ligado: o pedido vai pronto para o
+    // WhatsApp. Pede só o que a mensagem usa — o resto a conversa resolve.
+    if (!pagamentoOnline) {
+      if (campos.nome.trim().split(/\s+/).length < 2) {
+        setErros((er) => ({ ...er, nome: "Informe nome e sobrenome." }));
+        setAviso("Informe seu nome para enviarmos o pedido.");
+        refAviso.current?.focus();
+        return;
+      }
+      window.open(
+        linkWhatsApp(
+          mensagemWhatsAppPedido(
+            itens,
+            {
+              descricao: `${freteEscolhido.transportadora} ${freteEscolhido.servico}`.trim(),
+              preco: freteEscolhido.preco,
+              prazoDias: freteEscolhido.prazoDias,
+              gratis: freteEscolhido.gratis,
+            },
+            { nome: campos.nome.trim(), cep: campos.cep, cidade: campos.cidade, uf: campos.uf },
+          ),
+        ),
+        "_blank",
+        "noopener,noreferrer",
+      );
+      return;
+    }
     setEnviando(true);
     setAviso(null);
     setProblemas([]);
@@ -252,24 +280,39 @@ export default function FormularioCheckout() {
   return (
     <form onSubmit={aoPagar} noValidate className="grid gap-10 lg:grid-cols-[1fr_22rem]">
       <div className="space-y-10">
+        {!pagamentoOnline && (
+          <p className="rounded-xl bg-superficie px-4 py-3 text-sm text-texto-suave">
+            O pagamento pelo site entra em breve. Por enquanto: informe seu nome e CEP, veja o frete,
+            e o pedido vai pronto para o nosso WhatsApp — com a entrega e o total calculados.
+          </p>
+        )}
+
         <fieldset className="grid gap-4 sm:grid-cols-2">
           <legend className="mb-4 font-display text-xl font-bold">1. Seus dados</legend>
           {campo("nome", "Nome completo", { auto: "name" })}
-          {campo("email", "E-mail", { tipo: "email", auto: "email", modo: "email", largura: "" })}
-          {campo("telefone", "Celular com DDD", { tipo: "tel", auto: "tel", modo: "tel", largura: "" })}
-          {campo("cpf", "CPF (para a nota fiscal)", { modo: "numeric", largura: "" })}
+          {pagamentoOnline && (
+            <>
+              {campo("email", "E-mail", { tipo: "email", auto: "email", modo: "email", largura: "" })}
+              {campo("telefone", "Celular com DDD", { tipo: "tel", auto: "tel", modo: "tel", largura: "" })}
+              {campo("cpf", "CPF (para a nota fiscal)", { modo: "numeric", largura: "" })}
+            </>
+          )}
         </fieldset>
 
         <fieldset className="grid gap-4 sm:grid-cols-2">
           <legend className="mb-4 font-display text-xl font-bold">2. Entrega</legend>
           {campo("cep", "CEP", { auto: "postal-code", modo: "numeric", largura: "" })}
           <div className="hidden sm:block" />
-          {campo("logradouro", "Rua", { auto: "address-line1" })}
-          {campo("numero", "Número", { largura: "" })}
-          {campo("complemento", "Complemento", { auto: "address-line2", largura: "", obrigatorio: false })}
-          {campo("bairro", "Bairro", { largura: "" })}
-          {campo("cidade", "Cidade", { auto: "address-level2", largura: "" })}
-          {campo("uf", "UF", { auto: "address-level1", largura: "" })}
+          {pagamentoOnline && (
+            <>
+              {campo("logradouro", "Rua", { auto: "address-line1" })}
+              {campo("numero", "Número", { largura: "" })}
+              {campo("complemento", "Complemento", { auto: "address-line2", largura: "", obrigatorio: false })}
+              {campo("bairro", "Bairro", { largura: "" })}
+              {campo("cidade", "Cidade", { auto: "address-level2", largura: "" })}
+              {campo("uf", "UF", { auto: "address-level1", largura: "" })}
+            </>
+          )}
         </fieldset>
 
         <fieldset>
@@ -366,19 +409,31 @@ export default function FormularioCheckout() {
           disabled={enviando || cotando || !freteEscolhido}
           className="mt-6 w-full rounded-full bg-kambada-amarelo px-6 py-4 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {enviando ? "Abrindo o pagamento…" : "Pagar com Mercado Pago"}
+          {!pagamentoOnline
+            ? "Enviar pedido pelo WhatsApp"
+            : enviando
+              ? "Abrindo o pagamento…"
+              : "Pagar com Mercado Pago"}
         </button>
-        <p className="mt-3 text-center text-xs text-texto-tenue">
-          Cartão em até 3x, Pix ou boleto. Você paga na página segura do Mercado Pago.
-        </p>
-        <a
-          href={whatsapp}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 block text-center text-sm text-texto-suave underline hover:text-texto"
-        >
-          Prefere fechar pelo WhatsApp?
-        </a>
+        {pagamentoOnline ? (
+          <>
+            <p className="mt-3 text-center text-xs text-texto-tenue">
+              Cartão em até 3x, Pix ou boleto. Você paga na página segura do Mercado Pago.
+            </p>
+            <a
+              href={whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 block text-center text-sm text-texto-suave underline hover:text-texto"
+            >
+              Prefere fechar pelo WhatsApp?
+            </a>
+          </>
+        ) : (
+          <p className="mt-3 text-center text-xs text-texto-tenue">
+            A mensagem abre no WhatsApp com as peças, a entrega e o total. É só enviar.
+          </p>
+        )}
       </aside>
     </form>
   );

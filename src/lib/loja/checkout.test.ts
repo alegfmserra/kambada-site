@@ -10,6 +10,7 @@ import {
   lerCarrinhoSalvo,
   MAXIMO_POR_ITEM,
   mensagemWhatsApp,
+  mensagemWhatsAppPedido,
   subtotalEmCentavos,
   type ItemCarrinho,
 } from "../carrinho/logica";
@@ -180,6 +181,9 @@ describe("opções do produto vindas do Bling", () => {
   });
 });
 
+/** O Intl separa "R$" do valor com espaço inquebrável; o WhatsApp exibe igual. */
+const semNbsp = (t: string) => t.replace(/\u00a0/g, " ");
+
 describe("carrinho no navegador", () => {
   const item = (q: number, estoque = 5): ItemCarrinho => ({
     idBling: 16698811628, slug: "s", categoria: "camisas", nome: "Camisa Alusiva São Luís",
@@ -212,6 +216,29 @@ describe("carrinho no navegador", () => {
 
   it("monta a mensagem de WhatsApp com cada peça e tamanho", () => {
     expect(mensagemWhatsApp([item(2)])).toContain("2× Camisa Alusiva São Luís (GG)");
+  });
+
+  it("o pedido pelo WhatsApp já leva entrega e total — e nunca o CPF", () => {
+    const msg = semNbsp(mensagemWhatsAppPedido(
+      [item(2)],
+      { descricao: "LATAM Cargo éFácil", preco: 26.1, prazoDias: 3, gratis: false },
+      { nome: "Maria da Silva", cep: "01310-100", cidade: "São Paulo", uf: "SP" },
+    ));
+    expect(msg).toContain("2× Camisa Alusiva São Luís (GG) — R$ 179,80");
+    expect(msg).toContain("Entrega: LATAM Cargo éFácil — R$ 26,10 (até 3 dias úteis)");
+    expect(msg).toContain("Total: R$ 205,90");
+    expect(msg).toContain("CEP: 01310-100 — São Paulo/SP");
+    expect(msg).not.toMatch(/cpf/i);
+  });
+
+  it("frete grátis aparece como grátis e fora do total", () => {
+    const msg = semNbsp(mensagemWhatsAppPedido(
+      [item(3)],
+      { descricao: "Correios PAC", preco: 0, prazoDias: 7, gratis: true },
+      { nome: "Maria da Silva", cep: "01310-100", cidade: "", uf: "" },
+    ));
+    expect(msg).toContain("— grátis (até 7 dias úteis)");
+    expect(msg).toContain("Total: R$ 269,70");
   });
 });
 

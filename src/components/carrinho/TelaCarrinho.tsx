@@ -7,7 +7,18 @@ import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 import { useCarrinho } from "./ProvedorCarrinho";
 
-export default function TelaCarrinho({ pagamentoOnline }: { pagamentoOnline: boolean }) {
+/**
+ * `freteOnline`: dá para cotar a entrega no site — o checkout abre.
+ * `pagamentoOnline`: dá também para pagar no site. Sem ele, o checkout cota o
+ * frete e entrega o pedido pronto no WhatsApp.
+ */
+export default function TelaCarrinho({
+  pagamentoOnline,
+  freteOnline,
+}: {
+  pagamentoOnline: boolean;
+  freteOnline: boolean;
+}) {
   const { itens, pronto, alterarQuantidade, remover, subtotal, pecas } = useCarrinho();
 
   if (!pronto) {
@@ -122,12 +133,12 @@ export default function TelaCarrinho({ pagamentoOnline }: { pagamentoOnline: boo
           )}
         </p>
 
-        {pagamentoOnline ? (
+        {freteOnline ? (
           <Link
             href="/checkout"
             className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
           >
-            Finalizar compra
+            {pagamentoOnline ? "Finalizar compra" : "Calcular frete e finalizar"}
           </Link>
         ) : (
           <a
@@ -140,7 +151,7 @@ export default function TelaCarrinho({ pagamentoOnline }: { pagamentoOnline: boo
           </a>
         )}
 
-        {pagamentoOnline && (
+        {freteOnline && (
           <a
             href={whatsapp}
             target="_blank"
@@ -152,7 +163,10 @@ export default function TelaCarrinho({ pagamentoOnline }: { pagamentoOnline: boo
         )}
         {!pagamentoOnline && (
           <p className="mt-3 text-center text-xs text-texto-tenue">
-            O pagamento direto pelo site está em configuração. A mensagem já vai com o seu carrinho.
+            O pagamento direto pelo site entra em breve.{" "}
+            {freteOnline
+              ? "Você calcula o frete aqui e fecha o pedido pelo WhatsApp, já com o total."
+              : "A mensagem do WhatsApp já vai com o seu carrinho."}
           </p>
         )}
       </aside>

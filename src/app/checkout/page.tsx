@@ -11,8 +11,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Com o frete ligado, o checkout sempre abre: o cliente vê o custo real da
+ * entrega antes de decidir. Com o pagamento também ligado, paga no Mercado
+ * Pago; sem ele, o pedido sai pronto — com frete e total — para o WhatsApp.
+ */
 export default function PaginaCheckout() {
-  const disponivel = mercadoPagoConfigurado() && freteConfigurado();
+  const disponivel = freteConfigurado();
+  const pagamentoOnline = disponivel && mercadoPagoConfigurado();
 
   return (
     <section>
@@ -26,7 +32,7 @@ export default function PaginaCheckout() {
         <h1 className="mt-6 font-display text-4xl font-extrabold">Finalizar compra</h1>
         <div className="mt-10">
           {disponivel ? (
-            <FormularioCheckout />
+            <FormularioCheckout pagamentoOnline={pagamentoOnline} />
           ) : (
             <div className="rounded-3xl border border-dashed border-borda bg-superficie p-8">
               <p className="font-display text-xl font-bold">O pagamento pelo site está em configuração.</p>

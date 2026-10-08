@@ -102,6 +102,37 @@ export function lerCarrinhoSalvo(bruto: unknown): ItemCarrinho[] {
     .filter((i) => i.quantidade > 0);
 }
 
+/**
+ * A mensagem do pedido completo, já com a entrega cotada — usada enquanto o
+ * pagamento pelo site não estiver ligado. O cliente chega ao WhatsApp sabendo
+ * o total, e a loja recebe o pedido pronto para fechar.
+ *
+ * Não leva CPF: na conversa ele é pedido só se for emitir nota.
+ */
+export function mensagemWhatsAppPedido(
+  itens: ItemCarrinho[],
+  entrega: { descricao: string; preco: number; prazoDias: number; gratis: boolean },
+  cliente: { nome: string; cep: string; cidade: string; uf: string },
+): string {
+  const real = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const linhas = itens.map(
+    (i) =>
+      `• ${i.quantidade}× ${i.nome}${i.rotulo && i.rotulo !== "Único" ? ` (${i.rotulo})` : ""} — ${real(
+        emCentavos(i.preco) * i.quantidade / 100,
+      )}`,
+  );
+  const total = (subtotalEmCentavos(itens) + emCentavos(entrega.preco)) / 100;
+  return [
+    "Oi! Quero fechar este pedido pelo site:",
+    ...linhas,
+    `Entrega: ${entrega.descricao} — ${entrega.gratis ? "grátis" : real(entrega.preco)} (até ${entrega.prazoDias} dias úteis)`,
+    `Total: ${real(total)}`,
+    "",
+    `Nome: ${cliente.nome}`,
+    `CEP: ${cliente.cep}${cliente.cidade ? ` — ${cliente.cidade}/${cliente.uf}` : ""}`,
+  ].join("\n");
+}
+
 /** A mensagem de WhatsApp com o carrinho inteiro — o plano B de toda compra. */
 export function mensagemWhatsApp(itens: ItemCarrinho[]): string {
   const linhas = itens.map(

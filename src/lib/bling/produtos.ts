@@ -1,4 +1,4 @@
-import type { Categoria, Produto } from "../catalogo";
+import type { Categoria, Opcao, Produto } from "../catalogo";
 import {
   CATEGORIAS as CATEGORIAS_LOCAIS,
   PRODUTOS as PRODUTOS_LOCAIS,
@@ -206,6 +206,43 @@ export function rotuloDaVariacao(
   return semRepeticao.join(" · ") || semPai.trim();
 }
 
+/**
+ * As opções compráveis de um produto, cada uma com o ID que vai no pedido.
+ *
+ * Com variações, a opção é o FILHO: é ele que tem saldo e é ele que o Bling
+ * baixa do estoque quando o pedido entra. Pedir pelo ID do pai criaria um
+ * pedido de um produto sem estoque próprio. Sem variações, a opção única é o
+ * próprio produto.
+ *
+ * Filho sem preço herda o do pai — o Bling permite cadastrar a variação sem
+ * preço próprio. Opção que termina sem preço nenhum fica de fora: não se
+ * vende o que não tem preço.
+ */
+export function opcoesDoProduto(
+  pai: ProdutoBling,
+  filhos: ProdutoBling[],
+  saldos: Map<number, number>,
+): Opcao[] {
+  const precoDe = (p: ProdutoBling) =>
+    typeof p.preco === "number" && p.preco > 0 ? p.preco : undefined;
+
+  if (filhos.length === 0) {
+    const preco = precoDe(pai);
+    return preco
+      ? [{ rotulo: "Único", idBling: pai.id, preco, quantidade: saldos.get(pai.id) ?? 0 }]
+      : [];
+  }
+
+  return filhos
+    .map((f): Opcao | null => {
+      const preco = precoDe(f) ?? precoDe(pai);
+      const rotulo = rotuloDaVariacao(f.nome, pai.nome);
+      if (!preco || !rotulo) return null;
+      return { rotulo, idBling: f.id, preco, quantidade: saldos.get(f.id) ?? 0 };
+    })
+    .filter((o): o is Opcao => o !== null);
+}
+
 /** Saldos de vários produtos de uma vez, sem estourar o tamanho da URL. */
 async function saldosEmLote(ids: number[]): Promise<Map<number, number>> {
   const saldos = new Map<number, number>();
@@ -324,6 +361,7 @@ export async function montarDoBling(): Promise<Catalogo> {
 
     const menor = Math.min(...precos);
     const maior = Math.max(...precos);
+    const opcoes = opcoesDoProduto(p, filhos, saldos);
 
     produtos.push({
       slug: paraSlug(`${p.nome}-${p.id}`),
@@ -337,6 +375,8 @@ export async function montarDoBling(): Promise<Catalogo> {
       quantidade: filhos.length
         ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
         : (saldos.get(p.id) ?? 0),
+      idBling: p.id,
+      opcoes,
     });
   }
 

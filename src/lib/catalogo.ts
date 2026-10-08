@@ -29,6 +29,20 @@ export type Categoria = {
   foto?: Foto;
 };
 
+/**
+ * Uma opção comprável de um produto: um tamanho, uma estampa, ou a peça única.
+ *
+ * É a unidade que o carrinho guarda e que vira item do pedido no Bling — por
+ * isso carrega o `idBling` da variação, e não do produto-pai. O pai não tem
+ * estoque; quem tem é a variação.
+ */
+export type Opcao = {
+  rotulo: string; // "G", "Guarás Bege" ou "Único"
+  idBling: number;
+  preco: number;
+  quantidade: number;
+};
+
 export type Produto = {
   slug: string;
   nome: string;
@@ -37,6 +51,13 @@ export type Produto = {
   precoMaximo?: number; // presente quando a peça tem faixa de preço
   variacoes: string[]; // tamanhos e cores reais contados no estoque
   quantidade: number; // saldo da contagem de 2026-08-29
+  /**
+   * Presentes só quando o catálogo vem do Bling. O catálogo local não tem ID
+   * de ERP — e sem ID não há como criar pedido, então a compra online fica
+   * indisponível nele, de propósito, em vez de gerar pedido sem produto.
+   */
+  idBling?: number;
+  opcoes?: Opcao[];
 };
 
 export const CATEGORIAS: Categoria[] = [

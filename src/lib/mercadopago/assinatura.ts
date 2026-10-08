@@ -54,3 +54,49 @@ export function assinaturaValida(params: {
   // Comparação em tempo constante: comparar com === vaza o segredo aos poucos.
   return a.length === b.length && timingSafeEqual(a, b);
 }
+
+/**
+ * Raio-X da última notificação recusada — fica só na memória do servidor e
+ * guarda apenas verdadeiro/falso, nunca o segredo nem a assinatura. Serve para
+ * responder "por que o Mercado Pago leva 401?" sem acesso ao log.
+ */
+export type RaioXRecusa = {
+  quando: string;
+  idDaQuery: string | null;
+  idDoCorpo: string | null;
+  temRequestId: boolean;
+  temTs: boolean;
+  bateria: Record<string, boolean>;
+};
+
+let ultimaRecusa: RaioXRecusa | null = null;
+export const lerUltimaRecusa = () => ultimaRecusa;
+
+export function registrarRecusa(params: {
+  cabecalho: string | null;
+  requestId: string | null;
+  idDaQuery: string | null;
+  idDoCorpo: string | null;
+  segredo: string;
+}) {
+  const { ts, v1 } = lerCabecalhoAssinatura(params.cabecalho);
+  const confere = (manifest: string) => {
+    if (!v1) return false;
+    const h = createHmac("sha256", params.segredo).update(manifest).digest("hex");
+    return h.length === v1.length && timingSafeEqual(Buffer.from(h), Buffer.from(v1));
+  };
+  const id = params.idDaQuery ?? params.idDoCorpo;
+  ultimaRecusa = {
+    quando: new Date().toISOString(),
+    idDaQuery: params.idDaQuery,
+    idDoCorpo: params.idDoCorpo,
+    temRequestId: Boolean(params.requestId),
+    temTs: Boolean(ts),
+    bateria: {
+      padrao: confere(montarManifest(id, params.requestId, ts)),
+      semRequestId: confere(montarManifest(id, null, ts)),
+      idDoCorpo: confere(montarManifest(params.idDoCorpo, params.requestId, ts)),
+      soTs: confere(montarManifest(null, null, ts)),
+    },
+  };
+}

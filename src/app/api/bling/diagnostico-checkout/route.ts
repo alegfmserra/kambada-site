@@ -7,6 +7,7 @@ import { validarCarrinho } from "@/lib/carrinho/validar";
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { compravelOnline } from "@/lib/frete/embalagens";
 import { ErroFrete, freteConfigurado } from "@/lib/frete/melhorEnvio";
+import { lerUltimaRecusa } from "@/lib/mercadopago/assinatura";
 import { conferirChave, mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
 
 export const dynamic = "force-dynamic";
@@ -110,6 +111,7 @@ export async function GET(requisicao: Request) {
     // O x-request-id entra no cálculo da assinatura. Se o servidor da
     // Hostinger o trocar no caminho, o valor que chega aqui difere do enviado.
     cabecalhoXRequestIdRecebido: requisicao.headers.get("x-request-id"),
+    ultimaRecusaDoAviso: lerUltimaRecusa() ?? "nenhuma desde o último deploy",
     bling: {
       origemDoCatalogo: catalogo.origem,
       leituraDePedidos: pedidos.ok ? { ok: true } : pedidos,

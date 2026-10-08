@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { processarPagamento } from "@/lib/checkout/processar";
-import { assinaturaValida } from "@/lib/mercadopago/assinatura";
+import { assinaturaValida, registrarRecusa } from "@/lib/mercadopago/assinatura";
 import { mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
 
 export const dynamic = "force-dynamic";
@@ -56,10 +56,14 @@ export async function POST(requisicao: Request) {
       segredo,
     });
     if (!valida) {
-      console.error("[mercadopago] assinatura inválida para o pagamento", dataId, {
-        idDaQuery: url.searchParams.get("data.id") !== null,
-        requestId: Boolean(requisicao.headers.get("x-request-id")),
+      registrarRecusa({
+        cabecalho,
+        requestId: requisicao.headers.get("x-request-id"),
+        idDaQuery: url.searchParams.get("data.id"),
+        idDoCorpo: corpo.data?.id !== undefined ? String(corpo.data.id) : null,
+        segredo,
       });
+      console.error("[mercadopago] assinatura inválida para o pagamento", dataId);
       return NextResponse.json({ erro: "assinatura inválida" }, { status: 401 });
     }
   }

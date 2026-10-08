@@ -7,7 +7,7 @@ import { validarCarrinho } from "@/lib/carrinho/validar";
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { compravelOnline } from "@/lib/frete/embalagens";
 import { ErroFrete, freteConfigurado } from "@/lib/frete/melhorEnvio";
-import { mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
+import { conferirChave, mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +52,11 @@ export async function GET(requisicao: Request) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 
-  const [pedidos, contatos, formas] = await Promise.all([
+  const [pedidos, contatos, formas, chaveMp] = await Promise.all([
     tentarLer("/pedidos/vendas?limite=1"),
     tentarLer("/contatos?limite=1"),
     tentarLer("/formas-pagamentos?limite=100"),
+    mercadoPagoConfigurado() ? conferirChave() : Promise.resolve(null),
   ]);
 
   const catalogo = await buscarCatalogo();
@@ -97,6 +98,8 @@ export async function GET(requisicao: Request) {
       BLING_FORMA_PAGAMENTO_ID: process.env.BLING_FORMA_PAGAMENTO_ID ?? null,
       URL_DO_SITE: process.env.URL_DO_SITE ?? null,
     },
+    // A chave existir não basta: aqui o Mercado Pago confirma que ela vale.
+    mercadoPago: chaveMp ?? "sem chave configurada",
     bling: {
       origemDoCatalogo: catalogo.origem,
       leituraDePedidos: pedidos.ok ? { ok: true } : pedidos,

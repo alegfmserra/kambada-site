@@ -38,6 +38,28 @@ export function mercadoPagoConfigurado(): boolean {
   return Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
 }
 
+/**
+ * Prova que a chave funciona, só lendo: pergunta ao Mercado Pago de quem ela
+ * é. Devolve apenas o ambiente e o país — nada de e-mail, documento ou nome.
+ */
+export async function conferirChave(): Promise<
+  { ok: true; ambiente: "produção" | "teste"; pais: string } | { ok: false; status: number; detalhe?: string }
+> {
+  try {
+    const eu = await chamar<{ site_id?: string }>("/users/me");
+    const token = process.env.MERCADOPAGO_ACCESS_TOKEN ?? "";
+    return {
+      ok: true,
+      ambiente: token.startsWith("APP_USR-") ? "produção" : "teste",
+      pais: eu.site_id ?? "?",
+    };
+  } catch (erro) {
+    return erro instanceof ErroMercadoPago
+      ? { ok: false, status: erro.status, detalhe: erro.detalhe?.slice(0, 200) }
+      : { ok: false, status: 0, detalhe: String(erro) };
+  }
+}
+
 async function chamar<T>(caminho: string, init: RequestInit = {}): Promise<T> {
   const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
   if (!token) throw new ErroMercadoPago("Pagamento online não configurado", 503);

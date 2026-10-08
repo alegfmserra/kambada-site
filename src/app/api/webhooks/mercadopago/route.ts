@@ -45,7 +45,8 @@ export async function POST(requisicao: Request) {
     return NextResponse.json({ ok: true, ignorado: true });
   }
 
-  const segredo = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  // trim: espaço ou quebra de linha colados junto no painel invalidariam tudo.
+  const segredo = process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim();
   const cabecalho = requisicao.headers.get("x-signature");
   if (segredo && cabecalho) {
     const valida = assinaturaValida({
@@ -55,7 +56,10 @@ export async function POST(requisicao: Request) {
       segredo,
     });
     if (!valida) {
-      console.error("[mercadopago] assinatura inválida para o pagamento", dataId);
+      console.error("[mercadopago] assinatura inválida para o pagamento", dataId, {
+        idDaQuery: url.searchParams.get("data.id") !== null,
+        requestId: Boolean(requisicao.headers.get("x-request-id")),
+      });
       return NextResponse.json({ erro: "assinatura inválida" }, { status: 401 });
     }
   }

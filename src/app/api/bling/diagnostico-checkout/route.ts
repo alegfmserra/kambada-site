@@ -100,6 +100,16 @@ export async function GET(requisicao: Request) {
     },
     // A chave existir não basta: aqui o Mercado Pago confirma que ela vale.
     mercadoPago: chaveMp ?? "sem chave configurada",
+    // Para investigar assinatura recusada (401) sem expor o segredo: só o
+    // tamanho e se sobrou espaço/quebra de linha ao colar. A assinatura do
+    // Mercado Pago tem 64 caracteres.
+    assinaturaDoAviso: (() => {
+      const s = process.env.MERCADOPAGO_WEBHOOK_SECRET ?? "";
+      return { tamanho: s.length, tamanhoSemEspacos: s.trim().length };
+    })(),
+    // O x-request-id entra no cálculo da assinatura. Se o servidor da
+    // Hostinger o trocar no caminho, o valor que chega aqui difere do enviado.
+    cabecalhoXRequestIdRecebido: requisicao.headers.get("x-request-id"),
     bling: {
       origemDoCatalogo: catalogo.origem,
       leituraDePedidos: pedidos.ok ? { ok: true } : pedidos,

@@ -1,20 +1,35 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Produto } from "@/lib/catalogo";
 import { disponibilidade, precoExibido } from "@/lib/catalogo";
+import { fotoDoProduto } from "@/lib/fotoDoProduto";
 
 export default function CartaoProduto({ produto }: { produto: Produto }) {
   const estoque = disponibilidade(produto);
   const href = `/loja/${produto.categoria}/${produto.slug}`;
+  const foto = fotoDoProduto(produto);
 
   return (
     <li className="group relative flex flex-col rounded-2xl border border-borda bg-superficie p-6 transition-colors hover:border-kambada-amarelo-escuro">
-      {/* Sem foto ainda: as imagens dos produtos entram junto com o Bling. */}
-      <div
-        aria-hidden="true"
-        className="mb-5 flex h-40 items-center justify-center rounded-xl border border-dashed border-borda text-3xl"
-      >
-        🦀
-      </div>
+      {foto ? (
+        <div className="relative mb-5 h-56 overflow-hidden rounded-xl bg-white">
+          <Image
+            src={foto.src}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"
+            className="object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+      ) : (
+        // Peça ainda sem foto no acervo: espaço honesto, não imagem genérica.
+        <div
+          aria-hidden="true"
+          className="mb-5 flex h-56 items-center justify-center rounded-xl border border-dashed border-borda text-3xl"
+        >
+          🦀
+        </div>
+      )}
 
       <h3 className="font-display text-lg leading-snug font-semibold">
         {/*

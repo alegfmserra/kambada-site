@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { embalagemDe } from "@/lib/frete/embalagens";
+import { fotoDoProduto } from "@/lib/fotoDoProduto";
 import {
   categoriaPorSlug,
   disponibilidade,
@@ -47,6 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const categoria = categoriaPorSlug(catSlug);
   const descricao = `${produto.nome} — ${precoExibido(produto)}. Peça da Kambada, de São Luís do Maranhão. ${produto.variacoes.join(", ")}.`;
+  const foto = fotoDoProduto(produto);
 
   return {
     title: produto.nome,
@@ -58,6 +61,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       url: `/loja/${catSlug}/${prodSlug}`,
       siteName: SITE.nomeCompleto,
+      // A foto da peça no link compartilhado (WhatsApp, Instagram).
+      ...(foto
+        ? { images: [{ url: foto.src, width: foto.largura, height: foto.altura, alt: produto.nome }] }
+        : {}),
     },
     other: categoria ? { "product:category": categoria.nome } : undefined,
   };
@@ -76,6 +83,8 @@ export default async function PaginaProduto({ params }: Props) {
     produto.precoMaximo !== undefined && produto.precoMaximo !== produto.preco;
   const umaVariacaoSo =
     produto.variacoes.length === 1 && produto.variacoes[0] === "Único";
+
+  const foto = fotoDoProduto(produto);
 
   /**
    * Opções que podem ir para o carrinho: precisam de ID no Bling e de
@@ -96,6 +105,7 @@ export default async function PaginaProduto({ params }: Props) {
     name: produto.nome,
     category: categoria.nome,
     brand: { "@type": "Brand", name: SITE.nome },
+    ...(foto ? { image: `${SITE.url}${foto.src}` } : {}),
     offers: {
       "@type": "Offer",
       price: produto.preco,
@@ -135,17 +145,27 @@ export default async function PaginaProduto({ params }: Props) {
           </nav>
 
           <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
-            {/*
-              Sem foto ainda: as imagens entram quando forem cadastradas no
-              Bling e o catálogo passar a devolvê-las. Até lá, um espaço
-              honesto — melhor que uma imagem genérica que não é a peça.
-            */}
-            <div
-              aria-hidden="true"
-              className="flex aspect-square items-center justify-center rounded-3xl border border-dashed border-borda bg-superficie text-7xl"
-            >
-              🦀
-            </div>
+            {foto ? (
+              <div className="relative aspect-square overflow-hidden rounded-3xl bg-white">
+                <Image
+                  src={foto.src}
+                  alt={produto.nome}
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 34rem, 92vw"
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              // Peça ainda sem foto no acervo: um espaço honesto — melhor que
+              // uma imagem genérica que não é a peça.
+              <div
+                aria-hidden="true"
+                className="flex aspect-square items-center justify-center rounded-3xl border border-dashed border-borda bg-superficie text-7xl"
+              >
+                🦀
+              </div>
+            )}
 
             <div className="flex flex-col">
               <h1 className="font-display text-3xl leading-tight font-extrabold text-balance sm:text-4xl">

@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { MAXIMO_POR_ITEM, mensagemWhatsApp } from "@/lib/carrinho/logica";
+import { fotoDoItem as foto } from "@/lib/fotoDoProduto";
 import { faltaParaFreteGratis, FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
@@ -53,12 +55,24 @@ export default function TelaCarrinho({
           const teto = Math.min(i.estoque, MAXIMO_POR_ITEM);
           return (
             <li key={i.idBling} className="flex flex-wrap items-start gap-4 py-6">
-              <div
-                aria-hidden="true"
-                className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-borda bg-superficie text-2xl"
-              >
-                🦀
-              </div>
+              {foto(i.idBling, i.slug) ? (
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
+                  <Image
+                    src={foto(i.idBling, i.slug)!.src}
+                    alt=""
+                    fill
+                    sizes="80px"
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-borda bg-superficie text-2xl"
+                >
+                  🦀
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/loja/${i.categoria}/${i.slug}`}

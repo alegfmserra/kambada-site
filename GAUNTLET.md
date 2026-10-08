@@ -461,3 +461,49 @@ build de produção, que precisa ser reprodutível no ambiente de deploy — e l
 | 3 — QA visual | ✅ 28 passaram, 8 puladas de propósito |
 | 4 — Lighthouse | ✅ assertivas aprovadas · 100/100/100/100, home com performance 0,99 |
 | 5 — Identidade visual | ✅ troca de empacotador não altera apresentação |
+
+---
+
+## Rodada 10 — 2026-10-08 — Fase 3: carrinho, checkout, frete e fotos
+
+### O que entrou
+
+- **Carrinho** guardado no navegador, com estoque e preço **revalidados no servidor** a cada passo —
+  o servidor nunca confia no preço, no frete ou no estoque que vem do cliente.
+- **Checkout**: CEP com preenchimento automático, **cotação real no Melhor Envio** (origem 65065-060),
+  frete grátis a partir de R$ 199,99 na entrega mais barata. Sem Mercado Pago configurado, o checkout
+  cota o frete e entrega o pedido pronto no WhatsApp; com ele, abre o Checkout Pro (até 3x).
+- **Mercado Pago**: preferência com referência própria, aviso (webhook) com assinatura conferida,
+  pagamento sempre relido na API antes de valer.
+- **Pedido no Bling**: criado uma vez só por pagamento (número da loja `MP-<id>` + trava), por dois
+  caminhos (aviso e página de sucesso). Sem CPF ou endereço em log.
+- **Fotos**: 27 peças com foto no site e **no Bling** (guardadas como imagem interna do Bling — não
+  dependem do nosso domínio).
+
+### Achado durante a rodada
+
+- **O Bling processa a imagem com atraso.** A releitura logo depois do PUT dava zero; um minuto
+  depois, a foto estava lá. A trava "gravou e não ficou → para" agiu no primeiro produto. A rota
+  agora relê até três vezes antes de concluir.
+- **Contraste**: os links novos (página da peça, carrinho, checkout) usavam amarelo-escuro sobre o
+  bege do tema claro — **1,76:1**, contra 4,5:1 exigido. Passaram a seguir a convenção do site: cor
+  de texto sublinhada, amarelo só no hover; o "Grátis" do frete usa a classe `destaque`.
+- **Hierarquia de títulos** na página de categoria pulava de H1 para os H3 dos cartões. Entrou um H2
+  só para leitor de tela.
+
+### Gates
+
+| Gate | Resultado |
+|---|---|
+| 1 — Build (webpack), lint, type-check | ✅ zero nos três |
+| 2 — Testes | ✅ 97/97 (dinheiro em centavos, regra de frete, validação do carrinho, CPF, retrato do pedido, assinatura do webhook, pedido no Bling) |
+| 3 — QA visual | ✅ 30 passaram, 12 puladas de propósito |
+| 4 — Lighthouse (local, domínio real) | ✅ 100/100/100/100 em todas as páginas; home com performance 0,99 |
+| 4b — Lighthouse em produção (antes da correção de contraste) | peça 0,93/0,96/1/—, carrinho 0,99/1/1/—, checkout 1/0,96/1/—, matracas 1/0,98/1/— · SEO 0,69 = `noindex` proposital do domínio temporário |
+| 5 — Identidade visual | ✅ carrinho e checkout nos tokens da marca; amarelo nunca como letra no tema claro |
+
+### Testado de ponta a ponta em produção
+
+Peça → carrinho → checkout → cotação real (CEP 01310-100: cinco transportadoras, mais barata
+R$ 26,10) → total; e frete grátis com duas matracas (R$ 370). **Não testado:** pagamento real e
+criação de pedido no Bling — dependem do Mercado Pago e da forma de pagamento no Bling.

@@ -205,7 +205,7 @@ export default async function PaginaProduto({ params }: Props) {
                       href={linkWhatsApp(`Oi! Tenho uma dúvida sobre a peça "${produto.nome}".`)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-semibold text-kambada-amarelo-escuro underline"
+                      className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
                     >
                       Chame no WhatsApp
                     </a>
@@ -267,7 +267,7 @@ export default async function PaginaProduto({ params }: Props) {
                         )}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-kambada-amarelo-escuro underline"
+                        className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
                       >
                         Me avise quando voltar
                       </a>
@@ -290,7 +290,7 @@ export default async function PaginaProduto({ params }: Props) {
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <Link
             href={`/loja/${categoria.slug}`}
-            className="font-display font-semibold text-kambada-amarelo-escuro hover:underline"
+            className="font-display font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
           >
             ← Ver todas as peças de {categoria.nome}
           </Link>

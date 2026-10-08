@@ -146,7 +146,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
         {adicionado && (
           <>
             Pronto, está no carrinho.{" "}
-            <Link href="/carrinho" className="font-semibold text-kambada-amarelo-escuro underline">
+            <Link href="/carrinho" className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro">
               Ver carrinho
             </Link>
           </>

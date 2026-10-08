@@ -71,6 +71,8 @@ export default async function Categoria({ params }: Props) {
 
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          {/* Os cartões são h3: sem este h2, a hierarquia pularia um nível. */}
+          <h2 className="sr-only">Peças de {categoria.nome}</h2>
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {produtos.map((produto) => (
               <CartaoProduto key={produto.slug} produto={produto} />

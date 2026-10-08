@@ -241,7 +241,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
     return (
       <p>
         Seu carrinho está vazio.{" "}
-        <Link href="/loja" className="font-semibold text-kambada-amarelo-escuro underline">
+        <Link href="/loja" className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro">
           Ver a loja
         </Link>
       </p>
@@ -351,7 +351,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                   <span className="text-right font-display font-bold">
                     {o.gratis ? (
                       <>
-                        <span className="text-kambada-amarelo-escuro">Grátis</span>
+                        <span className="destaque font-semibold">Grátis</span>
                         <span className="block text-xs font-normal text-texto-tenue line-through">
                           {formatarReais(o.precoOriginal)}
                         </span>

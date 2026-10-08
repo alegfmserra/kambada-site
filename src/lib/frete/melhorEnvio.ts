@@ -82,6 +82,18 @@ function userAgent(): string {
   return contato ? `Site Kambada (${contato})` : "Site Kambada (somoskambada.com.br)";
 }
 
+/**
+ * O nome que o cliente lê: "Correios PAC", "LATAM Cargo éFácil". Quando o
+ * serviço já traz o nome da transportadora ("Loggi Ponto", da Loggi), não
+ * repete — sem isto a tela mostrava "Loggi Loggi Ponto".
+ */
+export function nomeDaEntrega(transportadora: string, servico: string): string {
+  const t = transportadora.trim();
+  const s = servico.trim();
+  if (!t) return s;
+  return s.toLowerCase().startsWith(t.toLowerCase()) ? s : `${t} ${s}`;
+}
+
 /** Corpo da requisição — separado para poder ser testado sem rede. */
 export function montarCorpoCotacao(cepDestino: string, volumes: VolumeCotacao[]) {
   return {

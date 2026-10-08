@@ -21,7 +21,7 @@ import { lerRetrato, novaReferencia, type RetratoPedido } from "../checkout/pedi
 import { valorConfere } from "../checkout/processar";
 import { aplicarRegraDaLoja } from "../frete/cotar";
 import { compravelOnline, embalagemDe } from "../frete/embalagens";
-import { interpretarCotacao, montarCorpoCotacao } from "../frete/melhorEnvio";
+import { interpretarCotacao, montarCorpoCotacao, nomeDaEntrega } from "../frete/melhorEnvio";
 import { faltaParaFreteGratis, normalizarCep, temFreteGratis } from "../frete/regras";
 import { assinaturaValida, lerCabecalhoAssinatura, montarManifest } from "../mercadopago/assinatura";
 import { montarPreferencia, totalDoRetratoEmCentavos } from "../mercadopago/cliente";
@@ -305,6 +305,14 @@ describe("Melhor Envio", () => {
       { id: 1, name: "PAC", custom_price: "24.37", custom_delivery_time: 9, company: { name: "Correios" } },
     ]);
     expect(opcoes.map((o) => [o.servico, o.preco])).toEqual([["PAC", 24.37], ["SEDEX", 41.1]]);
+  });
+
+  it("não repete o nome da transportadora quando o serviço já o traz", () => {
+    // Visto em produção em 08/10/2026: a tela mostrava "Loggi Loggi Ponto".
+    expect(nomeDaEntrega("Loggi", "Loggi Ponto")).toBe("Loggi Ponto");
+    expect(nomeDaEntrega("Correios", "PAC")).toBe("Correios PAC");
+    expect(nomeDaEntrega("LATAM Cargo", "éFácil")).toBe("LATAM Cargo éFácil");
+    expect(nomeDaEntrega("", "PAC")).toBe("PAC");
   });
 
   it("frete grátis zera só a opção mais barata", () => {

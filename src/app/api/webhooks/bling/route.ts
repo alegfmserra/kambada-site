@@ -51,11 +51,14 @@ export async function POST(requisicao: Request) {
     return NextResponse.json({ ok: true, ignorado: "corpo inválido" });
   }
 
-  // A home mostra as categorias, /loja mostra tudo, e o padrão dinâmico
-  // cobre as seis páginas de categoria de uma vez.
+  // A home mostra as categorias, /loja mostra tudo, e os padrões dinâmicos
+  // cobrem todas as páginas de categoria e de peça de uma vez. Sem a última
+  // linha, preço e estoque mudados no Bling ficavam até 10 minutos velhos na
+  // página da peça — justamente onde o cliente decide e põe no carrinho.
   revalidatePath("/", "page");
   revalidatePath("/loja", "page");
   revalidatePath("/loja/[categoria]", "page");
+  revalidatePath("/loja/[categoria]/[produto]", "page");
 
   const tipo =
     typeof evento === "object" && evento !== null && "event" in evento

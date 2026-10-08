@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { cotarCarrinho } from "@/lib/frete/cotar";
-import { ErroFrete, freteConfigurado } from "@/lib/frete/melhorEnvio";
+import { ErroFrete, freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
 import { faltaParaFreteGratis, FRETE_GRATIS_A_PARTIR_DE, normalizarCep } from "@/lib/frete/regras";
 import { emReais } from "@/lib/loja/dinheiro";
 
@@ -59,6 +59,7 @@ export async function POST(requisicao: Request) {
       faltaParaFreteGratis: faltaParaFreteGratis(subtotal),
       opcoes: opcoes.map((o) => ({
         id: o.id,
+        nome: nomeDaEntrega(o.transportadora, o.servico),
         servico: o.servico,
         transportadora: o.transportadora,
         preco: o.precoCobrado,

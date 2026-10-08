@@ -4,7 +4,7 @@ import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { lerDadosCliente } from "@/lib/checkout/cliente";
 import { novaReferencia, VERSAO_RETRATO, type RetratoPedido } from "@/lib/checkout/pedido";
 import { cotarCarrinho } from "@/lib/frete/cotar";
-import { freteConfigurado } from "@/lib/frete/melhorEnvio";
+import { freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 import {
   criarPreferencia,
@@ -84,7 +84,7 @@ export async function POST(requisicao: Request) {
         n: i.rotulo && i.rotulo !== "Único" ? `${i.nome} (${i.rotulo})` : i.nome,
       })),
       frete: {
-        servico: `${frete.transportadora} ${frete.servico}`.trim(),
+        servico: nomeDaEntrega(frete.transportadora, frete.servico),
         valor: frete.precoCobrado,
         prazo: frete.prazoDias,
         gratis: frete.gratis,

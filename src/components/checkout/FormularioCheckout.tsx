@@ -9,6 +9,8 @@ import { linkWhatsApp } from "@/lib/site";
 
 type OpcaoFrete = {
   id: number;
+  /** Nome pronto para exibir, montado no servidor. */
+  nome: string;
   servico: string;
   transportadora: string;
   preco: number;
@@ -188,7 +190,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
           mensagemWhatsAppPedido(
             itens,
             {
-              descricao: `${freteEscolhido.transportadora} ${freteEscolhido.servico}`.trim(),
+              descricao: freteEscolhido.nome,
               preco: freteEscolhido.preco,
               prazoDias: freteEscolhido.prazoDias,
               gratis: freteEscolhido.gratis,
@@ -339,7 +341,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                     />
                     <span>
                       <span className="font-semibold">
-                        {o.transportadora} {o.servico}
+                        {o.nome}
                       </span>
                       <span className="block text-sm text-texto-suave">
                         até {o.prazoDias} {o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem

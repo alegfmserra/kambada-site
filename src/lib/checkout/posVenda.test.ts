@@ -144,6 +144,15 @@ describe("pós-venda", () => {
     expect(chamadas.emails).toHaveLength(3);
   });
 
+  it("venda só do produto de teste não emite nota", async () => {
+    process.env.BLING_EMITIR_NFE = "1";
+    const t = { ...retrato(), itens: [{ id: 16717480811, q: 1, p: 1, n: "Produto Teste Kambada" }] };
+    const r = await executarPosVenda(t, pagamento, 4);
+    expect(chamadas.bling.some((c) => c.includes("gerar-nfe"))).toBe(false);
+    expect(r.nfe).toBeUndefined();
+    expect(r.email?.feitoEm).toBeTruthy();
+  });
+
   it("nota REJEITADA pela SEFAZ não conta como feita (caso real de 09/10: CNPJ irregular)", async () => {
     process.env.BLING_EMITIR_NFE = "1";
     chamadas.situacaoNota = 4;

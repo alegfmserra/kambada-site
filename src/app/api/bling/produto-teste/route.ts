@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { chamarBling } from "@/lib/bling/cliente";
+import { ID_PRODUTO_TESTE } from "@/lib/bling/produtos";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,6 @@ export const dynamic = "force-dynamic";
  *   POST /api/bling/produto-teste?token=REVALIDATE_SECRET&preco=1.00
  */
 
-const ID_PRODUTO_TESTE = 16717480811;
 
 function segredoConfere(recebido: string | null): boolean {
   const esperado = process.env.REVALIDATE_SECRET;

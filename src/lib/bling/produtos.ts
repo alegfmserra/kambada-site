@@ -132,6 +132,9 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
  */
 export const PRODUTOS_OCULTOS = new Set(["produto-teste-kambada"]);
 
+/** ID do produto de teste no Bling — venda só dele não emite nota fiscal. */
+export const ID_PRODUTO_TESTE = 16717480811;
+
 /**
  * Bermuda Brim e Bermuda Linho continuam **fora da vitrine de propósito**: não
  * têm prateleira em `catalogo.ts`, e prateleira nova exige nome, chamada e foto

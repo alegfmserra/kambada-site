@@ -90,7 +90,7 @@ export default function Rodape() {
       <div className="border-t border-white/10">
         <p className="mx-auto max-w-6xl px-4 py-6 text-xs leading-relaxed text-kambada-branco/60 sm:px-6">
           © {new Date().getFullYear()} {SITE.nomeCompleto}. Todos os direitos
-          reservados. Kambada® é marca registrada no INPI (processo 932317162). Todas as artes, estampas, ilustrações e personagens são
+          reservados. Kambada® é marca registrada no INPI. Todas as artes, estampas, ilustrações e personagens são
           criações próprias da Kambada, protegidas pela Lei nº 9.610/1998 —
           proibida a reprodução sem autorização.{" "}
           <Link href="/direitos-autorais" className="underline underline-offset-2 hover:text-kambada-amarelo">

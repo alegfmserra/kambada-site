@@ -6,14 +6,15 @@
  *                peça que já acabou). O pedido continua "Em aberto" para a
  *                separação.
  *  3. NOTA     — gera a NF-e e manda o Bling transmitir à SEFAZ. Ligada por
- *                BLING_EMITIR_NFE=1.
+ *                BLING_EMITIR_NFE=1. Venda só do produto de teste não emite
+ *                nota (decisão do Alexandre, 09/10/2026).
  *  4. E-MAIL   — "Pedido confirmado" ao cliente e "Novo pedido pago" à loja,
  *                de pedidos@somoskambada.com.br.
  *  5. E-MAIL DA NOTA — com a nota AUTORIZADA, o site manda ao cliente o DANFE
  *                (PDF) e o XML, no visual da Kambada, com cópia oculta à loja
  *                (decisão do Alexandre, 09/10/2026). O e-mail do próprio Bling
- *                fica desligado (enviarEmail=false) para o cliente não receber
- *                a nota duas vezes, de dois remetentes.
+ *                fica SEMPRE desligado (enviarEmail=false): a nota só sai pelo
+ *                e-mail da loja.
  *
  * Cada etapa grava no registro quando deu certo. Chamado de novo (aviso do
  * Mercado Pago repetido, cliente recarregando a página de sucesso), só refaz o
@@ -22,6 +23,7 @@
  */
 
 import { chamarBling } from "../bling/cliente";
+import { ID_PRODUTO_TESTE } from "../bling/produtos";
 import {
   assuntoConfirmacao,
   assuntoLoja,
@@ -177,10 +179,8 @@ async function etapaNota(r: RegistroPedido): Promise<RegistroPedido["nfe"]> {
     }
     if (!idNota) throw new Error("o Bling não devolveu o número da nota");
 
-    // Quem manda a nota ao cliente é o site (etapa 5). Se o e-mail do site
-    // estiver desligado, o Bling manda — o cliente nunca fica sem a nota.
-    const blingMandaEmail = !emailConfigurado();
-    await chamarBling(`/nfe/${idNota}/enviar?enviarEmail=${blingMandaEmail}`, { metodo: "POST" });
+    // Quem manda a nota ao cliente é o site (etapa 5), nunca o Bling.
+    await chamarBling(`/nfe/${idNota}/enviar?enviarEmail=false`, { metodo: "POST" });
     const situacao = await aguardarSefaz(idNota);
 
     if (situacao !== undefined && NOTA_OK.has(situacao)) return { idNota, feitoEm: agoraIso() };
@@ -319,7 +319,8 @@ export function executarPosVenda(
       r = { ...r, estoque: await etapaEstoque(r) };
       await salvarRegistro(r);
     }
-    if (process.env.BLING_EMITIR_NFE === "1" && !r.nfe?.feitoEm) {
+    const soTeste = r.itens.every((i) => i.id === ID_PRODUTO_TESTE);
+    if (process.env.BLING_EMITIR_NFE === "1" && !soTeste && !r.nfe?.feitoEm) {
       r = { ...r, nfe: await etapaNota(r) };
       await salvarRegistro(r);
     }

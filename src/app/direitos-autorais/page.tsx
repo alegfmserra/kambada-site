@@ -37,8 +37,7 @@ export default function PaginaDireitosAutorais() {
             <p className="mt-3">
               A marca <strong>Kambada</strong> — o nome e o logotipo — é{" "}
               <strong>registrada no INPI</strong> (Instituto Nacional da Propriedade Industrial) em
-              nome da Somos Kambada LTDA, processo nº <strong>932317162</strong>, com vigência até
-              2035. O uso do nome ou do logotipo por terceiros, em produtos, lojas, perfis ou
+              nome da Somos Kambada LTDA. O uso do nome ou do logotipo por terceiros, em produtos, lojas, perfis ou
               anúncios, depende de autorização por escrito (Lei nº 9.279/1996).
             </p>
           </article>

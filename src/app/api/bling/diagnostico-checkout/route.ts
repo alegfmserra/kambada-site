@@ -112,7 +112,30 @@ export async function GET(requisicao: Request) {
       pedidosRegistrados: registros.length,
       notaFiscalAutomatica: process.env.BLING_EMITIR_NFE === "1",
       areaDeControleComSenha: adminConfigurado(),
+      // Os 5 mais recentes, etapa por etapa — sem dado pessoal (nem nome).
+      ultimos: registros.slice(0, 5).map((r) => ({
+        ref: r.ref,
+        criadoEm: r.criadoEm,
+        total: r.total,
+        retirada: r.entrega.retirada,
+        pedidoBling: r.bling.idPedido,
+        estoque: r.estoque,
+        email: r.email,
+        emailLoja: r.emailLoja,
+        nfe: r.nfe,
+      })),
     },
+    saldoProdutoTeste: await (async () => {
+      try {
+        const s = await chamarBling<{ data?: { saldoFisicoTotal?: number }[] }>(
+          "/estoques/saldos?idsProdutos[]=16717480811",
+          { revalidar: 0 },
+        );
+        return s.data?.[0]?.saldoFisicoTotal ?? null;
+      } catch (e) {
+        return e instanceof Error ? e.message : String(e);
+      }
+    })(),
     // Para investigar assinatura recusada (401) sem expor o segredo: só o
     // tamanho e se sobrou espaço/quebra de linha ao colar. A assinatura do
     // Mercado Pago tem 64 caracteres.

@@ -30,6 +30,8 @@ export type RegistroPedido = {
   total: number;
   pagamento: { tipo?: string; parcelas?: number; taxa?: number };
   bling: { idPedido: number };
+  /** Cupom usado — desconto em reais sobre as peças; parceiro/comissão para o relatório. */
+  cupom?: { codigo: string; percentual: number; desconto: number; parceiro?: string; comissaoPercentual?: number };
   estoque?: Etapa;
   email?: Etapa;
   /** Aviso "novo pedido pago" à caixa da loja. */

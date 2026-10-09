@@ -5,6 +5,7 @@ import { lerDadosCliente } from "@/lib/checkout/cliente";
 import { novaReferencia, VERSAO_RETRATO, type RetratoPedido } from "@/lib/checkout/pedido";
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
+import { validarCupom } from "@/lib/cupons/cupons";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 import {
@@ -72,13 +73,35 @@ export async function POST(requisicao: Request) {
     );
   }
 
+  // Cupom: conferido de novo AQUI (o limite pode ter acabado desde que o
+  // cliente aplicou). Inválido agora → o cliente decide se segue sem ele.
+  let cupomDoRetrato: RetratoPedido["cupom"];
+  let descontoCentavos = 0;
+  if (typeof corpo.cupom === "string" && corpo.cupom.trim()) {
+    const c = await validarCupom(
+      corpo.cupom,
+      validacao.itens.map((i) => ({ p: i.precoUnitario, q: i.quantidade })),
+    );
+    if (!c.ok) {
+      return NextResponse.json({ erro: c.mensagem, motivo: "cupom" }, { status: 409 });
+    }
+    descontoCentavos = c.descontoCentavos;
+    cupomDoRetrato = {
+      codigo: c.cupom.codigo,
+      percentual: c.cupom.percentual,
+      descontoCentavos,
+      parceiro: c.cupom.parceiro,
+      comissaoPercentual: c.cupom.comissaoPercentual,
+    };
+  }
+
   try {
     // Retirada: nada a cotar — frete zero, sem transporte.
     let freteDoRetrato: RetratoPedido["frete"];
     if (retirada) {
       freteDoRetrato = { servico: RETIRADA.nome, valor: 0, prazo: 0, gratis: false, retirada: true };
     } else {
-      const opcoes = await cotarCarrinho(cliente.cep, validacao.itens, validacao.subtotalCentavos);
+      const opcoes = await cotarCarrinho(cliente.cep, validacao.itens, validacao.subtotalCentavos - descontoCentavos);
       const frete = opcoes.find((o) => o.id === freteId);
       if (!frete) {
         return NextResponse.json(
@@ -105,6 +128,7 @@ export async function POST(requisicao: Request) {
       })),
       frete: freteDoRetrato,
       cliente,
+      ...(cupomDoRetrato ? { cupom: cupomDoRetrato } : {}),
     };
 
     const preferencia = await criarPreferencia(retrato, urlDoSite(requisicao));

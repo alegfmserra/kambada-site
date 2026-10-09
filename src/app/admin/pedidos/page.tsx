@@ -6,7 +6,8 @@ import { situacaoNoBling } from "@/lib/checkout/acompanhar";
 import { emailConfigurado } from "@/lib/email/enviar";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { listarRegistros, type Etapa, type RegistroPedido } from "@/lib/pedidos/registro";
-import { refazerPendencias, sair } from "../acoes";
+import MenuAdmin from "@/components/admin/MenuAdmin";
+import { refazerPendencias } from "../acoes";
 
 export const metadata: Metadata = {
   title: "Pedidos do site",
@@ -93,18 +94,14 @@ export default async function PaginaAdminPedidos() {
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <MenuAdmin ativa="pedidos" />
+      <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-extrabold">Pedidos do site</h1>
           <p className="mt-1 text-texto-suave">
             {linhas.length} {linhas.length === 1 ? "pedido" : "pedidos"} · {formatarReais(total)} pagos pelo site
           </p>
         </div>
-        <form action={sair}>
-          <button type="submit" className="rounded-full border border-borda px-5 py-2 text-sm font-semibold hover:border-kambada-amarelo-escuro">
-            Sair
-          </button>
-        </form>
       </div>
 
       <p className="mt-4 rounded-xl bg-superficie px-4 py-3 text-sm text-texto-suave">
@@ -146,6 +143,12 @@ export default async function PaginaAdminPedidos() {
                       ? "RETIRADA NO ATELIÊ"
                       : `${r.entrega.descricao} — ${r.entrega.valor > 0 ? formatarReais(r.entrega.valor) : "frete grátis"}`}
                   </li>
+                  {r.cupom && (
+                    <li className="font-semibold">
+                      Cupom {r.cupom.codigo} ({r.cupom.percentual}%) — −{formatarReais(r.cupom.desconto)}
+                      {r.cupom.parceiro ? ` · parceiro ${r.cupom.parceiro}` : ""}
+                    </li>
+                  )}
                 </ul>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">

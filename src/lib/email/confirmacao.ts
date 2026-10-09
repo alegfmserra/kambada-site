@@ -78,6 +78,7 @@ export function textoConfirmacao(d: DadosEmail): string {
     `Pagamento: ${formaDePagamento(r)}`,
     "",
     ...r.itens.map((i) => `• ${i.quantidade}× ${i.nome} — ${real(i.preco * i.quantidade)}`),
+    ...(r.cupom ? [`Cupom ${r.cupom.codigo} (${r.cupom.percentual}%): −${real(r.cupom.desconto)}`] : []),
     r.entrega.retirada
       ? "Retirada no ateliê — grátis"
       : `Entrega: ${r.entrega.descricao} — ${r.entrega.valor > 0 ? real(r.entrega.valor) : "grátis"}`,
@@ -105,6 +106,15 @@ function linhaTabela(rotulo: string, valor: string, destaque = false): string {
   const peso = destaque ? "font-weight:bold;" : "";
   const borda = destaque ? "border-top:1px solid #e3ddd0;" : "";
   return `<tr><td style="padding:7px 0;${borda}${peso}">${rotulo}</td><td style="padding:7px 0;text-align:right;white-space:nowrap;${borda}${peso}">${valor}</td></tr>`;
+}
+
+function linhaDesconto(r: RegistroPedido, comParceiro = false): string {
+  if (!r.cupom) return "";
+  const parceiro = comParceiro && r.cupom.parceiro ? ` · parceiro ${escaparHtml(r.cupom.parceiro)}` : "";
+  return linhaTabela(
+    `<strong>Cupom ${escaparHtml(r.cupom.codigo)}</strong> (${r.cupom.percentual}%)${parceiro}`,
+    `<strong>−${real(r.cupom.desconto)}</strong>`,
+  );
 }
 
 export function htmlConfirmacao(d: DadosEmail): string {
@@ -147,6 +157,7 @@ export function htmlConfirmacao(d: DadosEmail): string {
       <p style="margin:0 0 6px;font-size:12px;color:#5e6266">Feito em ${dataDoPedido(r.criadoEm)}</p>
       <table style="width:100%;border-collapse:collapse;font-size:15px">
         ${itens}
+        ${linhaDesconto(r)}
         ${linhaTabela(`<span style="color:#5e6266">${entrega}</span>`, `<span style="color:#5e6266">${valorEntrega}</span>`)}
         ${linhaTabela("Total", real(r.total), true)}
       </table>
@@ -199,6 +210,13 @@ export function textoLoja(d: DadosLoja): string {
     "",
     "PEÇAS",
     ...r.itens.map((i) => `• ${i.quantidade}× ${i.nome} — ${real(i.preco * i.quantidade)}`),
+    ...(r.cupom
+      ? [
+          `CUPOM ${r.cupom.codigo} (${r.cupom.percentual}%): −${real(r.cupom.desconto)}${
+            r.cupom.parceiro ? ` · parceiro ${r.cupom.parceiro}` : ""
+          }`,
+        ]
+      : []),
     "",
     r.entrega.retirada
       ? "ENTREGA: RETIRADA NO ATELIÊ (sem etiqueta — o cliente combina o horário pelo WhatsApp)"
@@ -236,7 +254,7 @@ export function htmlLoja(d: DadosLoja): string {
             <td style="padding:12px 14px;text-align:right"><span style="font-size:12px">Total pago</span><br><strong style="font-size:18px">${real(r.total)}</strong></td></tr>
       </table>
       <h2 style="margin:0 0 4px;font-size:15px">Peças</h2>
-      <table style="width:100%;border-collapse:collapse;font-size:15px">${itens}</table>
+      <table style="width:100%;border-collapse:collapse;font-size:15px">${itens}${linhaDesconto(r, true)}</table>
       <div style="margin:18px 0;padding:14px;border-radius:12px;background:#f6f2ea">${entrega}</div>
       <h2 style="margin:0 0 4px;font-size:15px">Cliente</h2>
       <p style="margin:0 0 4px"><strong>${e(r.cliente.nome)}</strong></p>

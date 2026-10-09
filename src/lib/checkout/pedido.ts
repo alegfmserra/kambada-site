@@ -25,6 +25,8 @@ export type RetratoPedido = {
   /** `retirada`: o cliente busca no ateliê — sem transporte, sem frete. */
   frete: { servico: string; valor: number; prazo: number; gratis: boolean; retirada?: boolean };
   cliente: DadosCliente;
+  /** Cupom aplicado no checkout (desconto em centavos, já conferido no servidor). */
+  cupom?: { codigo: string; percentual: number; descontoCentavos: number; parceiro?: string; comissaoPercentual?: number };
 };
 
 /** "KMB-20261008-7F3A9C" — legível no extrato do Mercado Pago e no Bling. */

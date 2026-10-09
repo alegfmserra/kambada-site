@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
@@ -12,6 +13,13 @@ import {
   valorDoCookie,
 } from "@/lib/admin/sessao";
 import { processarPagamento } from "@/lib/checkout/processar";
+import {
+  FORMATO_CODIGO,
+  listarCupons,
+  normalizarCodigo,
+  salvarCupons,
+  type Periodo,
+} from "@/lib/cupons/cupons";
 
 export type EstadoLogin = { erro?: string };
 
@@ -59,4 +67,78 @@ export async function refazerPendencias(formulario: FormData): Promise<void> {
     }
   }
   redirect("/admin/pedidos");
+}
+
+// ---------------------------------------------------------------------------
+// Cupons
+// ---------------------------------------------------------------------------
+
+export type EstadoCupom = { erro?: string; ok?: string };
+
+async function exigirSessao(): Promise<void> {
+  if (!sessaoValida((await cookies()).get(COOKIE_ADMIN)?.value)) redirect("/admin/cupons");
+}
+
+const PERIODOS = ["total", "dia", "semana", "mes"] as const;
+const DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+export async function criarCupom(_anterior: EstadoCupom, formulario: FormData): Promise<EstadoCupom> {
+  await exigirSessao();
+  const codigo = normalizarCodigo(String(formulario.get("codigo") ?? ""));
+  const percentual = Number(formulario.get("percentual"));
+  const usos = Number(formulario.get("usos"));
+  const periodo = String(formulario.get("periodo") ?? "");
+  const parceiro = String(formulario.get("parceiro") ?? "").trim().slice(0, 60);
+  const comissao = Number(formulario.get("comissao") || 0);
+  const validoDe = String(formulario.get("validoDe") ?? "");
+  const validoAte = String(formulario.get("validoAte") ?? "");
+
+  if (!FORMATO_CODIGO.test(codigo)) return { erro: "Código: de 3 a 20 letras, números ou hífen." };
+  if (!Number.isInteger(percentual) || percentual < 1 || percentual > 50) {
+    return { erro: "Desconto: um número inteiro entre 1% e 50%." };
+  }
+  if (!Number.isInteger(usos) || usos < 1 || usos > 10000) return { erro: "Usos: um número inteiro a partir de 1." };
+  if (!(PERIODOS as readonly string[]).includes(periodo)) return { erro: "Escolha o período do limite." };
+  if (!Number.isFinite(comissao) || comissao < 0 || comissao > 50) return { erro: "Comissão: entre 0% e 50%." };
+  if (validoDe && !DATA.test(validoDe)) return { erro: "Data de início inválida." };
+  if (validoAte && !DATA.test(validoAte)) return { erro: "Data de fim inválida." };
+  if (validoDe && validoAte && validoAte < validoDe) return { erro: "O fim vem antes do início." };
+
+  const cupons = await listarCupons();
+  if (cupons.some((c) => c.codigo === codigo)) return { erro: `Já existe um cupom ${codigo}.` };
+
+  cupons.push({
+    codigo,
+    percentual,
+    parceiro: parceiro || undefined,
+    comissaoPercentual: comissao || undefined,
+    limite: { usos, periodo: periodo as Periodo },
+    validoDe: validoDe || undefined,
+    validoAte: validoAte || undefined,
+    ativo: true,
+    criadoEm: new Date().toISOString(),
+  });
+  await salvarCupons(cupons);
+  revalidatePath("/admin/cupons");
+  return { ok: `Cupom ${codigo} criado.` };
+}
+
+export async function alternarCupom(formulario: FormData): Promise<void> {
+  await exigirSessao();
+  const codigo = normalizarCodigo(String(formulario.get("codigo") ?? ""));
+  const cupons = await listarCupons();
+  const c = cupons.find((x) => x.codigo === codigo);
+  if (c) {
+    c.ativo = !c.ativo;
+    await salvarCupons(cupons);
+  }
+  revalidatePath("/admin/cupons");
+}
+
+/** Excluir só apaga o cadastro; as vendas já feitas com ele continuam nos pedidos. */
+export async function excluirCupom(formulario: FormData): Promise<void> {
+  await exigirSessao();
+  const codigo = normalizarCodigo(String(formulario.get("codigo") ?? ""));
+  await salvarCupons((await listarCupons()).filter((x) => x.codigo !== codigo));
+  revalidatePath("/admin/cupons");
 }

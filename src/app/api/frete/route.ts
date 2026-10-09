@@ -4,6 +4,7 @@ import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { ErroFrete, freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
 import { faltaParaFreteGratis, FRETE_GRATIS_A_PARTIR_DE, normalizarCep } from "@/lib/frete/regras";
+import { validarCupom } from "@/lib/cupons/cupons";
 import { opcaoRetirada } from "@/lib/frete/retirada";
 import { emReais } from "@/lib/loja/dinheiro";
 
@@ -45,7 +46,14 @@ export async function POST(requisicao: Request) {
     );
   }
 
-  const subtotal = emReais(validacao.subtotalCentavos);
+  // Com cupom válido, o frete grátis olha o valor JÁ com desconto — a loja
+  // não dá desconto e frete grátis em cima do mesmo valor cheio.
+  let subtotalCentavos = validacao.subtotalCentavos;
+  if (typeof corpo.cupom === "string" && corpo.cupom.trim()) {
+    const c = await validarCupom(corpo.cupom, validacao.itens.map((i) => ({ p: i.precoUnitario, q: i.quantidade })));
+    if (c.ok) subtotalCentavos -= c.descontoCentavos;
+  }
+  const subtotal = emReais(subtotalCentavos);
   const resposta = (entregas: ReturnType<typeof opcaoRetirada>[], aviso?: string) =>
     NextResponse.json({
       subtotal,
@@ -58,7 +66,7 @@ export async function POST(requisicao: Request) {
     });
 
   try {
-    const opcoes = await cotarCarrinho(cep, validacao.itens, validacao.subtotalCentavos);
+    const opcoes = await cotarCarrinho(cep, validacao.itens, subtotalCentavos);
     return resposta(
       opcoes.map((o) => ({
         id: o.id,

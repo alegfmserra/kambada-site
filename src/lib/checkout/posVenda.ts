@@ -66,7 +66,18 @@ export function montarRegistro(
       retirada: retrato.frete.retirada === true,
       prazoDias: retrato.frete.prazo,
     },
-    total: (itensCentavos + emCentavos(retrato.frete.valor)) / 100,
+    total: (itensCentavos + emCentavos(retrato.frete.valor) - (retrato.cupom?.descontoCentavos ?? 0)) / 100,
+    ...(retrato.cupom
+      ? {
+          cupom: {
+            codigo: retrato.cupom.codigo,
+            percentual: retrato.cupom.percentual,
+            desconto: retrato.cupom.descontoCentavos / 100,
+            parceiro: retrato.cupom.parceiro,
+            comissaoPercentual: retrato.cupom.comissaoPercentual,
+          },
+        }
+      : {}),
     pagamento: {
       tipo: pagamento.payment_type_id,
       parcelas: pagamento.installments,
@@ -92,20 +103,58 @@ async function etapaEstoque(r: RegistroPedido): Promise<Etapa> {
   }
 }
 
+/**
+ * Situação da NF-e no Bling (especificação OpenAPI): 5 Autorizada,
+ * 6 Emitida DANFE e 7 Registrada contam como feita; 4 Rejeitada,
+ * 9 Denegada, 11 Bloqueada e 2 Cancelada são falha; o resto (1 Pendente,
+ * 3 Aguardando recibo, 8 Aguardando protocolo, 10 Consulta) é espera.
+ *
+ * Lição de 09/10/2026: o Bling ACEITA o pedido de envio mesmo quando a SEFAZ
+ * rejeita a nota (ali: "179 — CNPJ do emitente com situação irregular na
+ * Receita"). Sem reler a situação, a etapa aparecia como feita.
+ */
+const NOTA_OK = new Set([5, 6, 7]);
+const NOTA_FALHA: Record<number, string> = { 2: "Cancelada", 4: "Rejeitada", 9: "Denegada", 11: "Bloqueada" };
+
+const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function situacaoDaNota(idNota: number): Promise<number | undefined> {
+  const n = await chamarBling<{ data?: { situacao?: number } }>(`/nfe/${idNota}`, { revalidar: 0 });
+  return n.data?.situacao;
+}
+
 async function etapaNota(r: RegistroPedido): Promise<RegistroPedido["nfe"]> {
   try {
-    const idNota =
-      r.nfe?.idNota ??
-      (
+    let idNota = r.nfe?.idNota;
+    if (idNota) {
+      // Reprocessamento: se a nota já saiu, não envia de novo.
+      const antes = await situacaoDaNota(idNota);
+      if (antes !== undefined && NOTA_OK.has(antes)) return { idNota, feitoEm: agoraIso() };
+    } else {
+      idNota = (
         await chamarBling<{ data?: { idNotaFiscal?: number } }>(
           `/pedidos/vendas/${r.bling.idPedido}/gerar-nfe`,
           { metodo: "POST" },
         )
       ).data?.idNotaFiscal;
+    }
     if (!idNota) throw new Error("o Bling não devolveu o número da nota");
+
     // enviarEmail=true: o próprio Bling manda a nota autorizada ao cliente.
     await chamarBling(`/nfe/${idNota}/enviar?enviarEmail=true`, { metodo: "POST" });
-    return { idNota, feitoEm: agoraIso() };
+    await esperar(Number(process.env.NFE_ESPERA_MS ?? 3000));
+    const situacao = await situacaoDaNota(idNota);
+
+    if (situacao !== undefined && NOTA_OK.has(situacao)) return { idNota, feitoEm: agoraIso() };
+    if (situacao !== undefined && NOTA_FALHA[situacao]) {
+      return {
+        idNota,
+        erro: `Nota ${NOTA_FALHA[situacao]} pela SEFAZ — ver o motivo na nota, no Bling`,
+        detalhe: `situação ${situacao}`,
+      };
+    }
+    // Ainda em processamento: fica pendente; "Refazer pendências" confere de novo.
+    return { idNota, detalhe: `aguardando a SEFAZ (situação ${situacao ?? "?"})` };
   } catch (e) {
     return { ...r.nfe, ...falha(e) };
   }

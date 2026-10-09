@@ -500,3 +500,26 @@ describe("pedido no Bling", () => {
     expect(montarContato(clienteValido).endereco.geral.cep).toBe("01310-100");
   });
 });
+
+describe("cupom no pagamento e no Bling", () => {
+  const comCupom = (): RetratoPedido => ({
+    ...retratoExemplo(),
+    // 2 × 89,90 + 185,00 com 5%: 2 × (8990 − 8541) + (18500 − 17575) = 898 + 925
+    cupom: { codigo: "JORGE5", percentual: 5, descontoCentavos: 1823 },
+  });
+
+  it("os itens do Mercado Pago já vão com desconto e somam o total exato", () => {
+    const pref = montarPreferencia(comCupom(), "https://somoskambada.com.br");
+    expect(pref.items.map((i) => i.unit_price)).toEqual([85.41, 175.75]);
+    const somaItens = pref.items.reduce((s, i) => s + Math.round(i.unit_price * 100) * i.quantity, 0);
+    expect(somaItens + 2437).toBe(totalDoRetratoEmCentavos(comCupom()));
+  });
+
+  it("no Bling, as peças ficam com o preço cheio e o desconto vai no pedido", () => {
+    const pagamento = { id: 1, status: "approved" } as Parameters<typeof montarPedido>[0]["pagamento"];
+    const p = montarPedido({ retrato: comCupom(), pagamento, idContato: 1, idForma: 1 });
+    expect(p.itens.map((i) => i.valor)).toEqual([89.9, 185]);
+    expect(p).toMatchObject({ desconto: { valor: 18.23, unidade: "REAL" } });
+    expect(p.parcelas[0].valor).toBe(389.17 - 18.23);
+  });
+});

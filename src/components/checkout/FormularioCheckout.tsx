@@ -73,6 +73,11 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
   const [enviando, setEnviando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [problemas, setProblemas] = useState<string[]>([]);
+  // Cupom: o que o cliente digita e o que o servidor confirmou.
+  const [codigoCupom, setCodigoCupom] = useState("");
+  const [cupom, setCupom] = useState<{ codigo: string; percentual: number; desconto: number } | null>(null);
+  const [msgCupom, setMsgCupom] = useState<string | null>(null);
+  const [aplicandoCupom, setAplicandoCupom] = useState(false);
   const ultimoCepCotado = useRef<string>("");
   const ultimoCepBuscado = useRef<string>("");
   const refAviso = useRef<HTMLDivElement>(null);
@@ -140,7 +145,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         });
     }
 
-    const chave = `${cepDigitos}|${chaveCarrinho}`;
+    const chave = `${cepDigitos}|${chaveCarrinho}|${cupom?.codigo ?? ""}`;
     if (ultimoCepCotado.current === chave) return;
     ultimoCepCotado.current = chave;
 
@@ -151,7 +156,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
     fetch("/api/frete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cep: cepDigitos, itens: pedido }),
+      body: JSON.stringify({ cep: cepDigitos, itens: pedido, cupom: cupom?.codigo }),
     })
       .then(async (r) => {
         const d = (await r.json()) as {
@@ -174,10 +179,52 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       })
       .catch(() => setAviso("Sem conexão para calcular o frete. Tente de novo."))
       .finally(() => setCotando(false));
-  }, [cepDigitos, chaveCarrinho, pedido]);
+  }, [cepDigitos, chaveCarrinho, pedido, cupom]);
+
+  // Carrinho mudou: o desconto calculado não vale mais — o cliente reaplica.
+  const carrinhoDoCupom = useRef(chaveCarrinho);
+  useEffect(() => {
+    if (cupom && carrinhoDoCupom.current !== chaveCarrinho) {
+      setCupom(null);
+      setMsgCupom("O carrinho mudou — aplique o cupom de novo.");
+    }
+  }, [chaveCarrinho, cupom]);
+
+  async function aplicarCupom() {
+    if (!codigoCupom.trim()) return;
+    setAplicandoCupom(true);
+    setMsgCupom(null);
+    try {
+      const r = await fetch("/api/cupom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: codigoCupom, itens: pedido }),
+      });
+      const d = (await r.json()) as { ok: boolean; codigo?: string; percentual?: number; desconto?: number; mensagem?: string };
+      if (d.ok && d.codigo && d.percentual && d.desconto) {
+        setCupom({ codigo: d.codigo, percentual: d.percentual, desconto: d.desconto });
+        carrinhoDoCupom.current = chaveCarrinho;
+        setMsgCupom(`Cupom ${d.codigo} aplicado: ${d.percentual}% de desconto nas peças.`);
+      } else {
+        setCupom(null);
+        setMsgCupom(d.mensagem ?? "Cupom não encontrado.");
+      }
+    } catch {
+      setMsgCupom("Sem conexão para conferir o cupom.");
+    } finally {
+      setAplicandoCupom(false);
+    }
+  }
+
+  function removerCupom() {
+    setCupom(null);
+    setCodigoCupom("");
+    setMsgCupom(null);
+  }
 
   const freteEscolhido = opcoes?.find((o) => o.id === freteId) ?? null;
-  const total = subtotal + (freteEscolhido?.preco ?? 0);
+  const desconto = cupom?.desconto ?? 0;
+  const total = Math.round((subtotal - desconto + (freteEscolhido?.preco ?? 0)) * 100) / 100;
   const whatsapp = linkWhatsApp(mensagemWhatsApp(itens));
 
   async function aoPagar(e: FormEvent) {
@@ -222,7 +269,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       const r = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itens: pedido, freteId, cliente: campos }),
+        body: JSON.stringify({ itens: pedido, freteId, cliente: campos, cupom: cupom?.codigo }),
       });
       const d = (await r.json()) as {
         url?: string;
@@ -238,6 +285,10 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       if (d.campos) setErros(d.campos);
       if (d.problemas) setProblemas(d.problemas);
       if (d.motivo === "frete_mudou") ultimoCepCotado.current = "";
+      if (d.motivo === "cupom") {
+        setCupom(null);
+        setMsgCupom(d.erro ?? "O cupom não vale mais.");
+      }
       setAviso(d.erro ?? "Não foi possível continuar.");
     } catch {
       setAviso("Sem conexão. Tente de novo em instantes.");
@@ -398,11 +449,64 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
             </li>
           ))}
         </ul>
+        {pagamentoOnline && (
+          <div className="mt-4 border-t border-borda pt-4">
+            {cupom ? (
+              <p className="flex items-center justify-between gap-3 text-sm">
+                <span>
+                  Cupom <strong>{cupom.codigo}</strong> aplicado
+                </span>
+                <button type="button" onClick={removerCupom} className="min-h-11 underline underline-offset-4">
+                  Remover
+                </button>
+              </p>
+            ) : (
+              <div>
+                <label htmlFor="co-cupom" className="block text-sm font-semibold">
+                  Cupom de desconto
+                </label>
+                <div className="mt-1 flex gap-2">
+                  <input
+                    id="co-cupom"
+                    value={codigoCupom}
+                    onChange={(e) => setCodigoCupom(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void aplicarCupom();
+                      }
+                    }}
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="min-h-11 w-full min-w-0 rounded-xl border border-borda bg-fundo px-3 py-2 font-mono uppercase outline-none focus:border-kambada-amarelo-escuro"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void aplicarCupom()}
+                    disabled={aplicandoCupom || !codigoCupom.trim()}
+                    className="min-h-11 shrink-0 rounded-xl border border-borda px-4 text-sm font-semibold hover:border-kambada-amarelo-escuro disabled:opacity-50"
+                  >
+                    {aplicandoCupom ? "…" : "Aplicar"}
+                  </button>
+                </div>
+              </div>
+            )}
+            <p aria-live="polite" className="mt-2 min-h-5 text-xs text-texto-suave">
+              {msgCupom}
+            </p>
+          </div>
+        )}
         <dl className="mt-4 space-y-1 border-t border-borda pt-4 text-sm">
           <div className="flex justify-between">
             <dt>Produtos</dt>
             <dd>{formatarReais(subtotal)}</dd>
           </div>
+          {cupom && (
+            <div className="flex justify-between font-semibold">
+              <dt>Cupom {cupom.codigo} ({cupom.percentual}%)</dt>
+              <dd>−{formatarReais(cupom.desconto)}</dd>
+            </div>
+          )}
           <div className="flex justify-between">
             <dt>{freteEscolhido?.retirada ? "Retirada no ateliê" : "Frete"}</dt>
             <dd>

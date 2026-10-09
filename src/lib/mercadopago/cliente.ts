@@ -16,6 +16,7 @@
  */
 
 import { emCentavos } from "../loja/dinheiro";
+import { precoComDesconto } from "../cupons/cupons";
 import type { RetratoPedido } from "../checkout/pedido";
 
 const API = "https://api.mercadopago.com";
@@ -95,7 +96,11 @@ export function montarPreferencia(retrato: RetratoPedido, urlDoSite: string, ago
       id: String(i.id),
       title: i.n,
       quantity: i.q,
-      unit_price: Number(i.p.toFixed(2)),
+      // Com cupom, o preço de cada peça já vai descontado: a soma dos itens
+      // bate exatamente com o total (o arredondamento é por unidade).
+      unit_price: retrato.cupom
+        ? precoComDesconto(i.p, retrato.cupom.percentual) / 100
+        : Number(i.p.toFixed(2)),
       currency_id: "BRL",
     })),
     payer: {
@@ -182,5 +187,5 @@ export async function buscarPagamentosDoPedido(ref: string): Promise<Pagamento[]
 /** Total do retrato (itens + frete) em centavos — o que o pagamento tem de valer. */
 export function totalDoRetratoEmCentavos(retrato: RetratoPedido): number {
   const itens = retrato.itens.reduce((s, i) => s + emCentavos(i.p) * i.q, 0);
-  return itens + emCentavos(retrato.frete.valor);
+  return itens + emCentavos(retrato.frete.valor) - (retrato.cupom?.descontoCentavos ?? 0);
 }

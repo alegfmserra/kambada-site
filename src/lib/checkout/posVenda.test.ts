@@ -7,12 +7,14 @@ import type { RetratoPedido } from "./pedido";
 
 process.env.PEDIDOS_PASTA = mkdtempSync(join(tmpdir(), "kambada-pedidos-"));
 
-const chamadas = vi.hoisted(() => ({ bling: [] as string[], emails: [] as { para: string; html: string }[] }));
+const chamadas = vi.hoisted(() => ({ bling: [] as string[], emails: [] as { para: string; html: string }[], situacaoNota: 5 }));
+process.env.NFE_ESPERA_MS = "0";
 
 vi.mock("../bling/cliente", () => ({
   chamarBling: vi.fn(async (caminho: string) => {
     chamadas.bling.push(caminho);
     if (caminho.endsWith("/gerar-nfe")) return { data: { idNotaFiscal: 555 } };
+    if (caminho === "/nfe/555") return { data: { situacao: chamadas.situacaoNota } };
     return {};
   }),
 }));
@@ -67,6 +69,7 @@ describe("pós-venda", () => {
   beforeEach(() => {
     chamadas.bling = [];
     chamadas.emails = [];
+    chamadas.situacaoNota = 5;
     delete process.env.BLING_EMITIR_NFE;
   });
 
@@ -101,6 +104,15 @@ describe("pós-venda", () => {
     expect(chamadas.bling).toContain("/pedidos/vendas/2/gerar-nfe");
     expect(chamadas.bling).toContain("/nfe/555/enviar?enviarEmail=true");
     expect(r.nfe).toMatchObject({ idNota: 555 });
+    expect(r.nfe?.feitoEm).toBeTruthy();
+  });
+
+  it("nota REJEITADA pela SEFAZ não conta como feita (caso real de 09/10: CNPJ irregular)", async () => {
+    process.env.BLING_EMITIR_NFE = "1";
+    chamadas.situacaoNota = 4;
+    const r = await executarPosVenda(retrato(), pagamento, 3);
+    expect(r.nfe?.feitoEm).toBeUndefined();
+    expect(r.nfe?.erro).toContain("Rejeitada");
   });
 
   it("o cliente nunca recebe o próprio telefone/CPF no e-mail; a loja recebe contato e endereço para postar", async () => {

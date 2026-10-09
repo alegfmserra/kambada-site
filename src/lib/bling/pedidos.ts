@@ -130,7 +130,9 @@ export function montarPedido(params: {
   const { cliente, frete } = retrato;
   const hoje = dataLocal(agora);
   const total = emReais(
-    retrato.itens.reduce((s, i) => s + emCentavos(i.p) * i.q, 0) + emCentavos(frete.valor),
+    retrato.itens.reduce((s, i) => s + emCentavos(i.p) * i.q, 0) +
+      emCentavos(frete.valor) -
+      (retrato.cupom?.descontoCentavos ?? 0),
   );
   const taxaMp = (pagamento.fee_details ?? [])
     .filter((f) => f.type === "mercadopago_fee")
@@ -142,6 +144,10 @@ export function montarPedido(params: {
     dataSaida: hoje,
     dataPrevista: dataLocal(agora, Math.max(1, frete.prazo || 1)),
     contato: { id: idContato },
+    // Cupom: as peças vão com o preço cheio e o desconto, em reais, no pedido.
+    ...(retrato.cupom
+      ? { desconto: { valor: emReais(retrato.cupom.descontoCentavos), unidade: "REAL" } }
+      : {}),
     itens: retrato.itens.map((i) => ({
       produto: { id: i.id },
       descricao: i.n,

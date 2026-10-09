@@ -67,7 +67,10 @@ export default function AvisoAdicionado() {
           onBlur={(e) => {
             if (!painel.current?.contains(e.relatedTarget as Node)) setPausado(false);
           }}
-          className="aviso-entrada pointer-events-auto w-full max-w-sm rounded-2xl border border-kambada-amarelo-escuro bg-superficie p-5 shadow-2xl"
+          // Fundo OPACO (09/10/2026): no tema escuro, bg-superficie é branco a 3% —
+          // o aviso ficava transparente sobre a página, ilegível no celular.
+          // A camada da superfície vai por cima do fundo sólido do tema.
+          className="aviso-entrada pointer-events-auto w-full max-w-sm rounded-2xl border-2 border-kambada-amarelo-escuro bg-fundo bg-[linear-gradient(var(--superficie),var(--superficie))] p-5 shadow-[0_12px_40px_rgb(0_0_0/0.45)]"
         >
           <div className="flex items-start justify-between gap-3">
             <p className="font-display font-bold">

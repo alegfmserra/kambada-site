@@ -5,10 +5,15 @@
  *  2. ESTOQUE  — baixa no Bling na hora (decisão de 08/10/2026: evita vender
  *                peça que já acabou). O pedido continua "Em aberto" para a
  *                separação.
- *  3. NOTA     — gera a NF-e e manda o Bling transmitir com e-mail ao cliente.
- *                DESLIGADO até BLING_EMITIR_NFE=1: o Bling ainda não tem o
- *                certificado digital nem a configuração fiscal.
- *  4. E-MAIL   — "Pedido confirmado" ao cliente, pelo Gmail da Kambada.
+ *  3. NOTA     — gera a NF-e e manda o Bling transmitir à SEFAZ. Ligada por
+ *                BLING_EMITIR_NFE=1.
+ *  4. E-MAIL   — "Pedido confirmado" ao cliente e "Novo pedido pago" à loja,
+ *                de pedidos@somoskambada.com.br.
+ *  5. E-MAIL DA NOTA — com a nota AUTORIZADA, o site manda ao cliente o DANFE
+ *                (PDF) e o XML, no visual da Kambada, com cópia oculta à loja
+ *                (decisão do Alexandre, 09/10/2026). O e-mail do próprio Bling
+ *                fica desligado (enviarEmail=false) para o cliente não receber
+ *                a nota duas vezes, de dois remetentes.
  *
  * Cada etapa grava no registro quando deu certo. Chamado de novo (aviso do
  * Mercado Pago repetido, cliente recarregando a página de sucesso), só refaz o
@@ -20,12 +25,15 @@ import { chamarBling } from "../bling/cliente";
 import {
   assuntoConfirmacao,
   assuntoLoja,
+  assuntoNota,
   htmlConfirmacao,
   htmlLoja,
+  htmlNota,
   textoConfirmacao,
   textoLoja,
+  textoNota,
 } from "../email/confirmacao";
-import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "../email/enviar";
+import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail, type Anexo } from "../email/enviar";
 import { enderecoAtelieEmUmaLinha } from "../loja/enderecoAtelie";
 import { emCentavos } from "../loja/dinheiro";
 import type { Pagamento } from "../mercadopago/cliente";
@@ -118,9 +126,38 @@ const NOTA_FALHA: Record<number, string> = { 2: "Cancelada", 4: "Rejeitada", 9: 
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+type NotaBling = {
+  situacao?: number;
+  numero?: string;
+  serie?: number;
+  chaveAcesso?: string;
+  linkDanfe?: string;
+  linkPDF?: string;
+  /** Link do XML (ou, em alguns retornos, o próprio XML). */
+  xml?: string;
+};
+
+async function lerNota(idNota: number): Promise<NotaBling> {
+  return (await chamarBling<{ data?: NotaBling }>(`/nfe/${idNota}`, { revalidar: 0 })).data ?? {};
+}
+
 async function situacaoDaNota(idNota: number): Promise<number | undefined> {
-  const n = await chamarBling<{ data?: { situacao?: number } }>(`/nfe/${idNota}`, { revalidar: 0 });
-  return n.data?.situacao;
+  return (await lerNota(idNota)).situacao;
+}
+
+/**
+ * A SEFAZ costuma autorizar em segundos, mas não na hora: confere algumas vezes
+ * antes de deixar a nota como "aguardando" (NFE_ESPERA_MS × NFE_TENTATIVAS).
+ */
+async function aguardarSefaz(idNota: number): Promise<number | undefined> {
+  const tentativas = Math.max(1, Number(process.env.NFE_TENTATIVAS ?? 5));
+  let situacao: number | undefined;
+  for (let i = 0; i < tentativas; i++) {
+    await esperar(Number(process.env.NFE_ESPERA_MS ?? 3000));
+    situacao = await situacaoDaNota(idNota);
+    if (situacao !== undefined && (NOTA_OK.has(situacao) || NOTA_FALHA[situacao])) break;
+  }
+  return situacao;
 }
 
 async function etapaNota(r: RegistroPedido): Promise<RegistroPedido["nfe"]> {
@@ -140,10 +177,11 @@ async function etapaNota(r: RegistroPedido): Promise<RegistroPedido["nfe"]> {
     }
     if (!idNota) throw new Error("o Bling não devolveu o número da nota");
 
-    // enviarEmail=true: o próprio Bling manda a nota autorizada ao cliente.
-    await chamarBling(`/nfe/${idNota}/enviar?enviarEmail=true`, { metodo: "POST" });
-    await esperar(Number(process.env.NFE_ESPERA_MS ?? 3000));
-    const situacao = await situacaoDaNota(idNota);
+    // Quem manda a nota ao cliente é o site (etapa 5). Se o e-mail do site
+    // estiver desligado, o Bling manda — o cliente nunca fica sem a nota.
+    const blingMandaEmail = !emailConfigurado();
+    await chamarBling(`/nfe/${idNota}/enviar?enviarEmail=${blingMandaEmail}`, { metodo: "POST" });
+    const situacao = await aguardarSefaz(idNota);
 
     if (situacao !== undefined && NOTA_OK.has(situacao)) return { idNota, feitoEm: agoraIso() };
     if (situacao !== undefined && NOTA_FALHA[situacao]) {
@@ -204,6 +242,64 @@ async function etapaEmailLoja(r: RegistroPedido, cliente: RetratoPedido["cliente
   }
 }
 
+/** Baixa um anexo da nota; se falhar, o e-mail segue só com o link. */
+async function baixar(url: string | undefined, confere: (b: Buffer) => boolean): Promise<Buffer | null> {
+  if (!url?.startsWith("https://")) return null;
+  try {
+    const resposta = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+    if (!resposta.ok) return null;
+    const b = Buffer.from(await resposta.arrayBuffer());
+    return b.length > 0 && b.length < 8_000_000 && confere(b) ? b : null;
+  } catch {
+    return null;
+  }
+}
+
+async function etapaEmailNota(r: RegistroPedido): Promise<Etapa> {
+  try {
+    const idNota = r.nfe?.idNota;
+    if (!idNota) throw new Error("pedido sem nota");
+    const n = await lerNota(idNota);
+    // Só nota AUTORIZADA vai ao cliente (registros antigos podiam marcar como
+    // feita uma nota que a SEFAZ rejeitou).
+    if (n.situacao === undefined || !NOTA_OK.has(n.situacao)) {
+      throw new Error(`a nota não está autorizada (situação ${n.situacao ?? "?"}) — não foi enviada`);
+    }
+    const numero = n.numero ?? String(idNota);
+
+    const pdf = await baixar(n.linkPDF, (b) => b.subarray(0, 5).toString() === "%PDF-");
+    const xmlTexto = n.xml?.trimStart().startsWith("<") ? Buffer.from(n.xml) : null;
+    const xml = xmlTexto ?? (await baixar(n.xml, (b) => b.toString("utf8", 0, 200).includes("<")));
+    const nomeBase = `NF-e_${numero}_Kambada`;
+    const anexos: Anexo[] = [
+      ...(pdf ? [{ nome: `${nomeBase}.pdf`, conteudo: pdf, tipo: "application/pdf" }] : []),
+      ...(xml ? [{ nome: `${nomeBase}.xml`, conteudo: xml, tipo: "application/xml" }] : []),
+    ];
+    if (anexos.length === 0 && !n.linkDanfe) throw new Error("o Bling não devolveu o PDF, o XML nem o link da nota");
+
+    const dados = {
+      registro: r,
+      nota: { numero, serie: n.serie, chaveAcesso: n.chaveAcesso, linkDanfe: n.linkDanfe },
+      anexou: { pdf: Boolean(pdf), xml: Boolean(xml) },
+      urlDoSite: urlPublica(),
+      linkWhatsApp: linkWhatsApp(`Oi! Tenho uma dúvida sobre a nota fiscal do pedido ${r.ref}.`),
+      cidLogo: CID_LOGO,
+    };
+    await enviarEmail({
+      para: r.cliente.email,
+      copiaOculta: emailDaLoja(),
+      assunto: assuntoNota(r, numero),
+      texto: textoNota(dados),
+      html: htmlNota(dados),
+      responderPara: emailDaLoja(),
+      anexos,
+    });
+    return { feitoEm: agoraIso(), detalhe: anexos.map((a) => a.nome).join(", ") || "só o link" };
+  } catch (e) {
+    return falha(e);
+  }
+}
+
 /** Trava por pedido: duas chamadas simultâneas não fazem nada em dobro. */
 const emAndamento = new Map<string, Promise<RegistroPedido>>();
 
@@ -233,6 +329,11 @@ export function executarPosVenda(
     }
     if (emailConfigurado() && !r.emailLoja?.feitoEm) {
       r = { ...r, emailLoja: await etapaEmailLoja(r, retrato.cliente) };
+      await salvarRegistro(r);
+    }
+    // Depois dos dois e-mails do pedido: a nota é o último a chegar.
+    if (emailConfigurado() && r.nfe?.feitoEm && !r.emailNota?.feitoEm) {
+      r = { ...r, emailNota: await etapaEmailNota(r) };
       await salvarRegistro(r);
     }
     return r;

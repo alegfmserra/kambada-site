@@ -5,7 +5,7 @@ import { linkWhatsApp } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Direitos autorais",
   description:
-    "As artes, estampas, ilustrações e personagens da Kambada são criações próprias, protegidas pela Lei de Direitos Autorais.",
+    "A marca Kambada é registrada no INPI, e as artes, estampas, ilustrações e personagens são criações próprias, protegidas pela Lei de Direitos Autorais.",
   alternates: { canonical: "/direitos-autorais" },
 };
 
@@ -15,8 +15,12 @@ export const metadata: Metadata = {
  *
  * Cuidados de redação: (1) fotografias podem ser de fotógrafos parceiros, que
  * têm direito de autor sobre elas — por isso o texto não diz que toda foto é
- * "da Kambada"; (2) nada aqui afirma registro de marca no INPI, que não foi
- * confirmado. Base: Lei 9.610/1998 (direitos autorais).
+ * "da Kambada"; (2) o registro no INPI cobre a MARCA (nome + logo), não as
+ * estampas — estas são protegidas como obra pela Lei 9.610/1998, sem registro.
+ * Dados do certificado (Fred - Kambada/Comprovações/Para-o-celular/
+ * Q16-3_Certificado_INPI.pdf): processo 932317162, marca mista, NCL 35,
+ * concedida em 09/12/2025, vigente até 09/12/2035, titular Somos Kambada LTDA.
+ * Base: Leis 9.279/1996 (marcas) e 9.610/1998 (direitos autorais).
  */
 export default function PaginaDireitosAutorais() {
   return (
@@ -28,6 +32,17 @@ export default function PaginaDireitosAutorais() {
         </p>
 
         <div className="mt-10 space-y-10 leading-relaxed">
+          <article>
+            <h2 className="font-display text-2xl font-bold">Marca registrada</h2>
+            <p className="mt-3">
+              A marca <strong>Kambada</strong> — o nome e o logotipo — é{" "}
+              <strong>registrada no INPI</strong> (Instituto Nacional da Propriedade Industrial) em
+              nome da Somos Kambada LTDA, processo nº <strong>932317162</strong>, com vigência até
+              2035. O uso do nome ou do logotipo por terceiros, em produtos, lojas, perfis ou
+              anúncios, depende de autorização por escrito (Lei nº 9.279/1996).
+            </p>
+          </article>
+
           <article>
             <h2 className="font-display text-2xl font-bold">Artes próprias</h2>
             <p className="mt-3">
@@ -49,6 +64,7 @@ export default function PaginaDireitosAutorais() {
               <li>Reproduzir, copiar ou adaptar as nossas artes e estampas, total ou parcialmente.</li>
               <li>Produzir ou vender peças com as nossas artes sem autorização por escrito.</li>
               <li>Usar as artes ou as fotos do site em outros sites, lojas ou anúncios.</li>
+              <li>Usar o nome ou o logotipo Kambada sem autorização.</li>
             </ul>
           </article>
 

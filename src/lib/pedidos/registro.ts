@@ -37,6 +37,8 @@ export type RegistroPedido = {
   /** Aviso "novo pedido pago" à caixa da loja. */
   emailLoja?: Etapa;
   nfe?: Etapa & { idNota?: number };
+  /** E-mail da nota autorizada (PDF + XML) ao cliente, com cópia oculta à loja. */
+  emailNota?: Etapa;
 };
 
 const FORMATO_REF = /^KMB-\d{8}-[0-9A-F]{6}$/;

@@ -123,6 +123,7 @@ export async function GET(requisicao: Request) {
         email: r.email,
         emailLoja: r.emailLoja,
         nfe: r.nfe,
+        emailNota: r.emailNota,
       })),
     },
     saldoProdutoTeste: await (async () => {

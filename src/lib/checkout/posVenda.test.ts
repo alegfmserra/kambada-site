@@ -7,14 +7,27 @@ import type { RetratoPedido } from "./pedido";
 
 process.env.PEDIDOS_PASTA = mkdtempSync(join(tmpdir(), "kambada-pedidos-"));
 
-const chamadas = vi.hoisted(() => ({ bling: [] as string[], emails: [] as { para: string; html: string }[], situacaoNota: 5 }));
+type EmailMock = { para: string; html: string; copiaOculta?: string; assunto?: string; anexos?: { nome: string }[] };
+const chamadas = vi.hoisted(() => ({ bling: [] as string[], emails: [] as EmailMock[], situacaoNota: 5 }));
 process.env.NFE_ESPERA_MS = "0";
 
 vi.mock("../bling/cliente", () => ({
   chamarBling: vi.fn(async (caminho: string) => {
     chamadas.bling.push(caminho);
     if (caminho.endsWith("/gerar-nfe")) return { data: { idNotaFiscal: 555 } };
-    if (caminho === "/nfe/555") return { data: { situacao: chamadas.situacaoNota } };
+    if (caminho === "/nfe/555") {
+      return {
+        data: {
+          situacao: chamadas.situacaoNota,
+          numero: "29",
+          serie: 1,
+          chaveAcesso: "21261051894535000194550010000000291000000290",
+          linkDanfe: "https://www.bling.com.br/doc.view.php?id=abc",
+          linkPDF: "https://www.bling.com.br/doc.view.php?PDF=true&id=abc",
+          xml: "https://www.bling.com.br/relatorios/nfe.xml.php?chaveAcesso=abc",
+        },
+      };
+    }
     return {};
   }),
 }));
@@ -22,10 +35,18 @@ vi.mock("../email/enviar", () => ({
   CID_LOGO: "logo-kambada",
   emailDaLoja: () => "somoskambada@gmail.com",
   emailConfigurado: () => true,
-  enviarEmail: vi.fn(async (m: { para: string; html: string }) => {
+  enviarEmail: vi.fn(async (m: EmailMock) => {
     chamadas.emails.push(m);
   }),
 }));
+
+// Download do DANFE e do XML no Bling.
+vi.stubGlobal(
+  "fetch",
+  vi.fn(async (url: string) =>
+    new Response(url.includes("PDF=true") ? "%PDF-1.4 nota" : "<?xml version=\"1.0\"?><nfeProc/>", { status: 200 }),
+  ),
+);
 
 const { executarPosVenda, montarRegistro } = await import("./posVenda");
 const { lerRegistro } = await import("../pedidos/registro");
@@ -95,16 +116,32 @@ describe("pós-venda", () => {
     expect(chamadas.emails).toHaveLength(2);
   });
 
-  it("nota fiscal só com BLING_EMITIR_NFE=1 — e pede ao Bling o e-mail ao cliente", async () => {
+  it("nota fiscal só com BLING_EMITIR_NFE=1 — e o SITE manda a nota ao cliente, com cópia oculta à loja", async () => {
     await executarPosVenda(retrato(), pagamento, 1);
     expect(chamadas.bling.some((c) => c.includes("gerar-nfe"))).toBe(false);
 
     process.env.BLING_EMITIR_NFE = "1";
+    chamadas.emails = [];
     const r = await executarPosVenda(retrato(), pagamento, 2);
     expect(chamadas.bling).toContain("/pedidos/vendas/2/gerar-nfe");
-    expect(chamadas.bling).toContain("/nfe/555/enviar?enviarEmail=true");
+    // O Bling NÃO manda e-mail: senão o cliente receberia a nota duas vezes.
+    expect(chamadas.bling).toContain("/nfe/555/enviar?enviarEmail=false");
     expect(r.nfe).toMatchObject({ idNota: 555 });
     expect(r.nfe?.feitoEm).toBeTruthy();
+
+    // Confirmação, aviso à loja e — por último — a nota.
+    expect(chamadas.emails).toHaveLength(3);
+    const nota = chamadas.emails[2];
+    expect(nota.para).toBe("maria@exemplo.com");
+    expect(nota.copiaOculta).toBe("somoskambada@gmail.com");
+    expect(nota.assunto).toContain("NF-e nº 29");
+    expect(nota.anexos?.map((a) => a.nome)).toEqual(["NF-e_29_Kambada.pdf", "NF-e_29_Kambada.xml"]);
+    expect(nota.html).toContain("2126 1051");
+    expect(r.emailNota?.feitoEm).toBeTruthy();
+
+    // Reprocessar não manda a nota de novo.
+    await executarPosVenda({ ...retrato(), ref: r.ref }, pagamento, 2);
+    expect(chamadas.emails).toHaveLength(3);
   });
 
   it("nota REJEITADA pela SEFAZ não conta como feita (caso real de 09/10: CNPJ irregular)", async () => {
@@ -113,6 +150,9 @@ describe("pós-venda", () => {
     const r = await executarPosVenda(retrato(), pagamento, 3);
     expect(r.nfe?.feitoEm).toBeUndefined();
     expect(r.nfe?.erro).toContain("Rejeitada");
+    // Nota rejeitada não vai por e-mail.
+    expect(r.emailNota).toBeUndefined();
+    expect(chamadas.emails).toHaveLength(2);
   });
 
   it("o cliente nunca recebe o próprio telefone/CPF no e-mail; a loja recebe contato e endereço para postar", async () => {

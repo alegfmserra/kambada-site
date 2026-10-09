@@ -66,23 +66,32 @@ async function logo(): Promise<Buffer | null> {
   return logoEmCache;
 }
 
+export type Anexo = { nome: string; conteudo: Buffer; tipo: string };
+
 export async function enviarEmail(m: {
   para: string;
   assunto: string;
   texto: string;
   html: string;
   responderPara?: string;
+  /** Cópia oculta — o cliente não vê o endereço da loja na lista. */
+  copiaOculta?: string;
+  anexos?: Anexo[];
 }): Promise<void> {
   if (!emailConfigurado()) throw new Error("e-mail não configurado");
   const imagem = await logo();
   await obterTransporte().sendMail({
     from: { name: "Kambada — Pedidos", address: process.env.EMAIL_SMTP_USUARIO as string },
     to: m.para,
+    bcc: m.copiaOculta,
     replyTo: m.responderPara,
     subject: m.assunto,
     text: m.texto,
     html: m.html,
-    attachments: imagem ? [{ filename: "kambada.png", content: imagem, cid: CID_LOGO }] : [],
+    attachments: [
+      ...(imagem ? [{ filename: "kambada.png", content: imagem, cid: CID_LOGO }] : []),
+      ...(m.anexos ?? []).map((a) => ({ filename: a.nome, content: a.conteudo, contentType: a.tipo })),
+    ],
   });
 }
 

@@ -36,21 +36,15 @@ export function ncmDoProduto(nomeBruto: string): RegraNcm | null {
   }
   if (n.startsWith("necessaire")) return { ncm: "42029200", fonte: "NF 26 — Necessaires" };
   if (n.startsWith("pareo")) return { ncm: "62149010", fonte: "NF 26 — Pareô" };
-  if (n.startsWith("bone")) {
-    return {
-      ncm: "42021220",
-      fonte: "NF 27 — Boné",
-      alerta: "42021220 é posição de bolsas/maletas; boné costuma ser 6505. Confirmar com o Glauco.",
-    };
-  }
+  // Boné e matraca: o Alexandre decidiu em 09/10/2026 manter o NCM que já
+  // saiu nas notas ("o mesmo que usamos em outros momentos").
+  if (n.startsWith("bone")) return { ncm: "42021220", fonte: "NF 27 — Boné (validado pelo Alexandre em 09/10/2026)" };
   if (n.startsWith("matraca")) {
-    // Todas em 44201100: é o que o Bling JÁ tinha nas cinco matracas (08/10)
-    // e o da maioria dos modelos na NF 27. Trocar duas para 92060000 criaria
-    // divergência dentro do próprio Bling — fica para o Glauco unificar.
+    // Todas em 44201100 — inclusive Play e Pequena c/ Suporte, que na NF 27
+    // saíram com 92060000: vale o da maioria das notas e do cadastro do Bling.
     return {
       ncm: "44201100",
-      fonte: "NF 27 — Matraca Mini / Grande / Grande c/ Suporte (e o cadastro atual do Bling)",
-      alerta: "Na NF 27, Matraca Play e Pequena c/ Suporte saíram com 92060000. Unificar com o Glauco.",
+      fonte: "NF 27 — Matraca Mini / Grande / Grande c/ Suporte (validado pelo Alexandre em 09/10/2026)",
     };
   }
   if (/^kit ecologico|^kit anotacao|^bloco anotacao|caderninho/.test(n)) {

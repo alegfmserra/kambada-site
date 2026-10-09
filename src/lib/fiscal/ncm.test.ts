@@ -14,11 +14,11 @@ describe("NCM pelas notas já emitidas", () => {
     expect(ncmDoProduto("Kambada Goods")?.ncm).toBe("48202000");
   });
 
-  it("matracas ficam todas no NCM que o Bling já tinha — com o alerta da divergência da NF 27", () => {
+  it("matracas e bonés ficam no NCM das notas anteriores (validado em 09/10/2026)", () => {
     expect(ncmDoProduto("Matraca Kambada Play")?.ncm).toBe("44201100");
     expect(ncmDoProduto("Matraca Kambada Pequena com Suporte")?.ncm).toBe("44201100");
     expect(ncmDoProduto("Matraca Kambada Grande com Suporte")?.ncm).toBe("44201100");
-    expect(ncmDoProduto("Matraca Kambada Grande com Suporte")?.alerta).toBeTruthy();
+    expect(ncmDoProduto("Boné Guarás Bege")?.ncm).toBe("42021220");
   });
 
   it("produto que nunca saiu em nota não recebe NCM no chute", () => {

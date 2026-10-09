@@ -177,6 +177,114 @@ export function htmlConfirmacao(d: DadosEmail): string {
 }
 
 // ---------------------------------------------------------------------------
+// Nota fiscal — ao cliente, com cópia oculta à loja
+// ---------------------------------------------------------------------------
+
+export type DadosNota = {
+  registro: RegistroPedido;
+  nota: {
+    numero: string;
+    serie?: number;
+    chaveAcesso?: string;
+    /** Link público do DANFE no Bling — vai no e-mail mesmo com o PDF anexado. */
+    linkDanfe?: string;
+  };
+  /** O PDF (DANFE) e o XML foram anexados? Sem eles, o e-mail leva só o link. */
+  anexou: { pdf: boolean; xml: boolean };
+  urlDoSite: string;
+  linkWhatsApp: string;
+  cidLogo?: string;
+};
+
+export function assuntoNota(r: RegistroPedido, numero: string): string {
+  return `Nota fiscal do seu pedido ${r.ref} — NF-e nº ${numero} · Kambada`;
+}
+
+/** Chave de acesso em blocos de 4, como no DANFE — fácil de conferir. */
+const chaveLegivel = (chave: string) => chave.replace(/\D/g, "").replace(/(\d{4})(?=\d)/g, "$1 ");
+
+function oQueVaiAnexo(a: DadosNota["anexou"]): string {
+  if (a.pdf && a.xml) return "A nota vai anexada a este e-mail em PDF (DANFE) e em XML.";
+  if (a.pdf) return "A nota vai anexada a este e-mail em PDF (DANFE).";
+  if (a.xml) return "A nota vai anexada a este e-mail em XML.";
+  return "Você pode abrir e baixar a nota pelo link abaixo.";
+}
+
+export function textoNota(d: DadosNota): string {
+  const { registro: r, nota: n } = d;
+  const primeiro = r.cliente.nome.split(" ")[0];
+  return [
+    `Oi, ${primeiro}! A nota fiscal do seu pedido ${r.ref} foi emitida.`,
+    "",
+    `NF-e nº ${n.numero}${n.serie !== undefined ? ` · série ${n.serie}` : ""}`,
+    `Valor: ${real(r.total)}`,
+    ...(n.chaveAcesso ? [`Chave de acesso: ${chaveLegivel(n.chaveAcesso)}`] : []),
+    "",
+    oQueVaiAnexo(d.anexou),
+    ...(n.linkDanfe ? [`Ver a nota: ${n.linkDanfe}`] : []),
+    "Para conferir na SEFAZ: https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx",
+    "",
+    `Acompanhe o pedido: ${d.urlDoSite}/pedido?ref=${encodeURIComponent(r.ref)}`,
+    "",
+    "Obrigado por vestir a cultura do Maranhão com a gente.",
+    "Kambada — São Luís, MA",
+  ].join("\n");
+}
+
+export function htmlNota(d: DadosNota): string {
+  const { registro: r, nota: n } = d;
+  const e = escaparHtml;
+  const primeiro = e(r.cliente.nome.split(" ")[0]);
+  const acompanhar = `${d.urlDoSite}/pedido?ref=${encodeURIComponent(r.ref)}`;
+  const botaoNota = n.linkDanfe
+    ? `<p style="margin:0 0 14px;text-align:center"><a href="${e(n.linkDanfe)}"
+        style="display:inline-block;background:#201E1F;color:#FFD72B;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:999px">
+        Ver a nota fiscal</a></p>`
+    : "";
+
+  return `<!doctype html>
+<html lang="pt-BR"><body style="margin:0;background:#f3eee4;font-family:Arial,Helvetica,sans-serif;color:#201E1F">
+  <div style="max-width:560px;margin:0 auto;padding:24px">
+    <div style="background:#201E1F;border-radius:16px 16px 0 0;padding:22px 24px">
+      ${cabecalho(d.cidLogo)}
+    </div>
+    <div style="height:6px;background:#FFD72B"></div>
+    <div style="background:#ffffff;border-radius:0 0 16px 16px;padding:26px 24px">
+      <h1 style="margin:0 0 8px;font-size:24px">Sua nota fiscal chegou 🧾</h1>
+      <p style="margin:0 0 18px;font-size:15px">Oi, ${primeiro}! A nota fiscal do seu pedido foi emitida e autorizada pela SEFAZ.</p>
+      <table style="width:100%;border-collapse:collapse;margin:0 0 18px;background:#FFD72B;border-radius:12px">
+        <tr><td style="padding:12px 14px"><span style="font-size:12px">Pedido</span><br><strong style="font-size:18px">${e(r.ref)}</strong></td>
+            <td style="padding:12px 14px;text-align:right"><span style="font-size:12px">NF-e</span><br><strong style="font-size:18px">nº ${e(n.numero)}</strong>${
+              n.serie !== undefined ? `<br><span style="font-size:12px">série ${n.serie}</span>` : ""
+            }</td></tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;font-size:15px">
+        ${linhaTabela("Pagamento", e(formaDePagamento(r)))}
+        ${linhaTabela("Valor da nota", real(r.total), true)}
+      </table>
+      ${
+        n.chaveAcesso
+          ? `<div style="margin:18px 0;padding:14px;border-radius:12px;background:#f6f2ea">
+           <p style="margin:0 0 4px;font-size:12px;color:#5e6266">Chave de acesso</p>
+           <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;word-break:break-all">${e(chaveLegivel(n.chaveAcesso))}</p>
+         </div>`
+          : ""
+      }
+      <p style="margin:18px 0 18px;font-size:15px">📎 ${e(oQueVaiAnexo(d.anexou))} Guarde-a: ela é a garantia da sua compra.</p>
+      ${botaoNota}
+      <p style="margin:0 0 22px;text-align:center"><a href="${e(acompanhar)}" style="color:#201E1F;font-weight:bold">Acompanhar meu pedido</a></p>
+      <p style="margin:0;font-size:13px;color:#5e6266">
+        Algum dado da nota está errado? <a href="${e(d.linkWhatsApp)}" style="color:#201E1F">Fale com a gente no WhatsApp</a>
+        e corrigimos.</p>
+    </div>
+    <p style="margin:16px 0 0;font-size:12px;color:#5e6266;text-align:center">
+      Somos Kambada LTDA · São Luís, MA<br>
+      @somos.kambada · somoskambada.com.br</p>
+  </div>
+</body></html>`;
+}
+
+// ---------------------------------------------------------------------------
 // Aviso interno à loja
 // ---------------------------------------------------------------------------
 

@@ -325,6 +325,29 @@ describe("Melhor Envio", () => {
     expect(opcoes.map((o) => [o.servico, o.preco])).toEqual([["PAC", 24.37], ["SEDEX", 41.1]]);
   });
 
+  it("só cota e só mostra os serviços postáveis perto do ateliê", () => {
+    const corpo = montarCorpoCotacao("01310100", []);
+    expect(corpo.services).toBe("1,2,17,3,4,15,16,33,34");
+    const opcoes = interpretarCotacao([
+      { id: 1, name: "PAC", custom_price: "24.37", custom_delivery_time: 9, company: { name: "Correios" } },
+      { id: 12, name: "éFácil", custom_price: "20.00", custom_delivery_time: 3, company: { name: "LATAM Cargo" } },
+      { id: 22, name: "Rodoviário", custom_price: "19.00", custom_delivery_time: 8, company: { name: "Buslog" } },
+      { id: 27, name: ".Package Centralizado", custom_price: "18.00", custom_delivery_time: 6, company: { name: "Jadlog" } },
+    ]);
+    // Aeroporto (LATAM), sem ponto em São Luís (Buslog) e unidade própria
+    // (Jadlog Centralizado) ficam de fora — mesmo sendo mais baratos.
+    expect(opcoes.map((o) => o.servico)).toEqual(["PAC"]);
+  });
+
+  it("FRETE_SERVICOS troca a lista sem mexer em código", () => {
+    process.env.FRETE_SERVICOS = "1, 2";
+    try {
+      expect(montarCorpoCotacao("01310100", []).services).toBe("1,2");
+    } finally {
+      delete process.env.FRETE_SERVICOS;
+    }
+  });
+
   it("não repete o nome da transportadora quando o serviço já o traz", () => {
     // Visto em produção em 08/10/2026: a tela mostrava "Loggi Loggi Ponto".
     expect(nomeDaEntrega("Loggi", "Loggi Ponto")).toBe("Loggi Ponto");

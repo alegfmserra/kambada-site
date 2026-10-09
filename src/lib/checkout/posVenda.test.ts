@@ -17,6 +17,8 @@ vi.mock("../bling/cliente", () => ({
   }),
 }));
 vi.mock("../email/enviar", () => ({
+  CID_LOGO: "logo-kambada",
+  emailDaLoja: () => "somoskambada@gmail.com",
   emailConfigurado: () => true,
   enviarEmail: vi.fn(async (m: { para: string; html: string }) => {
     chamadas.emails.push(m);
@@ -57,6 +59,7 @@ const pagamento: Pagamento = {
   id: 999,
   status: "approved",
   payment_type_id: "bank_transfer",
+  installments: 1,
   fee_details: [{ type: "mercadopago_fee", amount: 0.27 }],
 };
 
@@ -73,20 +76,20 @@ describe("pós-venda", () => {
     expect(primeiro.estoque?.feitoEm).toBeTruthy();
     expect(primeiro.email?.feitoEm).toBeTruthy();
     expect(chamadas.bling).toEqual(["/pedidos/vendas/123/lancar-estoque"]);
-    expect(chamadas.emails).toHaveLength(1);
-    expect(chamadas.emails[0].para).toBe("maria@exemplo.com");
+    // Dois e-mails: a confirmação ao cliente e o aviso à loja.
+    expect(chamadas.emails.map((m) => m.para)).toEqual(["maria@exemplo.com", "somoskambada@gmail.com"]);
 
     // Aviso repetido / página recarregada: nada é refeito.
     await executarPosVenda(r, pagamento, 123);
     expect(chamadas.bling).toHaveLength(1);
-    expect(chamadas.emails).toHaveLength(1);
+    expect(chamadas.emails).toHaveLength(2);
   });
 
   it("duas chamadas simultâneas não fazem nada em dobro", async () => {
     const r = retrato();
     await Promise.all([executarPosVenda(r, pagamento, 7), executarPosVenda(r, pagamento, 7)]);
     expect(chamadas.bling).toHaveLength(1);
-    expect(chamadas.emails).toHaveLength(1);
+    expect(chamadas.emails).toHaveLength(2);
   });
 
   it("nota fiscal só com BLING_EMITIR_NFE=1 — e pede ao Bling o e-mail ao cliente", async () => {
@@ -98,6 +101,19 @@ describe("pós-venda", () => {
     expect(chamadas.bling).toContain("/pedidos/vendas/2/gerar-nfe");
     expect(chamadas.bling).toContain("/nfe/555/enviar?enviarEmail=true");
     expect(r.nfe).toMatchObject({ idNota: 555 });
+  });
+
+  it("o cliente nunca recebe o próprio telefone/CPF no e-mail; a loja recebe contato e endereço para postar", async () => {
+    await executarPosVenda(retrato(), pagamento, 11);
+    const [cliente, loja] = chamadas.emails;
+    expect(cliente.html).not.toContain("98999990000");
+    expect(cliente.html).not.toContain("52998224725");
+    expect(cliente.html).toContain("cid:logo-kambada");
+    expect(cliente.html).toContain("Pix");
+    expect(loja.html).toContain("98999990000");
+    expect(loja.html).toContain("Rua X");
+    expect(loja.html).not.toContain("52998224725");
+    expect(loja.html).toContain("vendas.php#edit/11");
   });
 
   it("o registro guarda nome e e-mail — nunca CPF, telefone ou endereço", async () => {

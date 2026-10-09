@@ -20,6 +20,23 @@ const NUMEROS = [
   { valor: "100+", rotulo: "Caranguejos felizes" },
 ] as const;
 
+/**
+ * Quem faz a Kambada — pedido do Alexandre (09/10/2026): mostrar as cinco
+ * pessoas da sociedade, porque isso cria identificação.
+ *
+ * As funções vêm só do que está registrado (gestão financeira do Alexandre;
+ * Wilsonira sócia-administradora e líder de produção artesanal; Ricardo nas
+ * artes). Onde a função não foi informada, fica "sócia-fundadora" — sem
+ * inventar. Para pôr foto: `foto` com o caminho em /public (quadrada).
+ */
+const EQUIPE: { nome: string; papel: string; foto?: string }[] = [
+  { nome: "Alexandre", papel: "Sócio-fundador · gestão e finanças" },
+  { nome: "Wilzanira", papel: "Sócia-fundadora" },
+  { nome: "Wilsonira", papel: "Sócia-fundadora · administração e produção artesanal" },
+  { nome: "Elzanira", papel: "Sócia-fundadora" },
+  { nome: "Ricardo", papel: "Sócio-fundador · arte e criação" },
+];
+
 export default function Sobre() {
   return (
     <>
@@ -105,6 +122,42 @@ export default function Sobre() {
               Quer nos conhecer melhor? Dá uma passada na nossa Cultura →
             </Link>
           </aside>
+        </div>
+      </section>
+
+      <section className="border-b border-borda">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
+            Quem faz a <span className="destaque">Kambada</span>
+          </h2>
+          <p className="mt-3 max-w-2xl leading-relaxed text-texto-suave">
+            Uma família, cinco sócios e uma paixão em comum: o Maranhão. É essa
+            cambada que pensa, desenha, produz e embala cada peça.
+          </p>
+          <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            {EQUIPE.map((pessoa) => (
+              <li key={pessoa.nome} className="rounded-2xl border border-borda bg-superficie p-6 text-center">
+                {pessoa.foto ? (
+                  <Image
+                    src={pessoa.foto}
+                    alt={pessoa.nome}
+                    width={160}
+                    height={160}
+                    className="mx-auto h-28 w-28 rounded-full object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-kambada-amarelo font-display text-5xl font-extrabold text-kambada-grafite"
+                  >
+                    {pessoa.nome[0]}
+                  </span>
+                )}
+                <h3 className="mt-4 font-display text-xl font-bold">{pessoa.nome}</h3>
+                <p className="mt-1 text-sm leading-snug text-texto-suave">{pessoa.papel}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

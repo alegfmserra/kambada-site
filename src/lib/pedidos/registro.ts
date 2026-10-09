@@ -32,6 +32,8 @@ export type RegistroPedido = {
   bling: { idPedido: number };
   estoque?: Etapa;
   email?: Etapa;
+  /** Aviso "novo pedido pago" à caixa da loja. */
+  emailLoja?: Etapa;
   nfe?: Etapa & { idNota?: number };
 };
 

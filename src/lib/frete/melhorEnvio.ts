@@ -94,9 +94,39 @@ export function nomeDaEntrega(transportadora: string, servico: string): string {
   return s.toLowerCase().startsWith(t.toLowerCase()) ? s : `${t} ${s}`;
 }
 
+/**
+ * Serviços que a Kambada consegue postar sem atravessar a cidade.
+ *
+ * Decisão do Alexandre (09/10/2026), a partir do estudo de pontos de
+ * postagem (cadastro do Melhor Envio, 08/10): nada no aeroporto nem no
+ * Tirirical. Ficam de fora LATAM Cargo (só no aeroporto), Jadlog .Package
+ * Centralizado (unidade própria da Jadlog), Total Express e Buslog (sem
+ * ponto em São Luís) e Loggi Express/Coleta. Azul Cargo fica, postando na
+ * loja da Renascença (a agência se escolhe na etiqueta).
+ *
+ * IDs de serviço do Melhor Envio:
+ *   1 PAC · 2 SEDEX · 17 Mini Envios (Correios)
+ *   3 .Package · 4 .Com (Jadlog)
+ *   15 Expresso · 16 e-commerce (Azul Cargo)
+ *   33 Standard (J&T) · 34 Loggi Ponto (Loggi)
+ *
+ * FRETE_SERVICOS (ex.: "1,2,17,3,4,33") troca a lista sem mexer em código.
+ */
+export const SERVICOS_PADRAO = [1, 2, 17, 3, 4, 15, 16, 33, 34];
+
+export function servicosPermitidos(): number[] {
+  const configurado = (process.env.FRETE_SERVICOS ?? "")
+    .split(",")
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n > 0);
+  return configurado.length ? configurado : SERVICOS_PADRAO;
+}
+
 /** Corpo da requisição — separado para poder ser testado sem rede. */
 export function montarCorpoCotacao(cepDestino: string, volumes: VolumeCotacao[]) {
   return {
+    // O Melhor Envio só cota o que está nesta lista.
+    services: servicosPermitidos().join(","),
     from: { postal_code: CEP_ORIGEM },
     to: { postal_code: cepDestino },
     products: volumes.map((v) => ({
@@ -120,8 +150,11 @@ export function montarCorpoCotacao(cepDestino: string, volumes: VolumeCotacao[])
  * (indisponível para o trecho) ou sem preço é descartado.
  */
 export function interpretarCotacao(servicos: ServicoMelhorEnvio[]): OpcaoFrete[] {
+  // Segunda trava: mesmo que o Melhor Envio devolva outro serviço, ele não
+  // chega ao cliente.
+  const permitidos = new Set(servicosPermitidos());
   return servicos
-    .filter((s) => !s.error)
+    .filter((s) => !s.error && permitidos.has(s.id))
     .map((s) => {
       const preco = Number.parseFloat(s.custom_price ?? s.price ?? "");
       const prazo = s.custom_delivery_time ?? s.delivery_time;

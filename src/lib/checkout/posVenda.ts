@@ -17,8 +17,15 @@
  */
 
 import { chamarBling } from "../bling/cliente";
-import { htmlConfirmacao, assuntoConfirmacao, textoConfirmacao } from "../email/confirmacao";
-import { emailConfigurado, enviarEmail } from "../email/enviar";
+import {
+  assuntoConfirmacao,
+  assuntoLoja,
+  htmlConfirmacao,
+  htmlLoja,
+  textoConfirmacao,
+  textoLoja,
+} from "../email/confirmacao";
+import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "../email/enviar";
 import { enderecoAtelieEmUmaLinha } from "../loja/enderecoAtelie";
 import { emCentavos } from "../loja/dinheiro";
 import type { Pagamento } from "../mercadopago/cliente";
@@ -115,12 +122,32 @@ async function etapaEmail(r: RegistroPedido): Promise<Etapa> {
           ? `Oi! Quero combinar a retirada do meu pedido ${r.ref} no ateliê.`
           : `Oi! Tenho uma dúvida sobre o meu pedido ${r.ref}.`,
       ),
+      cidLogo: CID_LOGO,
     };
     await enviarEmail({
       para: r.cliente.email,
       assunto: assuntoConfirmacao(r),
       texto: textoConfirmacao(dados),
       html: htmlConfirmacao(dados),
+      // Resposta do cliente cai na caixa da loja, não na de pedidos.
+      responderPara: emailDaLoja(),
+    });
+    return { feitoEm: agoraIso() };
+  } catch (e) {
+    return falha(e);
+  }
+}
+
+/** Aviso interno: a loja recebe o pedido pago, com o que precisa para postar. */
+async function etapaEmailLoja(r: RegistroPedido, cliente: RetratoPedido["cliente"]): Promise<Etapa> {
+  try {
+    const dados = { registro: r, cliente, urlDoSite: urlPublica(), cidLogo: CID_LOGO };
+    await enviarEmail({
+      para: emailDaLoja(),
+      assunto: assuntoLoja(r),
+      texto: textoLoja(dados),
+      html: htmlLoja(dados),
+      responderPara: r.cliente.email,
     });
     return { feitoEm: agoraIso() };
   } catch (e) {
@@ -153,6 +180,10 @@ export function executarPosVenda(
     }
     if (emailConfigurado() && !r.email?.feitoEm) {
       r = { ...r, email: await etapaEmail(r) };
+      await salvarRegistro(r);
+    }
+    if (emailConfigurado() && !r.emailLoja?.feitoEm) {
+      r = { ...r, emailLoja: await etapaEmailLoja(r, retrato.cliente) };
       await salvarRegistro(r);
     }
     return r;

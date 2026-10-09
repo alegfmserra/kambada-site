@@ -88,9 +88,14 @@ export default function Rodape() {
       </div>
 
       <div className="border-t border-white/10">
-        <p className="mx-auto max-w-6xl px-4 py-6 text-xs text-kambada-branco/50 sm:px-6">
+        <p className="mx-auto max-w-6xl px-4 py-6 text-xs leading-relaxed text-kambada-branco/60 sm:px-6">
           © {new Date().getFullYear()} {SITE.nomeCompleto}. Todos os direitos
-          reservados.
+          reservados. Todas as artes, estampas, ilustrações e personagens são
+          criações próprias da Kambada, protegidas pela Lei nº 9.610/1998 —
+          proibida a reprodução sem autorização.{" "}
+          <Link href="/direitos-autorais" className="underline underline-offset-2 hover:text-kambada-amarelo">
+            Direitos autorais
+          </Link>
         </p>
       </div>
     </footer>

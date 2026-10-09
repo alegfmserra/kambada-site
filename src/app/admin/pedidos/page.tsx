@@ -119,7 +119,7 @@ export default async function PaginaAdminPedidos() {
         <ul className="mt-8 space-y-4">
           {linhas.map(({ r, situacao }) => {
             const pendente =
-              !r.estoque?.feitoEm || (emailLigado && !r.email?.feitoEm) || (notaLigada && !r.nfe?.feitoEm);
+              !r.estoque?.feitoEm || (emailLigado && (!r.email?.feitoEm || !r.emailLoja?.feitoEm)) || (notaLigada && !r.nfe?.feitoEm);
             return (
               <li key={r.ref} className="rounded-2xl border border-borda bg-superficie p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -150,7 +150,8 @@ export default async function PaginaAdminPedidos() {
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Selo nome="Estoque" etapa={r.estoque} />
-                  <Selo nome="E-mail" etapa={r.email} desligada={!emailLigado && !r.email} />
+                  <Selo nome="E-mail cliente" etapa={r.email} desligada={!emailLigado && !r.email} />
+                  <Selo nome="Aviso loja" etapa={r.emailLoja} desligada={!emailLigado && !r.emailLoja} />
                   <Selo nome="Nota" etapa={r.nfe} desligada={!notaLigada && !r.nfe} />
                   <a
                     href={`https://www.bling.com.br/vendas.php#edit/${r.bling.idPedido}`}

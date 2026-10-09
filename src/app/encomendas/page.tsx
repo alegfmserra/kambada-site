@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
 
 /**
@@ -19,6 +20,19 @@ export const metadata: Metadata = {
     "Leve a Kambada para o seu evento: kits, placas e porta-chaves personalizados para empresas. Fale com a gente e monte sua encomenda.",
   alternates: { canonical: "/encomendas" },
 };
+
+/**
+ * Fluxo definido na reunião de marketing de 09/10/2026. A taxa de criação
+ * existe para que a arte não seja feita de graça quando o cliente não fecha;
+ * o valor não está aqui de propósito — sai no orçamento.
+ */
+const PASSOS_ENCOMENDA = [
+  { titulo: "Você pede", texto: "Conta pra gente o evento, a peça e a quantidade, pelo WhatsApp." },
+  { titulo: "Taxa de criação", texto: "Paga antes, para começarmos a arte. O valor vem no orçamento." },
+  { titulo: "A arte em até 7 dias", texto: "Você recebe a arte aplicada na peça, para ver como fica." },
+  { titulo: "Aprovação e pagamento", texto: "Aprovou? Fechamos o pedido e o termo de exclusividade da arte." },
+  { titulo: "Produção", texto: "De 30 a 40 dias, feita à mão aqui em São Luís." },
+] as const;
 
 export default function Encomendas() {
   return (
@@ -88,6 +102,43 @@ export default function Encomendas() {
                 ao lado da nossa arte maranhense.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-borda">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
+            Como funciona a sua encomenda
+          </h2>
+          <p className="mt-4 max-w-2xl leading-relaxed text-texto-suave">
+            As mais pedidas: chaveiro, bloquinho, lápis plantável, caneta e kit
+            ecológico — com a arte do seu evento ao lado da nossa.
+          </p>
+          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {PASSOS_ENCOMENDA.map((passo, i) => (
+              <li key={passo.titulo} className="rounded-2xl border border-borda bg-superficie p-5">
+                <span
+                  aria-hidden="true"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-kambada-amarelo font-display font-bold text-kambada-grafite"
+                >
+                  {i + 1}
+                </span>
+                <h3 className="mt-3 font-display font-semibold">{passo.titulo}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-texto-suave">{passo.texto}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-8 rounded-2xl border border-kambada-amarelo-escuro p-5 text-sm leading-relaxed">
+            <strong>Arte exclusiva, e da Kambada.</strong> A arte criada para a sua
+            encomenda é feita só para você, e não a usamos em outro cliente. Os
+            direitos sobre ela continuam com a Kambada: ela não pode ser reproduzida
+            por terceiros sem autorização. Tudo isso vai num termo de exclusividade
+            junto com a aprovação.{" "}
+            <Link href="/direitos-autorais" className="font-semibold underline underline-offset-4">
+              Saiba mais sobre direitos autorais
+            </Link>
+            .
           </div>
         </div>
       </section>

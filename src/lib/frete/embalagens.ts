@@ -119,6 +119,8 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
     case "papelaria":
       if (/kit ecologico|kit de anotacao/.test(nome)) return E.kitAnotacao;
       if (/lapis/.test(nome)) return E.lapis;
+      // Produto de teste: a menor embalagem da ficha.
+      if (/produto teste/.test(nome)) return E.lapis;
       if (/caneta/.test(nome)) return E.caneta;
       if (/bloco|bloquinho/.test(nome)) return E.bloquinho;
       // Livros, joguinhos e Kambada Goods: sem ficha de embalagem.

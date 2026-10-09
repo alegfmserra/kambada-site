@@ -39,7 +39,7 @@ export default async function Categoria({ params }: Props) {
   if (!categoria) notFound();
 
   const catalogo = await buscarCatalogo();
-  const produtos = catalogo.produtos.filter((p) => p.categoria === slug);
+  const produtos = catalogo.produtos.filter((p) => p.categoria === slug && !p.oculto);
 
   return (
     <>

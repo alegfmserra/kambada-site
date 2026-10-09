@@ -19,7 +19,7 @@ export const revalidate = 600;
 export default async function Loja() {
   const { categorias, produtos } = await buscarCatalogo();
   const daCategoria = (slug: string) =>
-    produtos.filter((p) => p.categoria === slug);
+    produtos.filter((p) => p.categoria === slug && !p.oculto);
 
   return (
     <>

@@ -120,7 +120,17 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
   "placa-de-madeira-reta": "decoracao",
   "placa-de-madeira-redonda": "decoracao",
   "placa-de-madeira-grande": "decoracao",
+  // Produto de teste (centavos) — fica OCULTO da vitrine; ver PRODUTOS_OCULTOS.
+  "produto-teste-kambada": "papelaria",
 };
+
+/**
+ * Produtos que existem no Bling e podem ser comprados pelo link direto, mas
+ * NÃO aparecem na loja, nas categorias nem no Google. Criado em 08/10/2026
+ * para testar o fluxo inteiro (pagamento, pedido, estoque, nota, e-mail) com
+ * valor de centavos.
+ */
+export const PRODUTOS_OCULTOS = new Set(["produto-teste-kambada"]);
 
 /**
  * Bermuda Brim e Bermuda Linho continuam **fora da vitrine de propósito**: não
@@ -377,6 +387,7 @@ export async function montarDoBling(): Promise<Catalogo> {
         : (saldos.get(p.id) ?? 0),
       idBling: p.id,
       opcoes,
+      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || undefined,
     });
   }
 

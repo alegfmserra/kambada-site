@@ -58,6 +58,8 @@ export type Produto = {
    */
   idBling?: number;
   opcoes?: Opcao[];
+  /** Fora da vitrine: só pelo link direto (produto de teste). */
+  oculto?: boolean;
 };
 
 export const CATEGORIAS: Categoria[] = [

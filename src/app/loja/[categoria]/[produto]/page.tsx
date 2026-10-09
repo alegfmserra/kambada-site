@@ -55,6 +55,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: produto.nome,
     description: descricao,
     alternates: { canonical: `/loja/${catSlug}/${prodSlug}` },
+    // Produto de teste: abre pelo link, mas não vai para o Google.
+    ...(produto.oculto ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: `${produto.nome} — ${SITE.nome}`,
       description: descricao,

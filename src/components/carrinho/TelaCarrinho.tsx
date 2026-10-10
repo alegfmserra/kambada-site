@@ -37,7 +37,7 @@ export default function TelaCarrinho({
         <p className="mt-2 text-texto-suave">As peças que você escolher aparecem aqui.</p>
         <Link
           href="/loja"
-          className="mt-6 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+          className="mt-6 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
         >
           Ver a loja
         </Link>
@@ -139,7 +139,7 @@ export default function TelaCarrinho({
         <p className="mt-4 rounded-xl bg-fundo px-4 py-3 text-sm" aria-live="polite">
           {falta > 0 ? (
             <>
-              Faltam <strong>{formatarReais(falta)}</strong> para o frete grátis (acima de{" "}
+              Faltam <strong>{formatarReais(falta)}</strong> para o frete grátis (a partir de{" "}
               {formatarReais(FRETE_GRATIS_A_PARTIR_DE)}).
             </>
           ) : (
@@ -150,7 +150,7 @@ export default function TelaCarrinho({
         {freteOnline ? (
           <Link
             href="/checkout"
-            className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             {pagamentoOnline ? "Finalizar compra" : "Calcular frete e finalizar"}
           </Link>
@@ -159,7 +159,7 @@ export default function TelaCarrinho({
             href={whatsapp}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Finalizar pelo WhatsApp
           </a>

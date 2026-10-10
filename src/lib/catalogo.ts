@@ -27,6 +27,8 @@ export type Categoria = {
   chamada: string;
   /** Foto de vitrine. Pareôs ainda não têm foto no acervo. */
   foto?: Foto;
+  /** Ponto de corte da capa (CSS object-position) — quando o centro corta a cabeça. */
+  posicaoDaFoto?: string;
 };
 
 /**
@@ -60,6 +62,8 @@ export type Produto = {
   opcoes?: Opcao[];
   /** Fora da vitrine: só pelo link direto (produto de teste). */
   oculto?: boolean;
+  /** Texto da "descrição curta" do Bling, já sem HTML. */
+  descricao?: string;
 };
 
 export const CATEGORIAS: Categoria[] = [
@@ -69,6 +73,8 @@ export const CATEGORIAS: Categoria[] = [
     chamada:
       "Estampadas com as lendas e símbolos do nosso Maranhão. Vista-se de história e identidade.",
     foto: FOTOS.camisaIlhaEncantada,
+    // A foto é um close do peito; no centro, o corte 21:9 tirava a cabeça.
+    posicaoDaFoto: "center 15%",
   },
   {
     slug: "matracas",
@@ -88,7 +94,7 @@ export const CATEGORIAS: Categoria[] = [
     slug: "bones",
     nome: "Bonés",
     chamada:
-      'Com o charme da ilha, perfeitos para curtir o reggae na praça ou se proteger a "moleira".',
+      'Com o charme da ilha, perfeitos para curtir o reggae na praça ou proteger a moleira.',
     foto: FOTOS.catBones,
   },
   {

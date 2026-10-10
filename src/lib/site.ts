@@ -10,6 +10,8 @@ import { FOTOS, type Foto } from "./fotos";
 export const SITE = {
   nome: "Kambada",
   nomeCompleto: "Somos Kambada",
+  razaoSocial: "Somos Kambada LTDA",
+  cnpj: "51.894.535/0001-94",
   descricao:
     "Marca maranhense que celebra o Bumba Meu Boi, o reggae e as tradições da Ilha do Amor. Moda e arte que vestem cultura.",
   url: "https://somoskambada.com.br",
@@ -32,7 +34,8 @@ export const EH_PRODUCAO = process.env.NEXT_PUBLIC_SITE_URL === SITE.url;
 export const WHATSAPP = {
   numero: "5598984435295",
   exibicao: "(98) 98443-5295",
-  saudacao: "Bom dia, o que a Kambada pode fazer por você hoje?",
+  // Sem "Bom dia": o site é estático e a saudação não sabe que horas são.
+  saudacao: "Olá! O que a Kambada pode fazer por você hoje?",
 } as const;
 
 export function linkWhatsApp(mensagem: string = WHATSAPP.saudacao): string {
@@ -41,7 +44,7 @@ export function linkWhatsApp(mensagem: string = WHATSAPP.saudacao): string {
 
 export const REDES = [
   { nome: "Instagram", url: "https://www.instagram.com/somos.kambada" },
-  { nome: "TikTok", url: "https://tiktok.com/somos.kambada" },
+  { nome: "TikTok", url: "https://www.tiktok.com/@somos.kambada" },
   { nome: "Threads", url: "https://www.threads.com/@somos.kambada" },
 ] as const;
 

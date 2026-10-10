@@ -123,14 +123,14 @@ export default function AvisoAdicionado() {
           <div className="mt-4 grid gap-2">
             <Link
               href="/carrinho"
-              className="rounded-full bg-kambada-amarelo px-5 py-3 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+              className="rounded-full bg-kambada-amarelo px-5 py-3 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
             >
               Ver carrinho e finalizar
             </Link>
             <button
               type="button"
               onClick={fecharAviso}
-              className="min-h-11 rounded-full border border-borda px-5 py-2.5 font-display text-sm font-semibold hover:border-kambada-amarelo-escuro"
+              className="min-h-11 rounded-full border border-borda px-5 py-2.5 font-display text-sm font-semibold hover:border-kambada-amarelo-escuro whitespace-nowrap"
             >
               Continuar comprando
             </button>

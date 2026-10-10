@@ -10,7 +10,7 @@ import { linkWhatsApp } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Loja",
   description:
-    "Camisetas, matracas e bonés que vestem a cultura do Maranhão. Prévia da loja Kambada.",
+    "Camisas, matracas, ecobags, bonés, pareôs e papelaria feitos à mão em São Luís. Pix, cartão em até 3x e frete grátis a partir de R$ 250.",
   alternates: { canonical: "/loja" },
 };
 
@@ -73,6 +73,7 @@ export default async function Loja() {
                     fill
                     sizes="(max-width: 1024px) 100vw, 70vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={categoria.posicaoDaFoto ? { objectPosition: categoria.posicaoDaFoto } : undefined}
                   />
                 </div>
               </Link>
@@ -90,7 +91,7 @@ export default async function Loja() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="rounded-3xl bg-kambada-amarelo px-8 py-12 text-kambada-grafite sm:px-12">
             <h2 className="font-display text-2xl leading-tight font-extrabold text-balance sm:text-3xl">
-              Enquanto o carrinho não chega, a gente atende no WhatsApp
+              Prefere conversar antes de comprar? A gente atende no WhatsApp
             </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-kambada-grafite/80">
               Encomenda para arraial, pedido de empresa ou uma peça só: é só
@@ -100,7 +101,7 @@ export default async function Loja() {
               href={linkWhatsApp()}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-8 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto"
+              className="mt-8 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto whitespace-nowrap"
             >
               Falar no WhatsApp
             </a>

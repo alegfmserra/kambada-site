@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 /**
  * Política de trocas e devoluções.
  *
- * Orientação do Alexandre (08/10/2026): devolução só nas hipóteses legais —
- * defeito/dano (CDC arts. 18 e 26) e arrependimento em 7 dias (CDC art. 49;
- * Decreto 7.962/2013, art. 5º). Troca por gosto (outra estampa ou tamanho, sem
- * defeito) não é obrigação legal: é cortesia, e o frete fica com o cliente —
- * informado ANTES da compra (CDC arts. 6º, III, e 31). Limite: a cortesia não
- * pode esvaziar o arrependimento; dentro dos 7 dias o cliente ainda pode
- * devolver sem custo (art. 51, I, veda cláusula que o restrinja).
- * O prazo de 30 dias da troca por gosto é proposta a confirmar.
+ * Decisão do Alexandre (10/10/2026): troca e devolução SOMENTE nas hipóteses
+ * legais — vício/defeito (CDC arts. 18 e 26) e arrependimento em 7 dias (CDC
+ * art. 49; Decreto 7.962/2013, art. 5º). A troca por gosto (outra estampa ou
+ * tamanho, sem defeito) não é oferecida como regra; situações atípicas são
+ * tratadas pelo WhatsApp, caso a caso. Peças personalizadas com nome e
+ * aprovadas antes da produção não têm troca por gosto — mas o arrependimento
+ * de 7 dias e a garantia por defeito continuam valendo (art. 51, I, veda
+ * cláusula que os restrinja), e o texto diz isso de forma polida.
  */
 export default function PaginaTrocas() {
   return (
@@ -63,21 +63,28 @@ export default function PaginaTrocas() {
           <article>
             <h2 className="font-display text-2xl font-bold">Quer trocar por outra estampa ou tamanho?</h2>
             <p className="mt-3">
-              A peça está perfeita, mas você preferiu outra estampa — trocou o Guará pela Carranca —
-              ou o tamanho não serviu? A gente troca com prazer, como cortesia da casa:
+              A gente trabalha com lotes pequenos, feitos à mão, e por isso as trocas seguem o que o
+              Código de Defesa do Consumidor prevê: desistência em 7 dias ou defeito. A troca só por
+              gosto — trocou o Guará pela Carranca, ou o tamanho não serviu — não está entre elas.
             </p>
-            <ul className="mt-3 list-disc space-y-1 pl-6">
-              <li>em até <strong>30 dias</strong> depois de receber;</li>
-              <li>com a peça sem uso, com a etiqueta;</li>
-              <li>conforme o estoque — trabalhamos com lotes pequenos;</li>
-              <li>
-                <strong>o frete de ida e de volta fica por sua conta</strong>, porque a troca não é por
-                defeito. Comprou com retirada no ateliê? Aí a troca é lá mesmo, sem frete.
-              </li>
-            </ul>
-            <p className="mt-3 text-sm text-texto-suave">
-              Ainda está nos 7 dias do recebimento? Você também pode simplesmente desistir da compra,
-              sem custo, e comprar a outra estampa — vale o que for melhor para você.
+            <p className="mt-3">
+              <strong>Ainda está nos 7 dias do recebimento?</strong> Você pode desistir da compra, sem
+              custo, e comprar a outra estampa ou o outro tamanho — vale o que for melhor para você.
+            </p>
+            <p className="mt-3">
+              Aconteceu algo fora do comum? Chame a gente no WhatsApp e conte o que houve. Aqui tem
+              gente do outro lado, e a gente conversa caso a caso.
+            </p>
+          </article>
+
+          <article>
+            <h2 className="font-display text-2xl font-bold">Peças personalizadas</h2>
+            <p className="mt-3">
+              Peça feita sob encomenda, com o seu nome ou a sua arte, e aprovada por você antes da
+              produção, foi feita só para você — por isso <strong>não tem troca por gosto</strong>{" "}
+              nem devolução por mudança de ideia depois de aprovada. O que continua valendo, como em
+              toda compra: a desistência em 7 dias prevista em lei e a garantia se a peça vier com
+              defeito.
             </p>
           </article>
 
@@ -103,19 +110,19 @@ export default function PaginaTrocas() {
         <div className="mt-12 flex flex-wrap gap-3">
           <Link
             href="/pedido/atendimento"
-            className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Abrir um atendimento
           </Link>
           <Link
             href="/pedido"
-            className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold hover:border-kambada-amarelo-escuro"
+            className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold hover:border-kambada-amarelo-escuro whitespace-nowrap"
           >
             Acompanhar pedido
           </Link>
         </div>
 
-        <p className="mt-10 text-sm text-texto-tenue">Atualizado em 8 de outubro de 2026.</p>
+        <p className="mt-10 text-sm text-texto-tenue">Atualizado em 10 de outubro de 2026.</p>
       </div>
     </section>
   );

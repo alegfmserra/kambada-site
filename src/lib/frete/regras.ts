@@ -2,7 +2,9 @@
  * Regras de frete da loja — decisões do Alexandre, não do código.
  *
  * - Origem: 65065-060, São Luís (informado em 08/10/2026).
- * - Frete grátis a partir de R$ 199,99 em produtos (decidido em 08/10/2026).
+ * - Frete grátis a partir de R$ 250,00 em produtos (decidido em 10/10/2026;
+ *   era R$ 199,99 desde 08/10 — subiu porque, no limiar, o frete absorvido
+ *   comia até 17,5% do pedido e deixava suportes e camisas no prejuízo).
  *   Vale para a opção de entrega MAIS BARATA; as mais rápidas continuam pagas,
  *   e o cliente escolhe. Dar grátis o SEDEX acima do valor seria abrir mão de
  *   margem que a regra não pediu.
@@ -14,7 +16,7 @@ import { emCentavos } from "../loja/dinheiro";
 
 export const CEP_ORIGEM = "65065060";
 
-export const FRETE_GRATIS_A_PARTIR_DE = 199.99;
+export const FRETE_GRATIS_A_PARTIR_DE = 250;
 
 export function temFreteGratis(subtotalReais: number): boolean {
   return emCentavos(subtotalReais) >= emCentavos(FRETE_GRATIS_A_PARTIR_DE);

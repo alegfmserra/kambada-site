@@ -25,9 +25,9 @@ export const MOTIVOS = [
     dica: "Até 90 dias depois de receber. Frete por nossa conta. Fotos ajudam muito.",
   },
   {
-    id: "troca",
-    rotulo: "Trocar por outra estampa ou tamanho",
-    dica: "Peça sem uso, até 30 dias. Sem defeito, o frete da troca é por conta do cliente.",
+    id: "outro",
+    rotulo: "Outro assunto",
+    dica: "Peça personalizada, dúvida sobre a peça ou algo fora dos itens acima — conte pra gente.",
   },
 ] as const;
 

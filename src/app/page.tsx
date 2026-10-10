@@ -35,13 +35,13 @@ export default function Home() {
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/loja"
-                className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+                className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro whitespace-nowrap"
               >
                 Ver a loja
               </Link>
               <Link
                 href="/cultura"
-                className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro"
+                className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro whitespace-nowrap"
               >
                 Explore a nossa cultura
               </Link>
@@ -150,7 +150,7 @@ export default function Home() {
             </div>
             <Link
               href="/sobre"
-              className="mt-8 inline-block rounded-full border border-borda px-7 py-3.5 font-display font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro"
+              className="mt-8 inline-block rounded-full border border-borda px-7 py-3.5 font-display font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro whitespace-nowrap"
             >
               Conheça a nossa história
             </Link>
@@ -174,7 +174,7 @@ export default function Home() {
             </p>
             <Link
               href="/loja/matracas"
-              className="mt-8 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+              className="mt-8 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro whitespace-nowrap"
             >
               Ver as matracas
             </Link>
@@ -247,7 +247,7 @@ export default function Home() {
             </p>
             <Link
               href="/sobre"
-              className="mt-9 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto"
+              className="mt-9 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto whitespace-nowrap"
             >
               Conheça a Kambada
             </Link>

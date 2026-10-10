@@ -17,11 +17,18 @@ export default function Rodape() {
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-kambada-branco/70">
             Moda e arte que celebram o Maranhão.
           </p>
+          <p className="mt-4 max-w-xs text-xs leading-relaxed text-kambada-branco/60">
+            {SITE.razaoSocial} · CNPJ {SITE.cnpj}
+            <br />
+            Olho d&apos;Água, São Luís – MA · todos os dias, 8h às 18h
+            <br />
+            Visitas ao ateliê com hora marcada pelo WhatsApp.
+          </p>
         </div>
 
         <nav aria-label="Rodapé">
           <h2 className="font-display text-sm font-semibold tracking-wide text-kambada-amarelo uppercase">
-            Navegar
+            Kambada
           </h2>
           <ul className="mt-4 space-y-2.5">
             {NAV.map((item) => (

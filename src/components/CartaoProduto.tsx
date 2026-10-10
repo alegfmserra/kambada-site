@@ -66,7 +66,7 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
             : "mt-4 rounded-full border border-borda px-5 py-3 text-center font-display text-sm font-semibold text-texto-tenue"
         }
       >
-        {estoque.disponivel ? "Ver peça" : "Esgotado"}
+        Ver peça
       </p>
     </li>
   );

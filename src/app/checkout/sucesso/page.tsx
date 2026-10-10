@@ -50,7 +50,7 @@ export default async function PaginaSucesso({ searchParams }: Props) {
           🦀
         </p>
         <h1 className="mt-6 font-display text-4xl font-extrabold text-balance">
-          {aprovado ? "Pedido confirmado. Obrigado!" : "Recebemos o seu pagamento"}
+          {aprovado ? "Pedido confirmado. Obrigado!" : "Estamos confirmando o seu pagamento"}
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-texto-suave">
           {aprovado
@@ -89,7 +89,7 @@ export default async function PaginaSucesso({ searchParams }: Props) {
         )}
         <Link
           href="/loja"
-          className="mt-10 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+          className="mt-10 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
         >
           Voltar à loja
         </Link>

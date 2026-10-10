@@ -30,6 +30,7 @@ export async function generateMetadata({
       title: artigo.titulo,
       description: artigo.resumo,
       publishedTime: artigo.data,
+      images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "Kambada" }],
     },
   };
 }

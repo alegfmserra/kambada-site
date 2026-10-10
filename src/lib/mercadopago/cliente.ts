@@ -124,7 +124,10 @@ export function montarPreferencia(retrato: RetratoPedido, urlDoSite: string, ago
             cost: Number(retrato.frete.valor.toFixed(2)),
           },
         }),
-    payment_methods: { installments: PARCELAS_MAXIMAS },
+    // Sem boleto (decisão do Alexandre, 10/10/2026): o boleto vale 3 dias e a
+    // preferência 24 h — pedido pendente com estoque de ontem. Pix cobre quem
+    // não tem cartão.
+    payment_methods: { installments: PARCELAS_MAXIMAS, excluded_payment_types: [{ id: "ticket" }] },
     back_urls: {
       success: `${urlDoSite}/checkout/sucesso`,
       pending: `${urlDoSite}/checkout/pendente`,

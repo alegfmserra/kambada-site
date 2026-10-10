@@ -20,15 +20,17 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
   const idGrupo = useId();
   const unica = opcoes.length === 1;
 
-  const primeiraDisponivel = opcoes.find((o) => o.quantidade > 0) ?? opcoes[0];
-  const [escolhida, setEscolhida] = useState<number>(primeiraDisponivel.idBling);
+  // Com mais de uma opção, nada vem marcado: "G" pré-escolhido virava
+  // compra do tamanho errado por descuido (auditoria de 10/10/2026).
+  const [escolhida, setEscolhida] = useState<number | null>(unica ? opcoes[0].idBling : null);
   const [quantidade, setQuantidade] = useState(1);
   const [adicionado, setAdicionado] = useState(false);
 
-  const opcao = opcoes.find((o) => o.idBling === escolhida) ?? primeiraDisponivel;
-  const noCarrinho = itens.find((i) => i.idBling === opcao.idBling)?.quantidade ?? 0;
-  const teto = Math.max(0, Math.min(opcao.quantidade, MAXIMO_POR_ITEM) - noCarrinho);
-  const esgotada = opcao.quantidade <= 0;
+  const opcao = opcoes.find((o) => o.idBling === escolhida) ?? null;
+  const noCarrinho = opcao ? (itens.find((i) => i.idBling === opcao.idBling)?.quantidade ?? 0) : 0;
+  const teto = opcao ? Math.max(0, Math.min(opcao.quantidade, MAXIMO_POR_ITEM) - noCarrinho) : 0;
+  const esgotada = opcao !== null && opcao.quantidade <= 0;
+  const ehTamanho = opcoes.some((o) => /^(PP|P|M|G|GG|XG|\d+ anos?)$/i.test(o.rotulo.trim().split(/\s+/).pop() ?? ""));
 
   function escolher(id: number) {
     setEscolhida(id);
@@ -37,7 +39,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
   }
 
   function aoAdicionar() {
-    if (teto <= 0) return;
+    if (!opcao || teto <= 0) return;
     adicionar({
       idBling: opcao.idBling,
       slug,
@@ -57,7 +59,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
       {!unica && (
         <fieldset>
           <legend className="font-display text-sm font-semibold text-texto-tenue uppercase">
-            Escolha a opção
+            {ehTamanho ? "Escolha o tamanho" : "Escolha a opção"}
           </legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {opcoes.map((o) => {
@@ -91,7 +93,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
         </fieldset>
       )}
 
-      {opcoes.some((o) => o.preco !== opcoes[0].preco) && (
+      {opcao && opcoes.some((o) => o.preco !== opcoes[0].preco) && (
         <p className="mt-4 text-sm text-texto-suave" aria-live="polite">
           {opcao.rotulo}: <strong className="text-texto">{formatarReais(opcao.preco)}</strong>
         </p>
@@ -128,15 +130,20 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
           <button
             type="button"
             onClick={aoAdicionar}
-            disabled={teto <= 0}
-            className="min-h-12 rounded-full bg-kambada-amarelo px-8 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!opcao || teto <= 0}
+            className="min-h-12 rounded-full bg-kambada-amarelo px-8 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
           >
             Adicionar ao carrinho
           </button>
         </div>
       )}
 
-      {teto <= 0 && !esgotada && (
+      {!opcao && (
+        <p className="mt-3 text-sm text-texto-suave">
+          {ehTamanho ? "Escolha o tamanho para adicionar ao carrinho." : "Escolha uma opção para adicionar ao carrinho."}
+        </p>
+      )}
+      {opcao && teto <= 0 && !esgotada && (
         <p className="mt-3 text-sm text-texto-suave">
           Você já tem no carrinho todas as unidades disponíveis desta opção.
         </p>

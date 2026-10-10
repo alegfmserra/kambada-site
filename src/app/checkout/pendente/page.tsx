@@ -49,7 +49,7 @@ export default async function PaginaPendente({ searchParams }: Props) {
         </p>
         <h1 className="mt-6 font-display text-4xl font-extrabold">Aguardando o pagamento</h1>
         <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-texto-suave">
-          Se você escolheu Pix ou boleto, conclua o pagamento pelo Mercado Pago. Assim que ele for
+          Se você escolheu Pix, conclua o pagamento pelo Mercado Pago. Assim que ele for
           aprovado, o pedido entra automaticamente — e o comprovante do Mercado Pago chega no seu
           e-mail.
         </p>
@@ -64,7 +64,7 @@ export default async function PaginaPendente({ searchParams }: Props) {
         <div>
           <Link
             href="/loja"
-            className="mt-10 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="mt-10 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Voltar à loja
           </Link>

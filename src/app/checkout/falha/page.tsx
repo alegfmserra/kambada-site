@@ -22,7 +22,7 @@ export default function PaginaFalha() {
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
             href="/checkout"
-            className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Tentar de novo
           </Link>
@@ -30,7 +30,7 @@ export default function PaginaFalha() {
             href={linkWhatsApp("Oi! Tentei pagar um pedido no site e não consegui. Pode me ajudar?")}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold hover:border-kambada-amarelo-escuro"
+            className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold hover:border-kambada-amarelo-escuro whitespace-nowrap"
           >
             Falar no WhatsApp
           </a>

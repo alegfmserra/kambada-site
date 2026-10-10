@@ -3,6 +3,7 @@ import {
   CATEGORIAS as CATEGORIAS_LOCAIS,
   PRODUTOS as PRODUTOS_LOCAIS,
 } from "../catalogo";
+import { compararOpcoes } from "../loja/ordemOpcoes";
 import { chamarBling, listarTudo } from "./cliente";
 import type { ProdutoBling, SaldoBling } from "./tipos";
 import { estaAutorizado } from "./tokens";
@@ -253,7 +254,23 @@ export function opcoesDoProduto(
       if (!preco || !rotulo) return null;
       return { rotulo, idBling: f.id, preco, quantidade: saldos.get(f.id) ?? 0 };
     })
-    .filter((o): o is Opcao => o !== null);
+    .filter((o): o is Opcao => o !== null)
+    // P → XG, 2 → 14 anos: a ordem de uma arara, não a alfabética do Bling.
+    .sort((a, b) => compararOpcoes(a.rotulo, b.rotulo));
+}
+
+/** A "descrição curta" do Bling pode vir com HTML do editor; o site mostra texto. */
+export function limparDescricao(bruta: string | undefined): string | undefined {
+  if (!bruta) return undefined;
+  const texto = bruta
+    .replace(/<br\s*\/?>|<\/p>|<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return texto || undefined;
 }
 
 /** Saldos de vários produtos de uma vez, sem estourar o tamanho da URL. */
@@ -383,8 +400,11 @@ export async function montarDoBling(): Promise<Catalogo> {
       preco: menor,
       precoMaximo: maior > menor ? maior : undefined,
       variacoes: filhos.length
-        ? filhos.map((f) => rotuloDaVariacao(f.nome, p.nome)).filter(Boolean)
+        ? filhos.map((f) => rotuloDaVariacao(f.nome, p.nome)).filter(Boolean).sort(compararOpcoes)
         : ["Único"],
+      // A descrição mora no Bling (campo "descrição curta"): uma fonte só para
+      // site e Mercado Livre. Vazia enquanto não for escrita lá.
+      descricao: limparDescricao(p.descricaoCurta),
       quantidade: filhos.length
         ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
         : (saldos.get(p.id) ?? 0),

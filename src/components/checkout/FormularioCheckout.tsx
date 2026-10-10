@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
-import { RETIRADA } from "@/lib/frete/retirada";
+import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
+import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -79,6 +80,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
   const [msgCupom, setMsgCupom] = useState<string | null>(null);
   const [aplicandoCupom, setAplicandoCupom] = useState(false);
   const ultimoCepCotado = useRef<string>("");
+  const manterRetirada = useRef(false);
   const ultimoCepBuscado = useRef<string>("");
   const refAviso = useRef<HTMLDivElement>(null);
 
@@ -151,7 +153,11 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
 
     setCotando(true);
     setOpcoes(null);
-    setFreteId(null);
+    // Quem marcou a retirada antes do CEP continua com ela depois da cotação.
+    setFreteId((atual) => {
+      manterRetirada.current = atual === ID_RETIRADA;
+      return null;
+    });
     setAviso(null);
     fetch("/api/frete", {
       method: "POST",
@@ -174,7 +180,11 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         setOpcoes(lista);
         // Padrão: a entrega mais barata. A retirada só vem marcada se for a
         // única opção (transportadora fora do ar ou CEP sem atendimento).
-        setFreteId((lista.find((o) => !o.retirada) ?? lista[0])?.id ?? null);
+        setFreteId(
+          manterRetirada.current && lista.some((o) => o.retirada)
+            ? ID_RETIRADA
+            : ((lista.find((o) => !o.retirada) ?? lista[0])?.id ?? null),
+        );
         if (d.aviso) setAviso(d.aviso);
       })
       .catch(() => setAviso("Sem conexão para calcular o frete. Tente de novo."))
@@ -384,7 +394,38 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
 
         <fieldset>
           <legend className="mb-4 font-display text-xl font-bold">3. Forma de envio</legend>
-          {cepDigitos.length !== 8 && <p className="text-sm text-texto-suave">Informe o CEP para ver as opções.</p>}
+          {cepDigitos.length !== 8 && (
+            // Quem vai retirar no ateliê não precisa esperar o CEP para ver a
+            // opção — mas o endereço continua obrigatório (vai na nota fiscal).
+            <div className="space-y-2">
+              <p className="text-sm text-texto-suave">Informe o CEP para ver as opções de entrega — ou retire no ateliê:</p>
+              <label
+                className={`flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-xl border px-4 py-3 ${
+                  freteId === ID_RETIRADA ? "border-kambada-amarelo-escuro bg-superficie" : "border-borda"
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="frete"
+                    value={ID_RETIRADA}
+                    checked={freteId === ID_RETIRADA}
+                    onChange={() => setFreteId(ID_RETIRADA)}
+                    className="h-5 w-5 accent-kambada-amarelo-escuro"
+                  />
+                  <span>
+                    <span className="font-semibold">{RETIRADA.nome}</span>
+                    <span className="block text-sm text-texto-suave">
+                      {RETIRADA.explicacao} O endereço acima vai só para a nota fiscal.
+                    </span>
+                  </span>
+                </span>
+                <span className="text-right font-display font-bold">
+                  <span className="destaque font-semibold">Grátis</span>
+                </span>
+              </label>
+            </div>
+          )}
           {cotando && <p className="text-sm text-texto-suave" aria-live="polite">Calculando o frete…</p>}
           {opcoes && (
             <div className="space-y-2" role="radiogroup" aria-label="Opções de entrega">
@@ -411,7 +452,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                       <span className="block text-sm text-texto-suave">
                         {o.retirada
                           ? RETIRADA.explicacao
-                          : `até ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem`}
+                          : `até ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem · postamos em até ${POSTAGEM_DIAS_UTEIS} dias úteis`}
                       </span>
                     </span>
                   </span>
@@ -537,7 +578,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         <button
           type="submit"
           disabled={enviando || cotando || !freteEscolhido}
-          className="mt-6 w-full rounded-full bg-kambada-amarelo px-6 py-4 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-6 w-full rounded-full bg-kambada-amarelo px-6 py-4 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
         >
           {!pagamentoOnline
             ? "Enviar pedido pelo WhatsApp"
@@ -548,7 +589,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         {pagamentoOnline ? (
           <>
             <p className="mt-3 text-center text-xs text-texto-tenue">
-              Cartão em até 3x, Pix ou boleto. Você paga na página segura do Mercado Pago.
+              Pix ou cartão em até 3x. Você paga na página segura do Mercado Pago.
             </p>
             <a
               href={whatsapp}

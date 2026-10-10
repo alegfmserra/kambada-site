@@ -120,7 +120,7 @@ export default function Encomendas() {
               <li key={passo.titulo} className="rounded-2xl border border-borda bg-superficie p-5">
                 <span
                   aria-hidden="true"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-kambada-amarelo font-display font-bold text-kambada-grafite"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-kambada-amarelo font-display font-bold text-kambada-grafite whitespace-nowrap"
                 >
                   {i + 1}
                 </span>

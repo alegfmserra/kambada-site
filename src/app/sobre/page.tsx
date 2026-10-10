@@ -31,10 +31,10 @@ const NUMEROS = [
  */
 const EQUIPE: { nome: string; papel: string; foto?: string }[] = [
   { nome: "Alexandre", papel: "Sócio-fundador · gestão e finanças" },
-  { nome: "Wilzanira", papel: "Sócia-fundadora" },
   { nome: "Wilsonira", papel: "Sócia-fundadora · administração e produção artesanal" },
-  { nome: "Elzanira", papel: "Sócia-fundadora" },
-  { nome: "Ricardo", papel: "Sócio-fundador · arte e criação" },
+  { nome: "Wilzanira", papel: "Advogada e artista · do jurídico à pintura das matracas e à produção dos lápis" },
+  { nome: "Elzanira", papel: "Artista plástica" },
+  { nome: "Ricardo", papel: "Ilustrador e diretor de arte" },
 ];
 
 export default function Sobre() {
@@ -148,7 +148,7 @@ export default function Sobre() {
                 ) : (
                   <span
                     aria-hidden="true"
-                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-kambada-amarelo font-display text-5xl font-extrabold text-kambada-grafite"
+                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-kambada-amarelo font-display text-5xl font-extrabold text-kambada-grafite whitespace-nowrap"
                   >
                     {pessoa.nome[0]}
                   </span>

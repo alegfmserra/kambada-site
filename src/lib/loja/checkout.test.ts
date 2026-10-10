@@ -120,14 +120,14 @@ describe("dinheiro em centavos", () => {
 });
 
 describe("regras de frete da loja", () => {
-  it("frete grátis começa em R$ 199,99, não antes", () => {
-    expect(temFreteGratis(199.98)).toBe(false);
-    expect(temFreteGratis(199.99)).toBe(true);
+  it("frete grátis começa em R$ 250, não antes (decisão de 10/10/2026)", () => {
+    expect(temFreteGratis(249.99)).toBe(false);
+    expect(temFreteGratis(250)).toBe(true);
     expect(temFreteGratis(364.8)).toBe(true);
   });
 
   it("calcula quanto falta para o frete grátis", () => {
-    expect(faltaParaFreteGratis(89.9)).toBeCloseTo(110.09, 2);
+    expect(faltaParaFreteGratis(89.9)).toBeCloseTo(160.1, 2);
     expect(faltaParaFreteGratis(250)).toBe(0);
   });
 

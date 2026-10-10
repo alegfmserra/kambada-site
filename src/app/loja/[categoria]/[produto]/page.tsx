@@ -13,6 +13,9 @@ import {
   precoExibido,
   type Produto,
 } from "@/lib/catalogo";
+import { ehPintadaAMao, TEXTO_POSTAGEM, TEXTO_PRODUCAO_PINTADA_A_MAO } from "@/lib/loja/prazos";
+import { FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
+import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp, SITE } from "@/lib/site";
 
 /** Tipado à mão: PageProps só existe depois do build. */
@@ -63,10 +66,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       url: `/loja/${catSlug}/${prodSlug}`,
       siteName: SITE.nomeCompleto,
-      // A foto da peça no link compartilhado (WhatsApp, Instagram).
-      ...(foto
-        ? { images: [{ url: foto.src, width: foto.largura, height: foto.altura, alt: produto.nome }] }
-        : {}),
+      // A foto da peça no link compartilhado (WhatsApp, Instagram). Sem foto,
+      // vai a logo — antes o link saía sem imagem nenhuma.
+      images: foto
+        ? [{ url: foto.src, width: foto.largura, height: foto.altura, alt: produto.nome }]
+        : [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: SITE.nomeCompleto }],
     },
     other: categoria ? { "product:category": categoria.nome } : undefined,
   };
@@ -279,7 +283,32 @@ export default async function PaginaProduto({ params }: Props) {
               </div>
               )}
 
-              <p className="mt-8 border-t border-borda pt-6 text-sm leading-relaxed text-texto-suave">
+              {produto.descricao && (
+                <div className="mt-8 border-t border-borda pt-6 leading-relaxed whitespace-pre-line">
+                  {produto.descricao}
+                </div>
+              )}
+
+              <ul className="mt-8 space-y-2 border-t border-borda pt-6 text-sm leading-relaxed text-texto-suave">
+                {ehPintadaAMao(produto) && (
+                  <li className="rounded-xl bg-superficie px-4 py-3 font-medium text-texto">
+                    🎨 {TEXTO_PRODUCAO_PINTADA_A_MAO}
+                  </li>
+                )}
+                <li>📦 {TEXTO_POSTAGEM}.</li>
+                <li>🚚 Frete grátis a partir de {formatarReais(FRETE_GRATIS_A_PARTIR_DE)} na entrega mais barata.</li>
+                <li>📍 Retirada grátis no ateliê, em São Luís.</li>
+                <li>💳 Pix ou cartão em até 3x, pelo Mercado Pago.</li>
+                <li>
+                  ↩️ Trocas e devoluções conforme o Código de Defesa do Consumidor —{" "}
+                  <Link href="/trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">
+                    veja como funciona
+                  </Link>
+                  .
+                </li>
+              </ul>
+
+              <p className="mt-6 text-sm leading-relaxed text-texto-suave">
                 Feito em São Luís do Maranhão. Preço e disponibilidade saem
                 direto do nosso estoque — se está aqui, existe de verdade.
               </p>

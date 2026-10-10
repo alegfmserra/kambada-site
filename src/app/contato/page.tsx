@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { REDES, linkWhatsApp } from "@/lib/site";
+import { REDES, SITE, linkWhatsApp } from "@/lib/site";
 
 /**
  * Contato. Só canais confirmados: o WhatsApp extraído dos links do site atual
@@ -22,7 +22,7 @@ export default function Contato() {
           Se achega, <span className="destaque">vem falar</span> com a gente
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-texto-suave">
-          Dúvida sobre uma peça, encomenda para o teu arraial ou pedido para
+          Dúvida sobre uma peça, encomenda para o seu arraial ou pedido para
           empresa: a gente responde no WhatsApp e nas redes.
         </p>
 
@@ -58,7 +58,7 @@ export default function Contato() {
           <div className="rounded-2xl border border-borda bg-superficie p-8">
             <h2 className="font-display text-2xl font-bold">Nossas redes</h2>
             <p className="mt-3 leading-relaxed text-texto-suave">
-              É por lá que a gente mostra o que sai da oficina.
+              É por lá que a gente mostra o que sai do ateliê.
             </p>
             <ul className="mt-6 space-y-3">
               {REDES.map((rede) => (
@@ -74,6 +74,19 @@ export default function Contato() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="rounded-2xl border border-borda bg-superficie p-8 md:col-span-2">
+            <h2 className="font-display text-2xl font-bold">Nosso ateliê</h2>
+            <p className="mt-3 leading-relaxed text-texto-suave">
+              Ficamos no bairro do <strong className="text-texto">Olho d&apos;Água, em São Luís – MA</strong>,
+              e funcionamos <strong className="text-texto">todos os dias, das 8h às 18h</strong>. Quer
+              conhecer todas as peças de perto e viver a experiência da Kambada? É só marcar uma
+              visita pelo WhatsApp — o endereço completo a gente passa na conversa.
+            </p>
+            <p className="mt-3 text-sm text-texto-tenue">
+              {SITE.razaoSocial} · CNPJ {SITE.cnpj}
+            </p>
           </div>
         </div>
       </div>

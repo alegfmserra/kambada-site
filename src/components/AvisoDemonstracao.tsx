@@ -26,8 +26,8 @@ export default function AvisoDemonstracao() {
         <strong>os do nosso estoque</strong>.{" "}
         {pagamentoOnline ? (
           <>
-            Escolha, coloque no carrinho e pague pelo Mercado Pago — cartão em até 3x, Pix ou
-            boleto. As fotos das peças estão chegando; qualquer dúvida, o WhatsApp está aberto.
+            Escolha, coloque no carrinho e pague pelo Mercado Pago — Pix ou cartão em até 3x.
+            Qualquer dúvida, o WhatsApp está aberto.
           </>
         ) : (
           <>

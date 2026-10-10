@@ -17,7 +17,7 @@
 
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 
 export function emailConfigurado(): boolean {
   return Boolean(process.env.EMAIL_SMTP_USUARIO && process.env.EMAIL_SMTP_SENHA);
@@ -31,9 +31,9 @@ function hostPadrao(usuario: string): string {
   return /@gmail\.com$/i.test(usuario) ? "smtp.gmail.com" : "smtp.hostinger.com";
 }
 
-let transporte: nodemailer.Transporter | null = null;
+let transporte: Transporter | null = null;
 
-function obterTransporte(): nodemailer.Transporter {
+function obterTransporte(): Transporter {
   if (!transporte) {
     const usuario = process.env.EMAIL_SMTP_USUARIO ?? "";
     transporte = nodemailer.createTransport({

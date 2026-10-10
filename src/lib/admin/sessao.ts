@@ -7,7 +7,7 @@
  * sessões abertas, porque a assinatura deixa de bater.
  */
 
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual, createHash } from "node:crypto";
 
 export const COOKIE_ADMIN = "kambada_admin";
 export const DURACAO_SESSAO_S = 12 * 60 * 60;
@@ -21,9 +21,9 @@ function assinatura(): string {
 }
 
 function iguais(a: string, b: string): boolean {
-  const x = Buffer.from(a);
-  const y = Buffer.from(b);
-  return x.length === y.length && timingSafeEqual(x, y);
+  // Compara os hashes (tamanho fixo): não revela o comprimento da senha.
+  const h = (v: string) => createHash("sha256").update(v).digest();
+  return timingSafeEqual(h(a), h(b));
 }
 
 export function senhaConfere(digitada: string): boolean {

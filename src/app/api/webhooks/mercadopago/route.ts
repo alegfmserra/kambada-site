@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { processarPagamento } from "@/lib/checkout/processar";
-import { assinaturaValida, registrarRecusa } from "@/lib/mercadopago/assinatura";
+import { assinaturaValida, registrarRecusa, lerCabecalhoAssinatura } from "@/lib/mercadopago/assinatura";
 import { mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +27,14 @@ export async function GET() {
   });
 }
 
+/** O `ts` da assinatura (segundos ou milissegundos) tem de estar a até 10 min de agora. */
+function carimboRecente(ts: string | undefined): boolean {
+  const n = Number(ts);
+  if (!ts || !Number.isFinite(n)) return false;
+  const ms = n > 1e12 ? n : n * 1000;
+  return Math.abs(Date.now() - ms) <= 10 * 60 * 1000;
+}
+
 export async function POST(requisicao: Request) {
   const url = new URL(requisicao.url);
 
@@ -48,6 +56,16 @@ export async function POST(requisicao: Request) {
   // trim: espaço ou quebra de linha colados junto no painel invalidariam tudo.
   const segredo = process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim();
   const cabecalho = requisicao.headers.get("x-signature");
+  if (segredo && !cabecalho) {
+    // Sem assinatura não se consulta nada: antes, bastava omitir o cabeçalho
+    // para fazer o servidor bater na API do MP com a nossa credencial.
+    console.error("[mercadopago] aviso sem x-signature recusado para", dataId);
+    return NextResponse.json({ erro: "assinatura ausente" }, { status: 401 });
+  }
+  if (segredo && cabecalho && !carimboRecente(lerCabecalhoAssinatura(cabecalho).ts)) {
+    console.error("[mercadopago] aviso com carimbo de tempo antigo recusado para", dataId);
+    return NextResponse.json({ erro: "aviso expirado" }, { status: 401 });
+  }
   if (segredo && cabecalho) {
     const valida = assinaturaValida({
       cabecalho,

@@ -17,7 +17,38 @@ import type { NextConfig } from "next";
  * - `/_next/static/*`: nome com hash, conteúdo imutável. Um ano de cache é o
  *   correto aqui, e é o que traz a velocidade de volta.
  */
+/**
+ * Cabeçalhos de segurança (auditoria de 10/10/2026): sem eles, um XSS vira
+ * execução de script na origem, o login do admin pode ser embutido em outro
+ * site (clickjacking) e o navegador pode "adivinhar" tipos de arquivo.
+ * A CSP permite script inline porque o Next o usa; o resto é o mínimo.
+ */
+const SEGURANCA = [
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  },
+];
+
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   /**
    * Fotos em WebP (08/10/2026). Sem isto, o Next entregava JPEG — e no celular
    * a foto principal da página inicial levava 3,7 s para aparecer (Lighthouse
@@ -54,8 +85,21 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Páginas pessoais ou autenticadas: nunca em cache compartilhado.
+        // Antes, /admin/pedidos saía com "public, s-maxage=60".
+        source: "/:caminho((?:admin|checkout|pedido|carrinho)(?:/.*)?)",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, must-revalidate" },
+          ...SEGURANCA,
+        ],
+      },
+      {
+        source: "/:caminho*",
+        headers: SEGURANCA,
+      },
+      {
         // Páginas: o navegador revalida sempre, o CDN guarda no máximo 60s.
-        source: "/:caminho((?!_next/static|api/).*)",
+        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho).*)",
         headers: [
           {
             key: "Cache-Control",

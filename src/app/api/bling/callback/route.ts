@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { escaparHtml } from "@/lib/email/confirmacao";
 import { NextResponse } from "next/server";
 import { trocarCodePorToken } from "@/lib/bling/tokens";
 
@@ -61,7 +62,7 @@ function pagina(mensagem: string, sucesso: boolean) {
 </style></head>
 <body><div>
   <h1>${sucesso ? "Conectado" : "Não deu certo"}</h1>
-  <p>${mensagem}</p>
+  <p>${escaparHtml(mensagem)}</p>
 </div></body></html>`;
 
   return new NextResponse(html, {

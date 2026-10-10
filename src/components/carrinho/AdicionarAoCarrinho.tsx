@@ -30,7 +30,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
   const noCarrinho = opcao ? (itens.find((i) => i.idBling === opcao.idBling)?.quantidade ?? 0) : 0;
   const teto = opcao ? Math.max(0, Math.min(opcao.quantidade, MAXIMO_POR_ITEM) - noCarrinho) : 0;
   const esgotada = opcao !== null && opcao.quantidade <= 0;
-  const ehTamanho = opcoes.some((o) => /^(PP|P|M|G|GG|XG|\d+ anos?)$/i.test(o.rotulo.trim().split(/\s+/).pop() ?? ""));
+  const ehTamanho = opcoes.some((o) => /(^|\s)(PP|P|M|G|GG|XG|XGG|EG|\d+\s*anos?)$/i.test(o.rotulo.trim()));
 
   function escolher(id: number) {
     setEscolhida(id);

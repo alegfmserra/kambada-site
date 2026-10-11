@@ -21,6 +21,8 @@ import { conferirMelhorEnvio, freteConfigurado } from "../frete/melhorEnvio";
 import { conferirChave, mercadoPagoConfigurado } from "../mercadopago/cliente";
 import { listarRegistros } from "../pedidos/registro";
 import { alertar } from "./alertas";
+import { reconciliar, type Reconciliacao } from "./reconciliar";
+import { enviarResumoDiario, type ResumoEnviado } from "./resumoDiario";
 
 export type Item = { ok: boolean; detalhe: string };
 export type Saude = {
@@ -95,10 +97,41 @@ export async function verificarSaude(): Promise<Saude> {
   };
 }
 
-/** Verifica tudo e avisa a loja do que estiver errado (sem repetir em 6 h). */
-export async function rotinaDeManutencao(): Promise<Saude & { alertas: Record<string, string> }> {
+/**
+ * Verifica tudo, reconcilia pagamentos × pedidos, manda o resumo do dia
+ * quando é hora, e avisa a loja do que estiver errado (sem repetir em 6 h).
+ */
+export async function rotinaDeManutencao(
+  opcoes: { forcarResumo?: boolean } = {},
+): Promise<Saude & { alertas: Record<string, string>; reconciliacao: Reconciliacao; resumo: ResumoEnviado | { enviado: false; motivo: string } }> {
   const s = await verificarSaude();
   const alertas: Record<string, string> = {};
+
+  const reconciliacao = await reconciliar(48);
+  if (reconciliacao.pendentes.length) {
+    alertas.reconciliacao = await alertar(
+      "reconciliacao",
+      "Pagamento aprovado sem pedido",
+      `${reconciliacao.pendentes.length} pagamento(s) aprovado(s) no Mercado Pago sem pedido no site:\n` +
+        reconciliacao.pendentes.map((p) => `• pagamento ${p.pagamentoId}${p.ref ? ` (${p.ref})` : ""} — ${p.motivo}`).join("\n") +
+        "\n\nConferir no painel do Mercado Pago e no Bling. O site tentou processar e não conseguiu.",
+    );
+  }
+  if (reconciliacao.recuperados.length) {
+    alertas.recuperados = await alertar(
+      `recuperados-${reconciliacao.recuperados.map((r) => r.ref).join(",")}`,
+      "Pedido recuperado pela reconciliação",
+      "Pagamento aprovado que não tinha virado pedido foi processado agora:\n" +
+        reconciliacao.recuperados.map((r) => `• ${r.ref} (pagamento ${r.pagamentoId})`).join("\n"),
+    );
+  }
+
+  let resumo: ResumoEnviado | { enviado: false; motivo: string };
+  try {
+    resumo = await enviarResumoDiario({ forcar: opcoes.forcarResumo });
+  } catch (e) {
+    resumo = { enviado: false, motivo: e instanceof Error ? e.message : String(e) };
+  }
   const url = (process.env.URL_DO_SITE ?? "https://maroon-heron-459360.hostingersite.com").replace(/\/+$/, "");
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
@@ -112,5 +145,5 @@ export async function rotinaDeManutencao(): Promise<Saude & { alertas: Record<st
       `${s.pedidosComFalha.detalhe}: ${s.pedidosComFalha.refs.join(", ")}\n\nAbra ${url}/admin/pedidos e use "Refazer pendências".`,
     );
   }
-  return { ...s, alertas };
+  return { ...s, alertas, reconciliacao, resumo };
 }

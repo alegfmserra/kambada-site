@@ -194,6 +194,19 @@ export async function buscarPagamentosDoPedido(ref: string): Promise<Pagamento[]
 }
 
 /** Total do retrato (itens + frete) em centavos — o que o pagamento tem de valer. */
+/**
+ * Pagamentos aprovados nas últimas N horas — base da reconciliação. Traz só o
+ * essencial; o processamento normal relê cada pagamento pelo ID.
+ */
+export async function buscarPagamentosAprovadosRecentes(
+  horas = 48,
+): Promise<{ id: number; external_reference?: string; transaction_amount?: number; date_approved?: string }[]> {
+  const r = await chamar<{ results?: { id: number; external_reference?: string; transaction_amount?: number; date_approved?: string }[] }>(
+    `/v1/payments/search?status=approved&range=date_approved&begin_date=NOW-${Math.max(1, Math.round(horas))}HOURS&end_date=NOW&sort=date_approved&criteria=desc&limit=100`,
+  );
+  return r.results ?? [];
+}
+
 export function totalDoRetratoEmCentavos(retrato: RetratoPedido): number {
   const itens = retrato.itens.reduce((s, i) => s + emCentavos(i.p) * i.q, 0);
   return itens + emCentavos(retrato.frete.valor) - (retrato.cupom?.descontoCentavos ?? 0);

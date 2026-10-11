@@ -21,7 +21,8 @@ function autorizado(req: Request): boolean {
 
 export async function GET(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
-  const r = await rotinaDeManutencao();
+  const forcarResumo = new URL(req.url).searchParams.get("resumo") === "1";
+  const r = await rotinaDeManutencao({ forcarResumo });
   return NextResponse.json(r, { status: r.ok ? 200 : 503 });
 }
 

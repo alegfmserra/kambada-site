@@ -53,3 +53,15 @@ describe("parcelas por valor (decisão de 10/10/2026)", () => {
     expect(parcelasPermitidas(35000)).toBe(3);
   });
 });
+
+import { precisaRenovar } from "../bling/tokens";
+
+describe("renovação proativa do token do Bling", () => {
+  it("renova quando faltar menos que a folga, não antes", () => {
+    const agora = 1_000_000;
+    const umDia = 24 * 60 * 60 * 1000;
+    expect(precisaRenovar(agora + umDia - 1, umDia, agora)).toBe(true);
+    expect(precisaRenovar(agora + umDia + 1, umDia, agora)).toBe(false);
+    expect(precisaRenovar(agora - 1, umDia, agora)).toBe(true);
+  });
+});

@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { RespostaToken, TokensSalvos } from "./tipos";
@@ -83,12 +83,41 @@ export async function gravarTokens(resposta: RespostaToken): Promise<TokensSalvo
     refreshToken: resposta.refresh_token,
     expiraEm: Date.now() + resposta.expires_in * 1000 - MARGEM_MS,
     escopo: resposta.scope,
+    renovadoEm: Date.now(),
   };
+  await escreverTokens(tokens);
+  return tokens;
+}
+
+/** Escrita atômica (tmp + rename): queda no meio não corrompe o refresh token. */
+async function escreverTokens(tokens: TokensSalvos): Promise<void> {
   const caminho = arquivoTokens();
   await mkdir(dirname(caminho), { recursive: true });
-  // Escrita simples: o volume é baixo e só o callback e o refresh escrevem.
-  await writeFile(caminho, JSON.stringify(tokens, null, 2), "utf8");
-  return tokens;
+  await writeFile(`${caminho}.tmp`, JSON.stringify(tokens, null, 2), "utf8");
+  await rename(`${caminho}.tmp`, caminho);
+}
+
+/** Folga mínima para considerar o token "fresco" sem renovar. */
+export function precisaRenovar(expiraEm: number, folgaMs: number, agora = Date.now()): boolean {
+  return expiraEm - agora < folgaMs;
+}
+
+/**
+ * Renova se o token vencer dentro de `folgaMs` (manutenção periódica). Cada
+ * renovação rotaciona também o refresh token — é o que o mantém vivo.
+ */
+export async function renovarSeVencerEm(folgaMs: number): Promise<{ renovou: boolean; expiraEm: number }> {
+  const tokens = await lerTokens();
+  if (!tokens) throw new ErroBling("O aplicativo ainda não foi autorizado no Bling.", 401);
+  if (tokens.invalido) throw new ErroBling("Refresh token recusado pelo Bling — reautorizar em /api/bling/autorizar.", 401);
+  if (!precisaRenovar(tokens.expiraEm, folgaMs)) return { renovou: false, expiraEm: tokens.expiraEm };
+  if (!renovacaoEmAndamento) {
+    renovacaoEmAndamento = renovarTokens(tokens.refreshToken).finally(() => {
+      renovacaoEmAndamento = null;
+    });
+  }
+  const novos = await renovacaoEmAndamento;
+  return { renovou: true, expiraEm: novos.expiraEm };
 }
 
 async function pedirToken(corpo: Record<string, string>): Promise<RespostaToken> {
@@ -120,11 +149,21 @@ export async function trocarCodePorToken(code: string): Promise<TokensSalvos> {
 }
 
 export async function renovarTokens(refreshToken: string): Promise<TokensSalvos> {
-  const resposta = await pedirToken({
-    grant_type: "refresh_token",
-    refresh_token: refreshToken,
-  });
-  return gravarTokens(resposta);
+  try {
+    const resposta = await pedirToken({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    });
+    return await gravarTokens(resposta);
+  } catch (e) {
+    // 400/401 = refresh token morto (invalid_grant). Marcar e parar de tentar:
+    // antes, cada requisição repetia o POST ao OAuth e podia bloquear o client.
+    if (e instanceof ErroBling && (e.status === 400 || e.status === 401)) {
+      const atuais = await lerTokens();
+      if (atuais) await escreverTokens({ ...atuais, invalido: true });
+    }
+    throw e;
+  }
 }
 
 /**
@@ -148,6 +187,12 @@ export async function tokenValido(): Promise<string> {
   if (!tokens) {
     throw new ErroBling(
       "O aplicativo ainda não foi autorizado no Bling. Acesse /api/bling/autorizar.",
+      401,
+    );
+  }
+  if (tokens.invalido) {
+    throw new ErroBling(
+      "O Bling recusou o refresh token. Reautorizar em /api/bling/autorizar.",
       401,
     );
   }

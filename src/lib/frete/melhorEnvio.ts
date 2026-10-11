@@ -198,3 +198,21 @@ export async function cotarFrete(
   const dados = (await resposta.json()) as ServicoMelhorEnvio[] | ServicoMelhorEnvio;
   return interpretarCotacao(Array.isArray(dados) ? dados : [dados]);
 }
+
+/** Confere o token no Melhor Envio (GET /me) — usado pela rotina de saúde. */
+export async function conferirMelhorEnvio(): Promise<{ ok: true; conta: string } | { ok: false; status: number }> {
+  const token = process.env.MELHORENVIO_TOKEN;
+  if (!token) return { ok: false, status: 503 };
+  try {
+    const r = await fetch(`${base()}/api/v2/me`, {
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}`, "User-Agent": "Kambada site (contato@somoskambada.com.br)" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!r.ok) return { ok: false, status: r.status };
+    const d = (await r.json()) as { email?: string; firstname?: string };
+    return { ok: true, conta: d.email ?? d.firstname ?? "ok" };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}

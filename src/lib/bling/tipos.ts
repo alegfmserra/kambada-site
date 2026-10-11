@@ -21,6 +21,10 @@ export type TokensSalvos = {
   /** Instante de expiração em epoch ms, já com a margem de segurança. */
   expiraEm: number;
   escopo: string;
+  /** Última renovação bem-sucedida (epoch ms). */
+  renovadoEm?: number;
+  /** O Bling recusou o refresh token (400/401): parar de tentar e reautorizar. */
+  invalido?: boolean;
 };
 
 export type ProdutoBling = {

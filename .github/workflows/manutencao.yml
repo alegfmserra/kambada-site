@@ -1,0 +1,24 @@
+name: Manutenção do site (tokens e saúde)
+
+# A cada 6 h: renova o token do Bling, confere Melhor Envio, Mercado Pago e
+# e-mail, e manda alerta à loja se algo estiver fora. Precisa do segredo
+# MANUTENCAO_SECRET no GitHub (Settings → Secrets → Actions), com o MESMO
+# valor de MANUTENCAO_SECRET (ou REVALIDATE_SECRET) na Hostinger.
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  manutencao:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/manutencao
+        env:
+          URL: ${{ vars.SITE_URL || 'https://maroon-heron-459360.hostingersite.com' }}
+          SEGREDO: ${{ secrets.MANUTENCAO_SECRET }}
+        run: |
+          if [ -z "$SEGREDO" ]; then echo "MANUTENCAO_SECRET não configurado no GitHub"; exit 1; fi
+          codigo=$(curl -sS -o resposta.json -w "%{http_code}" -H "Authorization: Bearer $SEGREDO" "$URL/api/manutencao")
+          echo "HTTP $codigo"; cat resposta.json; echo
+          test "$codigo" = "200"

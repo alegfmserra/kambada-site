@@ -20,6 +20,17 @@ export default async function Loja() {
   const { categorias, produtos } = await buscarCatalogo();
   const daCategoria = (slug: string) =>
     produtos.filter((p) => p.categoria === slug && !p.oculto);
+  /**
+   * A vitrine geral mostra até 6 destaques por categoria (decisão do Alexandre,
+   * 11/10/2026): quem já sabe o que quer vai pela categoria. Disponíveis
+   * primeiro; a categoria inteira fica em /loja/<categoria>.
+   */
+  const DESTAQUES = 6;
+  const destaques = (slug: string) => {
+    const lista = daCategoria(slug);
+    const ordenada = [...lista].sort((a, b) => Number(b.quantidade > 0) - Number(a.quantidade > 0));
+    return { mostrados: ordenada.slice(0, DESTAQUES), total: lista.length };
+  };
 
   return (
     <>
@@ -79,10 +90,20 @@ export default async function Loja() {
               </Link>
             )}
             <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {daCategoria(categoria.slug).map((produto) => (
+              {destaques(categoria.slug).mostrados.map((produto) => (
                 <CartaoProduto key={produto.slug} produto={produto} />
               ))}
             </ul>
+            {destaques(categoria.slug).total > DESTAQUES && (
+              <p className="mt-8 text-center">
+                <Link
+                  href={`/loja/${categoria.slug}`}
+                  className="inline-block rounded-full border border-borda px-7 py-3.5 font-display font-semibold whitespace-nowrap text-texto transition-colors hover:border-kambada-amarelo-escuro"
+                >
+                  Ver todas as {destaques(categoria.slug).total} peças de {categoria.nome.toLowerCase()} →
+                </Link>
+              </p>
+            )}
           </div>
         </section>
       ))}

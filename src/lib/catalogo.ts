@@ -78,9 +78,11 @@ export const CATEGORIAS: Categoria[] = [
     nome: "Camisas",
     chamada:
       "Estampadas com as lendas e símbolos do nosso Maranhão. Vista-se de história e identidade.",
-    foto: FOTOS.camisaIlhaEncantada,
-    // A foto tem o rosto perto do topo: foco alto corta o fim dos dedos, não a cabeça.
-    posicaoDaFoto: "center 18%",
+    // Pai e filha sentados, de camisa: em 2:1 (desktop) e 4:3 (celular) o foco a 30%
+    // mostra cabeça e camisa; o que sai é o joelho, não o rosto. O close do peito
+    // (camisaIlhaEncantada) ficava sem cabeça na capa.
+    foto: FOTOS.familiaSentados,
+    posicaoDaFoto: "center 30%",
   },
   {
     slug: "matracas",

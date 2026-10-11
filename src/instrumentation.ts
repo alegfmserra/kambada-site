@@ -11,6 +11,7 @@ export async function register() {
   if (process.env.MANUTENCAO_TIMER === "0") return;
 
   const { rotinaDeManutencao } = await import("./lib/manutencao/saude");
+  const { enviarResumoDiario, msAteProximoResumo } = await import("./lib/manutencao/resumoDiario");
   const rodar = async () => {
     try {
       const r = await rotinaDeManutencao();
@@ -21,4 +22,19 @@ export async function register() {
   };
   setTimeout(rodar, 2 * 60 * 1000).unref();
   setInterval(rodar, 6 * 60 * 60 * 1000).unref();
+
+  // Resumo do dia às 00:01 de São Luís (recorte fechado do dia anterior).
+  const agendarResumo = () => {
+    setTimeout(async () => {
+      try {
+        const r = await enviarResumoDiario();
+        console.log(`[resumo] ${r.dia}: enviado=${r.enviado} pedidos=${r.pedidos}`);
+      } catch (e) {
+        console.error("[resumo] falhou:", e instanceof Error ? e.message : e);
+      } finally {
+        agendarResumo();
+      }
+    }, msAteProximoResumo()).unref();
+  };
+  agendarResumo();
 }

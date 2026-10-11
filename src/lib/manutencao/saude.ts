@@ -22,7 +22,8 @@ import { conferirChave, mercadoPagoConfigurado } from "../mercadopago/cliente";
 import { listarRegistros } from "../pedidos/registro";
 import { alertar } from "./alertas";
 import { reconciliar, type Reconciliacao } from "./reconciliar";
-import { enviarResumoDiario, type ResumoEnviado } from "./resumoDiario";
+import { enviarResumoDiario, gravarEstadoManutencao, lerEstadoManutencao, type ResumoEnviado } from "./resumoDiario";
+import { enviarRelatoriosMensais, mesAnterior, type RelatorioEnviado } from "./relatorioCupons";
 
 export type Item = { ok: boolean; detalhe: string };
 export type Saude = {
@@ -102,8 +103,15 @@ export async function verificarSaude(): Promise<Saude> {
  * quando é hora, e avisa a loja do que estiver errado (sem repetir em 6 h).
  */
 export async function rotinaDeManutencao(
-  opcoes: { forcarResumo?: boolean } = {},
-): Promise<Saude & { alertas: Record<string, string>; reconciliacao: Reconciliacao; resumo: ResumoEnviado | { enviado: false; motivo: string } }> {
+  opcoes: { forcarResumo?: boolean; relatorioMes?: string } = {},
+): Promise<
+  Saude & {
+    alertas: Record<string, string>;
+    reconciliacao: Reconciliacao;
+    resumo: ResumoEnviado | { enviado: false; motivo: string };
+    relatorioMensal: RelatorioEnviado | { enviado: false; motivo: string };
+  }
+> {
   const s = await verificarSaude();
   const alertas: Record<string, string> = {};
 
@@ -132,6 +140,19 @@ export async function rotinaDeManutencao(
   } catch (e) {
     resumo = { enviado: false, motivo: e instanceof Error ? e.message : String(e) };
   }
+
+  // Relatório mensal por cupom: uma vez por mês (o do mês anterior), ou forçado.
+  let relatorioMensal: RelatorioEnviado | { enviado: false; motivo: string } = { enviado: false, motivo: "não é hora" };
+  try {
+    const mes = opcoes.relatorioMes ?? mesAnterior();
+    const estado = await lerEstadoManutencao();
+    if (opcoes.relatorioMes || estado.ultimoRelatorioMensal !== mes) {
+      relatorioMensal = await enviarRelatoriosMensais(mes);
+      if (relatorioMensal.enviado && !opcoes.relatorioMes) await gravarEstadoManutencao({ ...estado, ultimoRelatorioMensal: mes });
+    }
+  } catch (e) {
+    relatorioMensal = { enviado: false, motivo: e instanceof Error ? e.message : String(e) };
+  }
   const url = (process.env.URL_DO_SITE ?? "https://maroon-heron-459360.hostingersite.com").replace(/\/+$/, "");
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
@@ -145,5 +166,5 @@ export async function rotinaDeManutencao(
       `${s.pedidosComFalha.detalhe}: ${s.pedidosComFalha.refs.join(", ")}\n\nAbra ${url}/admin/pedidos e use "Refazer pendências".`,
     );
   }
-  return { ...s, alertas, reconciliacao, resumo };
+  return { ...s, alertas, reconciliacao, resumo, relatorioMensal };
 }

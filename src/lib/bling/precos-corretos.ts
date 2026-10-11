@@ -77,8 +77,10 @@ export const PRECOS_CORRETOS: Record<string, PrecoCorreto> = {
   // Casadas por custo + saldo, não por nome.
   "Matraca Kambada Pequena sem Suporte": { venda: 110, custo: 22.26 },
   "Matraca Kambada Grande sem Suporte": { venda: 145, custo: 28.72 },
-  "Matraca Kambada Pequena com Suporte": { venda: 140, custo: 36.32 },
-  "Matraca Kambada Grande com Suporte": { venda: 185, custo: 45.72 },
+  // +R$ 5 nos conjuntos com suporte (decisão do Alexandre, 11/10/2026): o
+  // suporte avulso dava prejuízo; só é vendido como complemento da matraca.
+  "Matraca Kambada Pequena com Suporte": { venda: 145, custo: 36.32 },
+  "Matraca Kambada Grande com Suporte": { venda: 190, custo: 45.72 },
   "Matraca Kambada Play": { venda: 220, custo: 63.72 },
 };
 

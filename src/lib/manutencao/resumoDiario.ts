@@ -2,11 +2,12 @@
  * Resumo do dia + backup, por e-mail à loja.
  *
  * Pedido do Alexandre (11/10/2026): saber todo dia o que foi vendido pelo
- * site, e ter os dados guardados fora do servidor. Vai um e-mail por dia para
- * a caixa da loja com (1) as vendas do dia em tabela, (2) um CSV do dia e
- * (3) um backup JSON de TODOS os pedidos e cupons do site. O Gmail passa a ser
- * o cofre: se a Hostinger perder a pasta ~/.kambada, está tudo lá.
- * Tokens (Bling) NÃO vão no backup — são segredos.
+ * site, e ter os dados guardados fora do servidor. Às 00:01 (São Luís) vai um
+ * e-mail para a caixa da loja com o DIA ANTERIOR fechado: (1) as vendas em
+ * tabela, (2) as comissões de cupom por parceiro (5% da venda para o dono do
+ * cupom), (3) um CSV do dia e (4) um backup JSON de TODOS os pedidos e cupons.
+ * O Gmail passa a ser o cofre: se a Hostinger perder a pasta ~/.kambada, está
+ * tudo lá. Tokens (Bling) NÃO vão no backup — são segredos.
  */
 
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
@@ -27,16 +28,41 @@ export function horaLocal(d = new Date()): number {
   return Number(new Intl.DateTimeFormat("en-US", { timeZone: FUSO, hour: "numeric", hourCycle: "h23" }).format(d));
 }
 
-/** O dia que o resumo deve cobrir: a partir das 20h é o dia de hoje; antes, ontem. */
+/** O resumo cobre sempre o dia anterior (fechado): roda às 00:01 de São Luís. */
 export function diaDoResumo(agora = new Date()): string {
-  if (horaLocal(agora) >= 20) return dataLocal(agora);
   return dataLocal(new Date(agora.getTime() - 24 * 60 * 60 * 1000));
+}
+
+/** Milissegundos até a próxima 00:01 em São Luís (UTC−3, sem horário de verão). */
+export function msAteProximoResumo(agora = new Date()): number {
+  const hoje = dataLocal(agora); // AAAA-MM-DD local
+  const alvoHoje = new Date(`${hoje}T00:01:00-03:00`).getTime();
+  const alvo = alvoHoje > agora.getTime() ? alvoHoje : alvoHoje + 24 * 60 * 60 * 1000;
+  return alvo - agora.getTime();
+}
+
+/** Comissões de cupom do dia, por parceiro: 5% do valor das peças com desconto. */
+export function comissoesDoDia(pedidos: RegistroPedido[]): { parceiro: string; cupom: string; pedidos: number; vendas: number; comissao: number }[] {
+  const porParceiro = new Map<string, { parceiro: string; cupom: string; pedidos: number; vendas: number; comissao: number }>();
+  for (const r of pedidos) {
+    if (!r.cupom?.parceiro || !r.cupom.comissaoPercentual) continue;
+    const chave = `${r.cupom.parceiro}|${r.cupom.codigo}`;
+    const atual = porParceiro.get(chave) ?? { parceiro: r.cupom.parceiro, cupom: r.cupom.codigo, pedidos: 0, vendas: 0, comissao: 0 };
+    const vendaPecas = r.itens.reduce((s, i) => s + i.preco * i.quantidade, 0) - r.cupom.desconto;
+    atual.pedidos += 1;
+    atual.vendas += vendaPecas;
+    atual.comissao += (vendaPecas * r.cupom.comissaoPercentual) / 100;
+    porParceiro.set(chave, atual);
+  }
+  return [...porParceiro.values()].map((c) => ({ ...c, vendas: Math.round(c.vendas * 100) / 100, comissao: Math.round(c.comissao * 100) / 100 }));
 }
 
 function arquivoEstado(): string {
   return join(dirname(arquivoTokens()), "manutencao-estado.json");
 }
-type Estado = { ultimoResumo?: string };
+type Estado = { ultimoResumo?: string; ultimoRelatorioMensal?: string };
+export async function lerEstadoManutencao(): Promise<Estado> { return lerEstado(); }
+export async function gravarEstadoManutencao(e: Estado): Promise<void> { return gravarEstado(e); }
 async function lerEstado(): Promise<Estado> {
   try {
     return JSON.parse(await readFile(arquivoEstado(), "utf8")) as Estado;
@@ -62,7 +88,7 @@ export function pedidosDoDia(registros: RegistroPedido[], dia: string): Registro
 }
 
 export function csvDoDia(pedidos: RegistroPedido[]): string {
-  const linhas = [["pedido", "hora", "cliente", "email", "itens", "entrega", "frete", "cupom", "desconto", "total", "pagamento", "parcelas", "taxa_mp", "pedido_bling", "estoque", "email_cliente", "nota"].join(";")];
+  const linhas = [["pedido", "hora", "cliente", "email", "itens", "entrega", "frete", "cupom", "desconto", "parceiro_cupom", "comissao_parceiro", "total", "pagamento", "parcelas", "taxa_mp", "pedido_bling", "estoque", "email_cliente", "nota"].join(";")];
   for (const r of pedidos) {
     linhas.push(
       [
@@ -75,6 +101,10 @@ export function csvDoDia(pedidos: RegistroPedido[]): string {
         r.entrega.retirada ? 0 : r.entrega.valor,
         r.cupom?.codigo ?? "",
         r.cupom?.desconto ?? 0,
+        r.cupom?.parceiro ?? "",
+        r.cupom?.parceiro && r.cupom.comissaoPercentual
+          ? Math.round(((r.itens.reduce((s, i) => s + i.preco * i.quantidade, 0) - r.cupom.desconto) * r.cupom.comissaoPercentual) / 100 * 100) / 100
+          : "",
         r.total,
         r.pagamento.tipo ?? "",
         r.pagamento.parcelas ?? "",
@@ -106,6 +136,7 @@ export async function enviarResumoDiario(opcoes: { forcar?: boolean; agora?: Dat
   const doDia = pedidosDoDia(registros, dia).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   const total = doDia.reduce((s, r) => s + r.total, 0);
   const falhas = doDia.filter((r) => r.estoque?.erro || r.email?.erro || r.nfe?.erro || r.emailLoja?.erro);
+  const comissoes = comissoesDoDia(doDia);
   const [a, m, d] = dia.split("-");
   const diaBr = `${d}/${m}/${a}`;
 
@@ -119,6 +150,11 @@ export async function enviarResumoDiario(opcoes: { forcar?: boolean; agora?: Dat
     ...linhasTexto,
     "",
     falhas.length ? `⚠️ ${falhas.length} pedido(s) com etapa falhada — abrir /admin/pedidos.` : "Todas as etapas (estoque, e-mails, nota) concluídas.",
+    "",
+    "COMISSÕES DE CUPOM DO DIA (a pagar ao dono do cupom)",
+    ...(comissoes.length
+      ? comissoes.map((c) => `• ${c.parceiro} (${c.cupom}): ${c.pedidos} pedido(s) · vendas ${real(c.vendas)} · comissão ${real(c.comissao)}`)
+      : ["Nenhuma venda com cupom de parceiro neste dia."]),
     "",
     `Anexos: pedidos do dia (CSV) e backup completo do site (${registros.length} pedidos, ${cupons.length} cupons).`,
   ].join("\n");
@@ -142,6 +178,17 @@ export async function enviarResumoDiario(opcoes: { forcar?: boolean; agora?: Dat
         <tbody>${linhasHtml}</tbody>
       </table>
       <p style="margin:16px 0 0;font-size:14px">${falhas.length ? `⚠️ <strong>${falhas.length}</strong> pedido(s) com etapa falhada — abrir o controle de pedidos.` : "✅ Todas as etapas (estoque, e-mails, nota) concluídas."}</p>
+      <h2 style="margin:20px 0 6px;font-size:15px">Comissões de cupom do dia</h2>
+      ${
+        comissoes.length
+          ? `<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="text-align:left;font-size:12px;color:#5e6266"><th style="padding:6px 8px">Parceiro</th><th style="padding:6px 8px">Cupom</th><th style="padding:6px 8px">Pedidos</th><th style="padding:6px 8px;text-align:right">Vendas (peças)</th><th style="padding:6px 8px;text-align:right">A pagar</th></tr></thead><tbody>${comissoes
+              .map(
+                (c) =>
+                  `<tr><td style="padding:6px 8px;border-bottom:1px solid #e3ddd0">${escaparHtml(c.parceiro)}</td><td style="padding:6px 8px;border-bottom:1px solid #e3ddd0;font-family:monospace">${escaparHtml(c.cupom)}</td><td style="padding:6px 8px;border-bottom:1px solid #e3ddd0">${c.pedidos}</td><td style="padding:6px 8px;border-bottom:1px solid #e3ddd0;text-align:right">${real(c.vendas)}</td><td style="padding:6px 8px;border-bottom:1px solid #e3ddd0;text-align:right"><strong>${real(c.comissao)}</strong></td></tr>`,
+              )
+              .join("")}</tbody></table><p style="margin:6px 0 0;font-size:12px;color:#5e6266">Comissão = percentual do cupom sobre o valor das peças já com desconto. O acumulado do mês está em /admin/cupons.</p>`
+          : `<p style="margin:0;font-size:14px;color:#5e6266">Nenhuma venda com cupom de parceiro neste dia.</p>`
+      }
       <p style="margin:14px 0 0;font-size:12px;color:#5e6266">Anexos: pedidos do dia em CSV e backup completo do site (${registros.length} pedidos, ${cupons.length} cupons). Guarde este e-mail: ele é a cópia de segurança.</p>
     </div>
   </div></body></html>`;

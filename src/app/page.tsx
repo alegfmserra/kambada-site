@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import FaixaBeneficios from "@/components/FaixaBeneficios";
 import { ARTIGOS } from "@/lib/artigos";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { FOTOS } from "@/lib/fotos";
@@ -59,6 +60,9 @@ export default function Home() {
               className="h-full w-full object-cover"
             />
           </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+          <FaixaBeneficios compacta />
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
+import FaixaBeneficios from "@/components/FaixaBeneficios";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
 import { buscarCatalogo } from "@/lib/bling/produtos";
@@ -46,6 +47,7 @@ export default async function Loja() {
           <div className="mt-10">
             <AvisoDemonstracao />
           </div>
+          <FaixaBeneficios />
         </div>
       </section>
 

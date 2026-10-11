@@ -86,11 +86,11 @@ export default function Contato() {
             </p>
             <p className="mt-4 leading-relaxed text-texto-suave">
               Prefere escrever? Dúvidas e reclamações:{" "}
-              <a href={`mailto:${EMAILS.contato}`} className="font-semibold text-texto underline underline-offset-4">
+              <a href={`mailto:${EMAILS.contato}`} className="break-all font-semibold text-texto underline underline-offset-4">
                 {EMAILS.contato}
               </a>
               . Encomendas e pedidos maiores (empresas, eventos, órgãos públicos):{" "}
-              <a href={`mailto:${EMAILS.encomendas}`} className="font-semibold text-texto underline underline-offset-4">
+              <a href={`mailto:${EMAILS.encomendas}`} className="break-all font-semibold text-texto underline underline-offset-4">
                 {EMAILS.encomendas}
               </a>
               .

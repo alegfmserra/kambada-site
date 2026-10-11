@@ -72,7 +72,7 @@ export default function Encomendas() {
           </a>
           <p className="mt-5 text-sm text-texto-suave">
             Prefere e-mail? Escreva para{" "}
-            <a href={`mailto:${EMAILS.encomendas}`} className="font-semibold text-texto underline underline-offset-4">
+            <a href={`mailto:${EMAILS.encomendas}`} className="break-all font-semibold text-texto underline underline-offset-4">
               {EMAILS.encomendas}
             </a>{" "}
             com o evento, a peça e a quantidade.

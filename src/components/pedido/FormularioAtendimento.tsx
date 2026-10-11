@@ -135,7 +135,7 @@ export default function FormularioAtendimento({ refInicial }: { refInicial: stri
         <p className="mt-3 text-sm text-texto-suave">
           A mensagem abre pronta no WhatsApp da Kambada — é só enviar. Não pedimos CPF nem dados de
           cartão por lá. Prefere e-mail? Escreva para{" "}
-          <a href={`mailto:${EMAILS.contato}`} className="font-semibold text-texto underline underline-offset-4">
+          <a href={`mailto:${EMAILS.contato}`} className="break-all font-semibold text-texto underline underline-offset-4">
             {EMAILS.contato}
           </a>
           . Antes, se quiser, veja a{" "}

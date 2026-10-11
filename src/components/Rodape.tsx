@@ -24,7 +24,7 @@ export default function Rodape() {
             <br />
             Visitas ao ateliê com hora marcada pelo WhatsApp.
             <br />
-            <a href={`mailto:${EMAILS.contato}`} className="underline underline-offset-2 hover:text-kambada-amarelo">
+            <a href={`mailto:${EMAILS.contato}`} className="break-all underline underline-offset-2 hover:text-kambada-amarelo">
               {EMAILS.contato}
             </a>
           </p>

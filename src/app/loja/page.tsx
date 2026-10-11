@@ -100,7 +100,7 @@ export default async function Loja() {
                   href={`/loja/${categoria.slug}`}
                   className="inline-block rounded-full border border-borda px-7 py-3.5 font-display font-semibold whitespace-nowrap text-texto transition-colors hover:border-kambada-amarelo-escuro"
                 >
-                  Ver todas as {destaques(categoria.slug).total} peças de {categoria.nome.toLowerCase()} →
+                  Ver todas · {destaques(categoria.slug).total} peças →
                 </Link>
               </p>
             )}

@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
@@ -55,6 +56,7 @@ export async function POST(requisicao: Request) {
   // cobrem todas as páginas de categoria e de peça de uma vez. Sem a última
   // linha, preço e estoque mudados no Bling ficavam até 10 minutos velhos na
   // página da peça — justamente onde o cliente decide e põe no carrinho.
+  invalidarCatalogoEmMemoria();
   revalidatePath("/", "page");
   revalidatePath("/loja", "page");
   revalidatePath("/loja/[categoria]", "page");

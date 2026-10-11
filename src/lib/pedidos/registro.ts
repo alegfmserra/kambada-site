@@ -68,6 +68,7 @@ export async function salvarRegistro(r: RegistroPedido): Promise<void> {
   const temporario = `${destino}.${process.pid}.tmp`;
   await writeFile(temporario, JSON.stringify(r, null, 2), "utf8");
   await rename(temporario, destino);
+  listaEmMemoria = null;
 }
 
 export async function atualizarRegistro(
@@ -81,17 +82,30 @@ export async function atualizarRegistro(
   return novo;
 }
 
+/**
+ * Lista em memória: reler todos os arquivos a cada consulta de cupom era
+ * O(n) de disco por tecla digitada. A chave é a lista de nomes da pasta;
+ * qualquer gravação (salvarRegistro) invalida.
+ */
+let listaEmMemoria: { chave: string; registros: RegistroPedido[] } | null = null;
+
 /** Os pedidos mais recentes primeiro. */
 export async function listarRegistros(limite = 100): Promise<RegistroPedido[]> {
   let nomes: string[];
   try {
-    nomes = (await readdir(pastaDosPedidos())).filter((n) => /^KMB-.*\.json$/.test(n));
+    nomes = (await readdir(pastaDosPedidos())).filter((n) => /^KMB-.*\.json$/.test(n)).sort();
   } catch {
     return [];
   }
-  const registros = await Promise.all(nomes.map((n) => lerRegistro(n.replace(/\.json$/, ""))));
-  return registros
-    .filter((r): r is RegistroPedido => r !== null)
-    .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
-    .slice(0, limite);
+  const chave = nomes.join("|");
+  if (!listaEmMemoria || listaEmMemoria.chave !== chave) {
+    const registros = await Promise.all(nomes.map((n) => lerRegistro(n.replace(/\.json$/, ""))));
+    listaEmMemoria = {
+      chave,
+      registros: registros
+        .filter((r): r is RegistroPedido => r !== null)
+        .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)),
+    };
+  }
+  return listaEmMemoria.registros.slice(0, limite);
 }

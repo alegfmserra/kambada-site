@@ -12,6 +12,7 @@ export async function register() {
 
   const { rotinaDeManutencao } = await import("./lib/manutencao/saude");
   const { enviarResumoDiario, msAteProximoResumo } = await import("./lib/manutencao/resumoDiario");
+  const { aquecerPaginas } = await import("./lib/manutencao/aquecer");
   const rodar = async () => {
     try {
       const r = await rotinaDeManutencao();
@@ -21,6 +22,12 @@ export async function register() {
     }
   };
   setTimeout(rodar, 2 * 60 * 1000).unref();
+  // Páginas de produto aquecidas 3 min depois de subir (deploy/reinício).
+  setTimeout(() => {
+    aquecerPaginas(process.env.URL_DO_SITE ?? "https://maroon-heron-459360.hostingersite.com")
+      .then((a) => console.log(`[aquecimento] ${a.ok}/${a.paginas} páginas em ${a.ms} ms`))
+      .catch((e) => console.error("[aquecimento] falhou:", e instanceof Error ? e.message : e));
+  }, 3 * 60 * 1000).unref();
   setInterval(rodar, 6 * 60 * 60 * 1000).unref();
 
   // Resumo do dia às 00:01 de São Luís (recorte fechado do dia anterior).

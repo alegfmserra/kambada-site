@@ -325,6 +325,20 @@ function fonteEscolhida(): "local" | "bling" {
   return process.env.BLING_FONTE_DO_CATALOGO === "bling" ? "bling" : "local";
 }
 
+/**
+ * Catálogo montado em memória por 2 min. Cada /api/cupom, /api/frete e
+ * /api/checkout remontava o catálogo (produtos + saldos em lote) — eram os
+ * 5 s do botão "Aplicar" (auditoria de 10/10/2026). O estoque do checkout é
+ * conferido ao vivo à parte (saldoAoVivo), então 2 min não vendem peça a mais.
+ */
+let catalogoEmMemoria: { valor: Catalogo; expiraEm: number } | null = null;
+const MEMORIA_MS = 2 * 60 * 1000;
+
+/** Chamado pelo webhook do Bling: preço/estoque mudou, esquece o que está na memória. */
+export function invalidarCatalogoEmMemoria(): void {
+  catalogoEmMemoria = null;
+}
+
 export async function buscarCatalogo(): Promise<Catalogo> {
   if (fonteEscolhida() === "local") {
     return {
@@ -341,8 +355,11 @@ export async function buscarCatalogo(): Promise<Catalogo> {
     };
   }
 
+  if (catalogoEmMemoria && catalogoEmMemoria.expiraEm > Date.now()) return catalogoEmMemoria.valor;
   try {
-    return await montarDoBling();
+    const montado = await montarDoBling();
+    catalogoEmMemoria = { valor: montado, expiraEm: Date.now() + MEMORIA_MS };
+    return montado;
   } catch (erro) {
     const motivo = erro instanceof Error ? erro.message : String(erro);
     // Falhar aqui não pode derrubar a loja.

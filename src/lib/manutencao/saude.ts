@@ -21,6 +21,7 @@ import { conferirMelhorEnvio, freteConfigurado } from "../frete/melhorEnvio";
 import { conferirChave, mercadoPagoConfigurado } from "../mercadopago/cliente";
 import { listarRegistros } from "../pedidos/registro";
 import { alertar } from "./alertas";
+import { aquecerPaginas, type Aquecimento } from "./aquecer";
 import { reconciliar, type Reconciliacao } from "./reconciliar";
 import { enviarResumoDiario, gravarEstadoManutencao, lerEstadoManutencao, type ResumoEnviado } from "./resumoDiario";
 import { enviarRelatoriosMensais, mesAnterior, type RelatorioEnviado } from "./relatorioCupons";
@@ -110,6 +111,7 @@ export async function rotinaDeManutencao(
     reconciliacao: Reconciliacao;
     resumo: ResumoEnviado | { enviado: false; motivo: string };
     relatorioMensal: RelatorioEnviado | { enviado: false; motivo: string };
+    aquecimento: Aquecimento | { paginas: 0; motivo: string };
   }
 > {
   const s = await verificarSaude();
@@ -166,5 +168,13 @@ export async function rotinaDeManutencao(
       `${s.pedidosComFalha.detalhe}: ${s.pedidosComFalha.refs.join(", ")}\n\nAbra ${url}/admin/pedidos e use "Refazer pendências".`,
     );
   }
-  return { ...s, alertas, reconciliacao, resumo, relatorioMensal };
+  // Páginas de produto prontas antes do próximo visitante (ver aquecer.ts).
+  let aquecimento: Aquecimento | { paginas: 0; motivo: string };
+  try {
+    aquecimento = await aquecerPaginas(url);
+  } catch (e) {
+    aquecimento = { paginas: 0, motivo: e instanceof Error ? e.message : String(e) };
+  }
+
+  return { ...s, alertas, reconciliacao, resumo, relatorioMensal, aquecimento };
 }

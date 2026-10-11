@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { buscarCatalogo } from "@/lib/bling/produtos";
-import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
+import { buscarCatalogo, saldoAoVivo } from "@/lib/bling/produtos";
+import { indexarOpcoes, lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { lerDadosCliente } from "@/lib/checkout/cliente";
 import { novaReferencia, VERSAO_RETRATO, type RetratoPedido } from "@/lib/checkout/pedido";
 import { cotarCarrinho } from "@/lib/frete/cotar";
@@ -69,6 +69,25 @@ export async function POST(requisicao: Request) {
   if (validacao.problemas.length || validacao.itens.length === 0) {
     return NextResponse.json(
       { erro: "Alguns itens mudaram.", problemas: validacao.problemas },
+      { status: 409 },
+    );
+  }
+
+  // Saldo AO VIVO no Bling, item a item: o catálogo tem até 2 min de atraso e
+  // dois clientes podiam levar a última peça. Peça por encomenda não entra.
+  // Se o Bling não responder, segue com o saldo do catálogo (não trava a venda).
+  const indice = indexarOpcoes(catalogo);
+  const semEstoque: string[] = [];
+  for (const item of validacao.itens) {
+    if (indice.get(item.idBling)?.produto.sobEncomenda) continue;
+    const saldo = await saldoAoVivo(item.idBling);
+    if (saldo !== null && saldo < item.quantidade) {
+      semEstoque.push(saldo <= 0 ? `${item.nome}: acabou de esgotar.` : `${item.nome}: só ${saldo} em estoque agora.`);
+    }
+  }
+  if (semEstoque.length) {
+    return NextResponse.json(
+      { erro: "O estoque mudou enquanto você comprava.", problemas: semEstoque, motivo: "estoque" },
       { status: 409 },
     );
   }

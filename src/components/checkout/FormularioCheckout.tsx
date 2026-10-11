@@ -371,6 +371,13 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
               {campo("email", "E-mail", { tipo: "email", auto: "email", modo: "email", largura: "" })}
               {campo("telefone", "Celular com DDD", { tipo: "tel", auto: "tel", modo: "tel", largura: "" })}
               {campo("cpf", "CPF (para a nota fiscal)", { modo: "numeric", largura: "" })}
+              <p className="text-xs leading-relaxed text-texto-suave sm:col-span-2">
+                Usamos seus dados só para entregar o pedido, emitir a nota fiscal e falar com você.{" "}
+                <Link href="/privacidade" target="_blank" className="font-semibold text-texto underline underline-offset-4">
+                  Política de Privacidade
+                </Link>
+                .
+              </p>
             </>
           )}
         </fieldset>
@@ -593,7 +600,12 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         {pagamentoOnline ? (
           <>
             <p className="mt-3 text-center text-xs text-texto-tenue">
-              Pix ou cartão em até 3x. Você paga na página segura do Mercado Pago.
+              Pix ou cartão em até 3x. Você paga na página segura do Mercado Pago. Ao pagar, você
+              concorda com os{" "}
+              <Link href="/termos" target="_blank" className="font-semibold text-texto underline underline-offset-4">
+                Termos de Compra
+              </Link>
+              .
             </p>
             <a
               href={whatsapp}

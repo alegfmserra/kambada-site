@@ -27,6 +27,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const politicas: MetadataRoute.Sitemap = [
     { url: new URL("/trocas-e-devolucoes", SITE.url).toString(), changeFrequency: "yearly", priority: 0.3 },
+    { url: new URL("/privacidade", SITE.url).toString(), changeFrequency: "yearly", priority: 0.3 },
+    { url: new URL("/termos", SITE.url).toString(), changeFrequency: "yearly", priority: 0.3 },
     { url: new URL("/direitos-autorais", SITE.url).toString(), changeFrequency: "yearly", priority: 0.3 },
   ];
 

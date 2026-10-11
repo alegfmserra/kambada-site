@@ -78,6 +78,8 @@ export const POS_VENDA = [
   { rotulo: "Acompanhar pedido", href: "/pedido" },
   { rotulo: "Reclamação, troca ou devolução", href: "/pedido/atendimento" },
   { rotulo: "Trocas e devoluções", href: "/trocas-e-devolucoes" },
+  { rotulo: "Termos de Compra", href: "/termos" },
+  { rotulo: "Política de Privacidade", href: "/privacidade" },
 ] as const;
 
 /**

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import FotoEmoldurada from "@/components/FotoEmoldurada";
 import Link from "next/link";
 import { ARTIGOS } from "@/lib/artigos";
 import { CATEGORIAS } from "@/lib/catalogo";
@@ -84,15 +85,13 @@ export default function Home() {
                   href={`/loja/${categoria.slug}`}
                   className="group block overflow-hidden rounded-2xl border border-borda bg-superficie transition-colors hover:border-kambada-amarelo-escuro"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <Image
-                      src={categoria.foto!.arquivo}
-                      alt={categoria.foto!.alt}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
+                  <FotoEmoldurada
+                    src={categoria.foto!.arquivo}
+                    alt={categoria.foto!.alt}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="aspect-[4/3]"
+                    classeDaFrente="transition-transform duration-500 group-hover:scale-105"
+                  />
                   <div className="p-6">
                     <h3 className="font-display text-xl font-semibold">
                       {categoria.nome}

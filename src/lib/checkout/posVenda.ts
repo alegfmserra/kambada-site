@@ -45,7 +45,7 @@ import {
   type Etapa,
   type RegistroPedido,
 } from "../pedidos/registro";
-import { linkWhatsApp } from "../site";
+import { EMAILS, linkWhatsApp } from "../site";
 import type { RetratoPedido } from "./pedido";
 
 /** O endereço que vai nos links do e-mail. */
@@ -216,8 +216,8 @@ async function etapaEmail(r: RegistroPedido): Promise<Etapa> {
       assunto: assuntoConfirmacao(r),
       texto: textoConfirmacao(dados),
       html: htmlConfirmacao(dados),
-      // Resposta do cliente cai na caixa da loja, não na de pedidos.
-      responderPara: emailDaLoja(),
+      // Resposta do cliente cai em contato@ (que encaminha para a loja).
+      responderPara: EMAILS.contato,
     });
     return { feitoEm: agoraIso() };
   } catch (e) {
@@ -291,7 +291,7 @@ async function etapaEmailNota(r: RegistroPedido): Promise<Etapa> {
       assunto: assuntoNota(r, numero),
       texto: textoNota(dados),
       html: htmlNota(dados),
-      responderPara: emailDaLoja(),
+      responderPara: EMAILS.contato,
       anexos,
     });
     return { feitoEm: agoraIso(), detalhe: anexos.map((a) => a.nome).join(", ") || "só o link" };

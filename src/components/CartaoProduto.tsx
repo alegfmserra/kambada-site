@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import FotoEmoldurada from "@/components/FotoEmoldurada";
 import type { Produto } from "@/lib/catalogo";
 import { disponibilidade, precoExibido } from "@/lib/catalogo";
 import { fotoDoProduto } from "@/lib/fotoDoProduto";
@@ -12,15 +12,13 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
   return (
     <li className="group relative flex flex-col rounded-2xl border border-borda bg-superficie p-6 transition-colors hover:border-kambada-amarelo-escuro">
       {foto ? (
-        <div className="relative mb-5 h-56 overflow-hidden rounded-xl bg-white">
-          <Image
-            src={foto.src}
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"
-            className="object-contain transition-transform duration-300 group-hover:scale-105"
-          />
-        </div>
+        <FotoEmoldurada
+          src={foto.src}
+          alt=""
+          sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"
+          className="mb-5 h-56 rounded-xl"
+          classeDaFrente="transition-transform duration-300 group-hover:scale-105"
+        />
       ) : (
         // Peça ainda sem foto no acervo: espaço honesto, não imagem genérica.
         <div

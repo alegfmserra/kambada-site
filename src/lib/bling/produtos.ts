@@ -411,6 +411,7 @@ export async function montarDoBling(): Promise<Catalogo> {
       idBling: p.id,
       opcoes,
       oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || undefined,
+      sobEncomenda: categoria === "matracas" || undefined,
     });
   }
 

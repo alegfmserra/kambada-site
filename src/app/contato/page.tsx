@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { REDES, SITE, linkWhatsApp } from "@/lib/site";
+import { EMAILS, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
 /**
  * Contato. Só canais confirmados: o WhatsApp extraído dos links do site atual
@@ -83,6 +83,17 @@ export default function Contato() {
               e funcionamos <strong className="text-texto">todos os dias, das 8h às 18h</strong>. Quer
               conhecer todas as peças de perto e viver a experiência da Kambada? É só marcar uma
               visita pelo WhatsApp — o endereço completo a gente passa na conversa.
+            </p>
+            <p className="mt-4 leading-relaxed text-texto-suave">
+              Prefere escrever? Dúvidas e reclamações:{" "}
+              <a href={`mailto:${EMAILS.contato}`} className="font-semibold text-texto underline underline-offset-4">
+                {EMAILS.contato}
+              </a>
+              . Encomendas e pedidos maiores (empresas, eventos, órgãos públicos):{" "}
+              <a href={`mailto:${EMAILS.encomendas}`} className="font-semibold text-texto underline underline-offset-4">
+                {EMAILS.encomendas}
+              </a>
+              .
             </p>
             <p className="mt-3 text-sm text-texto-tenue">
               {SITE.razaoSocial} · CNPJ {SITE.cnpj}

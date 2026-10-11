@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { MOTIVOS, mensagemAtendimento, type Motivo } from "@/lib/pedido/atendimento";
-import { linkWhatsApp } from "@/lib/site";
+import { EMAILS, linkWhatsApp } from "@/lib/site";
 
 export default function FormularioAtendimento({ refInicial }: { refInicial: string }) {
   const [motivo, setMotivo] = useState<Motivo>("entrega");
@@ -134,7 +134,11 @@ export default function FormularioAtendimento({ refInicial }: { refInicial: stri
         </button>
         <p className="mt-3 text-sm text-texto-suave">
           A mensagem abre pronta no WhatsApp da Kambada — é só enviar. Não pedimos CPF nem dados de
-          cartão por lá. Antes, se quiser, veja a{" "}
+          cartão por lá. Prefere e-mail? Escreva para{" "}
+          <a href={`mailto:${EMAILS.contato}`} className="font-semibold text-texto underline underline-offset-4">
+            {EMAILS.contato}
+          </a>
+          . Antes, se quiser, veja a{" "}
           <Link href="/trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">
             política de trocas e devoluções
           </Link>

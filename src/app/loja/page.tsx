@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import FotoEmoldurada from "@/components/FotoEmoldurada";
 import Link from "next/link";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import BarraCategorias from "@/components/BarraCategorias";
@@ -66,16 +66,13 @@ export default async function Loja() {
                 href={`/loja/${categoria.slug}`}
                 className="group mt-7 block overflow-hidden rounded-2xl"
               >
-                <div className="relative aspect-[21/9]">
-                  <Image
-                    src={categoria.foto.arquivo}
-                    alt={categoria.foto.alt}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 70vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    style={categoria.posicaoDaFoto ? { objectPosition: categoria.posicaoDaFoto } : undefined}
-                  />
-                </div>
+                <FotoEmoldurada
+                  src={categoria.foto.arquivo}
+                  alt={categoria.foto.alt}
+                  sizes="(max-width: 1024px) 100vw, 70vw"
+                  className="aspect-[21/9]"
+                  classeDaFrente="transition-transform duration-500 group-hover:scale-105"
+                />
               </Link>
             )}
             <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

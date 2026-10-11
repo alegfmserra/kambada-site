@@ -42,3 +42,14 @@ describe("ordem das opções", () => {
     expect(ordenarRotulos(["Único"])).toEqual(["Único"]);
   });
 });
+
+import { parcelasPermitidas } from "../mercadopago/cliente";
+
+describe("parcelas por valor (decisão de 10/10/2026)", () => {
+  it("à vista abaixo de R$ 200, 2x a partir de 200, 3x a partir de 300", () => {
+    expect(parcelasPermitidas(19999)).toBe(1);
+    expect(parcelasPermitidas(20000)).toBe(2);
+    expect(parcelasPermitidas(29999)).toBe(2);
+    expect(parcelasPermitidas(30000)).toBe(3);
+  });
+});

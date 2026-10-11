@@ -89,7 +89,7 @@ export function validarCarrinho(
       problemas.push(`${nome}: o máximo por pedido é ${MAXIMO_POR_ITEM} unidades.`);
       continue;
     }
-    if (opcao.quantidade < quantidade) {
+    if (!produto.sobEncomenda && opcao.quantidade < quantidade) {
       problemas.push(
         opcao.quantidade <= 0
           ? `${nome}: esgotou.`

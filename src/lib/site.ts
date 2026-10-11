@@ -35,12 +35,24 @@ export const WHATSAPP = {
   numero: "5598984435295",
   exibicao: "(98) 98443-5295",
   // Sem "Bom dia": o site é estático e a saudação não sabe que horas são.
-  saudacao: "Olá! O que a Kambada pode fazer por você hoje?",
+  saudacao: "Bora vestir o Maranhão? Vim pelo site e quero conversar.",
 } as const;
 
 export function linkWhatsApp(mensagem: string = WHATSAPP.saudacao): string {
   return `https://wa.me/${WHATSAPP.numero}?text=${encodeURIComponent(mensagem)}`;
 }
+
+/**
+ * Caixas da loja (criadas pelo Alexandre na Hostinger em 10/10/2026). Cada uma
+ * tem um papel: pedidos@ só manda os e-mails automáticos; contato@ recebe
+ * dúvidas e reclamações; encomendas@ recebe pedidos maiores (B2B, B2C, B2G).
+ * Todas encaminham cópia para o Gmail da loja.
+ */
+export const EMAILS = {
+  pedidos: "pedidos@somoskambada.com.br",
+  contato: "contato@somoskambada.com.br",
+  encomendas: "encomendas@somoskambada.com.br",
+} as const;
 
 export const REDES = [
   { nome: "Instagram", url: "https://www.instagram.com/somos.kambada" },

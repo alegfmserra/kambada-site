@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { NAV, POS_VENDA, REDES, SITE, linkWhatsApp } from "@/lib/site";
+import { EMAILS, NAV, POS_VENDA, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
 export default function Rodape() {
   return (
@@ -23,6 +23,10 @@ export default function Rodape() {
             Olho d&apos;Água, São Luís – MA · todos os dias, 8h às 18h
             <br />
             Visitas ao ateliê com hora marcada pelo WhatsApp.
+            <br />
+            <a href={`mailto:${EMAILS.contato}`} className="underline underline-offset-2 hover:text-kambada-amarelo">
+              {EMAILS.contato}
+            </a>
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
+import { EMAILS, ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
 
 /**
  * Encomendas corporativas. A Kambada já produz sob medida para empresas e
@@ -70,6 +70,13 @@ export default function Encomendas() {
             </svg>
             Fazer minha encomenda
           </a>
+          <p className="mt-5 text-sm text-texto-suave">
+            Prefere e-mail? Escreva para{" "}
+            <a href={`mailto:${EMAILS.encomendas}`} className="font-semibold text-texto underline underline-offset-4">
+              {EMAILS.encomendas}
+            </a>{" "}
+            com o evento, a peça e a quantidade.
+          </p>
         </div>
       </section>
 

@@ -27,8 +27,6 @@ export type Categoria = {
   chamada: string;
   /** Foto de vitrine. Pareôs ainda não têm foto no acervo. */
   foto?: Foto;
-  /** Ponto de corte da capa (CSS object-position) — quando o centro corta a cabeça. */
-  posicaoDaFoto?: string;
 };
 
 /**
@@ -64,6 +62,12 @@ export type Produto = {
   oculto?: boolean;
   /** Texto da "descrição curta" do Bling, já sem HTML. */
   descricao?: string;
+  /**
+   * Feita por encomenda (matracas, decisão de 10/10/2026): vende mesmo com
+   * saldo zero, porque o ateliê produz em 3 a 7 dias. O saldo do Bling vira
+   * só informação interna.
+   */
+  sobEncomenda?: boolean;
 };
 
 export const CATEGORIAS: Categoria[] = [
@@ -73,8 +77,6 @@ export const CATEGORIAS: Categoria[] = [
     chamada:
       "Estampadas com as lendas e símbolos do nosso Maranhão. Vista-se de história e identidade.",
     foto: FOTOS.camisaIlhaEncantada,
-    // A foto é um close do peito; no centro, o corte 21:9 tirava a cabeça.
-    posicaoDaFoto: "center 15%",
   },
   {
     slug: "matracas",
@@ -602,6 +604,7 @@ export function disponibilidade(produto: Produto): {
   texto: string;
   disponivel: boolean;
 } {
+  if (produto.sobEncomenda) return { texto: "Feita por encomenda · 3 a 7 dias", disponivel: true };
   if (produto.quantidade <= 0) return { texto: "Esgotado", disponivel: false };
   if (produto.quantidade <= 5)
     return { texto: "Últimas unidades", disponivel: true };

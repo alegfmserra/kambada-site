@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
+import FotoAtiva from "@/components/produto/FotoAtiva";
+import GuiaDeTamanhos from "@/components/produto/GuiaDeTamanhos";
+import { ProvedorOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
+import { tabelaDeMedidas } from "@/lib/loja/medidas";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { embalagemDe } from "@/lib/frete/embalagens";
-import { fotoDoProduto } from "@/lib/fotoDoProduto";
+import { fotoDoItem, fotoDoProduto, type FotoProduto } from "@/lib/fotoDoProduto";
 import {
   categoriaPorSlug,
   disponibilidade,
@@ -91,6 +94,17 @@ export default async function PaginaProduto({ params }: Props) {
     produto.variacoes.length === 1 && produto.variacoes[0] === "Único";
 
   const foto = fotoDoProduto(produto);
+  // Foto de cada opção (estampa) — a página troca ao escolher.
+  const fotosPorOpcao: Record<number, FotoProduto> = {};
+  for (const o of produto.opcoes ?? []) {
+    const f = fotoDoItem(o.idBling, produto.slug);
+    if (f) fotosPorOpcao[o.idBling] = f;
+  }
+  // Abre mostrando a primeira opção disponível que tenha foto própria — não a
+  // estampa esgotada do produto-pai.
+  const primeiraComFoto = (produto.opcoes ?? []).find((o) => o.quantidade > 0 && fotosPorOpcao[o.idBling]);
+  const fotoInicial = primeiraComFoto ? fotosPorOpcao[primeiraComFoto.idBling] : foto;
+  const medidas = tabelaDeMedidas(produto);
 
   /**
    * Opções que podem ir para o carrinho: precisam de ID no Bling e de
@@ -116,7 +130,9 @@ export default async function PaginaProduto({ params }: Props) {
       "@type": "Offer",
       price: produto.preco,
       priceCurrency: "BRL",
-      availability: estoque.disponivel
+      availability: produto.sobEncomenda
+        ? "https://schema.org/MadeToOrder"
+        : estoque.disponivel
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
     },
@@ -150,28 +166,9 @@ export default async function PaginaProduto({ params }: Props) {
             </Link>
           </nav>
 
+          <ProvedorOpcaoAtiva inicial={opcoesCompraveis.length === 1 ? opcoesCompraveis[0].idBling : null}>
           <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
-            {foto ? (
-              <div className="relative aspect-square overflow-hidden rounded-3xl bg-white">
-                <Image
-                  src={foto.src}
-                  alt={produto.nome}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 34rem, 92vw"
-                  className="object-contain"
-                />
-              </div>
-            ) : (
-              // Peça ainda sem foto no acervo: um espaço honesto — melhor que
-              // uma imagem genérica que não é a peça.
-              <div
-                aria-hidden="true"
-                className="flex aspect-square items-center justify-center rounded-3xl border border-dashed border-borda bg-superficie text-7xl"
-              >
-                🦀
-              </div>
-            )}
+            <FotoAtiva nome={produto.nome} padrao={fotoInicial} porOpcao={fotosPorOpcao} />
 
             <div className="flex flex-col">
               <h1 className="font-display text-3xl leading-tight font-extrabold text-balance sm:text-4xl">
@@ -204,7 +201,9 @@ export default async function PaginaProduto({ params }: Props) {
                     categoria={produto.categoria}
                     nome={produto.nome}
                     opcoes={opcoesCompraveis}
+                    sobEncomenda={produto.sobEncomenda}
                   />
+                  {medidas && <GuiaDeTamanhos tabela={medidas} />}
                   <p className="mt-2 text-sm text-texto-suave">
                     Prefere conversar antes?{" "}
                     <a
@@ -314,6 +313,7 @@ export default async function PaginaProduto({ params }: Props) {
               </p>
             </div>
           </div>
+          </ProvedorOpcaoAtiva>
         </div>
       </section>
 

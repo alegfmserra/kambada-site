@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 import { MAXIMO_POR_ITEM } from "@/lib/carrinho/logica";
 import type { Opcao } from "@/lib/catalogo";
 import { formatarReais } from "@/lib/loja/dinheiro";
+import { useOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
 import { useCarrinho } from "./ProvedorCarrinho";
 
 type Props = {
@@ -13,10 +14,13 @@ type Props = {
   nome: string;
   /** Só as opções que podem ir para o carrinho (com embalagem conhecida). */
   opcoes: Opcao[];
+  /** Feita por encomenda: o saldo não limita a compra. */
+  sobEncomenda?: boolean;
 };
 
-export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: Props) {
+export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sobEncomenda = false }: Props) {
   const { adicionar, itens } = useCarrinho();
+  const fotoAtiva = useOpcaoAtiva();
   const idGrupo = useId();
   const unica = opcoes.length === 1;
 
@@ -28,12 +32,14 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
 
   const opcao = opcoes.find((o) => o.idBling === escolhida) ?? null;
   const noCarrinho = opcao ? (itens.find((i) => i.idBling === opcao.idBling)?.quantidade ?? 0) : 0;
-  const teto = opcao ? Math.max(0, Math.min(opcao.quantidade, MAXIMO_POR_ITEM) - noCarrinho) : 0;
-  const esgotada = opcao !== null && opcao.quantidade <= 0;
+  const disponivelNaOpcao = (o: Opcao) => (sobEncomenda ? MAXIMO_POR_ITEM : o.quantidade);
+  const teto = opcao ? Math.max(0, Math.min(disponivelNaOpcao(opcao), MAXIMO_POR_ITEM) - noCarrinho) : 0;
+  const esgotada = opcao !== null && disponivelNaOpcao(opcao) <= 0;
   const ehTamanho = opcoes.some((o) => /(^|\s)(PP|P|M|G|GG|XG|XGG|EG|\d+\s*anos?)$/i.test(o.rotulo.trim()));
 
   function escolher(id: number) {
     setEscolhida(id);
+    fotoAtiva?.escolher(id);
     setQuantidade(1);
     setAdicionado(false);
   }
@@ -48,7 +54,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
       rotulo: opcao.rotulo,
       preco: opcao.preco,
       quantidade: Math.min(quantidade, teto),
-      estoque: opcao.quantidade,
+      estoque: disponivelNaOpcao(opcao),
     });
     setQuantidade(1);
     setAdicionado(true);
@@ -64,7 +70,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes }: P
           <div className="mt-3 flex flex-wrap gap-2">
             {opcoes.map((o) => {
               const id = `${idGrupo}-${o.idBling}`;
-              const semEstoque = o.quantidade <= 0;
+              const semEstoque = disponivelNaOpcao(o) <= 0;
               return (
                 <label
                   key={o.idBling}

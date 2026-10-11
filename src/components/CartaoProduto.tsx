@@ -1,5 +1,5 @@
+import Image from "next/image";
 import Link from "next/link";
-import FotoEmoldurada from "@/components/FotoEmoldurada";
 import type { Produto } from "@/lib/catalogo";
 import { disponibilidade, precoExibido } from "@/lib/catalogo";
 import { fotoDoProduto } from "@/lib/fotoDoProduto";
@@ -12,18 +12,21 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
   return (
     <li className="group relative flex flex-col rounded-2xl border border-borda bg-superficie p-6 transition-colors hover:border-kambada-amarelo-escuro">
       {foto ? (
-        <FotoEmoldurada
-          src={foto.src}
-          alt=""
-          sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"
-          className="mb-5 h-56 rounded-xl"
-          classeDaFrente="transition-transform duration-300 group-hover:scale-105"
-        />
+        <div className="relative mb-5 aspect-[4/5] overflow-hidden rounded-xl">
+          {/* 4:5 é quase a proporção das fotos (3:4): a peça inteira, sem barra. */}
+          <Image
+            src={foto.src}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
       ) : (
         // Peça ainda sem foto no acervo: espaço honesto, não imagem genérica.
         <div
           aria-hidden="true"
-          className="mb-5 flex h-56 items-center justify-center rounded-xl border border-dashed border-borda text-3xl"
+          className="mb-5 flex aspect-[4/5] items-center justify-center rounded-xl border border-dashed border-borda text-3xl"
         >
           🦀
         </div>

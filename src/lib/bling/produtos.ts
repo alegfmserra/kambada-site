@@ -211,11 +211,17 @@ export function rotuloDaVariacao(
 
   const partes = semPai
     .split(";")
+    .map((parte) => parte.trim())
+    // "Boi Frontal:Boi Frontal" — atributo igual ao valor é metadado do
+    // cadastro, não uma opção de compra (decisão de 10/10/2026): sai do rótulo.
+    .filter((parte) => {
+      const m = parte.match(/^([^:]{1,30}):(.*)$/);
+      return !(m && m[1].trim().toLowerCase() === m[2].trim().toLowerCase());
+    })
     // O Bling prefixa com o nome do atributo: "Tamanho:GG", "Estampa:Azulejos".
     .map((parte) => parte.replace(/^[^:]{1,30}:/, "").trim())
     .filter(Boolean);
 
-  // "Boi Frontal:Boi Frontal" vira "Boi Frontal" uma vez só.
   const semRepeticao = [...new Set(partes)];
   return semRepeticao.join(" · ") || semPai.trim();
 }

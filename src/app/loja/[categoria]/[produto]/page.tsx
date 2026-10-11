@@ -18,6 +18,7 @@ import {
 } from "@/lib/catalogo";
 import { ehPintadaAMao, TEXTO_POSTAGEM, TEXTO_PRODUCAO_PINTADA_A_MAO } from "@/lib/loja/prazos";
 import { FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
+import { TEXTO_REGRA_PARCELAS } from "@/lib/loja/parcelas";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp, SITE } from "@/lib/site";
 
@@ -297,7 +298,7 @@ export default async function PaginaProduto({ params }: Props) {
                 <li>📦 {TEXTO_POSTAGEM}.</li>
                 <li>🚚 Frete grátis a partir de {formatarReais(FRETE_GRATIS_A_PARTIR_DE)} na entrega mais barata.</li>
                 <li>📍 Retirada grátis no ateliê, em São Luís.</li>
-                <li>💳 Pix ou cartão em até 3x, pelo Mercado Pago.</li>
+                <li>💳 {TEXTO_REGRA_PARCELAS}</li>
                 <li>
                   ↩️ Trocas e devoluções conforme o Código de Defesa do Consumidor —{" "}
                   <Link href="/trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">

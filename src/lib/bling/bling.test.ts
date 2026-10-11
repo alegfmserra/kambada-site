@@ -220,7 +220,7 @@ describe("rotuloDaVariacao", () => {
         "Matraca Kambada Grande com Suporte Estampa:Caboclo de Pena;Boi Frontal:Boi Frontal",
         "Matraca Kambada Grande com Suporte",
       ),
-    ).toBe("Caboclo de Pena · Boi Frontal");
+    ).toBe("Caboclo de Pena");
   });
 
   it("não devolve vazio quando não há o que tirar", () => {

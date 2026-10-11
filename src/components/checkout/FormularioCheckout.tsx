@@ -6,6 +6,7 @@ import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
+import { textoParcelas } from "@/lib/loja/parcelas";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -563,6 +564,9 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
             <dd aria-live="polite">{formatarReais(total)}</dd>
           </div>
         </dl>
+        <p className="mt-2 text-sm text-texto-suave" aria-live="polite">
+          💳 {textoParcelas(Math.round(total * 100))}
+        </p>
 
         <div ref={refAviso} tabIndex={-1} aria-live="assertive" className="outline-none">
           {aviso && <p className="mt-4 rounded-xl bg-fundo px-4 py-3 text-sm">{aviso}</p>}

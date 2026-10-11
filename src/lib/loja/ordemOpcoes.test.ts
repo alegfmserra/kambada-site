@@ -43,7 +43,7 @@ describe("ordem das opções", () => {
   });
 });
 
-import { parcelasPermitidas } from "../mercadopago/cliente";
+import { parcelasPermitidas } from "./parcelas";
 
 describe("parcelas por valor (decisão de 10/10/2026)", () => {
   it("à vista abaixo de R$ 200, 2x a partir de 200, 3x a partir de 300", () => {

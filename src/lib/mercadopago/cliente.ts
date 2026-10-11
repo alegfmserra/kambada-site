@@ -16,6 +16,7 @@
  */
 
 import { emCentavos } from "../loja/dinheiro";
+import { parcelasPermitidas } from "../loja/parcelas";
 import { precoComDesconto } from "../cupons/cupons";
 import type { RetratoPedido } from "../checkout/pedido";
 
@@ -24,16 +25,7 @@ const API = "https://api.mercadopago.com";
 /** Teto de parcelas — a regra da loja é até 3x. */
 export const PARCELAS_MAXIMAS = 3;
 
-/**
- * Parcelas permitidas por valor (decisão do Alexandre, 10/10/2026): 2x só a
- * partir de R$ 200 e 3x só a partir de R$ 300; abaixo disso, à vista. Assim o
- * custo do parcelamento só entra em pedidos que o suportam.
- */
-export function parcelasPermitidas(totalCentavos: number): number {
-  if (totalCentavos >= 30000) return 3;
-  if (totalCentavos >= 20000) return 2;
-  return 1;
-}
+export { parcelasPermitidas } from "../loja/parcelas";
 
 export class ErroMercadoPago extends Error {
   constructor(

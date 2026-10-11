@@ -27,6 +27,8 @@ export type Categoria = {
   chamada: string;
   /** Foto de vitrine. Pareôs ainda não têm foto no acervo. */
   foto?: Foto;
+  /** Ponto de foco da capa (CSS object-position) — para o corte não tirar a cabeça. */
+  posicaoDaFoto?: string;
 };
 
 /**
@@ -77,6 +79,8 @@ export const CATEGORIAS: Categoria[] = [
     chamada:
       "Estampadas com as lendas e símbolos do nosso Maranhão. Vista-se de história e identidade.",
     foto: FOTOS.camisaIlhaEncantada,
+    // A foto tem o rosto perto do topo: foco alto corta o fim dos dedos, não a cabeça.
+    posicaoDaFoto: "center 18%",
   },
   {
     slug: "matracas",

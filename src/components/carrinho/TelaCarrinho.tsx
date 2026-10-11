@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { textoParcelas } from "@/lib/loja/parcelas";
 import Link from "next/link";
 import { MAXIMO_POR_ITEM, mensagemWhatsApp } from "@/lib/carrinho/logica";
 import { fotoDoItem as foto } from "@/lib/fotoDoProduto";
@@ -135,6 +136,9 @@ export default function TelaCarrinho({
             <dd>calculado no próximo passo</dd>
           </div>
         </dl>
+        <p className="mt-3 text-sm text-texto-suave" aria-live="polite">
+          💳 {textoParcelas(Math.round(subtotal * 100))}
+        </p>
 
         <p className="mt-4 rounded-xl bg-fundo px-4 py-3 text-sm" aria-live="polite">
           {falta > 0 ? (

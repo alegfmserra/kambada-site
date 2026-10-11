@@ -26,7 +26,7 @@ export default function FotoAtiva({
     return (
       <div
         aria-hidden="true"
-        className="flex aspect-square items-center justify-center rounded-3xl border border-dashed border-borda bg-superficie text-7xl"
+        className="flex aspect-[3/4] items-center justify-center rounded-3xl border border-dashed border-borda bg-superficie text-7xl"
       >
         🦀
       </div>
@@ -40,7 +40,7 @@ export default function FotoAtiva({
       alt={nome}
       priority
       sizes="(min-width: 1024px) 34rem, 92vw"
-      className="aspect-square rounded-3xl"
+      className="aspect-[3/4] rounded-3xl"
     />
   );
 }

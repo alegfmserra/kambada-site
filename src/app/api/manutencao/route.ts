@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   const params = new URL(req.url).searchParams;
   const forcarResumo = params.get("resumo") === "1";
   // ?relatorio=AAAA-MM reenvia os relatórios de cupom daquele mês.
-  const relatorioMes = /^d{4}-d{2}$/.test(params.get("relatorio") ?? "") ? (params.get("relatorio") as string) : undefined;
+  const relatorioMes = /^\d{4}-\d{2}$/.test(params.get("relatorio") ?? "") ? (params.get("relatorio") as string) : undefined;
   const r = await rotinaDeManutencao({ forcarResumo, relatorioMes });
   return NextResponse.json(r, { status: r.ok ? 200 : 503 });
 }

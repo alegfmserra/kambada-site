@@ -28,8 +28,20 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "altura": 1200
   },
   "16701478149": {
-    "largura": 675,
+    "largura": 900,
     "altura": 1200
+  },
+  "16701478277": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701478241": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701478191": {
+    "largura": 1200,
+    "altura": 900
   },
   "16701478328": {
     "largura": 900,
@@ -71,9 +83,25 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "largura": 900,
     "altura": 1200
   },
+  "16701503196": {
+    "largura": 900,
+    "altura": 1200
+  },
   "16701502407": {
     "largura": 900,
     "altura": 1200
+  },
+  "16698813505": {
+    "largura": 903,
+    "altura": 1200
+  },
+  "16698811377": {
+    "largura": 815,
+    "altura": 934
+  },
+  "16698807702": {
+    "largura": 555,
+    "altura": 886
   },
   "16689786358": {
     "largura": 900,

@@ -41,7 +41,10 @@ export const FOTOS = {
   16701486198: ["03_Ecobags", "ecobag_caboclo-de-pena_01.jpg", "Ecobag Caboclo de Pena"],
   16701491047: ["03_Ecobags", "ecobag_sao-luis-azulejos_01.jpg", "Ecobag São Luís Azulejos"],
   // Necessaires
-  16701478149: ["04_Necessaires", "necessaire_azulejos_com-caneta_01.jpg", "Necessaire Azulejos"],
+  16701478149: ["Marias_2026-10-13", "necessaire_azulejos_01.jpg", "Necessaire Azulejos (foto nova das Marias, 13/10)"],
+  16701478277: ["Marias_2026-10-13", "necessaire_tradicao_01.jpg", "Necessaire Tradição (Marias, 13/10)"],
+  16701478241: ["Marias_2026-10-13", "necessaire_serpente-tons-de-azul_01.jpg", "Necessaire Serpente Tons de Azul (Marias, 13/10)"],
+  16701478191: ["Marias_2026-10-13", "necessaire_guaras_01.jpg", "Necessaire Guarás (Marias, 13/10 — foto fraca, trocar quando houver melhor)"],
   16701478328: ["04_Necessaires", "necessaire_tradicao-colorida_02.jpg", "Necessaire Tradição Colorida"],
   // Pareôs
   16701478379: ["08_Pareos", "pareo_cidade-dos-azulejos_01.jpg", "Pareô Cidade dos Azulejos"],
@@ -53,8 +56,13 @@ export const FOTOS = {
   16701539190: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_bumba-meu-boi_02.jpg", "Kit Ecológico Bumba Meu Boi"],
   16701539241: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_cazumba_03.jpg", "Kit Ecológico Cazumbá"],
   16701539267: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_ilha-do-amor_05.jpg", "Kit Ecológico Ilha do Amor"],
-  16689787486: ["06_Papelaria_e_Kits", "papelaria_lapis-plantavel_lote_01.jpg", "Lápis Plantável"],
-  16701502407: ["06_Papelaria_e_Kits", "papelaria_livrinho_joguinhos-divertidos_02.jpg", "Joguinhos Divertido (a foto mostra também a camisa Ilha Encantada)"],
+  16689787486: ["Marias_2026-10-13", "papelaria_lapis-plantavel_boi_01.jpg", "Lápis Plantável (1 unidade com cartela, Marias 13/10)"],
+  16701503196: ["Marias_2026-10-13", "papelaria_kambada-goods_01.jpg", "Kambada Goods (Marias, 13/10)"],
+  16701502407: ["Marias_2026-10-13", "papelaria_joguinhos-divertidos_capa_01.jpg", "Joguinhos Divertido — capa (Marias, 13/10)"],
+  // Camisas com modelo (Marias, 13/10): servem de principal até o ensaio em fundo branco.
+  16698813505: ["Marias_2026-10-13", "camisa_tradicao-texto_modelo_01.jpg", "Camisa Tradição Texto (modelo)"],
+  16698811377: ["Marias_2026-10-13", "camisa_alusiva-sao-luis_modelo_01.jpg", "Camisa Alusiva São Luís (modelo)"],
+  16698807702: ["Marias_2026-10-13", "camisa_reggae-roots_modelo_01.jpg", "Camisa Reggae Roots (modelo)"],
   // Brindes
   16689786358: ["02_Placas_de_Madeira", "decoracao_PORTA-CHAVE_carranca_01.jpg", "Porta-chave"],
   16701502913: ["Chaveiros", "chaveiro_chaveiro-mascote-kambada-cartela-aprimorado_01.jpg", "Chaveiros Sortidos (foto do chaveiro mascote)"],

@@ -54,12 +54,12 @@ export const FOTOS = {
   16701538916: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_guaras_02.jpg", "Kit Ecológico Guarás"],
   16701539190: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_bumba-meu-boi_02.jpg", "Kit Ecológico Bumba Meu Boi"],
   16701539241: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_cazumba_03.jpg", "Kit Ecológico Cazumbá"],
-  16701539267: ["06_Papelaria_e_Kits/Kit Ecológico", "Kit Ecológico - Lendas.jpg", "Kit Ecológico Ilha do Amor — capa inteira (Marias 13/10; Alexandre nomeou "Lendas")"],
+  16701539267: ["06_Papelaria_e_Kits/Kit Ecológico", "Kit Ecológico - Lendas.jpg", "Kit Ecológico Ilha do Amor — capa inteira (Marias 13/10; Alexandre nomeou de Lendas)"],
   16689787486: ["06_Papelaria_e_Kits/Lapis Ecológico", "papelaria_lapis-plantavel_boi_01.jpg", "Lápis Plantável (1 unidade com cartela, Marias 13/10)"],
   16701503196: ["06_Papelaria_e_Kits/Livretinhos", "papelaria_kambada-goods_01.jpg", "Kambada Goods (Marias, 13/10)"],
   16701502407: ["06_Papelaria_e_Kits/Livretinhos", "Joguinhos Divertidos - Capa.jpg", "Joguinhos Divertido — capa (Marias, 13/10)"],
   // Camisas com modelo (Marias, 13/10): servem de principal até o ensaio em fundo branco.
-  16698813505: ["Marias_2026-10-13", "Camisa Tradição Bumba Meu Boi.jpg", "Camisa Tradição Texto (modelo) — Alexandre nomeou "Tradição Bumba Meu Boi"; confirmar se é esta ou a Camisa Tradição"],
+  16698813505: ["Marias_2026-10-13", "Camisa Tradição Bumba Meu Boi.jpg", "Camisa Tradição Texto (modelo) — Alexandre nomeou de Tradição Bumba Meu Boi; confirmar se é esta ou a Camisa Tradição"],
   16698811377: ["Marias_2026-10-13", "Camisa Alusiva São Luís.jpg", "Camisa Alusiva São Luís (modelo)"],
   16698807702: ["Marias_2026-10-13", "Camisa Reggae Roots.jpg", "Camisa Reggae Roots (modelo)"],
   // Brindes

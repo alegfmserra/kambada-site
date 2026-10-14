@@ -445,11 +445,9 @@ export const DESCRICOES: Record<number, string> = {
     SEM_ALVEJANTE,
   ),
   16701502913: texto(
-    "Um pedacinho do Boi pendurado na chave: o boi, o Cazumbá, o Caboclo de Pena, o tambor, a Tradição. Mimo pra dar de lembrança ou pra guardar o Maranhão no bolso. Vem sortido — a gente escolhe com carinho, prometido.",
-    "Material: madeira de pinus, retangular; ilustração em DTF; acabamento em verniz à base d'água.",
+    "O Kambadinha, mascote da Kambada, pendurado na chave: pequeno, leve e com cara de Maranhão. Mimo pra dar de lembrança ou pra guardar um pedacinho da gente no bolso.",
     "Fecho: mosquetão prata.",
-    "Medidas: 8,5 × 3 × 0,5 cm.",
-    "Estampas: Boi, Tambor, Cazumbá, Tradição e Caboclo de Pena, sortidas — o modelo enviado pode variar.",
+    "Cores: conforme o modelo disponível.",
   ),
   16689786358: texto(
     "Chegou em casa, pendurou a chave e lembrou de onde é. Placa redonda de pinus com ilustração autoral — o boi, o Cazumbá, o tambor, a Tradição ou o Caboclo de Pena —, três ganchos e alça caramelo pra fixar na parede. Simples, bonito, maranhense que só.",

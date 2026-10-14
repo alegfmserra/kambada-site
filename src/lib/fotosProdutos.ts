@@ -60,16 +60,16 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "altura": 1200
   },
   "16701538916": {
-    "largura": 900,
-    "altura": 1200
+    "largura": 1200,
+    "altura": 800
   },
   "16701539190": {
-    "largura": 900,
-    "altura": 1200
+    "largura": 1200,
+    "altura": 800
   },
   "16701539267": {
-    "largura": 900,
-    "altura": 1200
+    "largura": 1200,
+    "altura": 800
   },
   "16689787486": {
     "largura": 900,
@@ -112,7 +112,7 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "altura": 1200
   },
   "16698815567": {
-    "largura": 938,
+    "largura": 900,
     "altura": 1200
   },
   "16698811730": {
@@ -124,8 +124,8 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "altura": 1200
   },
   "16701502913": {
-    "largura": 900,
-    "altura": 1200
+    "largura": 1200,
+    "altura": 800
   },
   "16701503226": {
     "largura": 900,
@@ -154,6 +154,26 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
   "16701634579": {
     "largura": 900,
     "altura": 1200
+  },
+  "16698815216": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698816511": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490850": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701491012": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701539241": {
+    "largura": 1200,
+    "altura": 800
   }
 };
 
@@ -317,6 +337,263 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 5,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698816511": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701486198": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701491047": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701491097": [
+    {
+      "n": 1,
+      "largura": 1011,
+      "altura": 1200
+    }
+  ],
+  "16701478057": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701478099": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701539190": [
+    {
+      "n": 1,
+      "largura": 1200,
+      "altura": 800
+    },
+    {
+      "n": 2,
+      "largura": 1200,
+      "altura": 800
+    }
+  ],
+  "16701539241": [
+    {
+      "n": 1,
+      "largura": 1200,
+      "altura": 800
+    },
+    {
+      "n": 2,
+      "largura": 1200,
+      "altura": 800
+    }
+  ],
+  "16701538916": [
+    {
+      "n": 1,
+      "largura": 675,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 1200,
+      "altura": 800
+    }
+  ],
+  "16701539267": [
+    {
+      "n": 1,
+      "largura": 1200,
+      "altura": 800
+    }
+  ],
+  "16701503257": [
+    {
+      "n": 1,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701503283": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701503226": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16689786358": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701502913": [
+    {
+      "n": 1,
+      "largura": 1200,
+      "altura": 800
+    },
+    {
+      "n": 2,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 1200,
+      "altura": 800
+    }
+  ],
+  "16698778218": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698776080": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698777979": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 7,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698775382": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701478418": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701478379": [
+    {
+      "n": 1,
       "largura": 900,
       "altura": 1200
     }

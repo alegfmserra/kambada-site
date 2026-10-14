@@ -117,6 +117,49 @@ export const GALERIA = {
   16698815567: ["07_Camisas_Estampadas/Camisa Revoadinha dos Guarás", ["camisa-revoadinha-dos-guaras_125_IMG_2595.jpg", "camisa-revoadinha-dos-guaras_267_IMG_2598.jpg", "camisa-revoadinha-dos-guaras_256_IMG_2729.jpg", "camisa-revoadinha-dos-guaras_121_IMG_2591.jpg", "camisa-revoadinha-dos-guaras_150_IMG_2622.jpg"]],
 };
 
+// ── Fotos da Wilsonira (Drive, 14/10/2026), importadas para o acervo com prefixo will-2026-10-14_ ──
+const W = "will-2026-10-14_";
+const T7 = "07_Camisas_Estampadas/_Triagem Will 2026-10-14", T3 = "03_Ecobags/_Triagem Will 2026-10-14", T1 = "01_Matracas/_Triagem Will 2026-10-14";
+const PL = "02_Placas_de_Madeira", KIT = "06_Papelaria_e_Kits/Kit Ecológico", CHV = "Chaveiros/Chaveiro de Pinus";
+Object.assign(FOTOS, {
+  16698815567: [T7, `${W}camisa-infantil-guaras-rosa.jpg`, "Revoadinha dos Guarás — peça no cabide (Will)"],
+  16698815216: [T7, `${W}camisa-infantil-ilha-encantada-off-white-dtf.jpg`, "Infantil Ilha Encantada (Will)"],
+  16698816511: [T7, `${W}camisa-suede-guaras-azul-marinho-1.jpg`, "Suede Feminino azul (Will)"],
+  16701490850: [T3, `${W}ecobag-grande-ilha-encantada.jpg`, "Ecobag Serpente Tons de Azul (Will)"],
+  16701491012: [T3, `${W}ecobag-grande-quebrdeira-de-coco.jpg`, "Ecobag Quebradeira de Coco (Will)"],
+  16701478328: ["04_Necessaires/Necessaire Tradição", `${W}necessaire-tradicao-colorido.jpg`, "Necessaire Tradição Colorida (Will)"],
+  16701539190: [KIT, `${W}capa-kit-ecologico-bumba-meu-boi.jpg`, "Kit Bumba Meu Boi — capa (Will)"],
+  16701539241: [KIT, `${W}capa-kit-ecologico-cazumba.jpg`, "Kit Cazumbá — capa (Will)"],
+  16701538916: [KIT, `${W}capa-kit-ecologico-guaras.jpg`, "Kit Guarás — capa (Will)"],
+  16701539267: [KIT, `${W}capa-kit-ecoogico-lendas.jpg`, "Kit Ilha do Amor — capa Lendas (Will)"],
+  16701502913: [CHV, `${W}chaveiros-dtf-5.jpg`, "Chaveiros Sortidos (Will)"],
+  16689786358: ["02_Placas_de_Madeira/Porta-chaves", `${W}porta-chaves-boi-azul.jpg`, "Porta-chave (Will)"],
+});
+Object.assign(GALERIA, {
+  16698815567: [T7, [`${W}camisa-infantil-guaras-azul.jpg`, `${W}camisa-infantil-guaras-off-white.jpg`, ...GALERIA[16698815567][1].slice(0, 4)]],
+  16698816511: [T7, [`${W}camisa-suede-guaras-azul-marinho-2.jpg`]],
+  16701486198: [T3, [`${W}ecobag-grande-caboclo-de-pena-azul.jpg`, `${W}ecobag-grande-caboclo-de-pena-marrom.jpg`]],
+  16701491047: [T3, [`${W}ecobag-grande-sao-luis.jpg`]],
+  16701491097: [T3, [`${W}ecobag-mini-matraca-boi.jpg`]],
+  16701478057: ["05_Bones", [`${W}bone-guara-bege.jpg`]],
+  16701478099: ["05_Bones", [`${W}bone-maranhense-que-so-azul-marinho.jpg`]],
+  16701539190: [KIT, [`${W}kit-ecologico-bumba-meu-boi.jpg`, `${W}kit-ecologico-aberto.jpg`]],
+  16701539241: [KIT, [`${W}kit-ecologico-cazumba.jpg`, `${W}kit-ecologico-aberto.jpg`]],
+  16701538916: [KIT, [`${W}kit-ecologico-guara.jpg`, `${W}kit-ecologico-aberto.jpg`]],
+  16701539267: [KIT, [`${W}kit-ecologico-aberto.jpg`]],
+  16701503257: [PL, [`${W}placa-coreira.jpg`, `${W}placa-coreiro.jpg`, `${W}detalhe-placa-coreira.jpg`, `${W}placa-retangular-em-pinus-coreiro.jpg`]],
+  16701503283: [PL, [`${W}placa-redonda-em-pinus-com-alca-courino-boi-colorido.jpg`, `${W}placa-redonda-em-pinus-com-alca-boi-preto.jpg`, `${W}placa-redonda-em-pinus-com-alca-courino-cazumba.jpg`]],
+  16701503226: [PL, [`${W}placa-redonda-em-pinus-boi-colorido-com-acabamento-em-sisal-e-fio-nautico.jpg`, `${W}placa-redonda-em-pinus-boi-colorido-com-acabamento-em-sisal-e-fio-nautico-2.jpg`]],
+  16689786358: ["02_Placas_de_Madeira/Porta-chaves", [`${W}porta-chaves-azulejo.jpg`, `${W}porta-chaves-carranca.jpg`]],
+  16701502913: [CHV, [`${W}chaveiros-dtf-4.jpg`, `${W}chaveiros-dtf-1.jpg`, `${W}chaveiros-dtf-2.jpg`, `${W}chaveiros-dtf.jpg`]],
+  16698778218: [T1, [`${W}matraca-kambada-play-boi-de-lado.jpg`, `${W}matraca-kambada-play-boi-de-lado-2.jpg`]],
+  16698776080: [T1, [`${W}matraca-grande-reggae-roots.jpg`]],
+  16698777979: [T1, [`${W}matraca-pequena-boi-colorido-pintada-a-mao.jpg`, `${W}matraca-pequena-cazumba-pintada-a-mao.jpg`, `${W}matraca-mini-boi-preto-dtf.jpg`, `${W}matraca-mini-cazumba-colorido-dtf.jpg`, `${W}matraca-mini-cazumba-preto-dtf.jpg`, `${W}matraca-mini-miolo-de-boi-colorido-dtf.jpg`, `${W}matraca-mini-miolo-de-boi-preto-dtf.jpg`]],
+  16698775382: [T1, [`${W}matraca-grande-com-suporte-boi.jpg`]],
+  16701478418: ["08_Pareos", [`${W}pareo-lendas.jpg`]],
+  16701478379: ["08_Pareos", [`${W}pareo-sao-luis.jpg`]],
+});
+
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;
 

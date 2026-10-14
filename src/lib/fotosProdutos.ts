@@ -124,8 +124,8 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "altura": 1200
   },
   "16701502913": {
-    "largura": 1200,
-    "altura": 800
+    "largura": 900,
+    "altura": 1200
   },
   "16701503226": {
     "largura": 900,
@@ -497,28 +497,6 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 2,
       "largura": 900,
       "altura": 1200
-    }
-  ],
-  "16701502913": [
-    {
-      "n": 1,
-      "largura": 1200,
-      "altura": 800
-    },
-    {
-      "n": 2,
-      "largura": 800,
-      "altura": 1200
-    },
-    {
-      "n": 3,
-      "largura": 800,
-      "altura": 1200
-    },
-    {
-      "n": 4,
-      "largura": 1200,
-      "altura": 800
     }
   ],
   "16698778218": [

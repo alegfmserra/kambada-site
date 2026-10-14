@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 
@@ -30,6 +30,26 @@ const ACERVO =
   "C:/Users/alegf/OneDrive/Documentos/Claude/Fred - Kambada/comercial/portfolio/Imagens para Portfólio";
 const DESTINO = "C:/dev/kambada-site/public/fotos/produtos";
 
+/**
+ * Acha o arquivo mesmo que o Alexandre o tenha movido para uma subpasta do
+ * acervo (ele reorganiza as pastas por tipo). Primeiro o caminho dado; depois
+ * busca pelo nome em qualquer subpasta da mesma categoria; por fim no acervo todo.
+ */
+function localizarArquivo(pasta, arquivo) {
+  const direto = join(ACERVO, pasta, arquivo);
+  if (existsSync(direto)) return direto;
+  const procurar = (dir) => {
+    for (const nome of readdirSync(dir)) {
+      const caminho = join(dir, nome);
+      if (statSync(caminho).isDirectory()) { const achado = procurar(caminho); if (achado) return achado; }
+      else if (nome === arquivo) return caminho;
+    }
+    return null;
+  };
+  const raizCategoria = join(ACERVO, pasta.split("/")[0]);
+  return (existsSync(raizCategoria) && procurar(raizCategoria)) || procurar(ACERVO) || direto;
+}
+
 /** idBling → [pasta, arquivo, observação para o relatório] */
 export const FOTOS = {
   // Bonés
@@ -53,7 +73,7 @@ export const FOTOS = {
   // Papelaria
   16701538916: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_guaras_02.jpg", "Kit Ecológico Guarás"],
   16701539190: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_bumba-meu-boi_02.jpg", "Kit Ecológico Bumba Meu Boi"],
-  16701539241: ["06_Papelaria_e_Kits", "papelaria_kit-ecologico_cazumba_03.jpg", "Kit Ecológico Cazumbá"],
+  // Kit Ecológico Cazumbá (16701539241): a única foto (604×704, desfocada) foi descartada do acervo em 13/10 — sem foto até o ensaio novo.
   16701539267: ["06_Papelaria_e_Kits/Kit Ecológico", "Kit Ecológico - Lendas.jpg", "Kit Ecológico Ilha do Amor — capa inteira (Marias 13/10; Alexandre nomeou de Lendas)"],
   16689787486: ["06_Papelaria_e_Kits/Lapis Ecológico", "papelaria_lapis-plantavel_boi_01.jpg", "Lápis Plantável (1 unidade com cartela, Marias 13/10)"],
   16701503196: ["06_Papelaria_e_Kits/Livretinhos", "papelaria_kambada-goods_01.jpg", "Kambada Goods (Marias, 13/10)"],
@@ -85,7 +105,7 @@ if (isEntrypoint) {
   mkdirSync(DESTINO, { recursive: true });
   const medidas = {};
   for (const [id, [pasta, arquivo]] of Object.entries(FOTOS)) {
-    const info = await sharp(join(ACERVO, pasta, arquivo))
+    const info = await sharp(localizarArquivo(pasta, arquivo))
       .rotate() // respeita a orientação da câmera (EXIF)
       .resize(LADO, LADO, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 82, mozjpeg: true })

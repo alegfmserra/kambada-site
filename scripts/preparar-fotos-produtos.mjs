@@ -135,6 +135,7 @@ Object.assign(FOTOS, {
   // O cadastro 16701502913 chama-se "Chaveiros Kambadinha" no Bling (mascote); os chaveiros de pinus DTF da Will ficam no acervo até existir produto próprio.
   16701502913: ["Chaveiros", "chaveiro_chaveiro-mascote-kambada-cartela-aprimorado-v2_01.jpg", "Chaveiro Kambadinha (mascote, cartela)"],
   16689786358: ["02_Placas_de_Madeira/Porta-chaves", `${W}porta-chaves-boi-azul.jpg`, "Porta-chave (Will)"],
+  16719152093: [CHV, `${W}chaveiros-dtf-5.jpg`, "Chaveiros em Madeira Pinus (Will) — cadastro criado pelo Alexandre em 14/10"],
 });
 Object.assign(GALERIA, {
   16698815567: [T7, [`${W}camisa-infantil-guaras-azul.jpg`, `${W}camisa-infantil-guaras-off-white.jpg`, ...GALERIA[16698815567][1].slice(0, 4)]],
@@ -156,6 +157,7 @@ Object.assign(GALERIA, {
   16698776080: [T1, [`${W}matraca-grande-reggae-roots.jpg`]],
   16698777979: [T1, [`${W}matraca-pequena-boi-colorido-pintada-a-mao.jpg`, `${W}matraca-pequena-cazumba-pintada-a-mao.jpg`, `${W}matraca-mini-boi-preto-dtf.jpg`, `${W}matraca-mini-cazumba-colorido-dtf.jpg`, `${W}matraca-mini-cazumba-preto-dtf.jpg`, `${W}matraca-mini-miolo-de-boi-colorido-dtf.jpg`, `${W}matraca-mini-miolo-de-boi-preto-dtf.jpg`]],
   16698775382: [T1, [`${W}matraca-grande-com-suporte-boi.jpg`]],
+  16719152093: [CHV, [`${W}chaveiros-dtf-4.jpg`, `${W}chaveiros-dtf-1.jpg`, `${W}chaveiros-dtf-2.jpg`, `${W}chaveiros-dtf.jpg`]],
   16701478418: ["08_Pareos", [`${W}pareo-lendas.jpg`]],
   16701478379: ["08_Pareos", [`${W}pareo-sao-luis.jpg`]],
 });

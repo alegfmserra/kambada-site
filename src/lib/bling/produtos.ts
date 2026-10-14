@@ -116,6 +116,8 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
   // Brindes
   "chaveiros-sortidos": "brindes",
   "porta-chave": "brindes",
+  "chaveiros-em-madeira-pinus": "brindes", // cadastro do Alexandre, 14/10/2026
+  "chaveiros-kambadinha": "brindes",
   // Decoração
   "mandala-modelos-diversos": "decoracao",
   "placa-de-madeira-reta": "decoracao",

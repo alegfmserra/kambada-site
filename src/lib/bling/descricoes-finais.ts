@@ -430,6 +430,20 @@ export const DESCRICOES: Record<number, string> = {
   ),
 
   // ───────────────── Brindes ─────────────────
+  16719152093: texto(
+    "Um pedacinho do Boi pendurado na chave: o boi, o Cazumbá, o Caboclo de Pena, o tambor, a Tradição, em madeira de pinus com ilustração autoral. Mimo pra dar de lembrança ou pra guardar o Maranhão no bolso. Vem sortido — a gente escolhe com carinho, prometido.",
+    "Material: madeira de pinus, retangular; ilustração em DTF; acabamento em verniz à base d'água.",
+    "Fecho: mosquetão prata.",
+    "Medidas: 8,5 × 3 × 0,5 cm.",
+    "Estampas: Boi, Tambor, Cazumbá, Tradição e Caboclo de Pena, sortidas — o modelo enviado pode variar.",
+  ),
+  16719577340: texto(
+    "Tambor de Crioula é roda, canto e batida de parelha que atravessa a noite em São Luís. Esta camisa azul marinho leva o tambor no peito — pra quem dança, pra quem toca e pra quem fica na beira da roda sem conseguir ficar parado.",
+    ALGODAO,
+    "Cor: azul marinho.",
+    ADULTO,
+    SEM_ALVEJANTE,
+  ),
   16701502913: texto(
     "Um pedacinho do Boi pendurado na chave: o boi, o Cazumbá, o Caboclo de Pena, o tambor, a Tradição. Mimo pra dar de lembrança ou pra guardar o Maranhão no bolso. Vem sortido — a gente escolhe com carinho, prometido.",
     "Material: madeira de pinus, retangular; ilustração em DTF; acabamento em verniz à base d'água.",

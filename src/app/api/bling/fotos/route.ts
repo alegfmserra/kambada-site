@@ -22,6 +22,9 @@ export const dynamic = "force-dynamic";
  *  - Relê depois de gravar, para PROVAR que a imagem ficou — não supor.
  *  - Para no primeiro erro.
  *
+ * Aprendido em 14/10/2026: o Bling só ACRESCENTA imagens por imagensURL — nunca
+ * remove. Para tirar uma foto errada é no painel (Chrome), aba Imagens, × e Salvar.
+ *
  * Sem galeria, só toca produto SEM NENHUMA imagem. Com galeria (GALERIA_PRODUTOS),
  * regrava a lista completa — principal + extras — mesmo que já haja foto.
  *

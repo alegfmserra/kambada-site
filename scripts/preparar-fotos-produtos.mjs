@@ -90,10 +90,10 @@ export const FOTOS = {
   16701503257: ["02_Placas_de_Madeira", "decoracao_placa-reta_par-de-bois_01.jpg", "Placa de Madeira Reta"],
   // Matracas — produtos
   16698778218: ["01_Matracas", "matraca_kambada-play_com-chapeu-bordado_01.jpg", "Matraca Kambada Play (com chapéu bordado)"],
-  16698775382: ["01_Matracas", "matraca_bandeira-maranhao_com-saquinho_01.jpg", "Matraca Grande com Suporte — foto principal do produto"],
+  16698775382: ["01_Matracas", "matraca_bandeira-maranhao_com-saquinho_03.jpg", "Matraca Grande com Suporte — foto principal do produto"],
   // Matracas — variações de estampa da Grande com Suporte
   16701634559: ["01_Matracas", "matraca_mosaico-colorido_com-suporte_01.jpg", "variação Mosaico Colorido"],
-  16701634568: ["01_Matracas", "matraca_serpente-rei-da-ilha_com-suporte_01.jpg", "variação Serpente e Rei da Ilha"],
+  16701634568: ["01_Matracas", "matraca_serpente-rei-da-ilha_com-suporte_02.jpg", "variação Serpente e Rei da Ilha"],
   16701634579: ["01_Matracas", "matraca_topo-boi-preto_01.jpg", "variação Topo Boi Preto"],
 };
 

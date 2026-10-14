@@ -81,6 +81,8 @@ async function responder(requisicao: Request, escrever: boolean) {
     .filter((id) => !apenas || String(id) === apenas);
 
   const aplicar = escrever && url.searchParams.get("aplicar") === "1";
+  // ?forcar=1 (só com apenas=ID): regrava a lista mesmo sem galeria — para corrigir uma foto errada.
+  const forcar = Boolean(apenas) && url.searchParams.get("forcar") === "1";
   const pedido = Number(url.searchParams.get("maximo"));
   const maximo = Number.isInteger(pedido) && pedido > 0 && pedido <= 30 ? pedido : MAXIMO_PADRAO;
 
@@ -98,7 +100,7 @@ async function responder(requisicao: Request, escrever: boolean) {
       const atual = await chamarBling<{ data: ProdutoCompleto }>(`/produtos/${id}`, { revalidar: 0 });
       const ja = quantasImagens(atual.data);
 
-      if (ja > 0 && galeria.length === 0) {
+      if (ja > 0 && galeria.length === 0 && !forcar) {
         passos.push({
           id,
           nome: atual.data.nome,

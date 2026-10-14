@@ -161,6 +161,9 @@ export async function GET(requisicao: Request) {
       pastaDaAplicacao: process.cwd(),
       pastaPessoal: homedir(),
     },
+    // ?catalogo=1: o catálogo inteiro como o site o vê (ids, opções, saldo,
+    // preço, descrição) — para conferir estoque e textos contra uma contagem física.
+    ...(url.searchParams.get("catalogo") === "1" ? { catalogo: catalogo.produtos } : {}),
     ...(detalhe ? { detalhe } : {}),
     ...(bruto ? { bruto } : {}),
     ...(simulacao ? { simulacao } : {}),

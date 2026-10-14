@@ -12,7 +12,7 @@
  */
 
 import type { Produto } from "./catalogo";
-import { FOTOS_PRODUTOS } from "./fotosProdutos";
+import { FOTOS_PRODUTOS, GALERIA_PRODUTOS } from "./fotosProdutos";
 
 export type FotoProduto = { src: string; largura: number; altura: number };
 
@@ -35,4 +35,11 @@ export function fotoDoProduto(produto: Produto): FotoProduto | null {
 export function fotoDoItem(idOpcao: number, slug: string): FotoProduto | null {
   const idPai = Number(slug.match(/-(\d+)$/)?.[1]);
   return porId(idOpcao) ?? porId(Number.isSafeInteger(idPai) ? idPai : undefined);
+}
+
+/** Fotos extras do produto (galeria), na ordem em que foram publicadas. Vazio quando só há a principal. */
+export function galeriaDoProduto(produto: Produto): FotoProduto[] {
+  const id = produto.idBling;
+  if (!id) return [];
+  return (GALERIA_PRODUTOS[id] ?? []).map((g) => ({ src: `/fotos/produtos/galeria/${id}-${g.n}.jpg`, largura: g.largura, altura: g.altura }));
 }

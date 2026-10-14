@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { chamarBling } from "@/lib/bling/cliente";
 import { ErroBling } from "@/lib/bling/tipos";
 import { arquivoTokens } from "@/lib/bling/tokens";
-import { FOTOS_PRODUTOS } from "@/lib/fotosProdutos";
+import { FOTOS_PRODUTOS, GALERIA_PRODUTOS } from "@/lib/fotosProdutos";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +22,8 @@ export const dynamic = "force-dynamic";
  *  - Relê depois de gravar, para PROVAR que a imagem ficou — não supor.
  *  - Para no primeiro erro.
  *
- * Só toca produto SEM NENHUMA imagem. Produto que já tem foto é pulado: esta
- * rota nunca troca nem apaga foto existente.
+ * Sem galeria, só toca produto SEM NENHUMA imagem. Com galeria (GALERIA_PRODUTOS),
+ * regrava a lista completa — principal + extras — mesmo que já haja foto.
  *
  * Como a foto entra: pelo campo `midia.imagens.imagensURL` — o campo de
  * ESCRITA segundo a especificação OpenAPI do Bling (os campos `externas` e
@@ -90,11 +90,15 @@ async function responder(requisicao: Request, escrever: boolean) {
 
   for (const id of ids) {
     const link = `${base}/fotos/produtos/${id}.jpg`;
+    // Com galeria, a lista inteira (principal primeiro) é gravada de novo —
+    // inclusive quando o produto já tem a nossa principal no Bling.
+    const galeria = (GALERIA_PRODUTOS[id] ?? []).map((g) => `${base}/fotos/produtos/galeria/${id}-${g.n}.jpg`);
+    const links = [link, ...galeria];
     try {
       const atual = await chamarBling<{ data: ProdutoCompleto }>(`/produtos/${id}`, { revalidar: 0 });
       const ja = quantasImagens(atual.data);
 
-      if (ja > 0) {
+      if (ja > 0 && galeria.length === 0) {
         passos.push({
           id,
           nome: atual.data.nome,
@@ -105,7 +109,7 @@ async function responder(requisicao: Request, escrever: boolean) {
         continue;
       }
       if (!aplicar) {
-        passos.push({ id, nome: atual.data.nome, acao: "anexar", link });
+        passos.push({ id, nome: atual.data.nome, acao: "anexar", links, jaTem: ja });
         continue;
       }
       if (escritos >= maximo) {
@@ -116,7 +120,7 @@ async function responder(requisicao: Request, escrever: boolean) {
       originais.push(atual.data);
       const corpo: ProdutoCompleto = {
         ...atual.data,
-        midia: { ...(atual.data.midia ?? {}), imagens: { imagensURL: [{ link }] } as Imagens },
+        midia: { ...(atual.data.midia ?? {}), imagens: { imagensURL: links.map((l) => ({ link: l })) } as Imagens },
       };
       await chamarBling(`/produtos/${id}`, { metodo: "PUT", corpo });
       escritos++;
@@ -134,7 +138,7 @@ async function responder(requisicao: Request, escrever: boolean) {
         id,
         nome: depois.data.nome,
         acao: "anexada",
-        link,
+        links,
         conferido: { imagensNoBling: agora, ficou: agora > 0, ...ondeEstao(depois.data) },
       });
       // Gravou e, mesmo esperando, não ficou: é o Bling recusando em

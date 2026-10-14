@@ -82,6 +82,13 @@ export const FOTOS = {
   16698813505: ["Marias_2026-10-13", "Camisa Tradição Bumba Meu Boi.jpg", "Camisa Tradição Texto (modelo) — Alexandre nomeou de Tradição Bumba Meu Boi; confirmar se é esta ou a Camisa Tradição"],
   16698811377: ["Marias_2026-10-13", "Camisa Alusiva São Luís.jpg", "Camisa Alusiva São Luís (modelo)"],
   16698807702: ["Marias_2026-10-13", "Camisa Reggae Roots.jpg", "Camisa Reggae Roots (modelo)"],
+  // Camisas — ensaios de 05/06, 15/07 e Dia dos Pais, distribuídos em 13/10/2026 (ver _MANIFESTO-distribuicao-fotos)
+  16698810433: ["07_Camisas_Estampadas/Camisa Boizinho com Fio de Matraca", "camisa-boizinho-com-fio-de-matraca_101_estampas_lisas_-_editadas-14.jpg", "Camisa Boizinho com Fio de Matraca (bordô, modelo)"],
+  16698809408: ["07_Camisas_Estampadas/Camisa Caboclo de Pena", "camisa-caboclo-de-pena_286_IMG_7590.jpg", "Camisa Caboclo de Pena (preta, modelo)"],
+  16698806570: ["07_Camisas_Estampadas/Camisa Revoada dos Guarás", "camisa-revoada-dos-guaras_101_IMG_7472.jpg", "Camisa Revoada dos Guarás (branca, casal)"],
+  16698802616: ["07_Camisas_Estampadas/Camisa Tradição", "camisa-tradicao_263_IMG_2581.jpg", "Camisa Tradição (marinho, Dia dos Pais)"],
+  16698815567: ["07_Camisas_Estampadas/Camisa Revoadinha dos Guarás", "camisa-revoadinha-dos-guaras_265_IMG_2594.jpg", "Camisa Revoadinha dos Guarás (infantil rosa, Dia dos Pais)"],
+  16698811730: ["07_Camisas_Estampadas/Camisa Boi Maranhense que só", "camisa-boi-maranhense-que-so_101_WhatsApp_Image_2026-10-13_at_21.55.36.jpg", "Camisa Boi Maranhense que só (bordô, modelo)"],
   // Brindes
   16689786358: ["02_Placas_de_Madeira", "decoracao_PORTA-CHAVE_carranca_01.jpg", "Porta-chave"],
   16701502913: ["Chaveiros", "chaveiro_chaveiro-mascote-kambada-cartela-aprimorado_01.jpg", "Chaveiros Sortidos (foto do chaveiro mascote)"],
@@ -95,6 +102,19 @@ export const FOTOS = {
   16701634559: ["01_Matracas", "matraca_mosaico-colorido_com-suporte_01.jpg", "variação Mosaico Colorido"],
   16701634568: ["01_Matracas", "matraca_serpente-rei-da-ilha_com-suporte_02.jpg", "variação Serpente e Rei da Ilha"],
   16701634579: ["01_Matracas", "matraca_topo-boi-preto_01.jpg", "variação Topo Boi Preto"],
+};
+
+/**
+ * Galeria (fotos além da principal), por ID do Bling: [pasta, [arquivos...]].
+ * Vão para public/fotos/produtos/galeria/<id>-<n>.jpg e, pelo link, para o Bling.
+ */
+export const GALERIA = {
+  16698811377: ["07_Camisas_Estampadas/Camisa Alusiva São Luís", ["camisa-alusiva-sao-luis_101_IMG_7440.jpg", "camisa-alusiva-sao-luis_118_IMG_7503.jpg", "camisa-alusiva-sao-luis_104_IMG_7443.jpg", "camisa-alusiva-sao-luis_132_IMG_7517.jpg", "camisa-alusiva-sao-luis_220_IMG_7656.jpg", "camisa-alusiva-sao-luis_107_IMG_7448.jpg"]],
+  16698810433: ["07_Camisas_Estampadas/Camisa Boizinho com Fio de Matraca", ["camisa-boizinho-com-fio-de-matraca_103_estampas_lisas_-_editadas-16.jpg", "camisa-boizinho-com-fio-de-matraca_110_IMG_7456.jpg", "camisa-boizinho-com-fio-de-matraca_118_IMG_7464.jpg", "camisa-boizinho-com-fio-de-matraca_126_IMG_7472.jpg", "camisa-boizinho-com-fio-de-matraca_157_WhatsApp_Image_2026-10-13_at_21.55.33_(2).jpg"]],
+  16698809408: ["07_Camisas_Estampadas/Camisa Caboclo de Pena", ["camisa-caboclo-de-pena_211_IMG_7773.jpg", "camisa-caboclo-de-pena_218_WhatsApp_Image_2026-10-13_at_21.55.33.jpg", "camisa-caboclo-de-pena_184_IMG_7746.jpg", "camisa-caboclo-de-pena_283_IMG_7587.jpg", "camisa-caboclo-de-pena_198_IMG_7760.jpg"]],
+  16698806570: ["07_Camisas_Estampadas/Camisa Revoada dos Guarás", ["camisa-revoada-dos-guaras_116_IMG_7487.jpg", "camisa-revoada-dos-guaras_114_IMG_7485.jpg", "camisa-revoada-dos-guaras_104_IMG_7475.jpg", "camisa-revoada-dos-guaras_120_IMG_7491.jpg"]],
+  16698802616: ["07_Camisas_Estampadas/Camisa Tradição", ["camisa-tradicao_122_IMG_2592.jpg", "camisa-tradicao_272_IMG_2648.jpg", "camisa-tradicao_281_IMG_2723.jpg", "camisa-tradicao_112_IMG_2582.jpg", "camisa-tradicao_248_IMG_2721.jpg"]],
+  16698815567: ["07_Camisas_Estampadas/Camisa Revoadinha dos Guarás", ["camisa-revoadinha-dos-guaras_125_IMG_2595.jpg", "camisa-revoadinha-dos-guaras_267_IMG_2598.jpg", "camisa-revoadinha-dos-guaras_256_IMG_2729.jpg", "camisa-revoadinha-dos-guaras_121_IMG_2591.jpg", "camisa-revoadinha-dos-guaras_150_IMG_2622.jpg"]],
 };
 
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
@@ -114,6 +134,20 @@ if (isEntrypoint) {
     console.log(`${id}.jpg  ${info.width}×${info.height}  ${(info.size / 1024).toFixed(0)} KB`);
   }
 
+  // Galeria
+  const galeria = {};
+  mkdirSync(join(DESTINO, "galeria"), { recursive: true });
+  for (const [id, [pasta, arquivos]] of Object.entries(GALERIA)) {
+    galeria[id] = [];
+    for (let n = 0; n < arquivos.length; n++) {
+      const info = await sharp(localizarArquivo(pasta, arquivos[n])).rotate()
+        .resize(LADO, LADO, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82, mozjpeg: true })
+        .toFile(join(DESTINO, "galeria", `${id}-${n + 1}.jpg`));
+      galeria[id].push({ n: n + 1, largura: info.width, altura: info.height });
+    }
+    console.log(`galeria ${id}: ${arquivos.length} fotos`);
+  }
+
   // O site precisa das medidas para reservar o espaço da foto antes de ela
   // carregar — sem isso a página "pula" quando a imagem chega.
   const ts = `/**
@@ -121,6 +155,9 @@ if (isEntrypoint) {
  * GERADO por scripts/preparar-fotos-produtos.mjs — não edite à mão.
  */
 export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }> = ${JSON.stringify(medidas, null, 2)};
+
+/** Fotos extras (galeria) por ID: /fotos/produtos/galeria/<id>-<n>.jpg */
+export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altura: number }[]> = ${JSON.stringify(galeria, null, 2)};
 `;
   writeFileSync("C:/dev/kambada-site/src/lib/fotosProdutos.ts", ts);
   console.log(`\n${Object.keys(medidas).length} fotos geradas.`);

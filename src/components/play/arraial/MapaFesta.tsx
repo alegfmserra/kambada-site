@@ -180,7 +180,7 @@ export function CartaoLugar({
           {lugar.cta && (
             <Link
               href={lugar.cta.href}
-              className="toque-matraca rounded-full bg-kambada-red px-4 py-2 font-body text-sm font-bold text-kambada-cream hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+              className="toque-matraca rounded-full bg-kambada-gold px-4 py-2 font-body text-sm font-bold text-kambada-ink hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
             >
               {lugar.cta.label}
             </Link>

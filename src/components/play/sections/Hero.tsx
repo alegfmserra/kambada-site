@@ -19,8 +19,8 @@ export function Hero() {
       <div className="absolute inset-0 bg-gradient-to-b from-kambada-ink/30 via-transparent via-30% to-kambada-noite" />
 
       <header className="relative z-10 flex items-center justify-between px-6 pt-6">
-        <span className="font-display text-2xl font-semibold italic tracking-tight text-kambada-cream drop-shadow-md">
-          Kambada
+        <span className="font-display text-sm font-bold uppercase tracking-[0.3em] text-kambada-cream drop-shadow-md">
+          Kambada Play
         </span>
         <MicangaDashes count={4} />
       </header>

@@ -188,8 +188,8 @@ export default function ArraialApp() {
           ))}
         </ul>
         <Link
-          href="/kambadaplay"
-          className="toque-matraca relative rounded-full bg-kambada-red px-6 py-3 font-body font-bold text-kambada-cream transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+          href="/kambadaplay/matraca"
+          className="toque-matraca relative rounded-full bg-kambada-gold px-6 py-3 font-body font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
         >
           Conhecer a matraca
         </Link>
@@ -285,7 +285,7 @@ export default function ArraialApp() {
         </p>
       </div>
       <Link
-        href="/kambadaplay"
+        href="/kambadaplay/matraca"
         className="toque-matraca pointer-events-auto absolute bottom-4 right-4 z-20 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-xs font-semibold text-kambada-cream/90 backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
       >
         ← a matraca
@@ -302,7 +302,7 @@ export default function ArraialApp() {
             <button
               onClick={() => setDialogo(npcPerto)}
               aria-label={`${textos.falar} com ${npcPerto.nome}${touch ? "" : ". Atalho: tecla E"}`}
-              className="pulso toque-matraca pointer-events-auto rounded-full border-2 border-kambada-cream bg-kambada-red px-8 py-3 font-body text-base font-bold text-kambada-cream shadow-xl transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
+              className="pulso toque-matraca pointer-events-auto rounded-full border-2 border-kambada-cream bg-kambada-gold px-8 py-3 font-body text-base font-bold text-kambada-ink shadow-xl transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
             >
               {textos.falar} com {npcPerto.nome}
               {!touch && <span aria-hidden> (E)</span>}

@@ -68,7 +68,7 @@ export function PrecoEntrega() {
             href={copy.precoEntrega.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="cta-matraca mt-10 inline-block rounded-full bg-kambada-red px-12 py-4 font-body text-lg font-bold text-kambada-cream shadow-xl shadow-kambada-red/30 hover:-translate-y-0.5 hover:bg-kambada-red/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-kambada-gold/60"
+            className="cta-matraca mt-10 inline-block rounded-full bg-kambada-gold px-12 py-4 font-body text-lg font-bold text-kambada-ink shadow-xl shadow-kambada-gold/30 hover:-translate-y-0.5 hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-kambada-gold/60"
           >
             {copy.precoEntrega.ctaLabel}
           </a>

@@ -254,7 +254,7 @@ export function Pescaria({ touch, onVitoria, onFechar }: PescariaProps) {
               onPointerUp={soltarAnzol}
               onPointerCancel={() => setSegurando(false)}
               onPointerLeave={() => setSegurando(false)}
-              className="pulso toque-matraca mt-3 w-full rounded-full border-2 border-kambada-cream bg-kambada-red px-6 py-3 font-body text-sm font-bold text-kambada-cream shadow-xl transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+              className="pulso toque-matraca mt-3 w-full rounded-full border-2 border-kambada-cream bg-kambada-gold px-6 py-3 font-body text-sm font-bold text-kambada-ink shadow-xl transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
             >
               {t.botaoAnzol}
               {!touch && <span aria-hidden> (espaço)</span>}
@@ -273,7 +273,7 @@ export function Pescaria({ touch, onVitoria, onFechar }: PescariaProps) {
             </p>
             <button
               onClick={() => onFechar(true)}
-              className="toque-matraca mt-4 w-full rounded-full bg-kambada-red px-5 py-2.5 font-body text-sm font-bold text-kambada-cream transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+              className="toque-matraca mt-4 w-full rounded-full bg-kambada-gold px-5 py-2.5 font-body text-sm font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
             >
               {t.botaoContinuar}
             </button>

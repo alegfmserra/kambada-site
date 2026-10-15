@@ -111,7 +111,7 @@ export default function ArraialClient() {
           type="button"
           autoFocus
           onClick={tentarDeNovo}
-          className="toque-matraca relative rounded-full bg-kambada-red px-6 py-3 font-body font-bold text-kambada-cream hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+          className="toque-matraca relative rounded-full bg-kambada-gold px-6 py-3 font-body font-bold text-kambada-ink hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
         >
           {textos.tentarDeNovo}
         </button>
@@ -139,7 +139,7 @@ export default function ArraialClient() {
             type="button"
             onClick={entrar}
             autoFocus
-            className="toque-matraca rounded-full border-2 border-kambada-cream bg-kambada-red px-8 py-3.5 font-body text-base font-bold text-kambada-cream shadow-xl transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+            className="toque-matraca rounded-full border-2 border-kambada-cream bg-kambada-gold px-8 py-3.5 font-body text-base font-bold text-kambada-ink shadow-xl transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
           >
             {textos.entrar}
           </button>

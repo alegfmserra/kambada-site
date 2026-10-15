@@ -145,7 +145,7 @@ function Fecho({ modo }: { modo: "horizontal" | "vertical" }) {
       </p>
       <div data-entrada className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
         <Link
-          href="/kambadaplay"
+          href="/kambadaplay/matraca"
           className="toque-matraca inline-block rounded-full bg-kambada-gold px-9 py-3.5 font-body text-base font-bold text-kambada-ink shadow-lg shadow-black/30"
         >
           {conto.fecho.ctaMatraca}

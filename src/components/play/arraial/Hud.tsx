@@ -231,7 +231,7 @@ export function Dialogo({
                   e.stopPropagation();
                   track("arraial_cta_matraca", { origem: "dialogo" });
                 }}
-                className="toque-matraca rounded-full bg-kambada-red px-5 py-2 font-body text-sm font-bold text-kambada-cream transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+                className="toque-matraca rounded-full bg-kambada-gold px-5 py-2 font-body text-sm font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
               >
                 {npc.cta.label}
               </Link>
@@ -297,11 +297,11 @@ export function Celebracao({ onVoltar }: { onVoltar: () => void }) {
         </p>
         <div className="mt-6 flex flex-col gap-2.5">
           <Link
-            href="/kambadaplay"
+            href="/kambadaplay/matraca"
             onClick={() =>
               track("arraial_cta_matraca", { origem: "celebracao" })
             }
-            className="toque-matraca rounded-full bg-kambada-red px-6 py-3 font-body font-bold text-kambada-cream transition-colors hover:bg-kambada-red/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+            className="toque-matraca rounded-full bg-kambada-gold px-6 py-3 font-body font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
           >
             {textos.celebracaoCta}
           </Link>

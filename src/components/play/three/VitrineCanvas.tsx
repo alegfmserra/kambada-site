@@ -2,7 +2,7 @@
 
 import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { PresentationControls, ContactShadows, Environment } from "@react-three/drei";
+import { PresentationControls, ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import { MatracaModel } from "./MatracaModel";
 import { useMediaQuery } from "@/lib/play/mediaQuery";
@@ -74,9 +74,13 @@ export default function VitrineCanvas({ alvo, visivel = true }: VitrineCanvasPro
       dpr={[1, 2]}
       frameloop={visivel ? "always" : "never"}
     >
-      {/* IBL de fim de tarde como base; a directional quente segue como key */}
+      {/* IBL de fim de tarde (luzes locais, sem baixar HDR de CDN: a CSP do site não deixa); a directional quente segue como key */}
       <Suspense fallback={null}>
-        <Environment preset="sunset" environmentIntensity={0.6} />
+        <Environment resolution={256} environmentIntensity={0.6}>
+          <Lightformer form="rect" intensity={4} color="#FFD9A0" position={[3, 3, 4]} scale={[6, 3, 1]} />
+          <Lightformer form="rect" intensity={1.5} color="#FFCC29" position={[-4, 1, -3]} scale={[5, 2, 1]} />
+          <Lightformer form="ring" intensity={1} color="#F1F1F1" position={[0, 5, 0]} scale={4} />
+        </Environment>
       </Suspense>
       <ambientLight intensity={0.35} color="#F5EDE0" />
       <directionalLight position={[3, 4, 3]} intensity={1.6} color="#FFD9A0" />

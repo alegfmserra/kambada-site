@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, type ReactNode } from "react";
 import { useGLTF } from "@react-three/drei";
+import { DRACO_LOCAL } from "@/lib/play/draco";
 import * as THREE from "three";
 import { rampaToon } from "@/lib/play/toon";
 import { useContorno } from "./Contorno";
@@ -47,7 +48,7 @@ export function SlotModelo({ glb, escala = 1, children }: SlotModeloProps) {
 function ModeloCarregado({ glb, escala }: { glb: string; escala: number }) {
   const rampa = rampaToon(3);
   const grupo = useRef<THREE.Group>(null);
-  const { scene } = useGLTF(glb);
+  const { scene } = useGLTF(glb, DRACO_LOCAL);
   useContorno(grupo);
 
   useEffect(() => {

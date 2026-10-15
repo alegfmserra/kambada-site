@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
+import { DRACO_LOCAL } from "@/lib/play/draco";
 import * as THREE from "three";
 
 const URLS = ["/kambadaplay/models/matraca-dir.glb", "/kambadaplay/models/matraca-esq.glb"] as const;
@@ -15,8 +16,8 @@ const COR_MADEIRA = "#A9682E";
  * geometrias dos clones e aqui descartamos o material e limpamos o cache.
  */
 export const MatracaModel = forwardRef<THREE.Group>((_props, ref) => {
-  const dir = useGLTF(URLS[0]);
-  const esq = useGLTF(URLS[1]);
+  const dir = useGLTF(URLS[0], DRACO_LOCAL);
+  const esq = useGLTF(URLS[1], DRACO_LOCAL);
 
   const material = useMemo(
     () =>
@@ -57,5 +58,5 @@ export const MatracaModel = forwardRef<THREE.Group>((_props, ref) => {
 });
 MatracaModel.displayName = "MatracaModel";
 
-useGLTF.preload(URLS[0]);
-useGLTF.preload(URLS[1]);
+useGLTF.preload(URLS[0], DRACO_LOCAL);
+useGLTF.preload(URLS[1], DRACO_LOCAL);

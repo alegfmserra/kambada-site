@@ -285,10 +285,10 @@ export default function ArraialApp() {
         </p>
       </div>
       <Link
-        href="/kambadaplay/matraca"
-        className="toque-matraca pointer-events-auto absolute bottom-4 right-4 z-20 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-xs font-semibold text-kambada-cream/90 backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
+        href="/kambadaplay"
+        className="toque-matraca pointer-events-auto absolute bottom-24 right-4 z-20 sm:bottom-4 sm:right-24 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-xs font-semibold text-kambada-cream/90 backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
       >
-        ← a matraca
+        ← Kambada Play
       </Link>
 
       {/* Botão de conversa quando há alguém por perto */}

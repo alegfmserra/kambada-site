@@ -228,7 +228,7 @@ export default function PlayEntrada() {
               </h2>
               <p className="text-sm text-kambada-branco/60">{fileira.legenda}</p>
             </div>
-            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6">
+            <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:scroll-px-6 sm:px-6">
               {fileira.itens.map((item) => (
                 <Cartao key={item.titulo} item={item} />
               ))}

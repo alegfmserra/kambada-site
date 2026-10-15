@@ -387,3 +387,86 @@
 .snap-x-cards::-webkit-scrollbar {
   display: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Hub do Kambada Play: rolagem interativa. `--p` (0 a 1) vem do componente
+   Progresso; as camadas se movem pelo CSS. Sem movimento para quem pede menos.
+--------------------------------------------------------------------------- */
+.play-tema-site {
+  background-color: var(--fundo);
+  color: var(--texto);
+}
+
+.par-fundo {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 140px), 0) scale(1.12);
+}
+.par-lento {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 60px), 0);
+}
+.par-medio {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 120px), 0);
+}
+.par-rapido {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 220px), 0);
+}
+.par-gira {
+  transform: rotate(calc((var(--p, 0.5) - 0.5) * 10deg));
+}
+/* Leque de páginas da HQ: abre conforme a seção atravessa a tela */
+.leque-1 {
+  transform: translate(calc((var(--p, 0.5) - 0.2) * -46%), 0) rotate(calc((var(--p, 0.5) - 0.2) * -22deg));
+}
+.leque-2 {
+  transform: translate(0, calc((0.5 - var(--p, 0.5)) * 30px)) rotate(calc((var(--p, 0.5) - 0.5) * 4deg));
+}
+.leque-3 {
+  transform: translate(calc((var(--p, 0.5) - 0.2) * 46%), 0) rotate(calc((var(--p, 0.5) - 0.2) * 22deg));
+}
+
+.play-revelar[data-revelar="0"] {
+  opacity: 0;
+  transform: translateY(32px);
+}
+.play-revelar[data-revelar="1"] {
+  opacity: 1;
+  transform: none;
+}
+.play-revelar {
+  transition:
+    opacity 700ms var(--ease-kambada),
+    transform 700ms var(--ease-kambada);
+}
+
+/* Faixa de letreiro amarela, na assinatura da marca */
+@keyframes play-letreiro {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.play-letreiro-faixa {
+  display: flex;
+  width: max-content;
+  animation: play-letreiro 38s linear infinite;
+}
+.play-letreiro:hover .play-letreiro-faixa {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .par-fundo,
+  .par-lento,
+  .par-medio,
+  .par-rapido,
+  .par-gira,
+  .leque-1,
+  .leque-2,
+  .leque-3 {
+    transform: none;
+  }
+  .play-letreiro-faixa {
+    animation: none;
+  }
+  .play-revelar {
+    transition: none;
+  }
+}

@@ -68,7 +68,7 @@ function Capa({ modo }: { modo: "horizontal" | "vertical" }) {
           <p
             data-entrada-splash
             style={{ "--ordem": 1 } as CSSProperties}
-            className="max-w-[58%] md:max-w-[70%] font-body text-[10px] font-semibold uppercase leading-relaxed tracking-[0.3em] text-kambada-red md:text-[11px]"
+            className="max-w-[58%] md:max-w-[70%] font-body text-[10px] font-semibold uppercase leading-relaxed tracking-[0.3em] text-kambada-grafite md:text-[11px] bg-kambada-amarelo px-2 py-1"
           >
             {conto.capa.kicker}
           </p>
@@ -157,6 +157,12 @@ function Fecho({ modo }: { modo: "horizontal" | "vertical" }) {
           {conto.fecho.ctaArraial}
         </Link>
       </div>
+      <Link
+        href="/kambadaplay"
+        className="mt-6 inline-block font-body text-sm font-semibold text-kambada-gold underline-offset-4 hover:underline"
+      >
+        ← Voltar ao Kambada Play
+      </Link>
     </section>
   );
 }
@@ -529,16 +535,16 @@ export function ContoScroll() {
             ref={cordaoRef}
             data-conto-cordao
             aria-hidden
-            className="absolute inset-x-8 bottom-5 z-30 h-px bg-kambada-red/60"
+            className="absolute inset-x-8 bottom-5 z-30 h-px bg-kambada-grafite/40"
           >
             {Array.from({ length: TOTAL_PAGINAS }).map((_, i) => (
               <span
                 key={i}
-                className="absolute -top-[2.5px] h-1.5 w-1.5 rounded-full bg-kambada-red/80"
+                className="absolute -top-[2.5px] h-1.5 w-1.5 rounded-full bg-kambada-grafite/70"
                 style={{ left: `calc((100% - 20px) * ${i / (TOTAL_PAGINAS - 1)} + 7px)` }}
               />
             ))}
-            <div ref={estrelaRef} className="absolute -top-2.5 left-0 h-5 w-5 text-kambada-red">
+            <div ref={estrelaRef} className="absolute -top-2.5 left-0 h-5 w-5 text-kambada-amarelo-escuro">
               <Estrela4 className="h-full w-full drop-shadow" />
             </div>
           </div>

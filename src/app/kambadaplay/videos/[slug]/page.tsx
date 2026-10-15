@@ -21,10 +21,11 @@ export default async function VideoPage({ params }: Props) {
   if (!v) notFound();
 
   return (
+    <div className="play-tema-site">
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <Link
         href="/kambadaplay"
-        className="text-sm font-semibold text-kambada-amarelo hover:underline"
+        className="text-sm font-semibold text-[var(--destaque-texto)] hover:underline"
       >
         ← Kambada Play
       </Link>
@@ -40,10 +41,10 @@ export default async function VideoPage({ params }: Props) {
           Seu navegador não toca este vídeo.
         </video>
       </div>
-      <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-kambada-amarelo">
+      <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
         Animação · {v.duracao}
       </p>
-      <h1 className="mt-2 font-display text-3xl font-extrabold text-kambada-branco sm:text-4xl">
+      <h1 className="mt-2 font-display text-3xl font-extrabold text-texto sm:text-4xl">
         {v.titulo}
         {v.provisorio ? (
           <span className="ml-3 align-middle rounded-full bg-kambada-branco/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-kambada-branco">
@@ -51,7 +52,8 @@ export default async function VideoPage({ params }: Props) {
           </span>
         ) : null}
       </h1>
-      <p className="mt-4 max-w-2xl text-base leading-relaxed text-kambada-branco/80">{v.descricao}</p>
+      <p className="mt-4 max-w-2xl text-base leading-relaxed text-texto-suave">{v.descricao}</p>
+    </div>
     </div>
   );
 }

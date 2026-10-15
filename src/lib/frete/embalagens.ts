@@ -95,7 +95,7 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
       return preco >= 55 ? E.ecobagGrande : E.ecobagPequena;
     }
     case "matracas": {
-      if (/kambadaplay/.test(nome)) return E.matracaPlay;
+      if (/play/.test(nome)) return E.matracaPlay;
       const grande = /grande/.test(nome);
       const pequena = /pequena|mini/.test(nome);
       const semSuporte = /sem suporte/.test(nome);

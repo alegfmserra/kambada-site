@@ -70,6 +70,7 @@ export const NAV = [
   { rotulo: "Encomendas", href: "/encomendas" },
   { rotulo: "Sobre", href: "/sobre" },
   { rotulo: "Cultura", href: "/cultura" },
+  { rotulo: "Play", href: "/play" },
   { rotulo: "Contato", href: "/contato" },
 ] as const;
 

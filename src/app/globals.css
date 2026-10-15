@@ -187,3 +187,25 @@ body {
 .pulso-carrinho {
   animation: pulso-carrinho 450ms ease-out;
 }
+
+/* ---------------------------------------------------------------------------
+   Kambada Play — tokens das páginas /play (jogo, conto, vitrine da matraca).
+   Remapeados para a paleta da marca (grafite + amarelo); só o vermelho, o azul
+   e o verde ficam como cores de fita de São João (acento festivo).
+--------------------------------------------------------------------------- */
+@theme {
+  --color-kambada-navy: #26272a;
+  --color-kambada-noite: #1d1e20;
+  --color-kambada-red: #d4432b;
+  --color-kambada-gold: #ffcc29;
+  --color-kambada-wood: #a8793f;
+  --color-kambada-terracota: #c98a5e;
+  --color-kambada-terracota-deep: #8a5330;
+  --color-kambada-cream: #f1f1f1;
+  --color-kambada-ink: #1d1e20;
+  --color-kambada-papel: #f3eee4;
+  --color-kambada-green: #3b8d5d;
+  --color-kambada-blue: #518fc2;
+  --color-kambada-yellow: #ffcc29;
+  --font-body: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+}

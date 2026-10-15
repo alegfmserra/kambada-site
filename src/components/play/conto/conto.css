@@ -1,0 +1,37 @@
+/* Estilos locais da página /conto, importados por src/app/conto/page.tsx.
+   Tokens globais (cores, easing, durações) vivem em globals.css. */
+
+/* Papel das cenas comuns: base menos saturada que o mostarda cheio, puxando
+   pro papel jornal do folheto. A capa segue com o mostarda pleno, guardando
+   o momento de cor pra abertura. */
+[data-conto-viagem] {
+  --papel-suave: color-mix(in oklab, var(--color-kambada-papel) 72%, var(--color-kambada-cream));
+}
+.cena-papel-suave {
+  background-color: var(--papel-suave);
+}
+.cena-papel-suave .scrim-papel {
+  background: linear-gradient(
+    to top,
+    var(--papel-suave) 0%,
+    var(--papel-suave) 36%,
+    color-mix(in srgb, var(--papel-suave) 78%, transparent) 62%,
+    transparent 100%
+  );
+}
+.tinta-papel-suave {
+  color: var(--papel-suave);
+}
+
+/* Xilogravura sobre fundo noite: a tinta escura do PNG vira traço claro e
+   quente, no espírito do traço dourado do palco invertido. Só se aplica ao
+   PNG; o fallback SVG já herda currentColor. */
+.arte-noite {
+  filter: invert(0.88) sepia(0.55) saturate(1.9) hue-rotate(-12deg) brightness(1.04);
+}
+
+/* Contador de páginas: difference garante leitura tanto sobre o papel
+   mostarda quanto sobre a noite navy, sem chip de HUD genérico. */
+.contador-pagina {
+  mix-blend-mode: difference;
+}

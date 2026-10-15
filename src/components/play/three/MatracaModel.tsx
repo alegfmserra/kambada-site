@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-const URLS = ["/play/models/matraca-dir.glb", "/play/models/matraca-esq.glb"] as const;
+const URLS = ["/kambadaplay/models/matraca-dir.glb", "/kambadaplay/models/matraca-esq.glb"] as const;
 
 /** Espelho sRGB de `--color-kambada-wood` (globals.css); Three não lê var(--). */
 const COR_MADEIRA = "#A9682E";

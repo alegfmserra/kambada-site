@@ -55,7 +55,7 @@ function Capa({ modo }: { modo: "horizontal" | "vertical" }) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/play/images/conto/capa-moldura.png"
+            src="/kambadaplay/images/conto/capa-moldura.png"
             alt=""
             className="h-full w-full"
             draggable={false}
@@ -87,7 +87,7 @@ function Capa({ modo }: { modo: "horizontal" | "vertical" }) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/play/images/conto/boi-estrela.png"
+              src="/kambadaplay/images/conto/boi-estrela.png"
               alt=""
               className="w-full"
               draggable={false}
@@ -145,13 +145,13 @@ function Fecho({ modo }: { modo: "horizontal" | "vertical" }) {
       </p>
       <div data-entrada className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
         <Link
-          href="/play"
+          href="/kambadaplay"
           className="toque-matraca inline-block rounded-full bg-kambada-gold px-9 py-3.5 font-body text-base font-bold text-kambada-ink shadow-lg shadow-black/30"
         >
           {conto.fecho.ctaMatraca}
         </Link>
         <Link
-          href="/play/arraial"
+          href="/kambadaplay/arraial"
           className="toque-matraca inline-block rounded-full border-2 border-kambada-cream/50 px-9 py-3 font-body text-base font-bold text-kambada-cream"
         >
           {conto.fecho.ctaArraial}

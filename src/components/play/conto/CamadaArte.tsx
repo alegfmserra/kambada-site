@@ -51,7 +51,7 @@ export function CamadaArte({
         {temPng ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`/play/images/conto/${arquivo}`}
+            src={`/kambadaplay/images/conto/${arquivo}`}
             alt=""
             className={`w-full ${imgClassName}`}
             draggable={false}

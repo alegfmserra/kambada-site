@@ -56,7 +56,7 @@ export function Manifesto() {
           <div className="overflow-hidden rounded-[2rem] border border-kambada-cream/15 shadow-2xl shadow-black/50">
             <div ref={imgRef} className="will-change-transform">
               <Image
-                src="/play/images/renders/estrela-capelo.webp"
+                src="/kambadaplay/images/renders/estrela-capelo.webp"
                 alt="Capelo da matraca em detalhe: estrela bordada em miçangas brancas sobre veludo azul-marinho, cercada de tracinhos coloridos"
                 width={1000}
                 height={1000}

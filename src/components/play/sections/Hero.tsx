@@ -8,7 +8,7 @@ export function Hero() {
     <section id="hero" className="grain relative flex min-h-[100svh] flex-col overflow-hidden">
       {/* Render frontal como cenário de fundo (matraca na parede terracota) */}
       <Image
-        src="/play/images/renders/hero-matraca.webp"
+        src="/kambadaplay/images/renders/hero-matraca.webp"
         alt="Matraca Kambada pendurada em uma parede de estuque, com capelo de miçangas e o boi pintado à mão"
         fill
         priority

@@ -38,7 +38,7 @@ export function Artesanato() {
         <Reveal className="pl-6 md:flex-1 md:pl-0">
           <div className="-mr-8 overflow-hidden rounded-l-[2rem] shadow-2xl shadow-black/40 md:mr-0 md:rounded-[2rem]">
             <Image
-              src="/play/images/renders/boi-close.webp"
+              src="/kambadaplay/images/renders/boi-close.webp"
               alt="Detalhe do boi de Bumba Meu Boi pintado à mão na madeira da matraca, com estrela branca e as cores da bandeira do Maranhão"
               width={900}
               height={1215}
@@ -50,7 +50,7 @@ export function Artesanato() {
         <Reveal delay={0.15} className="pr-6 md:flex-1 md:pr-0">
           <div className="-ml-8 -mt-16 w-3/4 overflow-hidden rounded-r-[2rem] border-4 border-kambada-cream/70 shadow-2xl shadow-black/50 md:ml-0 md:mt-0 md:w-full md:rounded-[2rem]">
             <Image
-              src="/play/images/renders/moody-detail.webp"
+              src="/kambadaplay/images/renders/moody-detail.webp"
               alt="Matraca na parede sob a sombra de folhagens, com o capelo de miçangas aparecendo no alto"
               width={900}
               height={900}

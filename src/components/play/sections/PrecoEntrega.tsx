@@ -36,7 +36,7 @@ export function PrecoEntrega() {
 
       {/* Palmeira de babaçu: ornamento lateral discreto, meio sangrada na borda */}
       <Image
-        src="/play/images/xilogravuras/xilo-babacu.webp"
+        src="/kambadaplay/images/xilogravuras/xilo-babacu.webp"
         alt=""
         aria-hidden
         width={700}

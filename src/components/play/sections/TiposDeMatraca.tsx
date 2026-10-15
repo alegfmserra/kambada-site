@@ -20,7 +20,7 @@ export function TiposDeMatraca() {
       {/* Vinheta do par de matracas: marca a virada da Origem pros Sotaques */}
       <Reveal className="mt-6 flex justify-center">
         <Image
-          src="/play/images/xilogravuras/xilo-matracas.webp"
+          src="/kambadaplay/images/xilogravuras/xilo-matracas.webp"
           alt="Xilogravura de um par de matracas de madeira batendo, com linhas de som saindo do impacto"
           width={560}
           height={560}

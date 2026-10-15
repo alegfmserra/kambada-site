@@ -20,7 +20,7 @@ export function PosterArraial({
     // navegador como fundo e deixa de contar como LCP.
     <div className={`${posicao} inset-1.5 bg-kambada-noite ${className}`} aria-hidden>
       <picture>
-        <source media="(min-width: 900px)" srcSet="/play/images/arraial/poster.webp" type="image/webp" />
+        <source media="(min-width: 900px)" srcSet="/kambadaplay/images/arraial/poster.webp" type="image/webp" />
         <img src={POSTER_INLINE} alt="" fetchPriority="high" decoding="sync" className="h-full w-full object-cover" />
       </picture>
     </div>

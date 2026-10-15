@@ -167,7 +167,7 @@ export function Vitrine() {
           >
             {/* Parede real dos renders como cenário da vitrine */}
             <Image
-              src="/play/images/renders/parede-texture.webp"
+              src="/kambadaplay/images/renders/parede-texture.webp"
               alt=""
               aria-hidden
               fill

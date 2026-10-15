@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="relative flex flex-col items-center gap-4 bg-kambada-noite px-6 pb-14 pt-10 text-center">
       <MicangaDashes count={6} />
       <Link
-        href="/play/conto"
+        href="/kambadaplay/conto"
         className="link-costura font-body text-sm text-kambada-cream/70 underline-offset-4"
       >
         O Auto do Boi, o conto em cordel

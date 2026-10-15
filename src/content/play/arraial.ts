@@ -106,7 +106,7 @@ export const npcs: Npc[] = [
       acerto: "Exato! Direto do Maranhão, celebrando o Bumba Meu Boi e a Ilha do Amor. Tua última fitinha te espera!",
       erro: "Opa, ainda não! A Kambada nasce no Maranhão, a Ilha do Amor. Dá uma volta na festa e volta aqui!",
     },
-    cta: { label: "Conhecer a matraca", href: "/play" },
+    cta: { label: "Conhecer a matraca", href: "/kambadaplay" },
   },
 ];
 
@@ -144,7 +144,7 @@ export const lugares: Lugar[] = [
     resumo: "Matracas entalhadas e pintadas à mão.",
     descricao: "A barraca da Kambada expõe a matraca de verdade, feita no Maranhão pro Bumba Meu Boi.",
     tipo: "conversa",
-    cta: { label: "Conhecer a matraca", href: "/play" },
+    cta: { label: "Conhecer a matraca", href: "/kambadaplay" },
   },
   {
     id: "coreto",
@@ -187,7 +187,7 @@ export const lugares: Lugar[] = [
     resumo: "Sino, cruz e a história do boi que renasce.",
     descricao: "A capelinha branca guarda a história que a Kambada conta em cordel: o boi que morre e renasce todo ano.",
     tipo: "lugar",
-    cta: { label: "Ler o conto do boi", href: "/play/conto" },
+    cta: { label: "Ler o conto do boi", href: "/kambadaplay/conto" },
   },
   {
     id: "canjica",

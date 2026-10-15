@@ -30,7 +30,7 @@ export default function ArraialClient() {
   const [falha, setFalha] = useState<string | null>(null);
 
   // Em telas largas o pôster é um arquivo: o preload sai no <head> (SSR) antes dos chunks.
-  preload("/play/images/arraial/poster.webp", { as: "image", fetchPriority: "high", media: "(min-width: 900px)" });
+  preload("/kambadaplay/images/arraial/poster.webp", { as: "image", fetchPriority: "high", media: "(min-width: 900px)" });
 
   const carregar = useCallback(async () => {
     if (carregando.current) return;

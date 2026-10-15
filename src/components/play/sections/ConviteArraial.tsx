@@ -15,13 +15,13 @@ export function ConviteArraial() {
           Ande pela festa de São João, converse com o povo do arraial e junte as cinco fitinhas respondendo o quiz da tradição.
         </p>
         <Link
-          href="/play/arraial"
+          href="/kambadaplay/arraial"
           className="cta-matraca mt-8 inline-block rounded-full border-2 border-kambada-ink bg-kambada-cream px-10 py-3.5 font-body text-lg font-bold text-kambada-ink shadow-lg shadow-black/20 hover:-translate-y-0.5 hover:bg-kambada-cream/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-kambada-ink/30"
         >
           Visitar o arraial
         </Link>
         <Link
-          href="/play/conto"
+          href="/kambadaplay/conto"
           className="mt-5 block font-body text-sm font-semibold text-kambada-ink/70 underline underline-offset-4 transition-colors hover:text-kambada-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-ink/40 rounded"
         >
           Ler o conto do boi

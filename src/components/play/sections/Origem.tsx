@@ -36,7 +36,7 @@ export function Origem() {
         <Reveal delay={0.1} className="relative my-10 md:my-12">
           <EstrelaRaiada className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-auto -translate-x-1/2 -translate-y-1/2 text-kambada-gold/[0.06]" />
           <Image
-            src="/play/images/xilogravuras/xilo-boi.webp"
+            src="/kambadaplay/images/xilogravuras/xilo-boi.webp"
             alt="Xilogravura do boi de Bumba Meu Boi, com o couro bordado, penas no dorso e a estrela na testa"
             width={900}
             height={900}

@@ -297,7 +297,7 @@ export function Celebracao({ onVoltar }: { onVoltar: () => void }) {
         </p>
         <div className="mt-6 flex flex-col gap-2.5">
           <Link
-            href="/play"
+            href="/kambadaplay"
             onClick={() =>
               track("arraial_cta_matraca", { origem: "celebracao" })
             }

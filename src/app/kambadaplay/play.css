@@ -370,7 +370,7 @@
 /* Friso de brincantes em cortejo: a xilogravura repete na horizontal
    atravessando a tela (tile 2:1, traço cream sobre alpha) */
 .friso-brincantes {
-  background-image: url("/play/images/xilogravuras/xilo-brincantes.webp");
+  background-image: url("/kambadaplay/images/xilogravuras/xilo-brincantes.webp");
   background-repeat: repeat-x;
   background-size: auto 100%;
   background-position: center bottom;

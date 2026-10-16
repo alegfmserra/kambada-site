@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+
+import { BoiKambada } from "@/components/play/ilustracoes/BoiKambada";import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -85,13 +86,7 @@ function Capa({ modo }: { modo: "horizontal" | "vertical" }) {
             className="block w-[62%] max-w-[300px]"
             aria-hidden
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/kambadaplay/images/conto/boi-estrela.png"
-              alt=""
-              className="w-full"
-              draggable={false}
-            />
+            <BoiKambada className="w-full" titulo="" />
           </span>
           <p className="max-w-[26ch] font-body text-xs text-kambada-ink/75 md:text-sm">
             {conto.capa.subtitulo}

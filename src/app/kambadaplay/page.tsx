@@ -5,6 +5,7 @@ import { Bandeirinhas } from "@/components/play/ornaments/Bandeirinhas";
 import { Progresso } from "@/components/play/hub/Progresso";
 import { Revelar } from "@/components/play/hub/Revelar";
 import { VideoAuto } from "@/components/play/hub/VideoAuto";
+import { BoiKambada } from "@/components/play/ilustracoes/BoiKambada";
 import { HQS, paginaDaHQ } from "@/content/play/hq";
 import { VIDEOS, arquivoDoVideo, capaDoVideo } from "@/content/play/videos";
 
@@ -21,6 +22,8 @@ type Item = {
   selo: string;
   href?: string;
   imagem: string;
+  /** Ilustração própria no lugar da foto (desenho da Kambada). */
+  ilustracao?: "boi";
   /** Texto do botão (só quando há `href`). */
   acao?: string;
 };
@@ -70,7 +73,8 @@ const FILEIRAS: Fileira[] = [
           "Um folheto de cordel digital: a lenda do Bumba Meu Boi em xilogravura animada, da noite de São João à festa que renasce todo junho.",
         selo: "História",
         href: "/kambadaplay/conto",
-        imagem: "/kambadaplay/images/xilogravuras/xilo-boi.webp",
+        imagem: "",
+        ilustracao: "boi",
         acao: "Ler agora",
       },
     ],
@@ -132,15 +136,21 @@ function Cartao({ item }: { item: Item }) {
   const miolo = (
     <>
       <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-kambada-preto">
-        <Image
-          src={item.imagem}
-          alt=""
-          fill
-          sizes="(min-width: 1024px) 22rem, 78vw"
-          className={`object-cover transition-transform duration-500 ${
-            disponivel ? "group-hover:scale-105" : "opacity-40 grayscale"
-          }`}
-        />
+        {item.ilustracao === "boi" ? (
+          <div className="absolute inset-0 bg-kambada-papel p-6 pb-24">
+            <BoiKambada titulo="" className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
+          </div>
+        ) : (
+          <Image
+            src={item.imagem}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 22rem, 78vw"
+            className={`object-cover transition-transform duration-500 ${
+              disponivel ? "group-hover:scale-105" : "opacity-40 grayscale"
+            }`}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-kambada-preto via-kambada-preto/40 to-transparent" />
         <span
           className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] ${
@@ -324,13 +334,9 @@ export default function PlayEntrada() {
         >
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 sm:px-6 md:grid-cols-2 md:py-28">
             <div className="par-medio order-2 md:order-1">
-              <div className="mx-auto max-w-sm rounded-sm border-[3px] border-kambada-grafite bg-kambada-grafite p-5 shadow-[8px_8px_0_0_#ffcc29]">
-                <Image
-                  src="/kambadaplay/images/xilogravuras/xilo-boi.webp"
-                  alt="Xilogravura do boi de Bumba Meu Boi, com o couro bordado e a estrela"
-                  width={900}
-                  height={1100}
-                  sizes="(min-width: 768px) 24rem, 80vw"
+              <div className="mx-auto max-w-sm rounded-sm border-[3px] border-kambada-grafite bg-kambada-branco p-5 shadow-[8px_8px_0_0_#ffcc29]">
+                <BoiKambada
+                  titulo="O boi do Maranhão, desenhado no traço da Kambada, com o couro nas cores da bandeira"
                   className="h-auto w-full"
                 />
               </div>
@@ -425,6 +431,27 @@ export default function PlayEntrada() {
                 <Link href={`/kambadaplay/videos/${video.slug}`} className={`mt-8 ${BOTAO_AMARELO}`}>
                   Assistir com som
                 </Link>
+                <figure className="mt-10">
+                  <div className="flex gap-4">
+                    {[
+                      { src: "/kambadaplay/images/atelie/placa-coreira.webp", alt: "Placa pintada à mão da coreira do tambor de crioula, de saia vermelha e flores" },
+                      { src: "/kambadaplay/images/atelie/placa-coreiro.webp", alt: "Placa pintada à mão do coreiro do tambor de crioula, tocando o tambor de camisa vermelha" },
+                    ].map((p) => (
+                      <Image
+                        key={p.src}
+                        src={p.src}
+                        alt={p.alt}
+                        width={720}
+                        height={1080}
+                        sizes="9rem"
+                        className="h-auto w-32 rounded-md border-2 border-kambada-amarelo sm:w-36"
+                      />
+                    ))}
+                  </div>
+                  <figcaption className="mt-3 max-w-xs text-xs text-kambada-branco/60">
+                    Do ateliê: a coreira e o coreiro, placas de madeira pintadas à mão pela Kambada.
+                  </figcaption>
+                </figure>
               </Revelar>
             </div>
           </Progresso>

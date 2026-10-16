@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BoiKambada } from "@/components/play/ilustracoes/BoiKambada";
 import { copy } from "@/content/play/copy";
 import { Reveal } from "@/components/play/motion/Reveal";
 import { Bandeirinhas } from "@/components/play/ornaments/Bandeirinhas";
@@ -31,17 +31,12 @@ export function Origem() {
           <p className="font-body leading-relaxed text-kambada-cream/85">{primeiro}</p>
         </Reveal>
 
-        {/* Xilogravura do boi: presença forte entre os parágrafos,
-            semi-integrada ao fundo navy (traço cream sobre alpha) */}
+        {/* O boi do Maranhão no traço da Kambada: presença forte entre os parágrafos */}
         <Reveal delay={0.1} className="relative my-10 md:my-12">
           <EstrelaRaiada className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-auto -translate-x-1/2 -translate-y-1/2 text-kambada-gold/[0.06]" />
-          <Image
-            src="/kambadaplay/images/xilogravuras/xilo-boi.webp"
-            alt="Xilogravura do boi de Bumba Meu Boi, com o couro bordado, penas no dorso e a estrela na testa"
-            width={900}
-            height={900}
-            sizes="(min-width: 768px) 384px, 288px"
-            className="relative mx-auto h-auto w-72 opacity-90 md:w-96"
+          <BoiKambada
+            titulo="O boi do Maranhão: couro em saia com as cores da bandeira, capelo e fitas ao vento"
+            className="relative mx-auto h-auto w-72 md:w-96"
           />
         </Reveal>
 

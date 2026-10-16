@@ -472,7 +472,7 @@ export default function PlayEntrada() {
             />
           </div>
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-kambada-grafite via-kambada-grafite/70 to-transparent" />
-          <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-24 sm:px-6 md:grid-cols-2 md:py-32">
             <Revelar>
               <Numero n="05" rotulo="Matraca" />
               <h2 className="mt-4 max-w-xl font-display text-4xl font-extrabold leading-tight sm:text-5xl">
@@ -491,6 +491,19 @@ export default function PlayEntrada() {
                 </Link>
               </div>
             </Revelar>
+            <div className="par-lento">
+              <div className="par-gira">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border-4 border-kambada-amarelo shadow-[10px_10px_0_0_#ffcc29]">
+                  <Image
+                    src="/kambadaplay/images/boi-de-matraca.webp"
+                    alt="Boi do Maranhão ilustrado, com o couro bordado de miçangas e franjas de fitas coloridas e o capelo ao vento"
+                    fill
+                    sizes="(min-width: 768px) 40vw, 90vw"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </Progresso>
       </div>

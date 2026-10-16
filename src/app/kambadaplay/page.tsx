@@ -55,10 +55,28 @@ const FILEIRAS: Fileira[] = [
         acao: "Jogar agora",
       },
       {
-        titulo: "Novos jogos",
-        texto: "Mais brincadeiras da cultura maranhense a caminho.",
-        selo: "Em breve",
-        imagem: "/kambadaplay/images/xilogravuras/xilo-brincantes.webp",
+        titulo: "Éguas! Quem é quem?",
+        texto: "Quiz com 10 perguntas sobre a cultura maranhense. Ranking da semana com cupom para o top 3.",
+        selo: "Quiz",
+        href: "/kambadaplay/jogos/quiz",
+        imagem: "/kambadaplay/images/atelie/placa-coreiro.webp",
+        acao: "Jogar agora",
+      },
+      {
+        titulo: "Memória das estampas",
+        texto: "Ache os 8 pares das artes da Kambada: camisas, matracas e placas pintadas à mão.",
+        selo: "Memória",
+        href: "/kambadaplay/jogos/memoria",
+        imagem: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp",
+        acao: "Jogar agora",
+      },
+      {
+        titulo: "Ranking e cupons",
+        texto: "Os 3 primeiros da semana ganham cupom: 10% para o 1º lugar e 5% para o 2º e o 3º.",
+        selo: "Ranking",
+        href: "/kambadaplay/placar",
+        imagem: "/kambadaplay/jogos/memoria/placa-boi-colorido.webp",
+        acao: "Ver ranking",
       },
     ],
   },
@@ -306,9 +324,23 @@ export default function PlayEntrada() {
                 Ande pela festa de São João, converse com o povo da brincadeira, pesque na barraca e junte
                 as cinco fitinhas da tradição maranhense. Funciona no celular e no computador.
               </p>
-              <Link href="/kambadaplay/arraial" className={`mt-8 ${BOTAO_AMARELO}`}>
-                Jogar agora
-              </Link>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/kambadaplay/arraial" className={BOTAO_AMARELO}>
+                  Jogar o arraial
+                </Link>
+                <Link href="/kambadaplay/jogos/quiz" className={BOTAO_CONTORNO}>
+                  Quiz
+                </Link>
+                <Link href="/kambadaplay/jogos/memoria" className={BOTAO_CONTORNO}>
+                  Memória
+                </Link>
+              </div>
+              <p className="mt-4 text-sm text-kambada-branco/70">
+                Os 3 primeiros do ranking da semana ganham cupom na loja.{" "}
+                <Link href="/kambadaplay/placar" className="font-semibold text-kambada-amarelo hover:underline">
+                  Ver ranking
+                </Link>
+              </p>
             </Revelar>
             <div className="par-lento">
               <div className="par-gira">

@@ -73,8 +73,7 @@ const FILEIRAS: Fileira[] = [
           "Um folheto de cordel digital: a lenda do Bumba Meu Boi em xilogravura animada, da noite de São João à festa que renasce todo junho.",
         selo: "História",
         href: "/kambadaplay/conto",
-        imagem: "",
-        ilustracao: "boi",
+        imagem: "/kambadaplay/images/boi-de-matraca.webp",
         acao: "Ler agora",
       },
     ],
@@ -334,11 +333,16 @@ export default function PlayEntrada() {
         >
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 sm:px-6 md:grid-cols-2 md:py-28">
             <div className="par-medio order-2 md:order-1">
-              <div className="mx-auto max-w-sm rounded-sm border-[3px] border-kambada-grafite bg-kambada-branco p-5 shadow-[8px_8px_0_0_#ffcc29]">
-                <BoiKambada
-                  titulo="O boi do Maranhão, desenhado no traço da Kambada, com o couro nas cores da bandeira"
-                  className="h-auto w-full"
-                />
+              <div className="par-gira">
+                <div className="relative mx-auto aspect-[4/3] max-w-xl overflow-hidden rounded-2xl border-4 border-kambada-grafite shadow-[10px_10px_0_0_#ffcc29]">
+                  <Image
+                    src="/kambadaplay/images/boi-de-matraca.webp"
+                    alt="Boi do Maranhão ilustrado, com o couro bordado de miçangas e franjas de fitas coloridas e o capelo ao vento"
+                    fill
+                    sizes="(min-width: 768px) 40vw, 90vw"
+                    className="object-cover"
+                  />
+                </div>
               </div>
             </div>
             <Revelar className="order-1 md:order-2">
@@ -472,7 +476,7 @@ export default function PlayEntrada() {
             />
           </div>
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-kambada-grafite via-kambada-grafite/70 to-transparent" />
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-24 sm:px-6 md:grid-cols-2 md:py-32">
+          <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
             <Revelar>
               <Numero n="05" rotulo="Matraca" />
               <h2 className="mt-4 max-w-xl font-display text-4xl font-extrabold leading-tight sm:text-5xl">
@@ -491,19 +495,6 @@ export default function PlayEntrada() {
                 </Link>
               </div>
             </Revelar>
-            <div className="par-lento">
-              <div className="par-gira">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border-4 border-kambada-amarelo shadow-[10px_10px_0_0_#ffcc29]">
-                  <Image
-                    src="/kambadaplay/images/boi-de-matraca.webp"
-                    alt="Boi do Maranhão ilustrado, com o couro bordado de miçangas e franjas de fitas coloridas e o capelo ao vento"
-                    fill
-                    sizes="(min-width: 768px) 40vw, 90vw"
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         </Progresso>
       </div>

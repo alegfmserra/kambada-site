@@ -42,6 +42,7 @@ describe("navegação", () => {
       "/encomendas",
       "/sobre",
       "/cultura",
+      "/kambadaplay",
       "/contato",
     ]);
   });

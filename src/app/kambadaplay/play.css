@@ -1,0 +1,472 @@
+
+/* Motion tokens da casa: curvas custom (nunca `ease` default) e faixas de
+   duração. Entrada em ease-out; saída em 75% do tempo da entrada. */
+:root {
+  --ease-kambada: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-kambada-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-toque: 120ms;
+  --dur-hover: 180ms;
+  --dur-reveal: 450ms;
+}
+
+.play-root {
+  overflow-x: clip;
+  background-color: var(--color-kambada-noite);
+  color: var(--color-kambada-cream);
+  font-family: var(--font-body);
+}
+
+/* Registro popular da Fraunces (tipos móveis de cordel): suaviza terminais e
+   desalinha levemente as letras. Usar em títulos de cena do conto e citações. */
+.display-cordel {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 80, "WONK" 1;
+}
+
+/* Assinatura tátil da marca: todo clicável dá um "toque de matraca" no press,
+   micro-rotação + recuo em 120ms. Aplicar em CTAs e cards clicáveis. */
+@media (prefers-reduced-motion: no-preference) {
+  .toque-matraca {
+    transition: transform var(--dur-toque) var(--ease-kambada);
+  }
+  .toque-matraca:active {
+    transform: rotate(1.5deg) scale(0.97);
+  }
+}
+
+/* Grain sutil sobre as seções, pra tirar o "chapado" dos fundos sólidos */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* Dithering dos fundos com gradiente radial: mata o banding do navy/terracota.
+   Aplicar junto de .noite/.parede em seções com radial visível. */
+.dither::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23d)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+/* Fibra de papel do cordel: turbulência de baixa frequência em multiply,
+   por cima entra o grain fino. Aplicar junto de .papel. */
+.fibra-papel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04 0.09' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23p)'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+}
+
+/* Faixa diagonal de fitas: vermelho / branco / preto, como as fitas da matraca */
+.fita-band {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-kambada-red) 0 14px,
+    var(--color-kambada-cream) 14px 24px,
+    var(--color-kambada-ink) 24px 34px,
+    var(--color-kambada-cream) 34px 44px
+  );
+}
+
+/* Vinheta quente das seções "parede" */
+.parede {
+  background-color: var(--color-kambada-terracota);
+  background-image:
+    radial-gradient(120% 90% at 50% 0%, rgba(245, 237, 224, 0.16) 0%, transparent 55%),
+    radial-gradient(140% 110% at 50% 100%, rgba(20, 20, 20, 0.35) 0%, transparent 60%);
+}
+
+/* Fundo "noite": navy profundo com respiração no centro */
+.noite {
+  background-color: var(--color-kambada-noite);
+  background-image: radial-gradient(
+    100% 70% at 50% 35%,
+    rgba(11, 30, 61, 0.9) 0%,
+    var(--color-kambada-noite) 75%
+  );
+}
+
+/* Rotação lenta contínua (estrela do CTA) e pulso sutil do CTA:
+   só rodam quando o visitante aceita movimento */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes girar {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .girar-lento {
+    animation: girar 60s linear infinite;
+  }
+
+  @keyframes pulso {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(199, 48, 43, 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 12px rgba(199, 48, 43, 0);
+    }
+  }
+  .pulso {
+    animation: pulso 2.6s ease-in-out infinite;
+  }
+}
+
+/* Papel de cordel: amarelo claro com vinheta quente, base das cenas do conto */
+.papel {
+  background-color: var(--color-kambada-papel);
+  background-image:
+    radial-gradient(120% 90% at 50% 0%, rgba(245, 237, 224, 0.28) 0%, transparent 55%),
+    radial-gradient(140% 110% at 50% 100%, rgba(20, 20, 20, 0.22) 0%, transparent 60%);
+}
+
+/* Motion tokens do conto: loops ambientes cênicos (fora da escala de UI de
+   50–700ms, que vale pra transições; loop ambiente pede período longo pra não
+   virar ruído). A entrada de texto por cena vive no GSAP:
+   --conto-entrada-dur com easing de entrance (power2.out). */
+:root {
+  --conto-entrada-dur: 550ms; /* narrativa: faixa longa (400–700ms) */
+  --conto-entrada-stagger: 120ms;
+  --conto-chama-dur: 1.3s; /* fogo vivo, sem nervosismo */
+  --conto-piscar-dur: 2.8s; /* 0,36 pulsos/s, bem abaixo do limite de 3 flashes/s */
+  --conto-fumaca-dur: 4.6s; /* reza sobe devagar; loop calmo */
+  --conto-balancar-dur: 3.6s; /* brisa, não ventania */
+  --conto-flutuar-dur: 6s; /* respiração do papel, quase imperceptível */
+}
+
+/* Micro-animações do conto: só rodam quando o visitante aceita movimento */
+@media (prefers-reduced-motion: no-preference) {
+  /* Chama de fogueira tremulando */
+  @keyframes chama {
+    0%,
+    100% {
+      transform: scaleY(1) skewX(0deg);
+    }
+    30% {
+      transform: scaleY(1.06) skewX(-2deg);
+    }
+    60% {
+      transform: scaleY(0.95) skewX(2.5deg);
+    }
+    80% {
+      transform: scaleY(1.04) skewX(-1deg);
+    }
+  }
+  .anim-chama {
+    animation: chama var(--conto-chama-dur) ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  /* Estrelas piscando fora de fase (use delays inline pra variar) */
+  @keyframes piscar {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+  .anim-piscar {
+    animation: piscar var(--conto-piscar-dur) ease-in-out infinite;
+  }
+
+  /* Fumaça de reza subindo em loop */
+  @keyframes fumaca {
+    0% {
+      transform: translateY(12px);
+      opacity: 0;
+    }
+    25% {
+      opacity: 0.9;
+    }
+    100% {
+      transform: translateY(-26px);
+      opacity: 0;
+    }
+  }
+  .anim-fumaca {
+    animation: fumaca var(--conto-fumaca-dur) ease-out infinite;
+    transform-box: fill-box;
+  }
+
+  /* Bandeirolas balançando de leve */
+  @keyframes balancar {
+    0%,
+    100% {
+      transform: rotate(-1.4deg);
+    }
+    50% {
+      transform: rotate(1.4deg);
+    }
+  }
+  .anim-balancar {
+    animation: balancar var(--conto-balancar-dur) ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: 50% 0%;
+  }
+
+  /* Flutuação idle das camadas de papel */
+  @keyframes flutuar {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  .anim-flutuar {
+    animation: flutuar var(--conto-flutuar-dur) ease-in-out infinite;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Splash de marca (SplashKambada): logo + cordão de miçangas + saída em cortina.
+   Estados via [data-estado]; o JS garante que reduced-motion nunca chega em
+   "revelando" (vira "reduzido", um fade curto). */
+:root {
+  --splash-cortina-dur: 900ms;
+  --splash-cortina-ease: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+[data-splash] {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Véu rápido (navegação repetida na sessão) e fade do reduced-motion:
+   só opacidade, aceitável mesmo com preferência por menos movimento */
+[data-splash][data-estado="veu"] {
+  animation: splashSair 300ms ease-out forwards;
+}
+[data-splash][data-estado="reduzido"] {
+  animation: splashSair 400ms ease-out forwards;
+}
+
+@keyframes splashSair {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Logo chega em escala + fade */
+  [data-splash] .splash-logo {
+    animation: splashLogo 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes splashLogo {
+    from {
+      opacity: 0;
+      transform: scale(0.82);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Tracinhos de miçanga acendendo em sequência (progresso e decoração) */
+  [data-splash] .splash-micanga {
+    opacity: 0.25;
+    animation: micangaAcende 1.5s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 0.16s);
+  }
+  @keyframes micangaAcende {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scaleX(0.75);
+    }
+    35% {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+  }
+
+  /* Saída impactante: a cortina abre de baixo pra cima e a logo sobe junto */
+  [data-splash][data-estado="revelando"] {
+    animation: splashCortina var(--splash-cortina-dur) var(--splash-cortina-ease) forwards;
+  }
+  [data-splash][data-estado="revelando"] .splash-logo {
+    animation: splashLogoSai 600ms ease-in forwards;
+  }
+  @keyframes splashCortina {
+    to {
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+  @keyframes splashLogoSai {
+    to {
+      opacity: 0;
+      transform: translateY(-40px) scale(0.96);
+    }
+  }
+}
+
+/* Entrada em stagger dos elementos principais atrás da cortina.
+   Ordem via --ordem (kicker -> título -> subtítulo; moldura -> estrela -> título). */
+[data-splash-palco="aguardando"] [data-entrada-splash] {
+  opacity: 0;
+}
+[data-splash-palco="revelado"] [data-entrada-splash] {
+  animation: entradaSplash 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--ordem, 0) * 130ms + 250ms);
+}
+@keyframes entradaSplash {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-splash-palco] [data-entrada-splash] {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Conto: respaldo legível da letra da toada. O texto vive no pé da página;
+   o scrim tinge o fundo com a própria cor da cena (papel ou noite) pra arte
+   em parallax nunca disputar com a leitura. */
+.scrim-papel {
+  background: linear-gradient(
+    to top,
+    var(--color-kambada-papel) 0%,
+    var(--color-kambada-papel) 36%,
+    color-mix(in srgb, var(--color-kambada-papel) 78%, transparent) 62%,
+    transparent 100%
+  );
+}
+.scrim-noite {
+  background: linear-gradient(
+    to top,
+    var(--color-kambada-noite) 0%,
+    var(--color-kambada-noite) 36%,
+    color-mix(in srgb, var(--color-kambada-noite) 78%, transparent) 62%,
+    transparent 100%
+  );
+}
+
+/* Friso de brincantes em cortejo: a xilogravura repete na horizontal
+   atravessando a tela (tile 2:1, traço cream sobre alpha) */
+.friso-brincantes {
+  background-image: url("/kambadaplay/images/xilogravuras/xilo-brincantes.webp");
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: center bottom;
+}
+
+/* Carrossel com snap dos sotaques */
+.snap-x-cards {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.snap-x-cards > * {
+  scroll-snap-align: center;
+}
+.snap-x-cards::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Hub do Kambada Play: rolagem interativa. `--p` (0 a 1) vem do componente
+   Progresso; as camadas se movem pelo CSS. Sem movimento para quem pede menos.
+--------------------------------------------------------------------------- */
+.play-tema-site {
+  background-color: var(--fundo);
+  color: var(--texto);
+}
+
+.par-fundo {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 140px), 0) scale(1.12);
+}
+.par-lento {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 60px), 0);
+}
+.par-medio {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 120px), 0);
+}
+.par-rapido {
+  transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * 220px), 0);
+}
+.par-gira {
+  transform: rotate(calc((var(--p, 0.5) - 0.5) * 10deg));
+}
+/* Leque de páginas da HQ: abre conforme a seção atravessa a tela */
+.leque-1 {
+  transform: translate(calc((var(--p, 0.5) - 0.2) * -46%), 0) rotate(calc((var(--p, 0.5) - 0.2) * -22deg));
+}
+.leque-2 {
+  transform: translate(0, calc((0.5 - var(--p, 0.5)) * 30px)) rotate(calc((var(--p, 0.5) - 0.5) * 4deg));
+}
+.leque-3 {
+  transform: translate(calc((var(--p, 0.5) - 0.2) * 46%), 0) rotate(calc((var(--p, 0.5) - 0.2) * 22deg));
+}
+
+.play-revelar[data-revelar="0"] {
+  opacity: 0;
+  transform: translateY(32px);
+}
+.play-revelar[data-revelar="1"] {
+  opacity: 1;
+  transform: none;
+}
+.play-revelar {
+  transition:
+    opacity 700ms var(--ease-kambada),
+    transform 700ms var(--ease-kambada);
+}
+
+/* Faixa de letreiro amarela, na assinatura da marca */
+@keyframes play-letreiro {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.play-letreiro-faixa {
+  display: flex;
+  width: max-content;
+  animation: play-letreiro 38s linear infinite;
+}
+.play-letreiro:hover .play-letreiro-faixa {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .par-fundo,
+  .par-lento,
+  .par-medio,
+  .par-rapido,
+  .par-gira,
+  .leque-1,
+  .leque-2,
+  .leque-3 {
+    transform: none;
+  }
+  .play-letreiro-faixa {
+    animation: none;
+  }
+  .play-revelar {
+    transition: none;
+  }
+}

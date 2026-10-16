@@ -1,0 +1,67 @@
+/* Estilos da rota /matraca. Consome os tokens de globals.css; nada de hex novo. */
+
+/* Estado inicial dos reveals só quando há JS (classe `js` no <html>, setada
+   por script inline no page.tsx). Sem JS a página fica visível; quem prefere
+   menos movimento nunca passa pelo estado escondido. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    opacity: 0;
+  }
+}
+
+/* CTA da casa: transições nomeadas (nunca `all`) na curva da marca, com o
+   "toque de matraca" no press via propriedades individuais de transform,
+   compatíveis com os utilitários translate/scale do Tailwind v4. */
+.cta-matraca {
+  transition:
+    translate var(--dur-hover) var(--ease-kambada),
+    rotate var(--dur-hover) var(--ease-kambada),
+    scale var(--dur-hover) var(--ease-kambada),
+    background-color var(--dur-hover) var(--ease-kambada);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cta-matraca:active {
+    rotate: 1.5deg;
+    scale: 0.97;
+    transition-duration: var(--dur-toque);
+  }
+}
+
+/* Pulso finito do CTA primário: 3 ciclos quando o botão entra na viewport
+   (classe `pulsar` adicionada por IntersectionObserver), nunca em loop eterno. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes pulso-convite {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-kambada-red) 45%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 12px transparent;
+    }
+  }
+  .pulsar {
+    animation: pulso-convite 2.6s var(--ease-kambada-inout) 3;
+  }
+}
+
+/* Blocos do scrollytelling da Vitrine: só existem no desktop com movimento
+   liberado; no mobile e no reduced-motion a vitrine estática segue sozinha. */
+.vitrine-etapas {
+  display: none;
+}
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .vitrine-etapas {
+    display: block;
+  }
+}
+
+/* Links do rodapé: sublinhado sempre presente, só a cor da decoração anima. */
+.link-costura {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-hover) var(--ease-kambada);
+}
+.link-costura:hover,
+.link-costura:focus-visible {
+  text-decoration-color: currentColor;
+}

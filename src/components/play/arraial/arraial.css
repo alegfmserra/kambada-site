@@ -1,0 +1,163 @@
+/* Estilos do mini-game /arraial: microfeedback do HUD, coreografia do clímax
+   e hints que aparecem e somem. Importado por src/app/arraial/page.tsx;
+   consome os tokens de motion de globals.css (--ease-kambada, --dur-*). */
+
+/* Tokens de duração do arraial (complementam --dur-toque/--dur-hover/--dur-reveal
+   de globals.css): entrada e saída de superfícies, fade de hint, pulso e mola. */
+:root {
+  --dur-entrada: 200ms;
+  --dur-saida: 150ms;
+  --dur-hint: 400ms;
+  --dur-pulso: 1800ms;
+  --dur-mola: 260ms;
+}
+
+/* Fitinha do contador: transição só de cor de fundo (nunca transition-all). */
+.hud-fitinha {
+  transition: background-color 300ms var(--ease-kambada);
+}
+
+/* Hint de instrução inicial: fade de opacidade, aceitável também com
+   prefers-reduced-motion por ser só opacity. */
+.hint-arraial {
+  transition: opacity var(--dur-hint) var(--ease-kambada);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Seta de avanço das falas: respiro curto e discreto no easing da casa. */
+  @keyframes setaAvanco {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(3px);
+    }
+  }
+  .seta-avanco {
+    animation: setaAvanco 1400ms var(--ease-kambada-inout) infinite;
+  }
+
+  /* Pulso do botão de ação por proximidade: um anel em pseudo-elemento que
+     escala e some (só transform e opacity, composto na GPU); o botão em si
+     fica parado, então clique, foco e automação não esperam estabilidade. */
+  .pulso {
+    position: relative;
+    animation: none;
+  }
+  .pulso::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    border: 2px solid rgba(199, 48, 43, 0.55);
+    pointer-events: none;
+    animation: pulsoAnel var(--dur-pulso) var(--ease-kambada-inout) infinite;
+  }
+  @keyframes pulsoAnel {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    70%,
+    100% {
+      transform: scale(1.18);
+      opacity: 0;
+    }
+  }
+
+  /* O .toque-matraca de globals.css declara transition só de transform e, por
+     estar fora de @layer, vence o transition-colors do Tailwind. Nos botões
+     do arraial as duas transições convivem. */
+  .toque-matraca {
+    transition:
+      transform var(--dur-toque) var(--ease-kambada),
+      background-color var(--dur-hover) var(--ease-kambada),
+      border-color var(--dur-hover) var(--ease-kambada),
+      color var(--dur-hover) var(--ease-kambada);
+  }
+
+  /* Pop da fitinha recém-ganha: momento raro, merece o delight. */
+  @keyframes fitinhaPop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.25);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .fitinha-pop {
+    animation: fitinhaPop 320ms var(--ease-kambada);
+  }
+
+  /* Entrada do balão de conversa (a superfície mais usada): sobe 8px com fade,
+     no mesmo token de 200ms dos cartões. */
+  @keyframes dialogoEntrada {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  .dialogo-entrada {
+    animation: dialogoEntrada var(--dur-entrada) var(--ease-kambada) both;
+  }
+
+  /* Saída das superfícies (regra dos 75%: mais curta que a entrada): fade + 6px pra baixo. */
+  @keyframes superficieSaida {
+    to {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  [data-saindo="true"] {
+    animation: superficieSaida var(--dur-saida) var(--ease-kambada-inout) both !important;
+  }
+
+  /* Entrada da celebração: véu em fade e cartão em fade + scale 0.95 -> 1. */
+  @keyframes celebracaoVeu {
+    from {
+      opacity: 0;
+    }
+  }
+  .celebracao-veu {
+    animation: celebracaoVeu var(--dur-entrada) var(--ease-kambada) both;
+  }
+
+  @keyframes celebracaoCartao {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+  .celebracao-cartao {
+    animation: celebracaoCartao var(--dur-entrada) var(--ease-kambada) both;
+  }
+
+  /* Fitinhas do cartão da celebração subindo em stagger de 40ms (via --i). */
+  @keyframes celebracaoFitinha {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .celebracao-fitinha {
+    opacity: 0;
+    animation: celebracaoFitinha 260ms var(--ease-kambada) forwards;
+    animation-delay: calc(var(--i, 0) * 40ms + 120ms);
+  }
+}
+
+/* Joystick: a mola de retorno (definida inline ao soltar) some com reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .joystick-base,
+  .joystick-alavanca {
+    transition: none !important;
+  }
+}

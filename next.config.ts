@@ -23,7 +23,8 @@ import type { NextConfig } from "next";
  * site (clickjacking) e o navegador pode "adivinhar" tipos de arquivo.
  * A CSP permite script inline porque o Next o usa; o resto é o mínimo.
  */
-const SEGURANCA = [
+function seguranca(play: boolean) {
+  return [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -33,11 +34,15 @@ const SEGURANCA = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net",
+      // Kambada Play (3D): os decodificadores WebAssembly dos modelos (Meshopt,
+      // Draco) exigem 'wasm-unsafe-eval' (só WebAssembly; não libera eval de JS)
+      // e o carregador de modelos lê texturas por blob:. Só vale em /kambadaplay.
+      `script-src 'self' 'unsafe-inline'${play ? " 'wasm-unsafe-eval'" : ""} https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
+      `connect-src 'self'${play ? " blob: data:" : ""} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com`,
+      ...(play ? ["worker-src 'self' blob:"] : []),
       "frame-src https://td.doubleclick.net https://www.googletagmanager.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
@@ -46,7 +51,10 @@ const SEGURANCA = [
       "upgrade-insecure-requests",
     ].join("; "),
   },
-];
+  ];
+}
+const SEGURANCA = seguranca(false);
+const SEGURANCA_PLAY = seguranca(true);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -95,12 +103,17 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/:caminho*",
+        source: "/:caminho((?!kambadaplay).*)",
         headers: SEGURANCA,
       },
       {
+        // Kambada Play: mesma política, com a folga mínima do 3D (ver seguranca()).
+        source: "/kambadaplay/:caminho*",
+        headers: SEGURANCA_PLAY,
+      },
+      {
         // Páginas: o navegador revalida sempre, o CDN guarda no máximo 60s.
-        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho).*)",
+        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho|kambadaplay).*)",
         headers: [
           {
             key: "Cache-Control",

@@ -113,7 +113,7 @@ const nextConfig: NextConfig = {
       },
       {
         // Páginas: o navegador revalida sempre, o CDN guarda no máximo 60s.
-        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho).*)",
+        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho|kambadaplay).*)",
         headers: [
           {
             key: "Cache-Control",

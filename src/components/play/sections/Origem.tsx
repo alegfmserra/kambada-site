@@ -36,6 +36,8 @@ export function Origem() {
           <EstrelaRaiada className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-auto -translate-x-1/2 -translate-y-1/2 text-kambada-gold/[0.06]" />
           <BoiKambada
             titulo="O boi do Maranhão: couro em saia com as cores da bandeira, capelo e fitas ao vento"
+            tinta="#f1f1f1"
+            papel="#1d1e20"
             className="relative mx-auto h-auto w-72 md:w-96"
           />
         </Reveal>

@@ -4,7 +4,7 @@ type ArteProps = { className?: string };
 
 /** O boi deitado, no traço da Kambada. */
 export function MorteBoiCaido({ className = "" }: ArteProps) {
-  return <BoiKambadaDeitado className={className} />;
+  return <BoiKambadaDeitado className={className} tinta="#f6efdc" papel="#1d1e20" />;
 }
 
 /** Nuvens pesadas de luto, hachuradas por dentro. */

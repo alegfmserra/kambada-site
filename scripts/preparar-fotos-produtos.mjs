@@ -128,9 +128,9 @@ Object.assign(FOTOS, {
   16701490850: [T3, `${W}ecobag-grande-ilha-encantada.jpg`, "Ecobag Serpente Tons de Azul (Will)"],
   16701491012: [T3, `${W}ecobag-grande-quebrdeira-de-coco.jpg`, "Ecobag Quebradeira de Coco (Will)"],
   16701478328: ["04_Necessaires/Necessaire Tradição", `${W}necessaire-tradicao-colorido.jpg`, "Necessaire Tradição Colorida (Will)"],
-  16701539190: [KIT, `${W}capa-kit-ecologico-bumba-meu-boi.jpg`, "Kit Bumba Meu Boi — capa (Will)"],
+  // 16701539190: capa deitada da Will substituída pela capa em pé da Kambada (18/10) — ver bloco K
   16701539241: [KIT, `${W}capa-kit-ecologico-cazumba.jpg`, "Kit Cazumbá — capa (Will)"],
-  16701538916: [KIT, `${W}capa-kit-ecologico-guaras.jpg`, "Kit Guarás — capa (Will)"],
+  // 16701538916: capa deitada da Will substituída pela capa em pé da Kambada (18/10) — ver bloco K
   16701539267: [KIT, `${W}capa-kit-ecoogico-lendas.jpg`, "Kit Ilha do Amor — capa Lendas (Will)"],
   // O cadastro 16701502913 chama-se "Chaveiros Kambadinha" no Bling (mascote); os chaveiros de pinus DTF da Will ficam no acervo até existir produto próprio.
   16701502913: ["Chaveiros", "chaveiro_chaveiro-mascote-kambada-cartela-aprimorado-v2_01.jpg", "Chaveiro Kambadinha (mascote, cartela)"],
@@ -150,7 +150,7 @@ Object.assign(GALERIA, {
   16701538916: [KIT, [`${W}kit-ecologico-guara.jpg`, `${W}kit-ecologico-aberto.jpg`]],
   16701539267: [KIT, [`${W}kit-ecologico-aberto.jpg`]],
   16701503257: [PL, [`${W}placa-coreira.jpg`, `${W}placa-coreiro.jpg`, `${W}detalhe-placa-coreira.jpg`, `${W}placa-retangular-em-pinus-coreiro.jpg`]],
-  16701503283: [PL, [`${W}placa-redonda-em-pinus-com-alca-courino-boi-colorido.jpg`, `${W}placa-redonda-em-pinus-com-alca-boi-preto.jpg`, `${W}placa-redonda-em-pinus-com-alca-courino-cazumba.jpg`]],
+  // 16701503283: fotos da Will substituídas pelas da Kambada de 17/10 (mesmos itens) — ver bloco K
   16701503226: [PL, [`${W}placa-redonda-em-pinus-boi-colorido-com-acabamento-em-sisal-e-fio-nautico.jpg`, `${W}placa-redonda-em-pinus-boi-colorido-com-acabamento-em-sisal-e-fio-nautico-2.jpg`]],
   16689786358: ["02_Placas_de_Madeira/Porta-chaves", [`${W}porta-chaves-azulejo.jpg`, `${W}porta-chaves-carranca.jpg`]],
   16698778218: [T1, [`${W}matraca-kambada-play-boi-de-lado.jpg`, `${W}matraca-kambada-play-boi-de-lado-2.jpg`]],
@@ -168,6 +168,10 @@ Object.assign(GALERIA, {
 //    Fora, de propósito: "Cropped Lendas 1/2" (cropped não tem cadastro no Bling).
 const K = "Kambada_2026-10-18";
 Object.assign(FOTOS, {
+  16701539190: [K, "Kit Anotação - Bumba Meu Boi.jpeg", "Kit Ecológico Bumba Meu Boi — capa em pé"],
+  16701539241: [K, "Kit Anotação - Cazumba.jpeg", "Kit Ecológico Cazumbá — capa em pé"],
+  16701538916: [K, "Kit Anotação - Guarás.jpeg", "Kit Ecológico Guarás — capa em pé"],
+  16701539267: [K, "Kit Anotação - Lendas.jpeg", "Kit Ecológico Ilha do Amor — capa em pé (Lendas)"],
   16698814825: [K, "Camisa Cazumbazinho1.jpeg", "Camisa Cazumbázinho"],
   16698814722: [K, "Camisa Cazumbá.jpeg", "Camisa Cazumbá (bege; a preta vai na galeria — um cadastro só no Bling)"],
   16698808333: [K, "Camisa Lenda da Serpente Infantil2.jpeg", "Camisa Lenda da Serpente Infantil"],
@@ -196,12 +200,12 @@ acrescentar(16698775382, ["Matraca G Bumba Boi  Estrelado com suporte.jpeg", "Ma
 acrescentar(16698777669, ["Matraca P Boizinho Perfil 2 Com Suporte.jpeg", "Matraca P Boizinho Perfil 3 com Suporte.jpeg", "Matraca P Chapeu de Fita Bandeira do Maranhão com Suporte.jpeg", "Matraca P Miolinho Com Suporte.jpeg", "Matraca Bumba Boi Bandeira do Maranhão  com Suporte.jpeg"]);
 acrescentar(16698777979, ["Matraca P Boizinho Estrelado.jpeg", "Matraca P Bumba Boi do Maranhão.jpeg", "Matraca P Bumba Boi do Maranhão2.jpeg", "Matraca P Cazumba Frontal.jpeg"]);
 acrescentar(16698778218, ["Matraca Kambada Play.jpeg"]);
-acrescentar(16701539190, ["Kit Anotação - Bumba Meu Boi.jpeg", "Kit Anotação - Bumba Meu Boi Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
-acrescentar(16701539241, ["Kit Anotação - Cazumba.jpeg", "Kit Anotação - Cazumba Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
-acrescentar(16701538916, ["Kit Anotação - Guarás.jpeg", "Kit Anotação - Guarás Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
-acrescentar(16701539267, ["Kit Anotação - Lendas.jpeg", "Kit Anotação - Lendas Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
+GALERIA[16701539190] = [K, ["Kit Anotação - Bumba Meu Boi Contracapa.jpeg", "Kit Anotação - Interior Geral - vertical.jpg"]]; // 18/10: só fotos em pé (pedido do Alexandre)
+GALERIA[16701539241] = [K, ["Kit Anotação - Cazumba Contracapa.jpeg", "Kit Anotação - Interior Geral - vertical.jpg"]];
+GALERIA[16701538916] = [K, ["Kit Anotação - Guarás Contracapa.jpeg", "Kit Anotação - Interior Geral - vertical.jpg"]];
+GALERIA[16701539267] = [K, ["Kit Anotação - Lendas Contracapa.jpeg", "Kit Anotação - Interior Geral - vertical.jpg"]];
 acrescentar(16689788251, ["Livro Vermelho (Historinha do Boi)  Verso.jpeg"]);
-acrescentar(16701503283, ["placa-redonda-kambada-2026-10-18-2.jpeg", "placa-redonda-kambada-2026-10-18-3.jpeg", "placa-redonda-kambada-2026-10-18-4.jpeg", "Placa de Madeeira Bumba Boi Vazado.jpeg"]);
+GALERIA[16701503283] = [K, ["placa-redonda-kambada-2026-10-18-4.jpeg", "placa-redonda-kambada-2026-10-18-2.jpeg", "placa-redonda-kambada-2026-10-18-3.jpeg", "Placa de Madeeira Bumba Boi Vazado.jpeg"]]; // boi azul, boi preto, Cazumbá, vazado — uma por item
 
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;

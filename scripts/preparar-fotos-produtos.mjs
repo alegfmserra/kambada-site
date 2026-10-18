@@ -162,6 +162,47 @@ Object.assign(GALERIA, {
   16701478379: ["08_Pareos", [`${W}pareo-sao-luis.jpg`]],
 });
 
+
+// ── Fotos da Kambada (WhatsApp 17/10, entregues em 18/10/2026), nomeadas pelo Alexandre pelo NOME do produto;
+//    o casamento nome → ID do Bling foi feito pelo Fred em 18/10 (ver site-novo/FOTOS_produtos-sem-foto_2026-10-18.md).
+//    Fora, de propósito: "Cropped Lendas 1/2" (cropped não tem cadastro no Bling).
+const K = "Kambada_2026-10-18";
+Object.assign(FOTOS, {
+  16698814825: [K, "Camisa Cazumbazinho1.jpeg", "Camisa Cazumbázinho"],
+  16698814722: [K, "Camisa Cazumbá.jpeg", "Camisa Cazumbá (bege; a preta vai na galeria — um cadastro só no Bling)"],
+  16698808333: [K, "Camisa Lenda da Serpente Infantil2.jpeg", "Camisa Lenda da Serpente Infantil"],
+  16698804685: [K, "Camisa Lendas e Carrancas1.jpeg", "Camisa Lendas e Carrancas"],
+  16698816975: [K, "Camisa Revoada dos Guarás Suede Unissex1.jpeg", "Camisa Revoada dos Guarás Suede Unissex"],
+  16698816110: [K, "Camisa Serpente Mosaico Infantil1.jpeg", "Camisa Serpente Mosaico Infantil"],
+  16698814567: [K, "Camisa Sol Nosso de Cada Dia - Regatão1.jpeg", "Camisa Sol Nosso de Cada Dia - Regatão"],
+  16719577340: [K, "Camisa Tambor.jpeg", "Camisa Tambor"],
+  16698776080: [K, "Matraca G Bumba Boi  Estrelado.jpeg", "Matraca Grande sem Suporte (estampa Estrelado)"],
+  16698777669: [K, "Matraca P Boizinho Perfil 1 Com Suporte.jpeg", "Matraca Pequena com Suporte (Boizinho)"],
+  16698777979: [K, "Matraca P Boizinho Perfil.jpeg", "Matraca Pequena sem Suporte (Boizinho)"],
+  16689788251: [K, "Livro Vermelho (Historinha do Boi).jpeg", "Livro Vermelho (Historinha)"],
+  16701503283: [K, "placa-redonda-kambada-2026-10-18-1.jpeg", "Placa de Madeira Redonda (boi colorido; WhatsApp 17/10)"],
+});
+// Galeria: acrescenta às fotos que o produto já tinha (não substitui).
+const acrescentar = (id, arquivos) => { if (GALERIA[id]) GALERIA[id][1].push(...arquivos); else GALERIA[id] = [K, arquivos]; };
+acrescentar(16698814825, ["Camisa Cazumbazinho12.jpeg", "Camisa Cazumbazinho3.jpeg"]);
+acrescentar(16698814722, ["Camisa Cazumbá V2 - Preta.jpeg"]);
+acrescentar(16698808333, ["Camisa Lenda da Serpente Infantil3.jpeg", "Camisa Lenda da Serpente Infantil5 (2).jpeg"]);
+acrescentar(16698804685, ["Camisa Lendas e Carrancas2.jpeg", "Camisa Lendas e Carrancas3.jpeg", "Camisa Lendas e Carrancas4.jpeg"]);
+acrescentar(16698816975, ["Camisa Revoada dos Guarás Suede Unissex2.jpeg"]);
+acrescentar(16698814567, ["Camisa Sol Nosso de Cada Dia - Regatão2.jpeg"]);
+acrescentar(16719577340, ["Camisa Tambor1.jpeg", "Camisa Tambor2.jpeg"]);
+acrescentar(16698776080, ["Matraca G  Bumba Boi Perfil Estrelado.jpeg", "Matraca G Bumba Boi  Mosaico.jpeg", "Matraca G Bumba Boi Miolo.jpeg", "Matraca G Bumba Boi Multicores.jpeg", "Matraca G Bumba Boi Reggae Roots.jpeg", "Matraca G Bumba Boi de Estrelas.jpeg", "Matraca G Chapeu de Fita Maranhão.jpeg", "Matraca G Fitas Coloridas.jpeg", "Matraca Grande Cazumba Frontal.jpeg"]);
+acrescentar(16698775382, ["Matraca G Bumba Boi  Estrelado com suporte.jpeg", "Matraca G Bumba Boi  Mosaico com suporte.jpeg", "Matraca G Bumba Boi Miolo Com Suporte.jpeg", "Matraca G Bumba Boi Multicores com Suporte.jpeg", "Matraca G Bumba Boi Reggae Roots c suporte.jpeg", "Matraca G Bumba Boi de Estrelas com suporte.jpeg", "Matraca G Bumba Boi de Estrelas com suporte 2.jpeg", "Matraca G Bumba Boi de Estrelas com suporte 3.jpeg", "Matraca G Bumba Boi do Maranhão com suporte.jpeg", "Matraca G Bumba Boi do Maranhão com suporte2.jpeg", "Matraca G Chapeu de Fitas 1 Com Suporte.jpeg", "Matraca G Fitas Coloridas Com Suporte.jpeg", "Matraca Bumba Boi  Estrelado com Suporte.jpeg"]);
+acrescentar(16698777669, ["Matraca P Boizinho Perfil 2 Com Suporte.jpeg", "Matraca P Boizinho Perfil 3 com Suporte.jpeg", "Matraca P Chapeu de Fita Bandeira do Maranhão com Suporte.jpeg", "Matraca P Miolinho Com Suporte.jpeg", "Matraca Bumba Boi Bandeira do Maranhão  com Suporte.jpeg"]);
+acrescentar(16698777979, ["Matraca P Boizinho Estrelado.jpeg", "Matraca P Bumba Boi do Maranhão.jpeg", "Matraca P Bumba Boi do Maranhão2.jpeg", "Matraca P Cazumba Frontal.jpeg"]);
+acrescentar(16698778218, ["Matraca Kambada Play.jpeg"]);
+acrescentar(16701539190, ["Kit Anotação - Bumba Meu Boi.jpeg", "Kit Anotação - Bumba Meu Boi Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
+acrescentar(16701539241, ["Kit Anotação - Cazumba.jpeg", "Kit Anotação - Cazumba Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
+acrescentar(16701538916, ["Kit Anotação - Guarás.jpeg", "Kit Anotação - Guarás Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
+acrescentar(16701539267, ["Kit Anotação - Lendas.jpeg", "Kit Anotação - Lendas Contracapa.jpeg", "Kit Anotação - Iterior Geral.jpg"]);
+acrescentar(16689788251, ["Livro Vermelho (Historinha do Boi)  Verso.jpeg"]);
+acrescentar(16701503283, ["placa-redonda-kambada-2026-10-18-2.jpeg", "placa-redonda-kambada-2026-10-18-3.jpeg", "placa-redonda-kambada-2026-10-18-4.jpeg", "Placa de Madeeira Bumba Boi Vazado.jpeg"]);
+
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;
 

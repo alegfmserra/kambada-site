@@ -178,6 +178,58 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
   "16719152093": {
     "largura": 1200,
     "altura": 800
+  },
+  "16698814825": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698814722": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698808333": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698804685": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698816975": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698816110": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698814567": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16719577340": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698776080": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698777669": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16698777979": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16689788251": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701503283": {
+    "largura": 900,
+    "altura": 1200
   }
 };
 
@@ -407,6 +459,21 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 2,
       "largura": 1200,
       "altura": 800
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 1200,
+      "altura": 800
     }
   ],
   "16701539241": [
@@ -417,6 +484,21 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 2,
+      "largura": 1200,
+      "altura": 800
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
       "largura": 1200,
       "altura": 800
     }
@@ -431,11 +513,41 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 2,
       "largura": 1200,
       "altura": 800
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 1200,
+      "altura": 800
     }
   ],
   "16701539267": [
     {
       "n": 1,
+      "largura": 1200,
+      "altura": 800
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
       "largura": 1200,
       "altura": 800
     }
@@ -477,6 +589,26 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 3,
       "largura": 900,
       "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 7,
+      "largura": 900,
+      "altura": 1200
     }
   ],
   "16701503226": [
@@ -513,11 +645,61 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 2,
       "largura": 900,
       "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
     }
   ],
   "16698776080": [
     {
       "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 675,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 7,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 8,
+      "largura": 675,
+      "altura": 1200
+    },
+    {
+      "n": 9,
+      "largura": 675,
+      "altura": 1200
+    },
+    {
+      "n": 10,
       "largura": 900,
       "altura": 1200
     }
@@ -557,11 +739,96 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 7,
       "largura": 900,
       "altura": 1200
+    },
+    {
+      "n": 8,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 9,
+      "largura": 675,
+      "altura": 1200
+    },
+    {
+      "n": 10,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 11,
+      "largura": 675,
+      "altura": 1200
     }
   ],
   "16698775382": [
     {
       "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 7,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 8,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 9,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 10,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 11,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 12,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 13,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 14,
       "largura": 900,
       "altura": 1200
     }
@@ -596,6 +863,114 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     }
   ],
   "16701478379": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698814825": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698814722": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698808333": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698804685": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698816975": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698814567": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16719577340": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16698777669": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 675,
+      "altura": 1200
+    }
+  ],
+  "16689788251": [
     {
       "n": 1,
       "largura": 900,

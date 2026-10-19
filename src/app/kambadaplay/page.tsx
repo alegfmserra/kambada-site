@@ -556,9 +556,9 @@ export default function PlayEntrada() {
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-14 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Planos</p>
-            <h2 className="mt-2 font-display text-2xl font-bold text-texto">3 meses grátis para quem cria a conta. Depois, a casa toda por pouco.</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold text-texto">Tudo liberado de graça até 31/12. Depois, a casa toda por pouco.</h2>
             <p className="mt-2 max-w-xl text-texto-suave">
-              Play Família a R$ 9,90/mês, com cupom permanente na loja. Projetos personalizados para escolas, eventos e marcas, sob proposta.
+              Play Família a R$ 9,90/mês e Play Brincante a R$ 19,90/mês, com cupons na loja todo mês. Oferta de fundador para quem chegar até 31/12. Escolas, eventos e marcas: sob proposta.
             </p>
           </div>
           <Link href="/kambadaplay/planos" className={BOTAO_GRAFITE}>

@@ -384,6 +384,13 @@ export function pontosDaResposta(nivel: Nivel, certa: boolean, tempoMs: number):
   return Math.round((PONTOS_ACERTO + bonus) * multiplicador);
 }
 
+/** Nível de uma partida em andamento (sem validar a resposta). Serve ao porteiro do quiz de visitante. */
+export function nivelDaPartida(tokenEstado: unknown): Nivel | null {
+  const estado = verificar<EstadoPartida>(tokenEstado);
+  if (!estado || estado.v !== 2) return null;
+  return nivelValido(estado.nivel);
+}
+
 export function responder(
   tokenEstado: unknown,
   escolha: unknown,

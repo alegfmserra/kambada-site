@@ -1,3 +1,4 @@
+import { ApoioFapema } from "@/components/play/ApoioFapema";
 import Image from "next/image";
 import Link from "next/link";
 import { EMAILS, NAV, POS_VENDA, REDES, SITE, linkWhatsApp } from "@/lib/site";
@@ -23,6 +24,8 @@ export default function Rodape() {
             Olho d&apos;Água, São Luís – MA · todos os dias, 8h às 18h
             <br />
             Visitas ao ateliê com hora marcada pelo WhatsApp.
+            <br />
+            <ApoioFapema compacto />
             <br />
             <a href={`mailto:${EMAILS.contato}`} className="break-all underline underline-offset-2 hover:text-kambada-amarelo">
               {EMAILS.contato}

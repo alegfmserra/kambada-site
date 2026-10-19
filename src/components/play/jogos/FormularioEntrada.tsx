@@ -16,8 +16,8 @@ const BOTAO =
  * nova senha. O login de demonstração (sem "@") continua passando pelo mesmo
  * campo, para as apresentações.
  */
-export function FormularioEntrada({ de, aviso }: { de: string; aviso?: string }) {
-  const [aba, setAba] = useState<Aba>("entrar");
+export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: string; modo?: string }) {
+  const [aba, setAba] = useState<Aba>(modo === "criar" ? "criar" : "entrar");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");

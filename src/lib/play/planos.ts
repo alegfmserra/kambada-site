@@ -1,17 +1,22 @@
 /**
  * Planos do Kambada Play — decididos pelo Alexandre em 19/10/2026.
  *
- * Nada aqui cobra ainda: todo mundo que cria conta tem 3 meses grátis, e a
- * cobrança do Família entra aos poucos, conforme a plataforma ganhar coisas
- * novas. A tela `/kambadaplay/planos` convida a criar a conta (com opt-in de
- * novidades) ou a falar com a gente.
+ * Nada aqui cobra ainda: tudo fica liberado de graça até 31/12/2026, e a
+ * cobrança do Família e do Brincante começa em 01/01/2027 (avisada por e-mail).
+ * Quem cria a conta até 31/12 e assina o anual até 31/01/2027 paga o preço de
+ * fundador no 1º ano.
+ *
+ * Cupons de assinante (regras completas na minuta dos Termos):
+ * - Família: 1 cupom de 10 % por mês, teto de R$ 20 de desconto.
+ * - Brincante: 2 cupons de 10 % por mês, sem teto, + 1 cupom de frete grátis por mês.
+ * - No mensal, os cupons só liberam depois do 1º pagamento compensado.
+ * - Não acumulam com cupons de parceiros nem com o SEACHEGA10; acumulam com o cupom do ranking.
  *
  * Escolas, eventos e ativações de marca não têm pacote nem preço por aluno:
- * é desenvolvimento personalizado a partir da ideia cultural, sempre sob
- * proposta. O conteúdo (animações, histórias) é produzido aos poucos.
+ * é desenvolvimento personalizado a partir da ideia cultural, sempre sob proposta.
  */
 
-export type PlanoId = "gratis" | "familia" | "personalizado" | "licenca";
+export type PlanoId = "gratis" | "familia" | "brincante" | "personalizado" | "licenca";
 
 export type Plano = {
   id: PlanoId;
@@ -33,8 +38,15 @@ export type Plano = {
 export const PRECOS = {
   familiaMes: 9.9,
   familiaAno: 89,
-  /** Todo mundo que cria conta ganha este período sem pagar nada. */
-  mesesGratis: 3,
+  brincanteMes: 19.9,
+  brincanteAno: 179,
+  /** Preço de fundador (1º ano do anual): conta criada até 31/12/2026 e assinatura até 31/01/2027. */
+  familiaAnoFundador: 69,
+  brincanteAnoFundador: 149,
+  /** Até quando tudo fica liberado sem cobrança. */
+  gratisAte: "31/12/2026",
+  cobrancaComeca: "01/01/2027",
+  fundadorAssinarAte: "31/01/2027",
   /** Prazo combinado para a primeira entrega de animações num projeto personalizado. */
   personalizadoPrimeiraEntregaDias: 60,
 } as const;
@@ -45,10 +57,11 @@ export const PLANOS: Plano[] = [
     nome: "Grátis",
     paraQuem: "Para quem cria a conta",
     preco: "R$ 0",
+    precoDetalhe: "para sempre",
     inclui: [
-      "Arraial da Kambada, quiz e memória",
-      "Cordel, HQ e animação da temporada",
-      "Ranking da semana e cupons do top 3",
+      "Quiz em todos os níveis e memória das estampas",
+      "Ranking da semana: o top 3 ganha cupom de até 10 % na loja",
+      "1º episódio da animação e a 1ª HQ",
       "Novidades e promoções por e-mail (se quiser)",
     ],
     disponivel: true,
@@ -58,17 +71,39 @@ export const PLANOS: Plano[] = [
     id: "familia",
     nome: "Play Família",
     paraQuem: "Para a casa toda",
-    preco: `${PRECOS.mesesGratis} meses grátis`,
-    precoDetalhe: "depois, R$ 9,90/mês ou R$ 89 por ano (2 meses de graça)",
+    preco: "R$ 9,90/mês",
+    precoDetalhe: `ou R$ 89 por ano · liberado grátis até ${PRECOS.gratisAte}`,
     inclui: [
-      "Tudo do Grátis, sem limite de partidas",
+      "Tudo do Grátis, sem limite",
+      "Arraial da Kambada em 3D, com conversas novas todo mês",
+      "Todas as animações, HQs e histórias em áudio para dormir",
+      "Desenhos e atividades para imprimir",
       "Até 4 perfis na mesma conta",
-      "Novos jogos e temporadas primeiro",
-      "Cupom permanente de 5% na loja",
+      "1 cupom de 10 % por mês na loja (até R$ 20 de desconto)",
+    ],
+    disponivel: false,
+    selo: "Grátis até 31/12",
+  },
+  {
+    id: "brincante",
+    nome: "Play Brincante",
+    paraQuem: "Para quem é da festa",
+    preco: "R$ 19,90/mês",
+    precoDetalhe: `ou R$ 179 por ano · liberado grátis até ${PRECOS.gratisAte}`,
+    inclui: [
+      "Tudo do Família",
+      "2 cupons de 10 % por mês na loja, sem limite de valor",
+      "1 cupom de frete grátis por mês",
+      "Episódios e jogos novos antes de todo mundo",
+      "Pré-venda de lançamentos e estampas limitadas",
+      "15 % de desconto em oficinas da Kambada",
+      "Arquivos para impressora 3D",
+      "Vote no próximo episódio e veja seu nome nos créditos",
+      "No plano anual: uma visita ao ateliê da Kambada, com hora marcada",
     ],
     disponivel: false,
     destaque: true,
-    selo: "Em breve",
+    selo: "Grátis até 31/12",
   },
   {
     id: "personalizado",
@@ -103,13 +138,21 @@ export const PLANOS: Plano[] = [
 export const PERGUNTAS_PLANOS: { pergunta: string; resposta: string }[] = [
   {
     pergunta: "Quando a cobrança começa?",
-    resposta:
-      "Todo mundo que cria conta tem 3 meses grátis. A cobrança do Play Família entra aos poucos, à medida que a plataforma ganhar jogos, temporadas e recursos novos, e a gente avisa por e-mail antes. Quem criou a conta e marcou as novidades fica sabendo primeiro.",
+    resposta: `Até ${PRECOS.gratisAte}, tudo fica liberado de graça para quem tem conta, inclusive o que vai ser do Família e do Brincante. A cobrança começa em ${PRECOS.cobrancaComeca}, e a gente avisa por e-mail antes. Ninguém é cobrado sem escolher um plano.`,
   },
   {
-    pergunta: "Quem já tem conta vai perder alguma coisa?",
+    pergunta: "O que é a oferta de fundador?",
+    resposta: `Quem criar a conta até ${PRECOS.gratisAte} e assinar o plano anual até ${PRECOS.fundadorAssinarAte} paga R$ ${PRECOS.familiaAnoFundador} no 1º ano do Família (em vez de R$ ${PRECOS.familiaAno}) ou R$ ${PRECOS.brincanteAnoFundador} no 1º ano do Brincante (em vez de R$ ${PRECOS.brincanteAno}).`,
+  },
+  {
+    pergunta: "Como funcionam os cupons da loja?",
     resposta:
-      "Não. O plano Grátis continua existindo: ranking, cupons da semana, cordel, HQ e os jogos de hoje seguem abertos. O pago acrescenta, não tira.",
+      "Os cupons do mês aparecem em \"Minha conta\" e valem nas peças da loja até o fim do mês. No plano mensal, eles liberam depois do primeiro pagamento confirmado. Não somam com cupons de parceiros nem com o cupom de boas-vindas, mas somam com o cupom do ranking da semana.",
+  },
+  {
+    pergunta: "Quem não assinar perde alguma coisa?",
+    resposta:
+      "Não perde o que é do Grátis: quiz, memória, ranking com cupom do top 3, o 1º episódio e a 1ª HQ seguem abertos. O pago acrescenta, não tira.",
   },
   {
     pergunta: "Como funciona para escola, evento ou marca?",
@@ -119,6 +162,6 @@ export const PERGUNTAS_PLANOS: { pergunta: string; resposta: string }[] = [
   {
     pergunta: "Como vou pagar?",
     resposta:
-      "Cartão ou Pix recorrente pelo Mercado Pago, o mesmo meio de pagamento da loja, com nota fiscal. Cancela quando quiser, sem multa.",
+      "Cartão de crédito pelo Mercado Pago, o mesmo meio de pagamento da loja, com renovação automática que você cancela em 1 clique em \"Minha conta\". O plano anual também pode ser pago à vista no Pix.",
   },
 ];

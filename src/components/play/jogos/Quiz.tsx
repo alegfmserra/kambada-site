@@ -15,10 +15,13 @@ type Fase = "inicio" | "carregando" | "pergunta" | "resposta" | "fim";
 
 const LETRAS = ["A", "B", "C", "D"];
 
-/** Éguas! Quem é quem? — uma pergunta por vez; o servidor guarda as respostas certas. */
-export function Quiz() {
+/**
+ * Éguas! Quem é quem? — uma pergunta por vez; o servidor guarda as respostas certas.
+ * `visitante`: degustação sem conta — só o nível fácil, sem ranking, e o convite para criar a conta.
+ */
+export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
   const [fase, setFase] = useState<Fase>("inicio");
-  const [nivel, setNivel] = useState<Nivel>("medio");
+  const [nivel, setNivel] = useState<Nivel>(visitante ? "facil" : "medio");
   const [estado, setEstado] = useState("");
   const [pergunta, setPergunta] = useState<PerguntaPublica | null>(null);
   const [escolhida, setEscolhida] = useState<number | null>(null);
@@ -95,6 +98,79 @@ export function Quiz() {
     } else {
       setFase("fim");
     }
+  }
+
+  if (fase === "inicio" && visitante) {
+    return (
+      <div className="text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
+          Kambada Play · jogue agora, sem cadastro
+        </p>
+        <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight text-texto sm:text-5xl">
+          Éguas! <span className="destaque">Quanto tu sabes do Maranhão?</span>
+        </h1>
+        <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
+          10 perguntas sobre boi, tambor, matraca e São Luís. Leva 2 minutinhos, e depois de cada resposta vem uma
+          curiosidade.
+        </p>
+        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
+        <button
+          type="button"
+          onClick={comecar}
+          className="mt-8 rounded-full bg-kambada-amarelo px-10 py-4 text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+        >
+          Bora jogar!
+        </button>
+        <p className="mt-4 text-sm text-texto-tenue">
+          Já tem conta?{" "}
+          <a href="/kambadaplay/entrar" className="font-semibold text-[var(--destaque-texto)] hover:underline">
+            Entrar
+          </a>
+        </p>
+      </div>
+    );
+  }
+
+  if (fase === "fim" && visitante) {
+    const total = resultado?.acertos ?? acertos;
+    return (
+      <div className="space-y-6 text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Fim de jogo · nível fácil</p>
+        <h2 className="font-display text-4xl font-extrabold text-texto sm:text-5xl">
+          {pontos} <span className="text-2xl text-texto-tenue">pontos</span>
+        </h2>
+        <p className="text-lg text-texto-suave">
+          Você acertou <strong>{total}</strong> de 10.{" "}
+          {total >= 8 ? "Isso é coisa de maranhense raiz!" : total >= 5 ? "Mandou bem!" : "Na próxima vai!"}
+        </p>
+        <div className="mx-auto max-w-lg rounded-2xl border-2 border-kambada-amarelo bg-superficie p-6 text-left">
+          <p className="font-display text-2xl font-extrabold text-texto">
+            Não deixa esses {pontos} pontos irem embora.
+          </p>
+          <p className="mt-2 text-texto-suave">Crie sua conta grátis (leva 30 segundos) e ganhe:</p>
+          <ul className="mt-3 space-y-2 text-texto">
+            <li>🏆 Vaga no <strong>ranking da semana</strong>: o top 3 ganha cupom de até 10 % na loja</li>
+            <li>🔥 Níveis <strong>médio e difícil</strong>, com até o dobro de pontos</li>
+            <li>🃏 A <strong>memória das estampas</strong> e os jogos novos que estão chegando</li>
+            <li>🎁 <strong>Tudo liberado de graça até 31/12</strong>, inclusive o que vai ser dos assinantes</li>
+          </ul>
+          <a
+            href="/kambadaplay/entrar?modo=criar&de=/kambadaplay/jogos/quiz"
+            className="mt-5 block rounded-full bg-kambada-amarelo px-8 py-4 text-center text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+          >
+            Criar minha conta grátis
+          </a>
+          <p className="mt-2 text-center text-xs text-texto-tenue">Sem cartão. Só nome, e-mail e senha.</p>
+        </div>
+        <button
+          type="button"
+          onClick={comecar}
+          className="rounded-full border-2 border-borda px-8 py-3 font-bold text-texto transition-colors hover:border-kambada-amarelo"
+        >
+          Jogar de novo
+        </button>
+      </div>
+    );
   }
 
   if (fase === "inicio") {

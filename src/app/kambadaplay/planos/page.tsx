@@ -6,8 +6,9 @@ import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
 export const metadata: Metadata = {
   title: "Planos",
   description:
-    "Os planos do Kambada Play: 3 meses grátis para quem cria a conta, Play Família por R$ 9,90/mês e projetos personalizados para escolas, eventos e marcas, sob proposta.",
+    "Os planos do Kambada Play: tudo grátis até 31/12/2026, Play Família por R$ 9,90/mês, Play Brincante por R$ 19,90/mês e projetos personalizados para escolas, eventos e marcas, sob proposta.",
   alternates: { canonical: "/kambadaplay/planos" },
+  robots: { index: true, follow: true },
 };
 
 const BOTAO_AMARELO =
@@ -34,12 +35,12 @@ export default function PlanosPage() {
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
-          Quem cria a conta ganha {PRECOS.mesesGratis} meses grátis. A cobrança do Play Família entra aos poucos,
-          conforme a plataforma ganhar jogos, temporadas e recursos novos. Quem entra agora fica sabendo primeiro e não
-          perde nada do que já usa.
+          <strong className="text-texto">Tudo liberado de graça até {PRECOS.gratisAte}</strong> para quem cria a conta,
+          inclusive o que vai ser do Família e do Brincante. A cobrança começa em {PRECOS.cobrancaComeca}, com aviso
+          por e-mail, e só para quem escolher um plano.
         </p>
 
-        <ul className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {PLANOS.map((p) => (
             <li
               key={p.id}
@@ -90,12 +91,12 @@ export default function PlanosPage() {
               </ul>
               <div className="mt-8">
                 {p.id === "gratis" ? (
-                  <Link href="/kambadaplay/entrar" className={`${BOTAO_AMARELO} w-full`}>
+                  <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} w-full`}>
                     Criar conta grátis
                   </Link>
-                ) : p.id === "familia" ? (
-                  <Link href="/kambadaplay/entrar" className={`${BOTAO_AMARELO} w-full`}>
-                    Quero ser avisado
+                ) : p.id === "familia" || p.id === "brincante" ? (
+                  <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} w-full`}>
+                    Liberar grátis até 31/12
                   </Link>
                 ) : p.id === "personalizado" ? (
                   <a
@@ -119,9 +120,23 @@ export default function PlanosPage() {
           ))}
         </ul>
 
+        <section className="mt-10 rounded-2xl border-2 border-dashed border-kambada-amarelo p-6 sm:p-8">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Oferta de fundador</p>
+          <h2 className="mt-2 font-display text-2xl font-extrabold text-texto sm:text-3xl">
+            Chegou cedo? Paga menos no primeiro ano.
+          </h2>
+          <p className="mt-3 max-w-3xl text-texto-suave">
+            Crie sua conta até {PRECOS.gratisAte} e assine o plano anual até {PRECOS.fundadorAssinarAte}:{" "}
+            <strong className="text-texto">Play Família por R$ {PRECOS.familiaAnoFundador}</strong> (em vez de R${" "}
+            {PRECOS.familiaAno}) ou <strong className="text-texto">Play Brincante por R$ {PRECOS.brincanteAnoFundador}</strong>{" "}
+            (em vez de R$ {PRECOS.brincanteAno}) no 1º ano.
+          </p>
+          <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} mt-5`}>
+            Garantir meu lugar de fundador
+          </Link>
+        </section>
         <p className="mt-6 text-sm text-texto-tenue">
-          Para ser avisado, crie a conta e marque &ldquo;quero receber novidades&rdquo;. Nenhum valor é cobrado hoje; quando
-          a assinatura abrir, a gente avisa por e-mail e você escolhe se quer entrar.
+          Nenhum valor é cobrado hoje. Cupons, oficinas e visita ao ateliê seguem as regras dos Termos do Kambada Play.
         </p>
 
         {/* Personalizado: como funciona, sem pacote pronto */}

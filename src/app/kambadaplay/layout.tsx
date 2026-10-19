@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
+import { ApoioFapema } from "@/components/play/ApoioFapema";
 import { SairDoPlay } from "@/components/play/jogos/SairDoPlay";
 import "./play.css";
 
@@ -25,6 +26,7 @@ export default async function PlayLayout({ children }: { children: React.ReactNo
       <div className="bg-kambada-preto px-4 py-3 text-center">
         <SairDoPlay />
       </div>
+      <ApoioFapema />
     </div>
   );
 }

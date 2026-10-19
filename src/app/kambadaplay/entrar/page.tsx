@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 export default async function EntrarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ de?: string; aviso?: string }>;
+  searchParams: Promise<{ de?: string; aviso?: string; modo?: string }>;
 }) {
-  const { de, aviso } = await searchParams;
+  const { de, aviso, modo } = await searchParams;
   return (
     <div className="play-tema-site">
       <div className="mx-auto max-w-md px-4 py-14 text-center sm:py-20">
@@ -35,9 +35,15 @@ export default async function EntrarPage({
           Jogos, histórias e a festa do Maranhão. Crie sua conta com e-mail para guardar seus pontos, concorrer aos
           cupons da semana e receber as novidades.
         </p>
-        <FormularioEntrada de={destinoSeguro(de)} aviso={aviso} />
+        <FormularioEntrada de={destinoSeguro(de)} aviso={aviso} modo={modo} />
+        <Link
+          href="/kambadaplay/experimente"
+          className="mt-6 inline-block rounded-full border-2 border-borda px-6 py-3 text-sm font-bold text-texto transition-colors hover:border-kambada-amarelo"
+        >
+          Só quero experimentar: jogar o quiz sem cadastro
+        </Link>
         <p className="mt-8 text-sm text-texto-tenue">
-          {"3 meses grátis para quem cria a conta. "}
+          {"Tudo liberado de graça até 31/12/2026. "}
           <Link href="/kambadaplay/planos" className="font-semibold text-[var(--destaque-texto)] hover:underline">
             Conheça os planos
           </Link>{" "}

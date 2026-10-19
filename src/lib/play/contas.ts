@@ -1,5 +1,5 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { access, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
@@ -327,16 +327,21 @@ export async function listarContas(): Promise<Conta[]> {
 }
 
 /** Onde as contas estão de fato (para o diagnóstico da rota de exportação). */
-export async function estadoDoArmazenamento(): Promise<{ arquivo: string; persistente: boolean; existe: boolean }> {
+export async function estadoDoArmazenamento(): Promise<{
+  arquivo: string;
+  persistente: boolean;
+  existe: boolean;
+  gravavel: boolean;
+}> {
   const arquivo = usarTemporario ? arquivoTemporario() : arquivoContas();
-  let existe = false;
-  try {
-    await access(arquivo);
-    existe = true;
-  } catch {
-    existe = false;
-  }
-  return { arquivo, persistente: !usarTemporario, existe };
+  const existe = await access(arquivo).then(() => true, () => false);
+  // Testa a escrita de verdade (arquivo de sonda na mesma pasta), sem criar conta.
+  const sonda = join(dirname(arquivo), `.sonda-`);
+  const gravavel = await mkdir(dirname(arquivo), { recursive: true })
+    .then(() => writeFile(sonda, "ok"))
+    .then(() => unlink(sonda))
+    .then(() => true, () => false);
+  return { arquivo, persistente: !usarTemporario, existe, gravavel };
 }
 
 export function contasParaCsv(contas: Conta[]): string {

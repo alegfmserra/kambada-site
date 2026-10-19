@@ -37,7 +37,7 @@ export async function GET(requisicao: Request) {
   const armazenamento = await estadoDoArmazenamento();
   return NextResponse.json({
     // "persistente: false" em produção = alerta: as contas estão caindo na pasta temporária.
-    armazenamento: { persistente: armazenamento.persistente, existe: armazenamento.existe, pasta: armazenamento.arquivo.replace(/[\\/][^\\/]+$/, "") },
+    armazenamento: { persistente: armazenamento.persistente, gravavel: armazenamento.gravavel, existe: armazenamento.existe, pasta: armazenamento.arquivo.replace(/[\\/][^\\/]+$/, "") },
     total: contas.length,
     confirmadas: contas.filter((c) => c.confirmadoEm).length,
     aceitamNovidades: contas.filter((c) => c.novidades && c.confirmadoEm).length,

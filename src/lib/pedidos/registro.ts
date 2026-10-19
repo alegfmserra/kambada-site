@@ -39,6 +39,14 @@ export type RegistroPedido = {
   nfe?: Etapa & { idNota?: number };
   /** E-mail da nota autorizada (PDF + XML) ao cliente, com cópia oculta à loja. */
   emailNota?: Etapa;
+  /**
+   * Pagamento devolvido (refunded), contestado (charged_back) ou cancelado depois
+   * de aprovado. O site só registra e avisa a loja: cancelar o pedido no Bling,
+   * a nota e devolver o estoque é decisão humana (com o Glauco, na nota).
+   */
+  estorno?: { status: string; detectadoEm: string; avisoLoja?: Etapa };
+  /** Postagem informada na área de controle e aviso "postamos" ao cliente. */
+  envio?: { codigo: string; transportadora: string; postadoEm: string; email?: Etapa };
 };
 
 const FORMATO_REF = /^KMB-\d{8}-[0-9A-F]{6}$/;

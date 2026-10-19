@@ -92,6 +92,10 @@ export async function POST(requisicao: Request) {
       console.log(`[mercadopago] pagamento ${dataId}: pedido ${r.situacao} no Bling (${r.idPedido}), ${r.ref}`);
       return NextResponse.json({ ok: true, situacao: r.situacao });
     }
+    if (r.motivo === "estornado") {
+      console.error(`[mercadopago] pagamento ${dataId} ${r.status}: pedido ${r.ref} registrado e loja avisada`);
+      return NextResponse.json({ ok: true, situacao: r.motivo });
+    }
     if (r.motivo !== "nao_aprovado") {
       // Precisa de olho humano: reenviar não conserta. Sem dado pessoal no log.
       console.error(`[mercadopago] pagamento ${dataId} NÃO virou pedido: ${r.motivo} (${r.ref ?? "sem ref"})`);

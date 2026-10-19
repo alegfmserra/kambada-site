@@ -7,7 +7,8 @@ import { emailConfigurado } from "@/lib/email/enviar";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { listarRegistros, type Etapa, type RegistroPedido } from "@/lib/pedidos/registro";
 import MenuAdmin from "@/components/admin/MenuAdmin";
-import { refazerPendencias } from "../acoes";
+import { TRANSPORTADORAS, linkDeRastreio, rotuloEstorno } from "@/lib/email/posVenda";
+import { avisarPostagem, refazerPendencias } from "../acoes";
 
 export const metadata: Metadata = {
   title: "Pedidos do site",
@@ -65,7 +66,12 @@ async function comSituacao(registros: RegistroPedido[]) {
   );
 }
 
-export default async function PaginaAdminPedidos() {
+export default async function PaginaAdminPedidos({
+  searchParams,
+}: {
+  searchParams: Promise<{ aviso?: string }>;
+}) {
+  const { aviso } = await searchParams;
   if (!adminConfigurado()) {
     return (
       <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
@@ -110,6 +116,12 @@ export default async function PaginaAdminPedidos() {
         <strong>{notaLigada ? "ligada" : "desligada"}</strong>.
       </p>
 
+      {aviso === "rastreio-invalido" && (
+        <p role="alert" className="mt-4 rounded-xl border border-red-500 px-4 py-3 text-sm font-semibold text-red-500">
+          Código de rastreio inválido (só letras e números, de 8 a 30) ou transportadora não escolhida.
+        </p>
+      )}
+
       {linhas.length === 0 ? (
         <p className="mt-10 text-texto-suave">Nenhum pedido registrado ainda.</p>
       ) : (
@@ -153,6 +165,14 @@ export default async function PaginaAdminPedidos() {
                   )}
                 </ul>
 
+                {r.estorno && (
+                  <p className="mt-3 rounded-xl border border-red-500 px-4 py-2 text-sm font-semibold text-red-500">
+                    Pagamento {rotuloEstorno(r.estorno.status)} em {dataLocal(r.estorno.detectadoEm)}. Cancelar no Bling,
+                    devolver o estoque e ver a nota com o Glauco.{" "}
+                    {r.estorno.avisoLoja?.feitoEm ? "(aviso enviado à loja)" : ""}
+                  </p>
+                )}
+
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Selo nome="Estoque" etapa={r.estoque} />
                   <Selo nome="E-mail cliente" etapa={r.email} desligada={!emailLigado && !r.email} />
@@ -167,6 +187,18 @@ export default async function PaginaAdminPedidos() {
                   >
                     Abrir no Bling
                   </a>
+                  {r.envio && (
+                    <a
+                      href={linkDeRastreio(r.envio.codigo)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-kambada-grafite px-3 py-0.5 text-xs font-semibold text-kambada-amarelo"
+                      title={r.envio.email?.erro ? `E-mail falhou: ${r.envio.email.erro}` : undefined}
+                    >
+                      Postado {dataLocal(r.envio.postadoEm)} · {r.envio.transportadora} {r.envio.codigo}
+                      {r.envio.email?.feitoEm ? " · cliente avisado" : r.envio.email?.erro ? " · e-mail falhou" : ""}
+                    </a>
+                  )}
                   {pendente && (
                     <form action={refazerPendencias}>
                       <input type="hidden" name="pagamento" value={r.pagamentoId} />
@@ -176,6 +208,30 @@ export default async function PaginaAdminPedidos() {
                     </form>
                   )}
                 </div>
+
+                {!r.entrega.retirada && !r.estorno && (
+                  <form action={avisarPostagem} className="mt-3 flex flex-wrap items-center gap-2 border-t border-borda pt-3 text-sm">
+                    <input type="hidden" name="ref" value={r.ref} />
+                    <label className="font-semibold" htmlFor={`rastreio-${r.ref}`}>
+                      {r.envio ? "Trocar rastreio:" : "Postou? Rastreio:"}
+                    </label>
+                    <input
+                      id={`rastreio-${r.ref}`}
+                      name="codigo"
+                      required
+                      placeholder="AA123456789BR"
+                      className="w-44 rounded-lg border border-borda bg-fundo px-3 py-1.5 font-mono uppercase"
+                    />
+                    <select name="transportadora" required defaultValue={r.envio?.transportadora ?? "Correios"} className="rounded-lg border border-borda bg-fundo px-3 py-1.5">
+                      {TRANSPORTADORAS.map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                    </select>
+                    <button type="submit" className="rounded-full bg-kambada-amarelo px-4 py-1.5 font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro">
+                      Avisar o cliente
+                    </button>
+                  </form>
+                )}
               </li>
             );
           })}

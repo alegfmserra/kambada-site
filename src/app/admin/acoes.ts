@@ -13,6 +13,18 @@ import {
   valorDoCookie,
 } from "@/lib/admin/sessao";
 import { processarPagamento } from "@/lib/checkout/processar";
+import { urlPublica } from "@/lib/checkout/posVenda";
+import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "@/lib/email/enviar";
+import {
+  assuntoEnvio,
+  FORMATO_RASTREIO,
+  htmlEnvio,
+  normalizarRastreio,
+  textoEnvio,
+  TRANSPORTADORAS,
+} from "@/lib/email/posVenda";
+import { atualizarRegistro, lerRegistro } from "@/lib/pedidos/registro";
+import { EMAILS } from "@/lib/site";
 import {
   FORMATO_CODIGO,
   listarCupons,
@@ -61,11 +73,49 @@ export async function refazerPendencias(formulario: FormData): Promise<void> {
   const id = String(formulario.get("pagamento") ?? "");
   if (/^\d+$/.test(id)) {
     try {
-      await processarPagamento(id);
+      await processarPagamento(id, { posVendaAgora: true });
     } catch (e) {
       console.error("[admin] refazer pendências:", e instanceof Error ? e.message : e);
     }
   }
+  redirect("/admin/pedidos");
+}
+
+/**
+ * "Postamos": grava o código de rastreio no pedido e manda ao cliente o e-mail
+ * com o link de acompanhamento (cópia oculta para a loja). Reenviar com outro
+ * código substitui o anterior.
+ */
+export async function avisarPostagem(formulario: FormData): Promise<void> {
+  if (!sessaoValida((await cookies()).get(COOKIE_ADMIN)?.value)) redirect("/admin/pedidos");
+  const ref = String(formulario.get("ref") ?? "");
+  const codigo = normalizarRastreio(String(formulario.get("codigo") ?? ""));
+  const transportadora = String(formulario.get("transportadora") ?? "");
+  if (!FORMATO_RASTREIO.test(codigo) || !(TRANSPORTADORAS as readonly string[]).includes(transportadora)) {
+    redirect("/admin/pedidos?aviso=rastreio-invalido");
+  }
+  const r = await lerRegistro(ref).catch(() => null);
+  if (!r) redirect("/admin/pedidos");
+
+  let email: { feitoEm?: string; erro?: string } | undefined;
+  if (emailConfigurado()) {
+    try {
+      const dados = { registro: r, codigo, transportadora, urlDoSite: urlPublica() };
+      await enviarEmail({
+        para: r.cliente.email,
+        copiaOculta: emailDaLoja(),
+        assunto: assuntoEnvio(r),
+        texto: textoEnvio(dados),
+        html: htmlEnvio(dados, CID_LOGO),
+        responderPara: EMAILS.contato,
+      });
+      email = { feitoEm: new Date().toISOString() };
+    } catch (e) {
+      email = { erro: e instanceof Error ? e.message : String(e) };
+    }
+  }
+  await atualizarRegistro(ref, { envio: { codigo, transportadora, postadoEm: new Date().toISOString(), email } });
+  revalidatePath("/admin/pedidos");
   redirect("/admin/pedidos");
 }
 

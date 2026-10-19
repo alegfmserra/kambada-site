@@ -37,7 +37,7 @@ export default function Cabecalho() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-borda bg-fundo/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 lg:gap-4 py-4 sm:px-6">
         <Link href="/" aria-label="Kambada — página inicial" className="shrink-0">
           <Image
             src="/marca/kambada-logo-horizontal-amarelo.png"
@@ -50,7 +50,7 @@ export default function Cabecalho() {
         </Link>
 
         <nav aria-label="Navegação principal" className="hidden md:block">
-          <ul className="flex items-center gap-7">
+          <ul className="flex items-center gap-4 lg:gap-7">
             {NAV.map((item) => {
               const temSubmenu = item.href === "/loja";
 

@@ -96,4 +96,6 @@ export const ROTAS_PUBLICAS = [
   "/api/play/entrar",
   "/api/play/sair",
   "/api/play/conta",
+  // Exportação da base para o marketing: tem segredo próprio (REVALIDATE_SECRET), não passa pelo login.
+  "/api/play/contas",
 ];

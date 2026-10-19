@@ -8,7 +8,7 @@
  *
  * Cupons de assinante (regras completas na minuta dos Termos):
  * - Família: 1 cupom de 10 % por mês, teto de R$ 20 de desconto.
- * - Brincante: 2 cupons de 10 % por mês, sem teto, + 1 cupom de frete grátis por mês.
+ * - Brincante: 2 cupons de 10 % por mês, sem teto, + 1 frete grátis por mês (cobre até R$ 30 do frete; renova com a assinatura).
  * - No mensal, os cupons só liberam depois do 1º pagamento compensado.
  * - Não acumulam com cupons de parceiros nem com o SEACHEGA10; acumulam com o cupom do ranking.
  *
@@ -93,7 +93,7 @@ export const PLANOS: Plano[] = [
     inclui: [
       "Tudo do Família",
       "2 cupons de 10 % por mês na loja, sem limite de valor",
-      "1 cupom de frete grátis por mês",
+      "1 frete grátis por mês (até R$ 30), renovado a cada mês de assinatura",
       "Episódios e jogos novos antes de todo mundo",
       "Pré-venda de lançamentos e estampas limitadas",
       "15 % de desconto em oficinas da Kambada",

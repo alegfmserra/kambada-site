@@ -1,16 +1,17 @@
 /**
  * Planos do Kambada Play — decididos pelo Alexandre em 19/10/2026.
  *
- * Nada aqui cobra ainda: a tela `/kambadaplay/planos` só mostra o que vem e
- * convida a criar a conta (com opt-in de novidades) ou a falar com a gente.
- * Quando a cobrança entrar (Mercado Pago Assinaturas), os valores saem daqui.
+ * Nada aqui cobra ainda: todo mundo que cria conta tem 3 meses grátis, e a
+ * cobrança do Família entra aos poucos, conforme a plataforma ganhar coisas
+ * novas. A tela `/kambadaplay/planos` convida a criar a conta (com opt-in de
+ * novidades) ou a falar com a gente.
  *
- * Play Escola está em espera: não tem preço por aluno nem piloto. O conteúdo
- * (animações, histórias) é produzido aos poucos e combinado com cada escola,
- * então é sempre sob proposta.
+ * Escolas, eventos e ativações de marca não têm pacote nem preço por aluno:
+ * é desenvolvimento personalizado a partir da ideia cultural, sempre sob
+ * proposta. O conteúdo (animações, histórias) é produzido aos poucos.
  */
 
-export type PlanoId = "gratis" | "familia" | "escola" | "licenca";
+export type PlanoId = "gratis" | "familia" | "personalizado" | "licenca";
 
 export type Plano = {
   id: PlanoId;
@@ -25,13 +26,17 @@ export type Plano = {
   disponivel: boolean;
   /** Plano em evidência na tela. */
   destaque?: boolean;
+  /** Texto do selo no canto do cartão. */
+  selo: string;
 };
 
 export const PRECOS = {
   familiaMes: 9.9,
   familiaAno: 89,
-  /** Prazo combinado para a primeira entrega de animações a uma escola. */
-  escolaPrimeiraEntregaDias: 60,
+  /** Todo mundo que cria conta ganha este período sem pagar nada. */
+  mesesGratis: 3,
+  /** Prazo combinado para a primeira entrega de animações num projeto personalizado. */
+  personalizadoPrimeiraEntregaDias: 60,
 } as const;
 
 export const PLANOS: Plano[] = [
@@ -47,13 +52,14 @@ export const PLANOS: Plano[] = [
       "Novidades e promoções por e-mail (se quiser)",
     ],
     disponivel: true,
+    selo: "Disponível",
   },
   {
     id: "familia",
     nome: "Play Família",
     paraQuem: "Para a casa toda",
-    preco: "R$ 9,90/mês",
-    precoDetalhe: "ou R$ 89 por ano (2 meses de graça)",
+    preco: `${PRECOS.mesesGratis} meses grátis`,
+    precoDetalhe: "depois, R$ 9,90/mês ou R$ 89 por ano (2 meses de graça)",
     inclui: [
       "Tudo do Grátis, sem limite de partidas",
       "Até 4 perfis na mesma conta",
@@ -62,20 +68,22 @@ export const PLANOS: Plano[] = [
     ],
     disponivel: false,
     destaque: true,
+    selo: "Em breve",
   },
   {
-    id: "escola",
-    nome: "Play Escola",
-    paraQuem: "Para escolas e redes de ensino",
+    id: "personalizado",
+    nome: "Personalizado",
+    paraQuem: "Para escolas, eventos e marcas",
     preco: "Sob proposta",
-    precoDetalhe: "conteúdo feito junto com a escola, a partir do plano de aula",
+    precoDetalhe: "desenvolvido a partir da ideia cultural, junto com você",
     inclui: [
-      "Animações e histórias de cunho educativo, produzidas aos poucos",
-      "Primeira entrega de animações em até 60 dias, conforme o combinado",
-      "Acompanha o plano de aula ou o plano anual, segundo a negociação",
+      "Escolas: animações e histórias educativas a partir do plano de aula",
+      "Eventos e ativações de marca: jogos e conteúdo com a sua identidade",
+      "Produção em levas; primeira entrega em até 60 dias após o acordo",
       "Jogos, cordel e HQ já existentes desde o primeiro dia",
     ],
     disponivel: false,
+    selo: "Sob proposta",
   },
   {
     id: "licenca",
@@ -88,6 +96,7 @@ export const PLANOS: Plano[] = [
       "Marca Kambada e autoria dos artistas preservadas",
     ],
     disponivel: false,
+    selo: "Sob proposta",
   },
 ];
 
@@ -95,7 +104,7 @@ export const PERGUNTAS_PLANOS: { pergunta: string; resposta: string }[] = [
   {
     pergunta: "Quando a cobrança começa?",
     resposta:
-      "Quando houver mais jogos e mais temporadas de HQ e animação. Até lá, tudo que está no ar é grátis para quem tem conta. Quem criou a conta e marcou as novidades fica sabendo primeiro.",
+      "Todo mundo que cria conta tem 3 meses grátis. A cobrança do Play Família entra aos poucos, à medida que a plataforma ganhar jogos, temporadas e recursos novos, e a gente avisa por e-mail antes. Quem criou a conta e marcou as novidades fica sabendo primeiro.",
   },
   {
     pergunta: "Quem já tem conta vai perder alguma coisa?",
@@ -103,9 +112,9 @@ export const PERGUNTAS_PLANOS: { pergunta: string; resposta: string }[] = [
       "Não. O plano Grátis continua existindo: ranking, cupons da semana, cordel, HQ e os jogos de hoje seguem abertos. O pago acrescenta, não tira.",
   },
   {
-    pergunta: "Como funciona para a escola?",
+    pergunta: "Como funciona para escola, evento ou marca?",
     resposta:
-      "Não existe pacote pronto nem período de teste: a gente conversa com a escola, entende o plano de aula e combina o que será produzido, o prazo e o valor. As animações são feitas aos poucos e a primeira entrega costuma sair em até 60 dias depois do acordo.",
+      "Não existe pacote pronto nem período de teste: a gente conversa, entende o plano de aula, o evento ou a campanha, e combina o que será produzido, o prazo e o valor. As animações são feitas aos poucos e a primeira entrega costuma sair em até 60 dias depois do acordo.",
   },
   {
     pergunta: "Como vou pagar?",

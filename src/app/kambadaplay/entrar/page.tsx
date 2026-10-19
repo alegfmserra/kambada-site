@@ -37,7 +37,7 @@ export default async function EntrarPage({
         </p>
         <FormularioEntrada de={destinoSeguro(de)} aviso={aviso} />
         <p className="mt-8 text-sm text-texto-tenue">
-          Grátis para quem cria a conta.{" "}
+          {"3 meses grátis para quem cria a conta. "}
           <Link href="/kambadaplay/planos" className="font-semibold text-[var(--destaque-texto)] hover:underline">
             Conheça os planos
           </Link>{" "}

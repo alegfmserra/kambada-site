@@ -6,7 +6,7 @@ import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
 export const metadata: Metadata = {
   title: "Planos",
   description:
-    "Os planos do Kambada Play: Grátis para quem cria a conta, Play Família por R$ 9,90/mês e Play Escola sob proposta, com conteúdo feito junto com a escola.",
+    "Os planos do Kambada Play: 3 meses grátis para quem cria a conta, Play Família por R$ 9,90/mês e projetos personalizados para escolas, eventos e marcas, sob proposta.",
   alternates: { canonical: "/kambadaplay/planos" },
 };
 
@@ -15,8 +15,8 @@ const BOTAO_AMARELO =
 const BOTAO_CONTORNO =
   "inline-block rounded-full border-2 border-borda px-8 py-3 text-center font-bold text-texto transition-colors hover:border-kambada-amarelo focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-kambada-amarelo";
 
-const MENSAGEM_ESCOLA =
-  "Olá! Sou de uma escola e quero conversar sobre o Play Escola do Kambada Play (conteúdo a partir do nosso plano de aula).";
+const MENSAGEM_PERSONALIZADO =
+  "Olá! Quero conversar sobre um projeto personalizado no Kambada Play (escola, evento ou ativação de marca).";
 
 /**
  * Tela pública dos planos (fica fora do login de propósito: escola e família
@@ -34,8 +34,9 @@ export default function PlanosPage() {
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
-          Hoje o Kambada Play é grátis para quem cria a conta. Os planos pagos chegam quando houver mais jogos e mais
-          temporadas. Quem entra agora fica sabendo primeiro e não perde nada do que já usa.
+          Quem cria a conta ganha {PRECOS.mesesGratis} meses grátis. A cobrança do Play Família entra aos poucos,
+          conforme a plataforma ganhar jogos, temporadas e recursos novos. Quem entra agora fica sabendo primeiro e não
+          perde nada do que já usa.
         </p>
 
         <ul className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -57,7 +58,7 @@ export default function PlanosPage() {
                       : "bg-kambada-grafite/10 text-texto"
                 }`}
               >
-                {p.disponivel ? "Disponível" : "Em breve"}
+                {p.selo}
               </span>
               <p
                 className={`pr-24 text-xs font-bold uppercase tracking-[0.3em] ${
@@ -96,9 +97,9 @@ export default function PlanosPage() {
                   <Link href="/kambadaplay/entrar" className={`${BOTAO_AMARELO} w-full`}>
                     Quero ser avisado
                   </Link>
-                ) : p.id === "escola" ? (
+                ) : p.id === "personalizado" ? (
                   <a
-                    href={linkWhatsApp(MENSAGEM_ESCOLA)}
+                    href={linkWhatsApp(MENSAGEM_PERSONALIZADO)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`${BOTAO_CONTORNO} w-full`}
@@ -123,18 +124,19 @@ export default function PlanosPage() {
           a assinatura abrir, a gente avisa por e-mail e você escolhe se quer entrar.
         </p>
 
-        {/* Escola: como funciona, sem pacote pronto */}
+        {/* Personalizado: como funciona, sem pacote pronto */}
         <section className="mt-16 grid gap-8 rounded-2xl bg-kambada-amarelo p-6 text-kambada-grafite sm:p-10 md:grid-cols-[1.2fr_1fr] md:items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.3em]">Play Escola</p>
+            <p className="text-xs font-bold uppercase tracking-[0.3em]">Personalizado</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold leading-tight sm:text-4xl">
-              Cultura maranhense na sala de aula, feita junto com a escola.
+              Cultura maranhense do seu jeito: na escola, no evento, na sua marca.
             </h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed">
-              O Play Escola não é um pacote pronto. A gente senta com a coordenação, entende o plano de aula ou o plano
+              Não é pacote pronto. Para a escola, a gente senta com a coordenação, entende o plano de aula ou o plano
               anual e produz animações e histórias de cunho educativo, que ensinam a cultura do Maranhão pelo
-              entretenimento. O conteúdo nasce aos poucos, e a primeira leva de animações sai em até{" "}
-              {PRECOS.escolaPrimeiraEntregaDias} dias depois do acordo, conforme o que for combinado.
+              entretenimento. Para eventos e ativações de marca, criamos jogos e conteúdo com a sua identidade a partir
+              da ideia cultural. Tudo nasce aos poucos, e a primeira leva sai em até{" "}
+              {PRECOS.personalizadoPrimeiraEntregaDias} dias depois do acordo, conforme o combinado.
             </p>
           </div>
           <div className="rounded-xl border-2 border-kambada-grafite bg-kambada-papel p-5">
@@ -142,7 +144,7 @@ export default function PlanosPage() {
               <li className="flex gap-3">
                 <span className="font-display text-xl font-extrabold leading-none">1</span>
                 <span>
-                  <strong>Conversa</strong>: a escola conta o que ensina e para quais turmas.
+                  <strong>Conversa</strong>: você conta o plano de aula, o evento ou a campanha.
                 </span>
               </li>
               <li className="flex gap-3">
@@ -154,7 +156,7 @@ export default function PlanosPage() {
               <li className="flex gap-3">
                 <span className="font-display text-xl font-extrabold leading-none">3</span>
                 <span>
-                  <strong>Produção</strong>: animações e histórias entregues em levas, acompanhando o plano de aula.
+                  <strong>Produção</strong>: animações, histórias e jogos entregues em levas, no seu calendário.
                 </span>
               </li>
               <li className="flex gap-3 border-t border-kambada-grafite/30 pt-3">
@@ -163,7 +165,7 @@ export default function PlanosPage() {
               </li>
             </ol>
             <a
-              href={linkWhatsApp(MENSAGEM_ESCOLA)}
+              href={linkWhatsApp(MENSAGEM_PERSONALIZADO)}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 inline-block w-full rounded-full bg-kambada-grafite px-6 py-3 text-center font-bold text-kambada-amarelo transition-colors hover:bg-kambada-preto"

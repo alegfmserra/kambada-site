@@ -2,7 +2,8 @@
  * Menção de apoio exigida pelo Termo de Outorga FAPEMA (AUX-14854/25, cl. 5ª, 2, "l" e "m"):
  * citar o apoio da FAPEMA / Governo do Maranhão na divulgação do projeto e manter no site
  * um banner com link para o portal da FAPEMA.
- * TODO: trocar o selo em texto pelo banner oficial (modelo na página da FAPEMA) quando o arquivo chegar.
+ * TODO: trocar o selo em texto pelo banner/logos oficiais (FAPEMA + Governo do Maranhão + MARAinTech,
+ * modelo na página da FAPEMA) quando os arquivos chegarem.
  */
 export const URL_FAPEMA = "https://www.fapema.br";
 
@@ -33,6 +34,11 @@ export function ApoioFapema({ compacto = false }: { compacto?: boolean }) {
           Governo do Estado do Maranhão · Programa MARAinTech
         </span>
       </a>
+      <p className="mx-auto mt-3 max-w-2xl text-xs text-kambada-branco/60">
+        O Kambada Play foi contemplado no Edital FAPEMA nº 19/2025 (MARAinTech 2025), processo AUX-14854/25:
+        &ldquo;Kambada Play: desenvolvimento de plataforma phygital e cadeia produtiva sustentável para o
+        Souvenir 2.0 na economia criativa maranhense&rdquo;.
+      </p>
     </aside>
   );
 }

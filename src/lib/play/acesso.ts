@@ -2,15 +2,16 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { assinar, verificar } from "./jogos/seguranca";
 
 /**
- * Acesso ao Kambada Play (login provisório).
+ * Acesso ao Kambada Play.
  *
- * Por enquanto o Play é fechado: quem entra usa um login e uma senha únicos,
- * definidos pelo Alexandre. Valores padrão: "somoskambada" para os dois. Em
- * produção, defina PLAY_LOGIN e PLAY_SENHA no servidor para trocá-los sem mexer
- * no código — e troque a senha padrão antes de abrir o Play ao público.
+ * Dois jeitos de entrar, os dois com o mesmo cookie assinado:
+ *  - **conta** (e-mail + senha, ver `contas.ts`) — é o caminho normal;
+ *  - **demonstração** (login e senha únicos, padrão "somoskambada"; em
+ *    produção, PLAY_LOGIN / PLAY_SENHA trocam o padrão) — para apresentações.
+ *    Quem entra assim não aparece na base de contas.
  *
- * Depois do login o navegador recebe um cookie assinado e com validade; o
- * `proxy` confere esse cookie antes de qualquer página ou API do Play.
+ * O `proxy` só confere se o cookie é válido; quem precisa saber QUEM é
+ * (ranking, prêmio, "minha conta") usa `sessaoDaRequisicao`.
  */
 
 export const COOKIE_SESSAO = "kambada-play";
@@ -39,16 +40,38 @@ export function credenciaisValidas(usuario: unknown, senha: unknown): boolean {
   return a && b;
 }
 
-type Sessao = { v: 1; exp: number };
+export type Sessao =
+  | { v: 1; exp: number } // demonstração
+  | { v: 2; exp: number; conta: string }; // conta com e-mail
 
 export function criarSessao(agora = Date.now()): string {
   const s: Sessao = { v: 1, exp: Math.floor(agora / 1000) + VALIDADE_SESSAO_S };
   return assinar(s);
 }
 
-export function sessaoValida(cookie: unknown, agora = Date.now()): boolean {
+export function criarSessaoDeConta(contaId: string, agora = Date.now()): string {
+  const s: Sessao = { v: 2, exp: Math.floor(agora / 1000) + VALIDADE_SESSAO_S, conta: contaId };
+  return assinar(s);
+}
+
+export function lerSessao(cookie: unknown, agora = Date.now()): Sessao | null {
   const s = verificar<Sessao>(cookie);
-  return !!s && s.v === 1 && typeof s.exp === "number" && s.exp > Math.floor(agora / 1000);
+  if (!s || typeof s.exp !== "number" || s.exp <= Math.floor(agora / 1000)) return null;
+  if (s.v === 1) return s;
+  if (s.v === 2 && typeof s.conta === "string" && s.conta) return s;
+  return null;
+}
+
+export function sessaoValida(cookie: unknown, agora = Date.now()): boolean {
+  return lerSessao(cookie, agora) !== null;
+}
+
+/** Lê o cookie da requisição (rotas de API, sem NextRequest). */
+export function sessaoDaRequisicao(requisicao: Request): Sessao | null {
+  const bruto = requisicao.headers.get("cookie") ?? "";
+  const par = bruto.split(";").map((p) => p.trim()).find((p) => p.startsWith(`${COOKIE_SESSAO}=`));
+  if (!par) return null;
+  return lerSessao(decodeURIComponent(par.slice(COOKIE_SESSAO.length + 1)));
 }
 
 /** Só volta para dentro do Play: nunca para um endereço de fora (redirecionamento aberto). */
@@ -57,7 +80,7 @@ export function destinoSeguro(de: unknown): string {
   if (!de.startsWith("/kambadaplay") || de.startsWith("//") || de.includes("\\") || de.includes("://")) {
     return "/kambadaplay";
   }
-  if (de.startsWith("/kambadaplay/entrar")) return "/kambadaplay";
+  if (/^\/kambadaplay\/(entrar|confirmar|redefinir)/.test(de)) return "/kambadaplay";
   return de.slice(0, 200);
 }
 
@@ -66,4 +89,11 @@ export function ehArquivoEstatico(caminho: string): boolean {
   return /\.(?:webp|png|jpe?g|gif|svg|mp4|webm|wasm|js|css|json|ico|woff2?|glb)$/i.test(caminho);
 }
 
-export const ROTAS_PUBLICAS = ["/kambadaplay/entrar", "/api/play/entrar", "/api/play/sair"];
+export const ROTAS_PUBLICAS = [
+  "/kambadaplay/entrar",
+  "/kambadaplay/confirmar",
+  "/kambadaplay/redefinir",
+  "/api/play/entrar",
+  "/api/play/sair",
+  "/api/play/conta",
+];

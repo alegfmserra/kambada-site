@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { QUIZ_TEMPO_BONUS_S, type PerguntaPublica, type RespostaQuiz } from "@/lib/play/jogos/tipos";
+import {
+  NIVEIS,
+  QUIZ_NIVEL,
+  type Nivel,
+  type PerguntaPublica,
+  type RespostaQuiz,
+} from "@/lib/play/jogos/tipos";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
 
@@ -12,6 +18,7 @@ const LETRAS = ["A", "B", "C", "D"];
 /** Éguas! Quem é quem? — uma pergunta por vez; o servidor guarda as respostas certas. */
 export function Quiz() {
   const [fase, setFase] = useState<Fase>("inicio");
+  const [nivel, setNivel] = useState<Nivel>("medio");
   const [estado, setEstado] = useState("");
   const [pergunta, setPergunta] = useState<PerguntaPublica | null>(null);
   const [escolhida, setEscolhida] = useState<number | null>(null);
@@ -20,25 +27,31 @@ export function Quiz() {
   const [acertos, setAcertos] = useState(0);
   const [prova, setProva] = useState("");
   const [erro, setErro] = useState("");
-  const [restante, setRestante] = useState(QUIZ_TEMPO_BONUS_S);
+  const [restante, setRestante] = useState(QUIZ_NIVEL.medio.tempoBonusS);
   const inicio = useRef(0);
+
+  const regras = QUIZ_NIVEL[nivel];
 
   // Relógio do bônus (só enfeite: o servidor é quem mede o tempo de verdade).
   useEffect(() => {
     if (fase !== "pergunta") return;
     inicio.current = Date.now();
+    const total = QUIZ_NIVEL[nivel].tempoBonusS;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reinicia o relógio do bônus a cada pergunta
-    setRestante(QUIZ_TEMPO_BONUS_S);
+    setRestante(total);
     const t = window.setInterval(() => {
-      setRestante(Math.max(0, QUIZ_TEMPO_BONUS_S - (Date.now() - inicio.current) / 1000));
+      setRestante(Math.max(0, total - (Date.now() - inicio.current) / 1000));
     }, 200);
     return () => window.clearInterval(t);
-  }, [fase, pergunta]);
+  }, [fase, pergunta, nivel]);
 
   async function comecar() {
     setErro("");
     setFase("carregando");
-    const r = await chamar<{ estado: string; pergunta: PerguntaPublica }>("/api/play/quiz", { acao: "iniciar" });
+    const r = await chamar<{ estado: string; pergunta: PerguntaPublica }>("/api/play/quiz", {
+      acao: "iniciar",
+      nivel,
+    });
     if (!r.ok) {
       setErro(r.mensagem ?? "Não deu para começar.");
       setFase("inicio");
@@ -92,9 +105,38 @@ export function Quiz() {
           Éguas! <span className="destaque">Quem é quem?</span>
         </h1>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
-          10 perguntas sobre a cultura maranhense. Quanto mais rápido você acerta, mais pontos ganha: até 150 por
-          pergunta. Depois de cada resposta, uma curiosidade.
+          10 perguntas sobre a cultura maranhense. Quanto mais rápido você acerta, mais pontos ganha. Depois de
+          cada resposta, uma curiosidade.
         </p>
+
+        <fieldset className="mx-auto mt-8 max-w-lg text-left">
+          <legend className="text-sm font-semibold text-texto-suave">Escolha o nível</legend>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            {NIVEIS.map((n) => {
+              const r = QUIZ_NIVEL[n.id];
+              const ativo = nivel === n.id;
+              return (
+                <button
+                  key={n.id}
+                  type="button"
+                  onClick={() => setNivel(n.id)}
+                  aria-pressed={ativo}
+                  className={`rounded-xl border-2 p-3 text-left transition-colors ${
+                    ativo ? "border-kambada-amarelo bg-kambada-amarelo/20" : "border-borda hover:border-kambada-amarelo"
+                  }`}
+                >
+                  <span className="block font-display text-lg font-extrabold text-texto">{n.rotulo}</span>
+                  <span className="block text-xs text-texto-suave">{n.descricao}</span>
+                  <span className="mt-2 block text-xs font-semibold text-texto-tenue">
+                    {r.tempoBonusS}s de bônus · pontos ×{r.multiplicador}
+                    {r.penalidadeErro ? ` · erro −${r.penalidadeErro}` : ""}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
         {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
         <button
           type="button"
@@ -110,22 +152,38 @@ export function Quiz() {
   if (fase === "fim") {
     return (
       <div className="space-y-6 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Fim de jogo</p>
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
+          Fim de jogo · nível {NIVEIS.find((n) => n.id === nivel)?.rotulo.toLowerCase()}
+        </p>
         <h2 className="font-display text-4xl font-extrabold text-texto sm:text-5xl">
           {pontos} <span className="text-2xl text-texto-tenue">pontos</span>
         </h2>
         <p className="text-lg text-texto-suave">
           Você acertou <strong>{resultado?.acertos ?? acertos}</strong> de 10.{" "}
-          {acertos >= 9 ? "Tá mais maranhense que cuxá!" : acertos >= 6 ? "Mandou bem!" : "Dá pra melhorar: joga de novo!"}
+          {acertos >= 9
+            ? "Tá mais maranhense que cuxá!"
+            : acertos >= 6
+              ? "Mandou bem!"
+              : "Dá pra melhorar: joga de novo!"}
+          {nivel !== "dificil" && acertos >= 8 ? " Já pode encarar o nível seguinte." : ""}
         </p>
         {prova ? <EnviarPontuacao prova={prova} pontos={pontos} /> : null}
-        <button
-          type="button"
-          onClick={comecar}
-          className="rounded-full border-2 border-borda px-8 py-3 font-bold text-texto transition-colors hover:border-kambada-amarelo"
-        >
-          Jogar de novo
-        </button>
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={comecar}
+            className="rounded-full border-2 border-borda px-8 py-3 font-bold text-texto transition-colors hover:border-kambada-amarelo"
+          >
+            Jogar de novo
+          </button>
+          <button
+            type="button"
+            onClick={() => setFase("inicio")}
+            className="rounded-full border-2 border-borda px-8 py-3 font-bold text-texto transition-colors hover:border-kambada-amarelo"
+          >
+            Trocar o nível
+          </button>
+        </div>
       </div>
     );
   }
@@ -138,6 +196,9 @@ export function Quiz() {
       <div className="flex items-center justify-between text-sm font-bold text-texto-suave">
         <span>
           Pergunta {pergunta.indice + 1} de {pergunta.total}
+          <span className="ml-2 rounded-full bg-kambada-grafite px-2 py-0.5 text-[10px] uppercase tracking-wider text-kambada-amarelo">
+            {NIVEIS.find((n) => n.id === nivel)?.rotulo} ×{regras.multiplicador}
+          </span>
         </span>
         <span aria-live="polite">{pontos} pontos</span>
       </div>
@@ -156,7 +217,7 @@ export function Quiz() {
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-borda" aria-hidden title="Tempo de bônus">
           <div
             className="h-full bg-kambada-amarelo-escuro"
-            style={{ width: `${(restante / QUIZ_TEMPO_BONUS_S) * 100}%`, transition: "width 200ms linear" }}
+            style={{ width: `${(restante / regras.tempoBonusS) * 100}%`, transition: "width 200ms linear" }}
           />
         </div>
       ) : null}
@@ -190,7 +251,11 @@ export function Quiz() {
       {mostrandoResposta ? (
         <div className="mt-6 rounded-xl border-2 border-borda bg-superficie p-5">
           <p className="font-display text-xl font-extrabold text-texto">
-            {resultado.certa ? `Éguas, acertou! +${resultado.pontosDaPergunta}` : "Vixe, não foi dessa vez."}
+            {resultado.certa
+              ? `Éguas, acertou! +${resultado.pontosDaPergunta}`
+              : resultado.pontosDaPergunta < 0
+                ? `Vixe, errou. ${resultado.pontosDaPergunta} pontos.`
+                : "Vixe, não foi dessa vez."}
           </p>
           <p className="mt-2 text-texto-suave">{resultado.explicacao}</p>
           <button

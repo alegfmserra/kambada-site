@@ -3,6 +3,7 @@ import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limi
 import { apelidoValido, avatarValido, lerPlacar, posicaoNaSemana, registrarPontuacao } from "@/lib/play/jogos/placar";
 import type { ProvaMemoria } from "@/lib/play/jogos/memoria";
 import type { ProvaQuiz } from "@/lib/play/jogos/quiz";
+import { sessaoDaRequisicao } from "@/lib/play/acesso";
 import { chaveValida, resumoDaChave, verificar } from "@/lib/play/jogos/seguranca";
 import type { JogoId, PeriodoPlacar } from "@/lib/play/jogos/tipos";
 
@@ -40,7 +41,10 @@ export async function POST(requisicao: Request) {
       { status: 400 },
     );
   }
-  if (!chaveValida(corpo.chave)) {
+  // Com conta, o jogador é a conta (vale em qualquer aparelho); sem conta
+  // (acesso de demonstração), vale a chave que o navegador gerou.
+  const sessao = sessaoDaRequisicao(requisicao);
+  if (!(sessao && sessao.v === 2) && !chaveValida(corpo.chave)) {
     return NextResponse.json({ ok: false, mensagem: "Seu navegador não gerou a chave do jogador." }, { status: 400 });
   }
 
@@ -55,7 +59,8 @@ export async function POST(requisicao: Request) {
     );
   }
 
-  const jogador = resumoDaChave(corpo.chave);
+  const jogador =
+    sessao && sessao.v === 2 ? resumoDaChave(`conta:${sessao.conta}`) : resumoDaChave(corpo.chave as string);
   let resultado: Awaited<ReturnType<typeof registrarPontuacao>>;
   let posicao: number | null;
   try {

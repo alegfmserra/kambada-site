@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 /**
  * Éguas! Quem é quem? — o servidor entrega uma pergunta por vez e só revela a
  * resposta certa depois de a pessoa responder. Duas ações:
- *   { acao: "iniciar" }                      -> 1ª pergunta + estado assinado
+ *   { acao: "iniciar", nivel }               -> 1ª pergunta + estado assinado (nivel: facil|medio|dificil)
  *   { acao: "responder", estado, escolha }   -> certa ou errada, explicação e
  *                                               a próxima (ou a prova final)
  */
@@ -19,7 +19,7 @@ export async function POST(requisicao: Request) {
   if (!corpo) return NextResponse.json({ ok: false, mensagem: "Requisição inválida." }, { status: 400 });
 
   if (corpo.acao === "iniciar") {
-    return NextResponse.json({ ok: true, ...iniciarPartida() });
+    return NextResponse.json({ ok: true, ...iniciarPartida(corpo.nivel) });
   }
   if (corpo.acao === "responder") {
     const r = responder(corpo.estado, corpo.escolha);

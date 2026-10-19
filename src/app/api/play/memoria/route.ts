@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Memória das estampas.
- *   { acao: "iniciar" }                     -> token da largada (horário do servidor)
+ *   { acao: "iniciar", nivel }              -> token da largada (horário + nível assinados)
  *   { acao: "finalizar", token, jogadas }   -> pontos calculados aqui + prova assinada
  */
 export async function POST(requisicao: Request) {
@@ -17,7 +17,7 @@ export async function POST(requisicao: Request) {
   if (!corpo) return NextResponse.json({ ok: false, mensagem: "Requisição inválida." }, { status: 400 });
 
   if (corpo.acao === "iniciar") {
-    return NextResponse.json({ ok: true, ...iniciarMemoria() });
+    return NextResponse.json({ ok: true, ...iniciarMemoria(corpo.nivel) });
   }
   if (corpo.acao === "finalizar") {
     const r = finalizarMemoria(corpo.token, corpo.jogadas);

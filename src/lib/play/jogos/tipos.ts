@@ -2,10 +2,41 @@
 
 export type JogoId = "quiz" | "memoria";
 
+/** Teto de pontos por partida (no nível difícil, com multiplicador). */
 export const JOGOS: Record<JogoId, { nome: string; maximo: number }> = {
-  quiz: { nome: "Éguas! Quem é quem?", maximo: 1500 },
-  memoria: { nome: "Memória das estampas", maximo: 1000 },
+  quiz: { nome: "Éguas! Quem é quem?", maximo: 3000 },
+  memoria: { nome: "Memória das estampas", maximo: 2000 },
 };
+
+// --- Níveis de dificuldade -------------------------------------------------
+
+export type Nivel = "facil" | "medio" | "dificil";
+
+export const NIVEIS: { id: Nivel; rotulo: string; descricao: string }[] = [
+  { id: "facil", rotulo: "Fácil", descricao: "Para começar com calma." },
+  { id: "medio", rotulo: "Médio", descricao: "Mais rápido, mais pontos." },
+  { id: "dificil", rotulo: "Difícil", descricao: "Só pra quem é maranhense que só." },
+];
+
+export function nivelValido(v: unknown): Nivel {
+  return v === "facil" || v === "dificil" ? v : "medio";
+}
+
+/** Quiz: tempo de bônus, multiplicador de pontos e desconto por erro. */
+export const QUIZ_NIVEL: Record<Nivel, { tempoBonusS: number; multiplicador: number; penalidadeErro: number }> = {
+  facil: { tempoBonusS: 20, multiplicador: 1, penalidadeErro: 0 },
+  medio: { tempoBonusS: 15, multiplicador: 1.5, penalidadeErro: 0 },
+  dificil: { tempoBonusS: 10, multiplicador: 2, penalidadeErro: 25 },
+};
+
+/** Memória: pares na mesa, multiplicador e se as cartas se embaralham depois de erros seguidos. */
+export const MEMORIA_NIVEL: Record<Nivel, { pares: number; multiplicador: number; embaralhaApos: number | null }> = {
+  facil: { pares: 6, multiplicador: 1, embaralhaApos: null },
+  medio: { pares: 8, multiplicador: 1.5, embaralhaApos: null },
+  dificil: { pares: 12, multiplicador: 2, embaralhaApos: 3 },
+};
+
+// --- Avatares e placar ----------------------------------------------------
 
 export type AvatarId = "kambadinha" | "boi" | "tambor" | "guara" | "estrela" | "serpente";
 
@@ -47,7 +78,6 @@ export const REGRAS_PREMIO = {
 // --- Quiz ---------------------------------------------------------------
 
 export const QUIZ_PERGUNTAS_POR_PARTIDA = 10;
-export const QUIZ_TEMPO_BONUS_S = 15;
 
 export type PerguntaPublica = {
   indice: number; // 0 a 9
@@ -55,8 +85,6 @@ export type PerguntaPublica = {
   enunciado: string;
   opcoes: string[];
 };
-
-export type EstadoQuiz = { estado: string }; // token assinado, opaco para o navegador
 
 export type RespostaQuiz = {
   certa: boolean;

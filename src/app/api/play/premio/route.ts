@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { resgatarPremio, situacaoDoPremio } from "@/lib/play/jogos/placar";
+import { urlDoSite } from "@/lib/loja/urlDoSite";
+import { sessaoDaRequisicao } from "@/lib/play/acesso";
+import { buscarPorId } from "@/lib/play/contas";
+import { enviarCupom } from "@/lib/play/emails";
 import { chaveValida, resumoDaChave } from "@/lib/play/jogos/seguranca";
+
+/** Quem é o jogador: a conta (se entrou com e-mail) ou a chave do navegador. */
+function jogadorDa(requisicao: Request, chave: unknown): string | null {
+  const sessao = sessaoDaRequisicao(requisicao);
+  if (sessao && sessao.v === 2) return resumoDaChave(`conta:${sessao.conta}`);
+  return chaveValida(chave) ? resumoDaChave(chave) : null;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +28,9 @@ export async function GET(requisicao: Request) {
   if (!dentroDoLimite(ipDaRequisicao(requisicao), "premio-ler", 60, 10 * 60 * 1000)) {
     return NextResponse.json({ ok: false, mensagem: "Calma! Tente de novo em alguns minutos." }, { status: 429 });
   }
-  const chave = new URL(requisicao.url).searchParams.get("chave");
-  if (!chaveValida(chave)) return NextResponse.json({ ok: true, situacao: { elegivel: false } });
-  return NextResponse.json({ ok: true, situacao: await situacaoDoPremio(resumoDaChave(chave)) });
+  const jogador = jogadorDa(requisicao, new URL(requisicao.url).searchParams.get("chave"));
+  if (!jogador) return NextResponse.json({ ok: true, situacao: { elegivel: false } });
+  return NextResponse.json({ ok: true, situacao: await situacaoDoPremio(jogador) });
 }
 
 export async function POST(requisicao: Request) {
@@ -27,11 +38,20 @@ export async function POST(requisicao: Request) {
     return NextResponse.json({ ok: false, mensagem: "Calma! Tente de novo em alguns minutos." }, { status: 429 });
   }
   const corpo = await corpoJson(requisicao);
-  if (!corpo || !chaveValida(corpo.chave)) {
+  const jogador = corpo ? jogadorDa(requisicao, corpo.chave) : null;
+  if (!jogador) {
     return NextResponse.json({ ok: false, mensagem: "Requisição inválida." }, { status: 400 });
   }
   try {
-    const r = await resgatarPremio(resumoDaChave(corpo.chave));
+    const r = await resgatarPremio(jogador);
+    // Com conta confirmada e opt-in, o cupom também vai por e-mail (uma vez, na emissão).
+    if (r.ok && !r.jaEmitido) {
+      const sessao = sessaoDaRequisicao(requisicao);
+      if (sessao && sessao.v === 2) {
+        const conta = await buscarPorId(sessao.conta);
+        if (conta) await enviarCupom(urlDoSite(requisicao), conta, r).catch(() => undefined);
+      }
+    }
     return NextResponse.json(r, { status: r.ok ? 200 : 400 });
   } catch {
     return NextResponse.json(

@@ -8,7 +8,8 @@
 
 import type { ItemValidado } from "../carrinho/validar";
 import { emReais } from "../loja/dinheiro";
-import { cotarFrete, type OpcaoFrete } from "./melhorEnvio";
+import { montarCaixaUnica } from "./caixa";
+import { cotarCaixa, cotarFrete, type OpcaoFrete } from "./melhorEnvio";
 import { temFreteGratis } from "./regras";
 
 export type OpcaoFreteDaLoja = OpcaoFrete & {
@@ -31,6 +32,22 @@ export function aplicarRegraDaLoja(
     gratis: gratis && i === 0,
     precoCobrado: gratis && i === 0 ? 0 : o.preco,
   }));
+}
+
+/**
+ * Junta as duas cotações (por produtos e caixa única) ficando, em cada serviço,
+ * com a mais barata. Assim o carrinho com vários itens nunca paga mais do que
+ * pagaria numa caixa só, e também nunca mais do que na cotação por produtos.
+ */
+export function melhorPorServico(...listas: OpcaoFrete[][]): OpcaoFrete[] {
+  const porServico = new Map<number, OpcaoFrete>();
+  for (const lista of listas) {
+    for (const o of lista) {
+      const atual = porServico.get(o.id);
+      if (!atual || o.preco < atual.preco) porServico.set(o.id, o);
+    }
+  }
+  return [...porServico.values()].sort((a, b) => a.preco - b.preco || a.prazoDias - b.prazoDias);
 }
 
 type EntradaCache = { quando: number; opcoes: OpcaoFrete[] };
@@ -56,7 +73,7 @@ export async function cotarCarrinho(
   if (guardada && Date.now() - guardada.quando < VALIDADE_MS) {
     opcoes = guardada.opcoes;
   } else {
-    opcoes = await cotarFrete(
+    const porProdutos = cotarFrete(
       cep,
       itens.map((i) => ({
         id: String(i.idBling),
@@ -65,6 +82,19 @@ export async function cotarCarrinho(
         quantidade: i.quantidade,
       })),
     );
+    // Vários itens: cota também como caixa única (pedido do Alexandre, 19/10/2026).
+    const caixa = montarCaixaUnica(itens);
+    const valorTotal = itens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0);
+    const [a, b] = await Promise.allSettled([
+      porProdutos,
+      caixa ? cotarCaixa(cep, caixa, valorTotal) : Promise.resolve([] as OpcaoFrete[]),
+    ]);
+    if (a.status === "rejected" && (b.status === "rejected" || !caixa)) throw a.reason;
+    opcoes = melhorPorServico(
+      a.status === "fulfilled" ? a.value : [],
+      b.status === "fulfilled" ? b.value : [],
+    );
+    if (!opcoes.length && a.status === "rejected") throw a.reason;
     cache.set(chave, { quando: Date.now(), opcoes });
     if (cache.size > 500) cache.delete(cache.keys().next().value as string);
   }

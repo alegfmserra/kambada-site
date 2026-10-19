@@ -19,6 +19,7 @@
  */
 
 import { CEP_ORIGEM } from "./regras";
+import type { Caixa } from "./caixa";
 import type { Embalagem } from "./embalagens";
 
 const BASES = {
@@ -142,6 +143,22 @@ export function montarCorpoCotacao(cepDestino: string, volumes: VolumeCotacao[])
   };
 }
 
+/** Corpo da cotação "por pacote": o carrinho inteiro numa caixa só. */
+export function montarCorpoPacote(cepDestino: string, caixa: Caixa, valorTotal: number) {
+  return {
+    services: servicosPermitidos().join(","),
+    from: { postal_code: CEP_ORIGEM },
+    to: { postal_code: cepDestino },
+    package: {
+      height: caixa.altura,
+      width: caixa.largura,
+      length: caixa.comprimento,
+      weight: caixa.peso,
+    },
+    options: { insurance_value: Number(valorTotal.toFixed(2)), receipt: false, own_hand: false },
+  };
+}
+
 /**
  * Converte a resposta em opções utilizáveis.
  *
@@ -174,6 +191,15 @@ export async function cotarFrete(
   cepDestino: string,
   volumes: VolumeCotacao[],
 ): Promise<OpcaoFrete[]> {
+  return chamarCotacao(montarCorpoCotacao(cepDestino, volumes));
+}
+
+/** Cota o carrinho inteiro como uma caixa só (ver `caixa.ts`). */
+export async function cotarCaixa(cepDestino: string, caixa: Caixa, valorTotal: number): Promise<OpcaoFrete[]> {
+  return chamarCotacao(montarCorpoPacote(cepDestino, caixa, valorTotal));
+}
+
+async function chamarCotacao(corpo: unknown): Promise<OpcaoFrete[]> {
   const token = process.env.MELHORENVIO_TOKEN;
   if (!token) throw new ErroFrete("Cotação de frete não configurada", 503);
 
@@ -185,7 +211,7 @@ export async function cotarFrete(
       Authorization: `Bearer ${token}`,
       "User-Agent": userAgent(),
     },
-    body: JSON.stringify(montarCorpoCotacao(cepDestino, volumes)),
+    body: JSON.stringify(corpo),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });

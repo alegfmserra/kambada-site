@@ -80,7 +80,7 @@ export function destinoSeguro(de: unknown): string {
   if (!de.startsWith("/kambadaplay") || de.startsWith("//") || de.includes("\\") || de.includes("://")) {
     return "/kambadaplay";
   }
-  if (/^\/kambadaplay\/(entrar|confirmar|redefinir)/.test(de)) return "/kambadaplay";
+  if (/^\/kambadaplay\/(entrar|confirmar|redefinir|planos)/.test(de)) return "/kambadaplay";
   return de.slice(0, 200);
 }
 
@@ -93,6 +93,8 @@ export const ROTAS_PUBLICAS = [
   "/kambadaplay/entrar",
   "/kambadaplay/confirmar",
   "/kambadaplay/redefinir",
+  // Planos ficam fora do login: escola e família precisam ver o preço antes de criar a conta.
+  "/kambadaplay/planos",
   "/api/play/entrar",
   "/api/play/sair",
   "/api/play/conta",

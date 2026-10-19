@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { FormularioEntrada } from "@/components/play/jogos/FormularioEntrada";
 import { destinoSeguro } from "@/lib/play/acesso";
 
@@ -35,6 +36,13 @@ export default async function EntrarPage({
           cupons da semana e receber as novidades.
         </p>
         <FormularioEntrada de={destinoSeguro(de)} aviso={aviso} />
+        <p className="mt-8 text-sm text-texto-tenue">
+          Grátis para quem cria a conta.{" "}
+          <Link href="/kambadaplay/planos" className="font-semibold text-[var(--destaque-texto)] hover:underline">
+            Conheça os planos
+          </Link>{" "}
+          que vêm por aí, inclusive para escolas.
+        </p>
       </div>
     </div>
   );

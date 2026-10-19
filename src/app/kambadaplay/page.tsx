@@ -551,6 +551,22 @@ export default function PlayEntrada() {
         ))}
       </div>
 
+      {/* Planos (grátis hoje; família e escola em breve) */}
+      <section className="border-t border-borda">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-14 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Planos</p>
+            <h2 className="mt-2 font-display text-2xl font-bold text-texto">Grátis para quem tem conta. Em breve, para a casa toda e para a escola.</h2>
+            <p className="mt-2 max-w-xl text-texto-suave">
+              Play Família a R$ 9,90/mês e Play Escola a R$ 4,90 por aluno ao ano, com piloto gratuito para a rede pública.
+            </p>
+          </div>
+          <Link href="/kambadaplay/planos" className={BOTAO_GRAFITE}>
+            Ver os planos
+          </Link>
+        </div>
+      </section>
+
       {/* Ponte com a loja */}
       <section className="border-t border-borda bg-kambada-preto text-kambada-branco">
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-14 sm:flex-row sm:items-center sm:justify-between sm:px-6">

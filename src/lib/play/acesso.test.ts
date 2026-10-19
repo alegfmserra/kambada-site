@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { VALIDADE_SESSAO_S, credenciaisValidas, criarSessao, destinoSeguro, ehArquivoEstatico, sessaoValida } from "./acesso";
+import { ROTAS_PUBLICAS, VALIDADE_SESSAO_S, credenciaisValidas, criarSessao, destinoSeguro, ehArquivoEstatico, sessaoValida } from "./acesso";
 
 afterEach(() => {
   delete process.env.PLAY_LOGIN;
@@ -48,6 +48,7 @@ describe("destino depois do login", () => {
     expect(destinoSeguro("/loja")).toBe("/kambadaplay");
     expect(destinoSeguro("/kambadaplay\\..\\x")).toBe("/kambadaplay");
     expect(destinoSeguro("/kambadaplay/entrar")).toBe("/kambadaplay");
+    expect(destinoSeguro("/kambadaplay/planos")).toBe("/kambadaplay");
     expect(destinoSeguro(undefined)).toBe("/kambadaplay");
   });
 });
@@ -60,5 +61,15 @@ describe("arquivos estáticos", () => {
     expect(ehArquivoEstatico("/kambadaplay")).toBe(false);
     expect(ehArquivoEstatico("/kambadaplay/jogos/quiz")).toBe(false);
     expect(ehArquivoEstatico("/api/play/placar")).toBe(false);
+  });
+});
+
+describe("rotas públicas", () => {
+  it("planos, entrada e exportação ficam fora do login; o hub e os jogos não", () => {
+    expect(ROTAS_PUBLICAS).toContain("/kambadaplay/planos");
+    expect(ROTAS_PUBLICAS).toContain("/kambadaplay/entrar");
+    expect(ROTAS_PUBLICAS).toContain("/api/play/contas");
+    expect(ROTAS_PUBLICAS).not.toContain("/kambadaplay");
+    expect(ROTAS_PUBLICAS).not.toContain("/kambadaplay/jogos/quiz");
   });
 });

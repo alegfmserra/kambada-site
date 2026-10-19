@@ -223,7 +223,7 @@ export const textos = {
   avancar: "▾",
   celebracaoTitulo: "Viva São João!",
   celebracaoTexto:
-    "Você juntou as cinco fitinhas do arraial e agora conhece a história que cada matraca carrega. Que tal levar uma de verdade pra casa?",
+    "Você desvendou a missão do arraial e agora conhece a história que cada matraca carrega. Que tal levar uma de verdade pra casa?",
   celebracaoCta: "Conhecer a matraca",
   celebracaoVoltar: "Continuar na festa",
   entrar: "Entrar na festa",

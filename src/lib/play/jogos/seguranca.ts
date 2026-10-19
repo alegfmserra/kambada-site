@@ -66,3 +66,19 @@ export function idAleatorio(bytes = 8): string {
 export function chaveValida(chave: unknown): chave is string {
   return typeof chave === "string" && /^[a-f0-9]{32}$/.test(chave);
 }
+
+/**
+ * Ordem embaralhada das opções de uma pergunta, derivada de um segredo do
+ * servidor. O estado da partida é assinado mas NÃO cifrado (dá para ler a
+ * carga em base64): se a permutação viajasse nele, o gabarito viajaria junto.
+ * Assim a ordem é recalculada a cada resposta e nunca sai do servidor.
+ */
+export function permutacaoSecreta(partida: string, indice: number, n: number): number[] {
+  const bytes = createHmac("sha256", segredo()).update(`opcoes|${partida}|${indice}`).digest();
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = bytes[i % bytes.length] % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}

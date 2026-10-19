@@ -1,11 +1,12 @@
 /** Tipos compartilhados entre servidor e navegador (sem código de servidor). */
 
-export type JogoId = "quiz" | "memoria";
+export type JogoId = "quiz" | "memoria" | "arraial";
 
 /** Teto de pontos por partida (no nível difícil, com multiplicador). */
 export const JOGOS: Record<JogoId, { nome: string; maximo: number }> = {
   quiz: { nome: "Éguas! Quem é quem?", maximo: 3000 },
   memoria: { nome: "Memória das estampas", maximo: 2000 },
+  arraial: { nome: "Arraial da Kambada", maximo: 1000 },
 };
 
 // --- Níveis de dificuldade -------------------------------------------------

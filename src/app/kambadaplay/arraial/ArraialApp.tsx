@@ -9,6 +9,10 @@ import { useMediaQuery } from "@/lib/play/mediaQuery";
 import { Scene } from "@/components/play/arraial/Scene";
 import { Joystick } from "@/components/play/arraial/Joystick";
 import { HudTopo, Dialogo, Celebracao } from "@/components/play/arraial/Hud";
+import { DesafioArraial, DialogoMissao } from "@/components/play/arraial/Missao";
+import { chamar } from "@/components/play/jogos/jogador";
+import type { MissaoPublica, PerguntaArraial } from "@/lib/play/jogos/arraial";
+import type { NpcId } from "@/lib/play/jogos/missoesArraial";
 import { Pescaria } from "@/components/play/arraial/minigames/Pescaria";
 import { CartaoLugar, MapaDaFesta } from "@/components/play/arraial/MapaFesta";
 import { pontoDeParada } from "@/components/play/arraial/mundo/layout";
@@ -26,6 +30,75 @@ export default function ArraialApp() {
   const [celebrar, setCelebrar] = useState(false);
   const [celebrado, setCelebrado] = useState(false);
   const touch = useMediaQuery("(pointer: coarse)");
+
+  // Missão do mês (servidor): falas, pistas e desafio. Sem ela, o arraial
+  // cai no diálogo antigo (uma pergunta por personagem), sem ranking.
+  const [missao, setMissao] = useState<MissaoPublica | null>(null);
+  const estadoRef = useRef("");
+  const [desafio, setDesafio] = useState<{ estado: string; pergunta: PerguntaArraial } | null>(null);
+  const [avisoMissao, setAvisoMissao] = useState("");
+  useEffect(() => {
+    if (!avisoMissao) return;
+    const id = window.setTimeout(() => setAvisoMissao(""), 6000);
+    return () => window.clearTimeout(id);
+  }, [avisoMissao]);
+  const iniciarMissao = useCallback(() => {
+    // Promessa: o estado só muda quando a resposta chega (nada síncrono no efeito).
+    return chamar<{ estado: string; missao: MissaoPublica }>("/api/play/arraial", { acao: "iniciar" }).then((r) => {
+      if (!r.ok) return;
+      estadoRef.current = r.estado;
+      setMissao(r.missao);
+      setFitinhas([]);
+    });
+  }, []);
+  useEffect(() => {
+    let vivo = true;
+    chamar<{ estado: string; missao: MissaoPublica }>("/api/play/arraial", { acao: "iniciar" }).then((r) => {
+      if (!vivo || !r.ok) return;
+      estadoRef.current = r.estado;
+      setMissao(r.missao);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  const anotarPista = useCallback(async (npc: NpcId) => {
+    setFitinhas((f) => {
+      if (f.includes(npc)) return f;
+      track("arraial_fitinha", { npc, total: f.length + 1 });
+      return [...f, npc];
+    });
+    const r = await chamar<{ estado: string }>("/api/play/arraial", { acao: "pista", estado: estadoRef.current, npc });
+    if (r.ok) estadoRef.current = r.estado;
+  }, []);
+
+  const abrirDesafio = useCallback(async () => {
+    setDialogo(null);
+    const r = await chamar<{ estado: string; pergunta: PerguntaArraial }>("/api/play/arraial", {
+      acao: "desafio",
+      estado: estadoRef.current,
+    });
+    if (!r.ok) {
+      setAvisoMissao(r.mensagem ?? "Não deu para abrir o desafio. Recarregue o arraial.");
+      return;
+    }
+    track("arraial_desafio_inicio", { pistas: fitinhas.length });
+    setDesafio({ estado: r.estado, pergunta: r.pergunta });
+  }, [fitinhas.length]);
+
+  const fimDoDesafio = useCallback(
+    (acertos: number) => {
+      setDesafio(null);
+      if (acertos >= 4) {
+        setCelebrar(true);
+        setCelebrado(true);
+      }
+      // Partida nova: outra conversa sorteada e pistas zeradas.
+      void iniciarMissao();
+    },
+    [iniciarMissao],
+  );
 
   const [pertoMinigameId, setPertoMinigameId] = useState<string | null>(null);
   const [pescariaAberta, setPescariaAberta] = useState(false);
@@ -75,11 +148,12 @@ export default function ArraialApp() {
   useEffect(() => {
     travadoRef.current =
       dialogo !== null ||
+      desafio !== null ||
       celebrar ||
       pescariaAberta ||
       mapaAberto ||
       lugarAberto !== null;
-  }, [dialogo, celebrar, pescariaAberta, mapaAberto, lugarAberto]);
+  }, [dialogo, desafio, celebrar, pescariaAberta, mapaAberto, lugarAberto]);
 
   useEffect(() => {
     track("arraial_open");
@@ -142,6 +216,11 @@ export default function ArraialApp() {
 
   const fecharDialogo = () => {
     setDialogo(null);
+    // Com missão, a celebração vem depois do desafio, não ao juntar as pistas.
+    if (missao) {
+      if (fitinhas.length === npcs.length) setAvisoMissao(`Pistas completas! Volta em ${npcs.find((n) => n.id === missao.anfitriao)?.nome} para o desafio.`);
+      return;
+    }
     if (!celebrado && fitinhas.length === npcs.length) {
       setCelebrar(true);
       setCelebrado(true);
@@ -332,7 +411,7 @@ export default function ArraialApp() {
 
       {/* Joystick só no touch: dinâmico, a zona de captura é a metade
           inferior esquerda da tela e a base nasce onde o polegar pousa */}
-      {touch && !dialogo && !celebrar && !pescariaAberta && (
+      {touch && !dialogo && !desafio && !celebrar && !pescariaAberta && (
         <Joystick inputRef={inputRef} />
       )}
 
@@ -352,7 +431,34 @@ export default function ArraialApp() {
           onFechar={fecharMapa}
         />
       )}
-      {dialogoSaida.valor && (
+      {avisoMissao && !dialogo && !desafio && (
+        <div className="pointer-events-none absolute inset-x-0 top-28 z-20 flex justify-center px-6">
+          <p role="status" className="rounded-full bg-kambada-gold px-4 py-1.5 text-center font-body text-[13px] font-bold text-kambada-ink shadow-xl">
+            {avisoMissao}
+          </p>
+        </div>
+      )}
+      {dialogoSaida.valor && missao && (
+        <DialogoMissao
+          npc={dialogoSaida.valor}
+          missao={missao}
+          pistas={fitinhas}
+          saindo={dialogoSaida.saindo}
+          onPista={anotarPista}
+          onDesafio={abrirDesafio}
+          onFechar={fecharDialogo}
+        />
+      )}
+      {desafio && missao && (
+        <DesafioArraial
+          estado={desafio.estado}
+          primeira={desafio.pergunta}
+          titulo={missao.titulo}
+          onTerminou={fimDoDesafio}
+          onFechar={() => fimDoDesafio(0)}
+        />
+      )}
+      {dialogoSaida.valor && !missao && (
         <Dialogo
           npc={dialogoSaida.valor}
           saindo={dialogoSaida.saindo}

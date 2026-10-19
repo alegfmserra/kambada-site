@@ -1,4 +1,4 @@
-import { assinar, idAleatorio, verificar } from "./seguranca";
+import { assinar, idAleatorio, permutacaoSecreta, verificar } from "./seguranca";
 import {
   QUIZ_NIVEL,
   QUIZ_PERGUNTAS_POR_PARTIDA,
@@ -285,13 +285,11 @@ export const BANCO: Pergunta[] = [
 // ---------------------------------------------------------------------------
 
 type EstadoPartida = {
-  v: 2;
+  v: 3;
   id: string;
   nivel: Nivel;
   /** Ordem das perguntas (índices no BANCO). */
   ordem: number[];
-  /** Ordem embaralhada das opções de cada pergunta (índices das opções originais). */
-  opcoes: number[][];
   i: number; // pergunta atual (0 a N-1)
   pontos: number;
   acertos: number;
@@ -337,7 +335,7 @@ function publica(estado: EstadoPartida): PerguntaPublica {
     indice: estado.i,
     total: estado.ordem.length,
     enunciado: p.enunciado,
-    opcoes: estado.opcoes[estado.i].map((k) => p.opcoes[k]),
+    opcoes: permutacaoSecreta(estado.id, estado.i, p.opcoes.length).map((k) => p.opcoes[k]),
   };
 }
 
@@ -361,11 +359,10 @@ export function iniciarPartida(
   const nivel = nivelValido(nivelBruto);
   const ordem = sortearPerguntas(nivel);
   const estado: EstadoPartida = {
-    v: 2,
+    v: 3,
     id: idAleatorio(),
     nivel,
     ordem,
-    opcoes: ordem.map(() => embaralhar([0, 1, 2, 3], aleatorio)),
     i: 0,
     pontos: 0,
     acertos: 0,
@@ -387,7 +384,7 @@ export function pontosDaResposta(nivel: Nivel, certa: boolean, tempoMs: number):
 /** Nível de uma partida em andamento (sem validar a resposta). Serve ao porteiro do quiz de visitante. */
 export function nivelDaPartida(tokenEstado: unknown): Nivel | null {
   const estado = verificar<EstadoPartida>(tokenEstado);
-  if (!estado || estado.v !== 2) return null;
+  if (!estado || estado.v !== 3) return null;
   return nivelValido(estado.nivel);
 }
 
@@ -397,7 +394,7 @@ export function responder(
   agora = Date.now(),
 ): RespostaQuiz | { erro: string } {
   const estado = verificar<EstadoPartida>(tokenEstado);
-  if (!estado || estado.v !== 2) return { erro: "Partida inválida. Comece outra." };
+  if (!estado || estado.v !== 3) return { erro: "Partida inválida. Comece outra." };
   const nivel = nivelValido(estado.nivel);
   if (agora - estado.t0 > 30 * 60 * 1000) return { erro: "Partida expirada. Comece outra." };
   if (typeof escolha !== "number" || !Number.isInteger(escolha) || escolha < 0 || escolha > 3) {
@@ -406,7 +403,7 @@ export function responder(
   if (estado.i < 0 || estado.i >= estado.ordem.length) return { erro: "Partida já terminou." };
 
   const p = BANCO[estado.ordem[estado.i]];
-  const ordem = estado.opcoes[estado.i]; // posição mostrada -> índice original
+  const ordem = permutacaoSecreta(estado.id, estado.i, p.opcoes.length); // posição mostrada -> índice original
   const certa = ordem[escolha] === 0;
   const correta = ordem.indexOf(0);
   const ganho = pontosDaResposta(nivel, certa, agora - estado.tq);

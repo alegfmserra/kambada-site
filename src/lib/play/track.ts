@@ -8,6 +8,7 @@ export type EventoArraial =
   | "arraial_open"
   | "arraial_start"
   | "arraial_fitinha"
+  | "arraial_desafio_inicio"
   | "arraial_completo"
   | "arraial_cta_matraca"
   | "arraial_webgl_fallback"

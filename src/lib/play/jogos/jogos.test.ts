@@ -14,7 +14,7 @@ import {
   situacaoDoPremio,
 } from "./placar";
 import { BANCO, iniciarPartida, pontosDaResposta, responder } from "./quiz";
-import { assinar, resumoDaChave, verificar } from "./seguranca";
+import { assinar, permutacaoSecreta, resumoDaChave, verificar } from "./seguranca";
 
 beforeAll(async () => {
   const pasta = await mkdtemp(join(tmpdir(), "kambada-play-"));
@@ -72,9 +72,9 @@ describe("quiz", () => {
     let r: ReturnType<typeof responder> | undefined;
     let acertos = 0;
     for (let i = 0; i < 10; i++) {
-      const e = verificar<{ opcoes: number[][]; i: number }>(estado);
+      const e = verificar<{ id: string; i: number }>(estado);
       expect(e).not.toBeNull();
-      const certa = e!.opcoes[e!.i].indexOf(0);
+      const certa = permutacaoSecreta(e!.id, e!.i, 4).indexOf(0);
       // acerta as pares, erra as ímpares
       const escolha = i % 2 === 0 ? certa : (certa + 1) % 4;
       agora += 4000;
@@ -103,8 +103,8 @@ describe("quiz", () => {
   it("no difícil a pontuação não fica negativa", () => {
     const t0 = Date.parse("2026-10-14T15:00:00Z");
     const { estado } = iniciarPartida("dificil", t0);
-    const e = verificar<{ opcoes: number[][]; i: number }>(estado)!;
-    const errada = (e.opcoes[0].indexOf(0) + 1) % 4;
+    const e = verificar<{ id: string; i: number }>(estado)!;
+    const errada = (permutacaoSecreta(e.id, 0, 4).indexOf(0) + 1) % 4;
     const r = responder(estado, errada, t0 + 2000);
     expect(r).toMatchObject({ certa: false, pontosDaPergunta: -25, pontos: 0 });
   });

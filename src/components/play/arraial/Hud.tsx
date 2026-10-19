@@ -45,7 +45,7 @@ export function HudTopo({ fitinhas }: { fitinhas: string[] }) {
  * Texto com efeito máquina de escrever. Reinicia sozinho porque o pai passa
  * `key` por etapa/resposta (remonta em vez de resetar `n` manualmente).
  */
-function Typewriter({
+export function Typewriter({
   texto,
   completo,
   onCompleto,

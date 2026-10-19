@@ -59,6 +59,12 @@ const SEGURANCA_PLAY = seguranca(true);
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   /**
+   * Servidor de build da Hostinger limita threads: em 19/10/2026 o "Collecting
+   * page data" abriu 63 workers e o processo morreu com "OS can't spawn worker
+   * thread (os error 11)". Quatro workers bastam para este site.
+   */
+  experimental: { cpus: 4 },
+  /**
    * Fotos em WebP (08/10/2026). Sem isto, o Next entregava JPEG — e no celular
    * a foto principal da página inicial levava 3,7 s para aparecer (Lighthouse
    * móvel). AVIF ficou de fora de propósito: comprime mais, mas codificar é

@@ -50,7 +50,7 @@ export async function enviarConfirmacao(base: string, conta: Conta): Promise<{ e
 }
 
 export async function enviarRedefinicao(base: string, conta: Conta): Promise<{ enviado: boolean; link: string }> {
-  const link = `${base}/kambadaplay/redefinir?token=${encodeURIComponent(tokenDeEmail("redefinir", conta.id))}`;
+  const link = `${base}/kambadaplay/redefinir?token=${encodeURIComponent(tokenDeEmail("redefinir", conta))}`;
   if (!emailConfigurado()) return { enviado: false, link };
   await enviarEmail({
     para: conta.email,

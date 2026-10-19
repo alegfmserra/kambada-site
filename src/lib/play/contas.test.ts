@@ -86,10 +86,13 @@ describe("tokens de e-mail", () => {
   });
   it("redefine a senha pelo link e a antiga para de valer", async () => {
     const conta = (await listarContas())[0];
-    const t = tokenDeEmail("redefinir", conta.id);
+    const t = tokenDeEmail("redefinir", conta);
     expect(await redefinirSenha(t, "curta")).toBeNull();
     expect((await redefinirSenha(t, "nova-senha-123"))?.id).toBe(conta.id);
     expect(await autenticar("ana@teste.com", "matraca2026")).toBeNull();
+    expect((await autenticar("ana@teste.com", "nova-senha-123"))?.id).toBe(conta.id);
+    // o mesmo link não serve duas vezes
+    expect(await redefinirSenha(t, "outra-senha-456")).toBeNull();
     expect((await autenticar("ana@teste.com", "nova-senha-123"))?.id).toBe(conta.id);
   });
   it("descadastra pelo link do e-mail", async () => {

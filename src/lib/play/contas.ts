@@ -1,5 +1,5 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { access, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
@@ -79,8 +79,11 @@ async function gravar(d: Dados): Promise<void> {
     try {
       await gravarEm(arquivoContas(), d);
       return;
-    } catch {
+    } catch (erro) {
       usarTemporario = true;
+      console.error(
+        `[play/contas] não consegui gravar em ${arquivoContas()}; caindo para a pasta temporária (as contas NÃO vão sobreviver a um reinício): ${String(erro)}`,
+      );
     }
   }
   await gravarEm(arquivoTemporario(), d);
@@ -227,7 +230,19 @@ export function atualizarNovidades(id: string, quer: boolean, agora = new Date()
 // Tokens de e-mail (confirmação, redefinição de senha, descadastro)
 // ---------------------------------------------------------------------------
 
-type TokenEmail = { v: 1; tipo: "confirmar" | "redefinir" | "descadastrar"; conta: string; exp: number };
+type TokenEmail = {
+  v: 1;
+  tipo: "confirmar" | "redefinir" | "descadastrar";
+  conta: string;
+  exp: number;
+  /** Só em "redefinir": marca da senha atual. Trocou a senha, o link morre (uso único). */
+  s?: string;
+};
+
+/** Impressão curta do hash da senha (nunca o hash em si). */
+function marcaDaSenha(c: Pick<Conta, "senhaHash">): string {
+  return createHash("sha256").update(c.senhaHash).digest("hex").slice(0, 16);
+}
 
 const VALIDADE: Record<TokenEmail["tipo"], number> = {
   confirmar: 48 * 60 * 60,
@@ -235,16 +250,26 @@ const VALIDADE: Record<TokenEmail["tipo"], number> = {
   descadastrar: 365 * 24 * 60 * 60,
 };
 
-export function tokenDeEmail(tipo: TokenEmail["tipo"], contaId: string, agora = Date.now()): string {
-  const t: TokenEmail = { v: 1, tipo, conta: contaId, exp: Math.floor(agora / 1000) + VALIDADE[tipo] };
+export function tokenDeEmail(
+  tipo: TokenEmail["tipo"],
+  conta: string | Pick<Conta, "id" | "senhaHash">,
+  agora = Date.now(),
+): string {
+  const id = typeof conta === "string" ? conta : conta.id;
+  const t: TokenEmail = { v: 1, tipo, conta: id, exp: Math.floor(agora / 1000) + VALIDADE[tipo] };
+  if (tipo === "redefinir" && typeof conta !== "string") t.s = marcaDaSenha(conta);
   return assinar(t);
 }
 
 export function lerTokenDeEmail(token: unknown, tipo: TokenEmail["tipo"], agora = Date.now()): string | null {
+  return lerToken(token, tipo, agora)?.conta ?? null;
+}
+
+function lerToken(token: unknown, tipo: TokenEmail["tipo"], agora = Date.now()): TokenEmail | null {
   const t = verificar<TokenEmail>(token);
   if (!t || t.v !== 1 || t.tipo !== tipo || typeof t.conta !== "string") return null;
   if (t.exp <= Math.floor(agora / 1000)) return null;
-  return t.conta;
+  return t;
 }
 
 export function confirmarEmail(token: unknown, agora = new Date()): Promise<Conta | null> {
@@ -264,11 +289,13 @@ export function confirmarEmail(token: unknown, agora = new Date()): Promise<Cont
 
 export function redefinirSenha(token: unknown, novaSenha: unknown, agora = new Date()): Promise<Conta | null> {
   return naFila(async () => {
-    const id = lerTokenDeEmail(token, "redefinir", agora.getTime());
-    if (!id || !senhaAceitavel(novaSenha)) return null;
+    const t = lerToken(token, "redefinir", agora.getTime());
+    if (!t || !senhaAceitavel(novaSenha)) return null;
     const d = await ler();
-    const c = d.contas.find((x) => x.id === id);
+    const c = d.contas.find((x) => x.id === t.conta);
     if (!c) return null;
+    // Link de uso único: se a senha já mudou depois que o link foi emitido, ele não vale mais.
+    if (t.s && t.s !== marcaDaSenha(c)) return null;
     c.senhaHash = gerarHash(novaSenha);
     // Quem conseguiu abrir o link tem o e-mail: vale como confirmação.
     if (!c.confirmadoEm) c.confirmadoEm = agora.toISOString();
@@ -297,6 +324,19 @@ export function descadastrar(token: unknown, agora = new Date()): Promise<boolea
 
 export async function listarContas(): Promise<Conta[]> {
   return (await ler()).contas;
+}
+
+/** Onde as contas estão de fato (para o diagnóstico da rota de exportação). */
+export async function estadoDoArmazenamento(): Promise<{ arquivo: string; persistente: boolean; existe: boolean }> {
+  const arquivo = usarTemporario ? arquivoTemporario() : arquivoContas();
+  let existe = false;
+  try {
+    await access(arquivo);
+    existe = true;
+  } catch {
+    existe = false;
+  }
+  return { arquivo, persistente: !usarTemporario, existe };
 }
 
 export function contasParaCsv(contas: Conta[]): string {

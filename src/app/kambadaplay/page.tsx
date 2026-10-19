@@ -558,7 +558,7 @@ export default function PlayEntrada() {
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Planos</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-texto">Grátis para quem tem conta. Em breve, para a casa toda e para a escola.</h2>
             <p className="mt-2 max-w-xl text-texto-suave">
-              Play Família a R$ 9,90/mês e Play Escola a R$ 4,90 por aluno ao ano, com piloto gratuito para a rede pública.
+              Play Família a R$ 9,90/mês, com cupom permanente na loja. Play Escola sob proposta, com conteúdo feito junto com a escola.
             </p>
           </div>
           <Link href="/kambadaplay/planos" className={BOTAO_GRAFITE}>

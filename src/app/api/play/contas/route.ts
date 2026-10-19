@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { contasParaCsv, listarContas, publica } from "@/lib/play/contas";
+import { contasParaCsv, estadoDoArmazenamento, listarContas, publica } from "@/lib/play/contas";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,10 @@ export async function GET(requisicao: Request) {
       },
     });
   }
+  const armazenamento = await estadoDoArmazenamento();
   return NextResponse.json({
+    // "persistente: false" em produção = alerta: as contas estão caindo na pasta temporária.
+    armazenamento: { persistente: armazenamento.persistente, existe: armazenamento.existe, pasta: armazenamento.arquivo.replace(/[\\/][^\\/]+$/, "") },
     total: contas.length,
     confirmadas: contas.filter((c) => c.confirmadoEm).length,
     aceitamNovidades: contas.filter((c) => c.novidades && c.confirmadoEm).length,

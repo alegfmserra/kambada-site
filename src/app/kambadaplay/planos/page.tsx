@@ -6,7 +6,7 @@ import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
 export const metadata: Metadata = {
   title: "Planos",
   description:
-    "Os planos do Kambada Play: Grátis para quem cria a conta, Play Família por R$ 9,90/mês e Play Escola por R$ 4,90 por aluno ao ano, com piloto gratuito para a rede pública.",
+    "Os planos do Kambada Play: Grátis para quem cria a conta, Play Família por R$ 9,90/mês e Play Escola sob proposta, com conteúdo feito junto com a escola.",
   alternates: { canonical: "/kambadaplay/planos" },
 };
 
@@ -16,11 +16,11 @@ const BOTAO_CONTORNO =
   "inline-block rounded-full border-2 border-borda px-8 py-3 text-center font-bold text-texto transition-colors hover:border-kambada-amarelo focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-kambada-amarelo";
 
 const MENSAGEM_ESCOLA =
-  "Olá! Sou de uma escola e quero saber mais sobre o Play Escola do Kambada Play (piloto gratuito de 60 dias).";
+  "Olá! Sou de uma escola e quero conversar sobre o Play Escola do Kambada Play (conteúdo a partir do nosso plano de aula).";
 
 /**
  * Tela pública dos planos (fica fora do login de propósito: escola e família
- * precisam ver o preço antes de criar a conta). Ainda não cobra nada.
+ * precisam ver as condições antes de criar a conta). Ainda não cobra nada.
  */
 export default function PlanosPage() {
   return (
@@ -34,8 +34,8 @@ export default function PlanosPage() {
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
-          Hoje o Kambada Play é grátis para quem cria a conta. Os planos pagos chegam quando houver mais jogos, mais
-          temporadas e o painel do professor. Quem entra agora fica sabendo primeiro e não perde nada do que já usa.
+          Hoje o Kambada Play é grátis para quem cria a conta. Os planos pagos chegam quando houver mais jogos e mais
+          temporadas. Quem entra agora fica sabendo primeiro e não perde nada do que já usa.
         </p>
 
         <ul className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -59,15 +59,25 @@ export default function PlanosPage() {
               >
                 {p.disponivel ? "Disponível" : "Em breve"}
               </span>
-              <p className={`pr-24 text-xs font-bold uppercase tracking-[0.3em] ${p.destaque ? "text-kambada-amarelo" : "text-[var(--destaque-texto)]"}`}>
+              <p
+                className={`pr-24 text-xs font-bold uppercase tracking-[0.3em] ${
+                  p.destaque ? "text-kambada-amarelo" : "text-[var(--destaque-texto)]"
+                }`}
+              >
                 {p.paraQuem}
               </p>
               <h2 className="mt-3 font-display text-2xl font-extrabold">{p.nome}</h2>
               <p className="mt-4 font-display text-3xl font-extrabold leading-none">{p.preco}</p>
               {p.precoDetalhe ? (
-                <p className={`mt-2 text-sm ${p.destaque ? "text-kambada-branco/75" : "text-texto-suave"}`}>{p.precoDetalhe}</p>
+                <p className={`mt-2 text-sm ${p.destaque ? "text-kambada-branco/75" : "text-texto-suave"}`}>
+                  {p.precoDetalhe}
+                </p>
               ) : null}
-              <ul className={`mt-6 flex-1 space-y-2.5 text-sm leading-snug ${p.destaque ? "text-kambada-branco/85" : "text-texto-suave"}`}>
+              <ul
+                className={`mt-6 flex-1 space-y-2.5 text-sm leading-snug ${
+                  p.destaque ? "text-kambada-branco/85" : "text-texto-suave"
+                }`}
+              >
                 {p.inclui.map((item) => (
                   <li key={item} className="flex gap-2">
                     <span aria-hidden className={p.destaque ? "text-kambada-amarelo" : "text-[var(--destaque-texto)]"}>
@@ -87,11 +97,19 @@ export default function PlanosPage() {
                     Quero ser avisado
                   </Link>
                 ) : p.id === "escola" ? (
-                  <a href={linkWhatsApp(MENSAGEM_ESCOLA)} target="_blank" rel="noopener noreferrer" className={`${BOTAO_CONTORNO} w-full`}>
-                    Pedir o piloto gratuito
+                  <a
+                    href={linkWhatsApp(MENSAGEM_ESCOLA)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${BOTAO_CONTORNO} w-full`}
+                  >
+                    Pedir uma proposta
                   </a>
                 ) : (
-                  <a href={`mailto:${EMAILS.contato}?subject=${encodeURIComponent("Licença de conteúdo — Kambada Play")}`} className={`${BOTAO_CONTORNO} w-full`}>
+                  <a
+                    href={`mailto:${EMAILS.contato}?subject=${encodeURIComponent("Licença de conteúdo — Kambada Play")}`}
+                    className={`${BOTAO_CONTORNO} w-full`}
+                  >
                     Falar com a Kambada
                   </a>
                 )}
@@ -105,38 +123,45 @@ export default function PlanosPage() {
           a assinatura abrir, a gente avisa por e-mail e você escolhe se quer entrar.
         </p>
 
-        {/* Escola: a conta de padaria que a diretora faz na hora */}
+        {/* Escola: como funciona, sem pacote pronto */}
         <section className="mt-16 grid gap-8 rounded-2xl bg-kambada-amarelo p-6 text-kambada-grafite sm:p-10 md:grid-cols-[1.2fr_1fr] md:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em]">Play Escola</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold leading-tight sm:text-4xl">
-              Uma escola de 400 alunos paga R$ 1.960 no ano inteiro.
+              Cultura maranhense na sala de aula, feita junto com a escola.
             </h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed">
-              Menos de R$ 0,50 por aluno ao mês para ter o Bumba Meu Boi, o tambor de crioula e São Luís dentro da sala,
-              com turmas, ranking e relatório para o professor. Rede pública começa com {PRECOS.pilotoPublicoDias} dias
-              grátis.
+              O Play Escola não é um pacote pronto. A gente senta com a coordenação, entende o plano de aula ou o plano
+              anual e produz animações e histórias de cunho educativo, que ensinam a cultura do Maranhão pelo
+              entretenimento. O conteúdo nasce aos poucos, e a primeira leva de animações sai em até{" "}
+              {PRECOS.escolaPrimeiraEntregaDias} dias depois do acordo, conforme o que for combinado.
             </p>
           </div>
           <div className="rounded-xl border-2 border-kambada-grafite bg-kambada-papel p-5">
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt>Por aluno, por ano</dt>
-                <dd className="font-bold">R$ {PRECOS.escolaAlunoAno.toFixed(2).replace(".", ",")}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt>Mínimo</dt>
-                <dd className="font-bold">{PRECOS.escolaMinimoAlunos} alunos</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt>Rede pública</dt>
-                <dd className="font-bold">piloto de {PRECOS.pilotoPublicoDias} dias grátis</dd>
-              </div>
-              <div className="flex justify-between gap-4 border-t border-kambada-grafite/30 pt-3">
-                <dt>Escola de 400 alunos</dt>
-                <dd className="font-bold">R$ 1.960/ano</dd>
-              </div>
-            </dl>
+            <ol className="space-y-3 text-sm">
+              <li className="flex gap-3">
+                <span className="font-display text-xl font-extrabold leading-none">1</span>
+                <span>
+                  <strong>Conversa</strong>: a escola conta o que ensina e para quais turmas.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-display text-xl font-extrabold leading-none">2</span>
+                <span>
+                  <strong>Proposta</strong>: o que será produzido, em que prazo e por quanto.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-display text-xl font-extrabold leading-none">3</span>
+                <span>
+                  <strong>Produção</strong>: animações e histórias entregues em levas, acompanhando o plano de aula.
+                </span>
+              </li>
+              <li className="flex gap-3 border-t border-kambada-grafite/30 pt-3">
+                <span className="font-display text-xl font-extrabold leading-none">+</span>
+                <span>Jogos, cordel e HQ que já existem ficam liberados desde o primeiro dia.</span>
+              </li>
+            </ol>
             <a
               href={linkWhatsApp(MENSAGEM_ESCOLA)}
               target="_blank"

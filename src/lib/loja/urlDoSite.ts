@@ -16,7 +16,7 @@ const HOSTS_CONHECIDOS = new Set([
   "maroon-heron-459360.hostingersite.com",
 ]);
 
-const PADRAO = "https://maroon-heron-459360.hostingersite.com";
+const PADRAO = "https://somoskambada.com.br";
 
 export function urlDoSite(requisicao: Request): string {
   const configurada = process.env.URL_DO_SITE?.trim().replace(/\/+$/, "");

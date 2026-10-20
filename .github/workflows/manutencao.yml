@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Chamar /api/manutencao
         env:
-          URL: ${{ vars.SITE_URL || 'https://maroon-heron-459360.hostingersite.com' }}
+          URL: ${{ vars.SITE_URL || 'https://somoskambada.com.br' }}
           SEGREDO: ${{ secrets.MANUTENCAO_SECRET }}
         run: |
           if [ -z "$SEGREDO" ]; then echo "MANUTENCAO_SECRET não configurado no GitHub"; exit 1; fi

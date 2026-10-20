@@ -3,6 +3,8 @@ import {
   MACHAO,
   MATRACA_DTF,
   PLACA,
+  PUXADOR,
+  corpoPuxador,
   REGATAO_DUPLICADO,
   REGATAO_PAI,
   REGATAO_VARIACAO,
@@ -44,14 +46,15 @@ describe("Regatão (20/10/2026)", () => {
 });
 
 describe("Placa de Madeira Retangular", () => {
-  it("tem 4 variações: Coreira/Coreiro × sem/com parafuso e puxador, a 160 e 180", () => {
+  it("tem 2 modelos a R$ 160 com o saldo da contagem; o puxador é item à parte (1 unidade)", () => {
     const v = variacoesDaPlaca();
-    expect(v.map((x) => [x.atributos, x.preco])).toEqual([
-      ["Modelo:Coreira;Fixação:Sem parafuso e puxador", 160],
-      ["Modelo:Coreira;Fixação:Com parafuso e puxador", 180],
-      ["Modelo:Coreiro;Fixação:Sem parafuso e puxador", 160],
-      ["Modelo:Coreiro;Fixação:Com parafuso e puxador", 180],
+    expect(v.map((x) => [x.atributos, x.preco, x.saldo])).toEqual([
+      ["Modelo:Coreira", 160, 2],
+      ["Modelo:Coreiro", 160, 2],
     ]);
+    expect(corpoPuxador()).toMatchObject({ nome: PUXADOR.nome, preco: 20, formato: "S" });
+    expect(PUXADOR.saldo).toBe(1);
+    expect(categoriaPeloNome(PUXADOR.nome)).toBe("decoracao");
   });
   it("mantém o ID e vira pai, com o nome novo e a descrição nova", () => {
     const corpo = corpoPlaca({ id: PLACA.id, nome: PLACA.nomeAntigo, formato: "S", preco: 160, outroCampo: 1 });

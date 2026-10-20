@@ -11,6 +11,20 @@ export const POSTAGEM_DIAS_UTEIS = 3;
 
 export const PRODUCAO_PINTADA_A_MAO = { min: 3, max: 7 } as const;
 
+/** Placas têm área pintada maior: 4 a 10 dias (Alexandre, 20/10/2026). */
+export const PRODUCAO_PLACA = { min: 4, max: 10 } as const;
+
+const ehPlaca = (nome: string) => /^placa/i.test(nome.trim());
+
+export function prazoDeProducao(produto: { nome: string }): { min: number; max: number } {
+  return ehPlaca(produto.nome) ? PRODUCAO_PLACA : PRODUCAO_PINTADA_A_MAO;
+}
+
+export function textoDeProducao(produto: { nome: string }): string {
+  const p = prazoDeProducao(produto);
+  return `Pintada à mão: a produção leva de ${p.min} a ${p.max} dias antes da postagem, e cada peça varia um pouco da foto.`;
+}
+
 /** Categorias cujas peças são pintadas à mão, uma por uma. */
 const CATEGORIAS_PINTADAS_A_MAO = new Set(["matracas", "decoracao"]);
 

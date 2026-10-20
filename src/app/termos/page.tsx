@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { LIMITES_PARCELAS } from "@/lib/loja/parcelas";
-import { POSTAGEM_DIAS_UTEIS, PRODUCAO_PINTADA_A_MAO } from "@/lib/loja/prazos";
+import { POSTAGEM_DIAS_UTEIS, PRODUCAO_PINTADA_A_MAO, PRODUCAO_PLACA } from "@/lib/loja/prazos";
 import { EMAILS, SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -50,7 +50,8 @@ export default function PaginaTermos() {
           </li>
           <li>
             <strong>Estoque.</strong> O site mostra o estoque real. Matracas são feitas por encomenda, com
-            produção de {PRODUCAO_PINTADA_A_MAO.min} a {PRODUCAO_PINTADA_A_MAO.max} dias. Se, por erro, uma
+            produção de {PRODUCAO_PINTADA_A_MAO.min} a {PRODUCAO_PINTADA_A_MAO.max} dias; placas pintadas, de{" "}
+            {PRODUCAO_PLACA.min} a {PRODUCAO_PLACA.max} dias. Se, por erro, uma
             peça paga não puder ser entregue, devolvemos o valor integral.
           </li>
           <li>

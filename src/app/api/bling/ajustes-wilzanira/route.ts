@@ -9,6 +9,8 @@ import {
   MATRACA_DTF,
   PASSOS,
   PLACA,
+  PUXADOR,
+  corpoPuxador,
   REGATAO_DUPLICADO,
   REGATAO_PAI,
   REGATAO_SALDO,
@@ -204,12 +206,38 @@ async function responder(requisicao: Request, escrever: boolean) {
         const depois = await ler(PLACA.id);
         const filhos = variacoesDe(depois);
         const casou = esperadas.every((e) => filhos.some((f) => f.atributos === e.atributos && f.preco === e.preco));
+        // Saldo de cada modelo pela contagem de 13/10.
+        const saldos: Obj[] = [];
+        for (const e of esperadas) {
+          const f = filhos.find((x) => x.atributos === e.atributos);
+          if (f?.id) saldos.push({ atributos: e.atributos, saldo: await balancar(Number(f.id), e.saldo) });
+        }
         feitos.push({
           ...plano,
           acao: "convertida",
           conferido: { nome: depois.nome, formato: depois.formato, preco: depois.preco, descricao: depois.descricaoCurta === corpoPlaca(atual).descricaoCurta, variacoes: filhos },
-          bateu: depois.nome === PLACA.nome && depois.formato === "V" && casou,
-          seNaoBateu: "a conversão de produto simples em pai pode não ser aceita pelo Bling por API: nesse caso, criar as 4 variações no painel (Modelo × Fixação) com os preços 160/180",
+          saldos,
+          bateu: depois.nome === PLACA.nome && depois.formato === "V" && casou && esperadas.every((e) => saldos.some((x) => x.atributos === e.atributos && x.saldo === e.saldo)),
+          seNaoBateu: "a conversão de produto simples em pai pode não ser aceita pelo Bling por API: nesse caso, criar as 2 variações no painel (Modelo: Coreira / Coreiro, R$ 160, saldo 2 cada)",
+        });
+      }
+    }
+
+    // ── puxador: item à parte, 1 unidade ──
+    if (roda("puxador")) {
+      const existente = ativoPeloNome(PUXADOR.nome);
+      if (existente) feitos.push({ passo: "puxador", acao: "pular", motivo: `já existe (id ${existente.id})` });
+      else if (!aplicar) feitos.push({ passo: "puxador", acao: "criar", corpo: corpoPuxador(), saldo: PUXADOR.saldo });
+      else {
+        const criado = await chamarBling<{ data: { id: number } }>("/produtos", { metodo: "POST", corpo: corpoPuxador() });
+        const saldoDepois = await balancar(criado.data.id, PUXADOR.saldo);
+        const p = await ler(criado.data.id);
+        feitos.push({
+          passo: "puxador",
+          acao: "criado",
+          id: criado.data.id,
+          conferido: { nome: p.nome, preco: p.preco, saldo: saldoDepois },
+          bateu: p.nome === PUXADOR.nome && p.preco === PUXADOR.preco && saldoDepois === PUXADOR.saldo,
         });
       }
     }

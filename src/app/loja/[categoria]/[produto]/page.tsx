@@ -16,7 +16,7 @@ import {
   precoExibido,
   type Produto,
 } from "@/lib/catalogo";
-import { ehPintadaAMao, TEXTO_POSTAGEM, TEXTO_PRODUCAO_PINTADA_A_MAO } from "@/lib/loja/prazos";
+import { ehPintadaAMao, TEXTO_POSTAGEM, textoDeProducao } from "@/lib/loja/prazos";
 import { FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
 import { TEXTO_REGRA_PARCELAS } from "@/lib/loja/parcelas";
 import { formatarReais } from "@/lib/loja/dinheiro";
@@ -291,7 +291,7 @@ export default async function PaginaProduto({ params }: Props) {
               <ul className="mt-8 space-y-2 border-t border-borda pt-6 text-sm leading-relaxed text-texto-suave">
                 {ehPintadaAMao(produto) && (
                   <li className="rounded-xl bg-superficie px-4 py-3 font-medium text-texto">
-                    🎨 {TEXTO_PRODUCAO_PINTADA_A_MAO}
+                    🎨 {textoDeProducao(produto)}
                   </li>
                 )}
                 <li>📦 {TEXTO_POSTAGEM}.</li>

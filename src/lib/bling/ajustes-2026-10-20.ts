@@ -57,20 +57,39 @@ export const PLACA = {
   nomeAntigo: "Placa de Madeira Grande",
   nome: "Placa de Madeira Retangular",
   preco: 160,
-  adicionalFixacao: 20,
-  modelos: ["Coreira", "Coreiro"],
+  /** Contagem da Wilsonira (13/10): coreira 2, coreiro 2 (estavam no cadastro inativo "Placa de Madeira Reta"). */
+  modelos: [
+    { nome: "Coreira", saldo: 2 },
+    { nome: "Coreiro", saldo: 2 },
+  ],
+};
+
+/**
+ * Parafuso + puxador: item à parte, não variação da placa — há UMA unidade
+ * (Alexandre, 20/10/2026). Como variação, "Coreira com" e "Coreiro com"
+ * deixariam vender dois.
+ */
+export const PUXADOR = {
+  nome: "Placa de Madeira - Parafuso e Puxador",
+  preco: 20,
+  saldo: 1,
+  descricao: [
+    "Kit de fixação para a Placa de Madeira Retangular: parafuso e puxador, pra pendurar a Coreira ou o Coreiro na parede ou na porta.",
+    "",
+    "Vendido à parte. Peça única no momento.",
+  ].join("\n"),
 };
 
 export type VariacaoNova = { atributos: string; preco: number; ordem: number };
 
-/** Modelo × fixação, cada uma com o preço dela: 160 sem, 180 com parafuso e puxador. */
-export function variacoesDaPlaca(): VariacaoNova[] {
-  const lista: VariacaoNova[] = [];
-  for (const modelo of PLACA.modelos) {
-    lista.push({ atributos: `Modelo:${modelo};Fixação:Sem parafuso e puxador`, preco: PLACA.preco, ordem: lista.length + 1 });
-    lista.push({ atributos: `Modelo:${modelo};Fixação:Com parafuso e puxador`, preco: PLACA.preco + PLACA.adicionalFixacao, ordem: lista.length + 1 });
-  }
-  return lista;
+/** Um modelo por variação, todos a R$ 160 (a fixação é o item PUXADOR, à parte). */
+export function variacoesDaPlaca(): (VariacaoNova & { saldo: number })[] {
+  return PLACA.modelos.map((m, i) => ({ atributos: `Modelo:${m.nome}`, preco: PLACA.preco, ordem: i + 1, saldo: m.saldo }));
+}
+
+/** Corpo do POST do puxador (produto simples, mesma categoria). */
+export function corpoPuxador(): Obj {
+  return { nome: PUXADOR.nome, preco: PUXADOR.preco, tipo: "P", situacao: "A", formato: "S", categoria: { id: ID_CATEGORIA }, descricaoCurta: PUXADOR.descricao };
 }
 
 // ── 5. Matraca Mini DTF (estampa impressa) — BLOQUEADA até ter preço ──
@@ -189,7 +208,8 @@ export const PASSOS = [
   { chave: "regatao", alvo: REGATAO_PAI, oQue: "descrição com Cor: off white; variação G → GG; saldo da GG = 1" },
   { chave: "machao", alvo: null, oQue: "cria Camisa Maranhense que só - Machão (preta), grade P–XG a zero" },
   { chave: "trilingue", alvo: LIVRO_TRILINGUE, oQue: "inativa o Livro Trilíngue" },
-  { chave: "placa", alvo: PLACA.id, oQue: "Placa Grande vira Placa de Madeira Retangular com 4 variações (160/180)" },
+  { chave: "placa", alvo: PLACA.id, oQue: "Placa Grande vira Placa de Madeira Retangular: Coreira e Coreiro a R$ 160, saldo 2 cada" },
+  { chave: "puxador", alvo: null, oQue: "cria Placa de Madeira - Parafuso e Puxador, R$ 20, saldo 1" },
   { chave: "matraca-dtf", alvo: null, oQue: "cria Matraca Mini DTF (saldo 5) e baixa a Pequena pintada para 17 — BLOQUEADO sem preço" },
 ] as const;
 

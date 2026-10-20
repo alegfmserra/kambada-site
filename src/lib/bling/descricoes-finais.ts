@@ -468,14 +468,14 @@ export const DESCRICOES: Record<number, string> = {
     "Pintada à mão, uma por uma: pode variar um pouco da foto.",
   ),
   // Placa de Madeira Retangular (era "Placa de Madeira Grande"; Wilzanira, 20/10/2026):
-  // modelos Coreira e Coreiro, R$ 160; com parafuso e puxador, R$ 180.
+  // modelos Coreira e Coreiro, R$ 160; parafuso e puxador vendidos à parte (R$ 20, 1 unidade).
   16701503321: texto(
     "Tambor de Crioula na parede: a Coreira, de saia rodada, dançando na roda, e o Coreiro, que bate o tambor e puxa o canto. Placa retangular de pinus, pintada à mão — fecha o olho que dá pra ouvir.",
     "Material: madeira de pinus; tintas e verniz à base d'água.",
     "Medidas: 35 × 14 cm.",
     "Modelos: Coreira e Coreiro.",
-    "Fixação: opcional, com parafuso e puxador (+ R$ 20,00).",
-    "Pintada à mão, uma por uma: pode variar um pouco da foto.",
+    "Fixação: parafuso e puxador vendidos à parte (R$ 20,00).",
+    "Pintada à mão, uma por uma: produção de 4 a 10 dias e pode variar um pouco da foto.",
   ),
   16701503283: texto(
     "O boi, o Cazumbá ou o Caboclo de Fitas em placa redonda de pinus, com alça caramelo pra pendurar. Ilustração autoral, colorida ou em preto. Pra decorar a casa com arte do Maranhão e dar assunto pra visita.",

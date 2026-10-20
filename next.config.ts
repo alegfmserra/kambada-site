@@ -102,7 +102,7 @@ const nextConfig: NextConfig = {
       {
         // Páginas pessoais ou autenticadas: nunca em cache compartilhado.
         // Antes, /admin/pedidos saía com "public, s-maxage=60".
-        source: "/:caminho((?:admin|checkout|pedido|carrinho)(?:/.*)?)",
+        source: "/:caminho((?:admin|checkout|pedido|carrinho|conta|entrar)(?:/.*)?)",
         headers: [
           { key: "Cache-Control", value: "private, no-store, must-revalidate" },
           ...SEGURANCA,
@@ -119,7 +119,7 @@ const nextConfig: NextConfig = {
       },
       {
         // Páginas: o navegador revalida sempre, o CDN guarda no máximo 60s.
-        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho|kambadaplay).*)",
+        source: "/:caminho((?!_next/static|api/|admin|checkout|pedido|carrinho|kambadaplay|conta(?!to)|entrar).*)",
         headers: [
           {
             key: "Cache-Control",

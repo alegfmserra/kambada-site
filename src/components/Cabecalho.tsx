@@ -138,7 +138,19 @@ export default function Cabecalho() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Sem estado no cliente: /conta manda para /entrar quem não está logado. */}
+          <Link
+            href="/conta"
+            aria-label="Minha conta"
+            title="Minha conta"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover:text-kambada-amarelo-escuro"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5 20a7 7 0 0 1 14 0" />
+            </svg>
+          </Link>
           <IconeCarrinho />
           <AlternadorTema />
           <button

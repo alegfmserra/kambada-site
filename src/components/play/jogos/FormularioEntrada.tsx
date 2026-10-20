@@ -74,7 +74,8 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
       return;
     }
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- navegação completa: o cookie novo precisa passar pelo porteiro
-    window.location.assign(`/kambadaplay/conta?bemvindo=1${r.emailEnviado ? "" : "&semEmail=1"}`);
+    const conta = de.startsWith("/conta") ? "/conta" : "/kambadaplay/conta";
+    window.location.assign(`${conta}?bemvindo=1${r.emailEnviado ? "" : "&semEmail=1"}`);
   }
 
   async function esqueci(e: React.FormEvent) {
@@ -335,7 +336,7 @@ function avisoInicial(aviso?: string): string {
     case "link-invalido":
       return "Esse link não vale mais. Entre na sua conta para ajustar o recebimento de novidades.";
     case "saiu":
-      return "Você saiu do Kambada Play.";
+      return "Você saiu da sua conta.";
     default:
       return "";
   }

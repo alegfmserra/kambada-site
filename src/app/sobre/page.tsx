@@ -21,20 +21,35 @@ const NUMEROS = [
 ] as const;
 
 /**
- * Quem faz a Kambada — pedido do Alexandre (09/10/2026): mostrar as cinco
- * pessoas da sociedade, porque isso cria identificação.
+ * Quem faz a Kambada — pedido do Alexandre (09/10/2026): mostrar a família
+ * que faz a marca, porque isso cria identificação.
  *
- * As funções vêm só do que está registrado (gestão financeira do Alexandre;
- * Wilsonira sócia-administradora e líder de produção artesanal; Ricardo nas
- * artes). Onde a função não foi informada, fica "sócia-fundadora" — sem
- * inventar. Para pôr foto: `foto` com o caminho em /public (quadrada).
+ * Regra do Alexandre (20/10/2026): no site, sócios são só Wilsonira e
+ * Alexandre, os dois fundadores; a sócia-administradora (no papel) é a
+ * Wilsonira e vem primeiro. Os demais aparecem como a família que faz a
+ * Kambada, sem o título de sócio. Fotos em /public/equipe (400×400,
+ * recortadas no rosto; originais em comercial/fotos-equipe_2026-10-20/).
  */
-const EQUIPE: { nome: string; papel: string; foto?: string }[] = [
-  { nome: "Alexandre", papel: "Sócio-fundador · gestão e finanças" },
-  { nome: "Wilsonira", papel: "Sócia-fundadora · administração e produção artesanal" },
-  { nome: "Wilzanira", papel: "Advogada e artista · do jurídico à pintura das matracas e à produção dos lápis" },
-  { nome: "Elzanira", papel: "Artista plástica" },
-  { nome: "Ricardo", papel: "Ilustrador e diretor de arte" },
+const EQUIPE: { nome: string; papel: string; foto?: string; selo?: string }[] = [
+  {
+    nome: "Wilsonira Batista",
+    papel: "Sócia-administradora · à frente da produção artesanal",
+    foto: "/equipe/wilsonira.webp",
+    selo: "Sócia-fundadora",
+  },
+  {
+    nome: "Alexandre",
+    papel: "Estratégia e gestão",
+    foto: "/equipe/alexandre.webp",
+    selo: "Sócio-fundador",
+  },
+  {
+    nome: "Wilzanira",
+    papel: "Advogada e artista · da pintura das matracas à produção dos lápis",
+    foto: "/equipe/wilzanira.webp",
+  },
+  { nome: "Elzanira", papel: "Artista plástica", foto: "/equipe/elzanira.webp" },
+  { nome: "Ricardo", papel: "Ilustrador e diretor de arte", foto: "/equipe/ricardo.webp" },
 ];
 
 export default function Sobre() {
@@ -131,8 +146,11 @@ export default function Sobre() {
             Quem faz a <span className="destaque">Kambada</span>
           </h2>
           <p className="mt-3 max-w-2xl leading-relaxed text-texto-suave">
-            Uma família, cinco sócios e uma paixão em comum: o Maranhão. É essa
-            cambada que pensa, desenha, produz e embala cada peça.
+            A Kambada nasceu dentro de casa: de uma brincadeira em família, do
+            arraial que a gente montava para os amigos e da vontade de viver a
+            cultura do Maranhão juntos. Wilsonira e Alexandre são os sócios
+            fundadores, com a Wilsonira à frente como sócia-administradora; a
+            família inteira pensa, desenha, pinta, produz e embala cada peça.
           </p>
           <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {EQUIPE.map((pessoa) => (
@@ -140,9 +158,9 @@ export default function Sobre() {
                 {pessoa.foto ? (
                   <Image
                     src={pessoa.foto}
-                    alt={pessoa.nome}
-                    width={160}
-                    height={160}
+                    alt={`Foto de ${pessoa.nome}`}
+                    width={224}
+                    height={224}
                     className="mx-auto h-28 w-28 rounded-full object-cover"
                   />
                 ) : (
@@ -154,7 +172,12 @@ export default function Sobre() {
                   </span>
                 )}
                 <h3 className="mt-4 font-display text-xl font-bold">{pessoa.nome}</h3>
-                <p className="mt-1 text-sm leading-snug text-texto-suave">{pessoa.papel}</p>
+                {pessoa.selo ? (
+                  <p className="mt-2 inline-block rounded-full bg-kambada-amarelo px-3 py-0.5 text-xs font-bold text-kambada-grafite">
+                    {pessoa.selo}
+                  </p>
+                ) : null}
+                <p className="mt-2 text-sm leading-snug text-texto-suave">{pessoa.papel}</p>
               </li>
             ))}
           </ul>

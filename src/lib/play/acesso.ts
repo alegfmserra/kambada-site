@@ -74,12 +74,15 @@ export function sessaoDaRequisicao(requisicao: Request): Sessao | null {
   return lerSessao(decodeURIComponent(par.slice(COOKIE_SESSAO.length + 1)));
 }
 
-/** Só volta para dentro do Play: nunca para um endereço de fora (redirecionamento aberto). */
+/**
+ * Só volta para dentro do Play ou para a "Minha conta" da loja (a conta é a
+ * mesma nos dois): nunca para um endereço de fora (redirecionamento aberto).
+ */
 export function destinoSeguro(de: unknown): string {
   if (typeof de !== "string") return "/kambadaplay";
-  if (!de.startsWith("/kambadaplay") || de.startsWith("//") || de.includes("\\") || de.includes("://")) {
-    return "/kambadaplay";
-  }
+  if (de.startsWith("//") || de.includes("\\") || de.includes("://")) return "/kambadaplay";
+  if (de === "/conta" || de.startsWith("/conta?")) return de.slice(0, 200);
+  if (!de.startsWith("/kambadaplay")) return "/kambadaplay";
   if (/^\/kambadaplay\/(entrar|confirmar|redefinir|planos)/.test(de)) return "/kambadaplay";
   return de.slice(0, 200);
 }

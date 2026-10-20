@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/admin/", "/pedido", "/checkout"] },
+    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/admin/", "/pedido", "/checkout", "/conta", "/entrar"] },
     sitemap: new URL("/sitemap.xml", SITE.url).toString(),
   };
 }

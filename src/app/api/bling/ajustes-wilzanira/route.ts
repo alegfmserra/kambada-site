@@ -24,6 +24,7 @@ import {
   type ChavePasso,
 } from "@/lib/bling/ajustes-2026-10-20";
 import { chamarBling, listarTudo } from "@/lib/bling/cliente";
+import { DESCRICOES } from "@/lib/bling/descricoes-finais";
 import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
 import { arquivoTokens } from "@/lib/bling/tokens";
 import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
@@ -220,6 +221,31 @@ async function responder(requisicao: Request, escrever: boolean) {
           bateu: depois.nome === PLACA.nome && depois.formato === "V" && casou && esperadas.every((e) => saldos.some((x) => x.atributos === e.atributos && x.saldo === e.saldo)),
           seNaoBateu: "a conversão de produto simples em pai pode não ser aceita pelo Bling por API: nesse caso, criar as 2 variações no painel (Modelo: Coreira / Coreiro, R$ 160, saldo 2 cada)",
         });
+      }
+    }
+
+    // ── placa-saldo: depois da conversão feita no painel (a API recusou), descrição + saldo 2 por modelo ──
+    if (roda("placa-saldo")) {
+      const atual = await ler(PLACA.id);
+      const filhos = variacoesDe(atual);
+      const plano = { passo: "placa-saldo", id: PLACA.id, nome: atual.nome, formato: atual.formato, variacoes: filhos };
+      if (atual.nome !== PLACA.nome || atual.formato !== "V") feitos.push({ ...plano, acao: "erro", motivo: "a placa ainda não foi convertida (nome/formato)" });
+      else if (!aplicar) feitos.push({ ...plano, acao: "gravar", alvo: variacoesDaPlaca().map((v) => ({ atributos: v.atributos, saldo: v.saldo })) });
+      else {
+        originais.push(atual);
+        if (atual.descricaoCurta !== DESCRICOES[PLACA.id]) {
+          await chamarBling(`/produtos/${PLACA.id}`, { metodo: "PUT", corpo: { ...atual, descricaoCurta: DESCRICOES[PLACA.id] } });
+        }
+        const saldos: Obj[] = [];
+        for (const e of variacoesDaPlaca()) {
+          const f = filhos.find((x) => x.atributos === e.atributos);
+          if (!f?.id) { saldos.push({ atributos: e.atributos, erro: "variação não encontrada" }); continue; }
+          const agora = await saldo(Number(f.id));
+          saldos.push({ atributos: e.atributos, saldo: agora === e.saldo ? agora : await balancar(Number(f.id), e.saldo) });
+        }
+        const depois = await ler(PLACA.id);
+        const descOk = depois.descricaoCurta === DESCRICOES[PLACA.id];
+        feitos.push({ ...plano, acao: "gravado", conferido: { descricao: descOk, saldos }, bateu: descOk && variacoesDaPlaca().every((e) => saldos.some((x) => x.atributos === e.atributos && x.saldo === e.saldo)) });
       }
     }
 

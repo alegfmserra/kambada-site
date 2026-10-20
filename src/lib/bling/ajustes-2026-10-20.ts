@@ -209,6 +209,7 @@ export const PASSOS = [
   { chave: "machao", alvo: null, oQue: "cria Camisa Maranhense que só - Machão (preta), grade P–XG a zero" },
   { chave: "trilingue", alvo: LIVRO_TRILINGUE, oQue: "inativa o Livro Trilíngue" },
   { chave: "placa", alvo: PLACA.id, oQue: "Placa Grande vira Placa de Madeira Retangular: Coreira e Coreiro a R$ 160, saldo 2 cada" },
+  { chave: "placa-saldo", alvo: PLACA.id, oQue: "depois da conversão no painel: descrição nova e saldo 2 em Coreira e Coreiro" },
   { chave: "puxador", alvo: null, oQue: "cria Placa de Madeira - Parafuso e Puxador, R$ 20, saldo 1" },
   { chave: "matraca-dtf", alvo: null, oQue: "cria Matraca Mini DTF (saldo 5) e baixa a Pequena pintada para 17 — BLOQUEADO sem preço" },
 ] as const;

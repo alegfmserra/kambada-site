@@ -60,6 +60,14 @@ export const FOTOS = {
     largura: 900,
     altura: 1200,
   },
+  // Substitui o close acima na galeria do Sobre (Alexandre, 20/10/2026: o
+  // tecido do close aparecia manchado). Ensaio Ilha Encantada, IMG_2743.
+  sobreIlhaEncantada: {
+    arquivo: "/fotos/sobre-ilha-encantada.webp",
+    alt: "Rapaz sorrindo com a camiseta preta São Luís Ilha Encantada, em frente a um casarão verde do centro histórico",
+    largura: 900,
+    altura: 1200,
+  },
   expositorFeira: {
     arquivo: "/fotos/expositor-feira.webp",
     alt: "Banca da Kambada em feira, com matracas pintadas à mão, ecobags e marcadores de página expostos",
@@ -130,6 +138,6 @@ export const GALERIA_SOBRE: Foto[] = [
   FOTOS.meninaRindo,
   FOTOS.expositorFeira,
   FOTOS.kitTradicao,
-  FOTOS.estampaDetalhe,
+  FOTOS.sobreIlhaEncantada,
   FOTOS.mandala,
 ];

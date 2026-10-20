@@ -32,22 +32,20 @@ export default async function EntrarPage({
           Entre para <span className="destaque">jogar</span>
         </h1>
         <p className="mt-3 text-texto-suave">
-          Jogos, histórias e a festa do Maranhão. Crie sua conta com e-mail para guardar seus pontos, concorrer aos
-          cupons da semana e receber as novidades.
+          Com a conta, você guarda seus pontos e concorre aos cupons da semana.
         </p>
         <FormularioEntrada de={destinoSeguro(de)} aviso={aviso} modo={modo} />
         <Link
           href="/kambadaplay/experimente"
           className="mt-6 inline-block rounded-full border-2 border-borda px-6 py-3 text-sm font-bold text-texto transition-colors hover:border-kambada-amarelo"
         >
-          Só quero experimentar: jogar o quiz sem cadastro
+          Jogar o quiz sem cadastro
         </Link>
         <p className="mt-8 text-sm text-texto-tenue">
           {"Tudo liberado de graça até 31/12/2026. "}
           <Link href="/kambadaplay/planos" className="font-semibold text-[var(--destaque-texto)] hover:underline">
-            Conheça os planos
-          </Link>{" "}
-          que vêm por aí, inclusive para escolas.
+            Ver os planos
+          </Link>
         </p>
       </div>
     </div>

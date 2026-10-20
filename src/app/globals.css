@@ -209,3 +209,8 @@ body {
   --color-kambada-yellow: #ffcc29;
   --font-body: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
 }
+
+/* Cabeçalho fixo: âncoras e scrollIntoView param abaixo dele, não por baixo. */
+html {
+  scroll-padding-top: 5.5rem;
+}

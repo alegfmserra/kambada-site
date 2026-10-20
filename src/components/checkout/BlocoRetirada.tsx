@@ -13,8 +13,7 @@ export default function BlocoRetirada({ refPedido }: { refPedido?: string }) {
       <p className="mt-2 text-texto-suave">Seu pedido fica separado para você em:</p>
       <p className="mt-2 font-display text-lg font-semibold">{enderecoAtelieEmUmaLinha()}</p>
       <p className="mt-3 text-sm text-texto-suave">
-        Antes de vir, combine o dia e o horário com a gente — assim a peça já está pronta quando
-        você chegar.
+        Combine o dia e o horário antes de vir, para a peça estar pronta.
       </p>
       <a
         href={linkWhatsApp(

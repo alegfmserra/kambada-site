@@ -35,9 +35,8 @@ export default function PlanosPage() {
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
-          <strong className="text-texto">Tudo liberado de graça até {PRECOS.gratisAte}</strong> para quem cria a conta,
-          inclusive o que vai ser do Família e do Brincante. A cobrança começa em {PRECOS.cobrancaComeca}, com aviso
-          por e-mail, e só para quem escolher um plano.
+          <strong className="text-texto">Tudo liberado de graça até {PRECOS.gratisAte}</strong> para quem tem conta.
+          A cobrança começa em {PRECOS.cobrancaComeca}, com aviso por e-mail, só para quem escolher um plano.
         </p>
 
         <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -136,7 +135,7 @@ export default function PlanosPage() {
           </Link>
         </section>
         <p className="mt-6 text-sm text-texto-tenue">
-          Nenhum valor é cobrado hoje. Cupons, oficinas e visita ao ateliê seguem as regras dos Termos do Kambada Play.
+          Cupons, oficinas e visita ao ateliê seguem os Termos do Kambada Play.
         </p>
 
         {/* Personalizado: como funciona, sem pacote pronto */}
@@ -144,14 +143,12 @@ export default function PlanosPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em]">Personalizado</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold leading-tight sm:text-4xl">
-              Cultura maranhense do seu jeito: na escola, no evento, na sua marca.
+              Cultura maranhense na escola, no evento ou na sua marca.
             </h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed">
-              Não é pacote pronto. Para a escola, a gente senta com a coordenação, entende o plano de aula ou o plano
-              anual e produz animações e histórias de cunho educativo, que ensinam a cultura do Maranhão pelo
-              entretenimento. Para eventos e ativações de marca, criamos jogos e conteúdo com a sua identidade a partir
-              da ideia cultural. Tudo nasce aos poucos, e a primeira leva sai em até{" "}
-              {PRECOS.personalizadoPrimeiraEntregaDias} dias depois do acordo, conforme o combinado.
+              Sem pacote pronto. Na escola, partimos do plano de aula para criar animações e histórias educativas.
+              Em eventos e marcas, criamos jogos e conteúdo com a sua identidade. A primeira leva sai em até{" "}
+              {PRECOS.personalizadoPrimeiraEntregaDias} dias após o acordo.
             </p>
           </div>
           <div className="rounded-xl border-2 border-kambada-grafite bg-kambada-papel p-5">
@@ -171,12 +168,12 @@ export default function PlanosPage() {
               <li className="flex gap-3">
                 <span className="font-display text-xl font-extrabold leading-none">3</span>
                 <span>
-                  <strong>Produção</strong>: animações, histórias e jogos entregues em levas, no seu calendário.
+                  <strong>Produção</strong>: entregas em levas, no seu calendário.
                 </span>
               </li>
               <li className="flex gap-3 border-t border-kambada-grafite/30 pt-3">
                 <span className="font-display text-xl font-extrabold leading-none">+</span>
-                <span>Jogos, cordel e HQ que já existem ficam liberados desde o primeiro dia.</span>
+                <span>Jogos, cordel e HQ já prontos, liberados desde o 1º dia.</span>
               </li>
             </ol>
             <a

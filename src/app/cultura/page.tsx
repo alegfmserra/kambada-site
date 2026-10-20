@@ -18,11 +18,8 @@ export default function Cultura() {
             Viva a cultura do <span className="destaque">Maranhão</span>
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-texto-suave">
-            Aqui a gente conta histórias, compartilha tradições e celebra o
-            Maranhão do nosso jeito Kambada — leve, autêntico e maranhense que
-            só. Do reggae ao Bumba Meu Boi, do Guaraná Jesus às matracas: um
-            espaço para valorizar a riqueza cultural do Maranhão, com aquele
-            toque especial da Kambada.
+            Histórias e tradições do jeito Kambada, maranhense que só: do
+            reggae ao Bumba Meu Boi, do Guaraná Jesus às matracas.
           </p>
         </div>
       </section>

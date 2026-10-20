@@ -138,30 +138,26 @@ export const PLANOS: Plano[] = [
 export const PERGUNTAS_PLANOS: { pergunta: string; resposta: string }[] = [
   {
     pergunta: "Quando a cobrança começa?",
-    resposta: `Até ${PRECOS.gratisAte}, tudo fica liberado de graça para quem tem conta, inclusive o que vai ser do Família e do Brincante. A cobrança começa em ${PRECOS.cobrancaComeca}, e a gente avisa por e-mail antes. Ninguém é cobrado sem escolher um plano.`,
-  },
-  {
-    pergunta: "O que é a oferta de fundador?",
-    resposta: `Quem criar a conta até ${PRECOS.gratisAte} e assinar o plano anual até ${PRECOS.fundadorAssinarAte} paga R$ ${PRECOS.familiaAnoFundador} no 1º ano do Família (em vez de R$ ${PRECOS.familiaAno}) ou R$ ${PRECOS.brincanteAnoFundador} no 1º ano do Brincante (em vez de R$ ${PRECOS.brincanteAno}).`,
+    resposta: `Em ${PRECOS.cobrancaComeca}, com aviso por e-mail antes. Ninguém é cobrado sem escolher um plano.`,
   },
   {
     pergunta: "Como funcionam os cupons da loja?",
     resposta:
-      "Os cupons do mês aparecem em \"Minha conta\" e valem nas peças da loja até o fim do mês. No plano mensal, eles liberam depois do primeiro pagamento confirmado. Não somam com cupons de parceiros nem com o cupom de boas-vindas, mas somam com o cupom do ranking da semana.",
+      "Aparecem em \"Minha conta\" e valem até o fim do mês. No plano mensal, liberam após o 1º pagamento confirmado. Não somam com cupons de parceiros nem com o de boas-vindas; somam com o do ranking da semana.",
   },
   {
     pergunta: "Quem não assinar perde alguma coisa?",
     resposta:
-      "Não perde o que é do Grátis: quiz, memória, ranking com cupom do top 3, o 1º episódio e a 1ª HQ seguem abertos. O pago acrescenta, não tira.",
+      "Não. Quiz, memória, ranking com cupom do top 3, o 1º episódio e a 1ª HQ seguem abertos. O pago acrescenta, não tira.",
   },
   {
     pergunta: "Como funciona para escola, evento ou marca?",
     resposta:
-      "Não existe pacote pronto nem período de teste: a gente conversa, entende o plano de aula, o evento ou a campanha, e combina o que será produzido, o prazo e o valor. As animações são feitas aos poucos e a primeira entrega costuma sair em até 60 dias depois do acordo.",
+      "Sem pacote pronto nem período de teste: conversamos e combinamos o que será produzido, o prazo e o valor. A primeira entrega sai em até 60 dias após o acordo.",
   },
   {
     pergunta: "Como vou pagar?",
     resposta:
-      "Cartão de crédito pelo Mercado Pago, o mesmo meio de pagamento da loja, com renovação automática que você cancela em 1 clique em \"Minha conta\". O plano anual também pode ser pago à vista no Pix.",
+      "Cartão de crédito pelo Mercado Pago, com renovação automática que você cancela em 1 clique em \"Minha conta\". O anual também pode ser pago à vista no Pix.",
   },
 ];

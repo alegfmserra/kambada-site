@@ -157,6 +157,7 @@ export const DESCRICOES: Record<number, string> = {
   16698814567: texto(
     "Em São Luís sol não é notícia, é rotina — e a gente agradece. O regatão Sol Nosso de Cada Dia traz o sol da Ilha na estampa e é pra esse calor que não pede licença: sem manga, respirando, pra praia, pra praça e pro arraial de tarde.",
     "Material: 100% algodão, estampa em silk.",
+    "Cor: off white.",
     "Medidas (busto × comprimento): GG 50×71 cm.",
     SEM_ALVEJANTE,
   ),
@@ -466,11 +467,14 @@ export const DESCRICOES: Record<number, string> = {
     "Temas: Boi, Cazumbá e Caboclo de Fitas, conforme modelo.",
     "Pintada à mão, uma por uma: pode variar um pouco da foto.",
   ),
+  // Placa de Madeira Retangular (era "Placa de Madeira Grande"; Wilzanira, 20/10/2026):
+  // modelos Coreira e Coreiro, R$ 160; com parafuso e puxador, R$ 180.
   16701503321: texto(
-    "Placa retangular de madeira pintada à mão com os personagens do Tambor de Crioula, pra parede da sala, do escritório ou da varanda — onde a visita vai parar e perguntar.",
+    "Tambor de Crioula na parede: a Coreira, de saia rodada, dançando na roda, e o Coreiro, que bate o tambor e puxa o canto. Placa retangular de pinus, pintada à mão — fecha o olho que dá pra ouvir.",
     "Material: madeira de pinus; tintas e verniz à base d'água.",
     "Medidas: 35 × 14 cm.",
-    "Fixação: com parafuso ou com puxador (vendido separadamente).",
+    "Modelos: Coreira e Coreiro.",
+    "Fixação: opcional, com parafuso e puxador (+ R$ 20,00).",
     "Pintada à mão, uma por uma: pode variar um pouco da foto.",
   ),
   16701503283: texto(
@@ -500,6 +504,5 @@ export const DIVERGENCIAS = [
   "Camisa Bumba meu Boi Infantil: ateliê diz que não existe 10 anos; o Bling tem 10 anos com saldo 2.",
   "Camisa Revoada dos Guarás Suede Unissex: ateliê mediu só o G; o Bling tem só GG (saldo 2).",
   "Camisa Serpente Mosaico Infantil: ateliê mediu 4 anos; o Bling tem só 6 anos (saldo 1).",
-  "Camisa Sol Nosso de Cada Dia - Regatão: ateliê mediu GG; o Bling tem só G (saldo 1).",
   "Camisa Caboclo de Pena: descrição diz salmão, mas as fotos de 05/06 mostram a estampa também em camisa preta.",
 ];

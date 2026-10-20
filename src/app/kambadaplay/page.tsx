@@ -12,7 +12,7 @@ import { VIDEOS, arquivoDoVideo, capaDoVideo } from "@/content/play/videos";
 export const metadata: Metadata = {
   title: "Kambada Play",
   description:
-    "Jogos, histórias, animações e a festa do Bumba Meu Boi para viver em casa. O Kambada Play é o espaço da Kambada para quem quer um pouco mais da cultura maranhense.",
+    "Jogos, histórias e animações sobre o Bumba Meu Boi e a cultura maranhense, para viver em casa.",
   alternates: { canonical: "/kambadaplay" },
 };
 
@@ -47,8 +47,7 @@ const FILEIRAS: Fileira[] = [
     itens: [
       {
         titulo: "Arraial da Kambada",
-        texto:
-          "Ande pelo arraial de São João, converse com o povo da festa, pesque na barraca e junte as cinco fitinhas da tradição.",
+        texto: "Passeie pelo São João e junte as cinco fitinhas da tradição.",
         selo: "Jogo",
         href: "/kambadaplay/arraial",
         imagem: "/kambadaplay/images/arraial/poster.webp",
@@ -56,7 +55,7 @@ const FILEIRAS: Fileira[] = [
       },
       {
         titulo: "Éguas! Quem é quem?",
-        texto: "Quiz com 10 perguntas sobre a cultura maranhense. Ranking da semana com cupom para o top 3.",
+        texto: "10 perguntas sobre a cultura maranhense.",
         selo: "Quiz",
         href: "/kambadaplay/jogos/quiz",
         imagem: "/kambadaplay/images/atelie/placa-coreiro.webp",
@@ -64,7 +63,7 @@ const FILEIRAS: Fileira[] = [
       },
       {
         titulo: "Memória das estampas",
-        texto: "Ache os 8 pares das artes da Kambada: camisas, matracas e placas pintadas à mão.",
+        texto: "Ache os 8 pares das artes da Kambada.",
         selo: "Memória",
         href: "/kambadaplay/jogos/memoria",
         imagem: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp",
@@ -72,7 +71,7 @@ const FILEIRAS: Fileira[] = [
       },
       {
         titulo: "Ranking e cupons",
-        texto: "Os 3 primeiros da semana ganham cupom: 10% para o 1º lugar e 5% para o 2º e o 3º.",
+        texto: "Top 3 da semana ganha cupom: 10% para o 1º lugar, 5% para o 2º e o 3º.",
         selo: "Ranking",
         href: "/kambadaplay/placar",
         imagem: "/kambadaplay/jogos/memoria/placa-boi-colorido.webp",
@@ -83,12 +82,11 @@ const FILEIRAS: Fileira[] = [
   {
     id: "historias",
     titulo: "Histórias",
-    legenda: "Para ler com calma, rolando a tela.",
+    legenda: "Para ler rolando a tela.",
     itens: [
       {
         titulo: "O Auto do Boi",
-        texto:
-          "Um folheto de cordel digital: a lenda do Bumba Meu Boi em xilogravura animada, da noite de São João à festa que renasce todo junho.",
+        texto: "A lenda do Bumba Meu Boi em cordel com xilogravura animada.",
         selo: "História",
         href: "/kambadaplay/conto",
         imagem: "/kambadaplay/images/boi-de-matraca.webp",
@@ -129,8 +127,7 @@ const FILEIRAS: Fileira[] = [
     itens: [
       {
         titulo: "A matraca que carrega o Maranhão",
-        texto:
-          "A origem do Bumba Meu Boi, os sotaques da matraca e o trabalho artesanal por trás de cada peça Kambada.",
+        texto: "Origem, sotaques e o feitio artesanal de cada peça.",
         selo: "Explorar",
         href: "/kambadaplay/matraca",
         imagem: "/kambadaplay/images/renders/hero-matraca.webp",
@@ -138,7 +135,7 @@ const FILEIRAS: Fileira[] = [
       },
       {
         titulo: "Leve a sua",
-        texto: "Matracas pintadas à mão, feitas no Maranhão, na loja da Kambada.",
+        texto: "Matracas pintadas à mão, feitas no Maranhão.",
         selo: "Loja",
         href: "/loja/matracas",
         imagem: "/kambadaplay/images/renders/moody-detail.webp",
@@ -295,8 +292,7 @@ export default function PlayEntrada() {
             A cultura do Maranhão para jogar, ler e viver.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-kambada-branco/85 sm:text-lg">
-            O espaço da Kambada para quem quer um pouco mais: entre no arraial, leia o cordel, folheie a
-            HQ do Kambadinha e descubra a história por trás de cada matraca.
+            Arraial, cordel, HQ do Kambadinha e a história da matraca.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/kambadaplay/arraial" className={BOTAO_AMARELO}>
@@ -321,8 +317,8 @@ export default function PlayEntrada() {
                 Entre no <span className="text-kambada-amarelo">arraial.</span>
               </h2>
               <p className="mt-5 max-w-md text-lg leading-relaxed text-kambada-branco/80">
-                Ande pela festa de São João, converse com o povo da brincadeira, pesque na barraca e junte
-                as cinco fitinhas da tradição maranhense. Funciona no celular e no computador.
+                Converse com o povo da festa, pesque na barraca e junte as cinco fitinhas da tradição. No
+                celular ou no computador.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/kambadaplay/arraial" className={BOTAO_AMARELO}>
@@ -336,7 +332,7 @@ export default function PlayEntrada() {
                 </Link>
               </div>
               <p className="mt-4 text-sm text-kambada-branco/70">
-                Os 3 primeiros do ranking da semana ganham cupom na loja.{" "}
+                Top 3 da semana ganha cupom na loja.{" "}
                 <Link href="/kambadaplay/placar" className="font-semibold text-kambada-amarelo hover:underline">
                   Ver ranking
                 </Link>
@@ -383,8 +379,7 @@ export default function PlayEntrada() {
                 O Auto do <span className="bg-kambada-amarelo px-2">Boi.</span>
               </h2>
               <p className="mt-5 max-w-md text-lg leading-relaxed text-kambada-grafite/85">
-                Um folheto de cordel digital: a lenda do Bumba Meu Boi em xilogravura animada, da noite de
-                São João à festa que renasce todo junho. É só rolar a tela.
+                A lenda do Bumba Meu Boi em cordel digital com xilogravura animada. É só rolar a tela.
               </p>
               <Link href="/kambadaplay/conto" className={`mt-8 ${BOTAO_GRAFITE}`}>
                 Ler o cordel
@@ -485,7 +480,7 @@ export default function PlayEntrada() {
                     ))}
                   </div>
                   <figcaption className="mt-3 max-w-xs text-xs text-kambada-branco/60">
-                    Do ateliê: a coreira e o coreiro, placas de madeira pintadas à mão pela Kambada.
+                    Do ateliê: a coreira e o coreiro, placas pintadas à mão.
                   </figcaption>
                 </figure>
               </Revelar>
@@ -515,8 +510,7 @@ export default function PlayEntrada() {
                 A matraca que <span className="text-kambada-amarelo">carrega o Maranhão.</span>
               </h2>
               <p className="mt-5 max-w-md text-lg leading-relaxed text-kambada-branco/85">
-                A origem do Bumba Meu Boi, os sotaques da matraca e o trabalho artesanal por trás de cada
-                peça Kambada, num passeio em 3D.
+                Origem, sotaques e feitio artesanal, num passeio em 3D.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/kambadaplay/matraca" className={BOTAO_AMARELO}>
@@ -556,9 +550,9 @@ export default function PlayEntrada() {
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-14 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Planos</p>
-            <h2 className="mt-2 font-display text-2xl font-bold text-texto">Tudo liberado de graça até 31/12. Depois, a casa toda por pouco.</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold text-texto">Tudo liberado de graça até 31/12.</h2>
             <p className="mt-2 max-w-xl text-texto-suave">
-              Play Família a R$ 9,90/mês e Play Brincante a R$ 19,90/mês, com cupons na loja todo mês. Oferta de fundador para quem chegar até 31/12. Escolas, eventos e marcas: sob proposta.
+              Depois: Play Família a R$ 9,90/mês e Play Brincante a R$ 19,90/mês, com cupons na loja. Fundador até 31/12 paga menos. Escolas, eventos e marcas: sob proposta.
             </p>
           </div>
           <Link href="/kambadaplay/planos" className={BOTAO_GRAFITE}>
@@ -573,7 +567,7 @@ export default function PlayEntrada() {
           <div>
             <h2 className="font-display text-2xl font-bold">Gostou? Vista essa cultura.</h2>
             <p className="mt-2 max-w-xl text-kambada-branco/70">
-              Camisas, matracas e ecobags feitas no Maranhão, direto do ateliê da Kambada.
+              Camisas, matracas e ecobags feitas no Maranhão.
             </p>
           </div>
           <Link href="/loja" className={BOTAO_AMARELO}>

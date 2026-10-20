@@ -41,8 +41,7 @@ export default async function Loja() {
             Vista o <span className="destaque">Maranhão</span>
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-texto-suave">
-            Cada peça carrega o som da matraca, o gingado do reggae e as cores
-            do nosso Bumba Meu Boi.
+            O Boi, o reggae e a Ilha em cada peça.
           </p>
           <div className="mt-10">
             <AvisoDemonstracao />
@@ -114,11 +113,11 @@ export default async function Loja() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="rounded-3xl bg-kambada-amarelo px-8 py-12 text-kambada-grafite sm:px-12">
             <h2 className="font-display text-2xl leading-tight font-extrabold text-balance sm:text-3xl">
-              Prefere conversar antes de comprar? A gente atende no WhatsApp
+              Prefere conversar antes de comprar?
             </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-kambada-grafite/80">
-              Encomenda para arraial, pedido de empresa ou uma peça só: é só
-              chamar que a gente responde.
+              Encomenda para arraial, pedido de empresa ou uma peça só: chama
+              no WhatsApp.
             </p>
             <a
               href={linkWhatsApp()}

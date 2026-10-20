@@ -123,6 +123,7 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
   "placa-de-madeira-reta": "decoracao",
   "placa-de-madeira-redonda": "decoracao",
   "placa-de-madeira-grande": "decoracao",
+  "placa-de-madeira-retangular": "decoracao", // a Grande renomeada (Wilzanira, 20/10/2026)
   // Produto de teste (centavos) — fica OCULTO da vitrine; ver PRODUTOS_OCULTOS.
   "produto-teste-kambada": "papelaria",
 };

@@ -22,8 +22,8 @@ export default function Contato() {
           Se achega, <span className="destaque">vem falar</span> com a gente
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-texto-suave">
-          Dúvida sobre uma peça, encomenda para o seu arraial ou pedido para
-          empresa: a gente responde no WhatsApp e nas redes.
+          Dúvida, encomenda ou pedido de empresa: a gente responde no
+          WhatsApp.
         </p>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -47,8 +47,7 @@ export default function Contato() {
               Falar no WhatsApp
             </h2>
             <p className="mt-3 leading-relaxed text-kambada-grafite/80">
-              O caminho mais rápido. Toque aqui e a conversa abre direto — sem
-              precisar salvar número nenhum.
+              O caminho mais rápido, sem salvar número.
             </p>
             <p className="mt-5 font-display font-semibold underline underline-offset-4">
               Abrir conversa →
@@ -58,7 +57,7 @@ export default function Contato() {
           <div className="rounded-2xl border border-borda bg-superficie p-8">
             <h2 className="font-display text-2xl font-bold">Nossas redes</h2>
             <p className="mt-3 leading-relaxed text-texto-suave">
-              É por lá que a gente mostra o que sai do ateliê.
+              O que sai do ateliê aparece primeiro lá.
             </p>
             <ul className="mt-6 space-y-3">
               {REDES.map((rede) => (
@@ -79,17 +78,16 @@ export default function Contato() {
           <div className="rounded-2xl border border-borda bg-superficie p-8 md:col-span-2">
             <h2 className="font-display text-2xl font-bold">Nosso ateliê</h2>
             <p className="mt-3 leading-relaxed text-texto-suave">
-              Ficamos no bairro do <strong className="text-texto">Olho d&apos;Água, em São Luís – MA</strong>,
-              e funcionamos <strong className="text-texto">todos os dias, das 8h às 18h</strong>. Quer
-              conhecer todas as peças de perto e viver a experiência da Kambada? É só marcar uma
-              visita pelo WhatsApp — o endereço completo a gente passa na conversa.
+              No <strong className="text-texto">Olho d&apos;Água, em São Luís – MA</strong>,
+              abrimos <strong className="text-texto">todos os dias, das 8h às 18h</strong>. Quer ver as peças de
+              perto? Marque a visita pelo WhatsApp — o endereço a gente passa na conversa.
             </p>
             <p className="mt-4 leading-relaxed text-texto-suave">
-              Prefere escrever? Dúvidas e reclamações:{" "}
+              Dúvidas e reclamações:{" "}
               <a href={`mailto:${EMAILS.contato}`} className="break-all font-semibold text-texto underline underline-offset-4">
                 {EMAILS.contato}
               </a>
-              . Encomendas e pedidos maiores (empresas, eventos, órgãos públicos):{" "}
+              . Encomendas (empresas, eventos, órgãos públicos):{" "}
               <a href={`mailto:${EMAILS.encomendas}`} className="break-all font-semibold text-texto underline underline-offset-4">
                 {EMAILS.encomendas}
               </a>

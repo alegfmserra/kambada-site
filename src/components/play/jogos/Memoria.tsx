@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MEMORIA_NIVEL, NIVEIS, type Nivel } from "@/lib/play/jogos/tipos";
+import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
 
@@ -193,6 +194,7 @@ export function Memoria() {
       setProva(r.prova);
       setPontos(r.pontos);
       setFase("fim");
+      setTimeout(() => pedirPesquisa("memoria"), 3000);
     },
     [token],
   );
@@ -242,8 +244,7 @@ export function Memoria() {
           Memória das <span className="destaque">estampas</span>
         </h1>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
-          Ache os pares de artes da Kambada: camisas, matracas e placas pintadas à mão. Menos jogadas e menos
-          tempo valem mais pontos.
+          Ache os pares das artes da Kambada. Menos jogadas e menos tempo, mais pontos.
         </p>
 
         <fieldset className="mx-auto mt-8 max-w-lg text-left">

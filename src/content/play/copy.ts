@@ -14,41 +14,41 @@ export const copy = {
   origem: {
     title: "A origem do Bumba Meu Boi de Matraca",
     paragrafos: [
-      "O Bumba Meu Boi é a maior manifestação cultural do Maranhão, uma festa popular que mistura música, dança, teatro de rua e devoção, celebrada com mais força nos festejos juninos de junho e julho. A história contada nos brincantes é sempre a mesma, em suas variações: o boi mais precioso da fazenda morre e precisa ressuscitar para que a vida da comunidade continue, num ciclo de morte e renascimento que atravessa gerações de famílias maranhenses.",
-      "Dentro do Bumba Meu Boi, cada região do estado desenvolveu seu próprio jeito de tocar e brincar, chamado de sotaque. O sotaque de Matraca, nascido na Ilha de São Luís, é reconhecido pelo som seco e cadenciado das matracas de madeira batendo em par, uma em cada mão dos brincantes, marcando o ritmo que conduz o boi e os personagens da brincadeira pelas ruas.",
+      "O Bumba Meu Boi é a maior manifestação cultural do Maranhão: música, dança, teatro de rua e devoção, sobretudo em junho e julho. A história é sempre a do boi mais precioso da fazenda, que morre e precisa ressuscitar para a comunidade seguir.",
+      "Cada região tem seu jeito de brincar: o sotaque. O de Matraca, da Ilha de São Luís, é marcado pela matraca — duas peças de madeira que o brincante bate uma na outra.",
       "Na mão de quem brinca, a matraca guarda o compasso de uma tradição centenária.",
     ],
   },
   tiposDeMatraca: {
     title: "Os sotaques da matraca",
-    intro: "O Bumba Meu Boi maranhense se divide em sotaques, jeitos distintos de tocar, vestir e brincar o boi, cada um com sua identidade sonora e visual.",
+    intro: "Cada sotaque tem seu jeito de tocar, vestir e brincar o boi.",
     sotaques: [
       {
         nome: "Sotaque de Matraca",
-        descricao: "Da Ilha de São Luís. Ritmo marcado pelo som seco das matracas de madeira batendo em par, sem tambores. O instrumento que dá nome ao sotaque conduz toda a brincadeira.",
+        descricao: "Da Ilha de São Luís. O ritmo vem do som seco das matracas — cada uma, duas peças de madeira batidas uma na outra —, que conduzem a brincadeira.",
       },
       {
         nome: "Sotaque de Zabumba",
-        descricao: "Da Baixada Maranhense. Marcado pelo zabumba, tambor grave que sustenta o ritmo, acompanhado de pandeirões e um canto mais arrastado.",
+        descricao: "Da Baixada Maranhense. O zabumba, tambor grave, sustenta o ritmo, com pandeirões e canto mais arrastado.",
       },
       {
         nome: "Sotaque de Orquestra",
-        descricao: "Nascido em Pindaré-Mirim, incorpora instrumentos de sopro e corda em formato de orquestra popular, som mais melódico e orquestrado.",
+        descricao: "Nascido em Pindaré-Mirim, traz sopros e cordas de orquestra popular: som mais melódico.",
       },
       {
         nome: "Sotaque de Costa de Mão",
-        descricao: "Também da Baixada, tocado com pandeirões percutidos com a palma da mão (a 'costa da mão'), ritmo envolvente e mais lento.",
+        descricao: "Também da Baixada, com pandeirões tocados com a costa da mão, num ritmo mais lento.",
       },
     ] as MatracaSotaque[],
   },
   vitrine: {
     kicker: "Toque na peça",
     title: "Gire a matraca",
-    apoio: "Arraste para girar. Madeira maciça, entalhada para durar gerações.",
+    apoio: "Arraste para girar.",
   },
   artesanato: {
     title: "A peça, o artesanato",
-    body: "Essa matraca é entalhada e pintada à mão, com a estrela guia e os detalhes em miçanga que remetem ao capelo dos brincantes do Bumba Meu Boi. O boi pintado no corpo carrega as cores da bandeira do Maranhão. Cada peça sai única, feita para durar e para contar essa história pra quem nunca pisou na Ilha do Amor.",
+    body: "Entalhada e pintada à mão, com o capelo de miçangas e o boi nas cores da bandeira do Maranhão. Cada peça sai única.",
     detalhes: ["Pintura à mão", "Madeira maciça", "Miçangas contadas uma a uma"],
   },
   precoEntrega: {

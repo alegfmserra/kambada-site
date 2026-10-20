@@ -37,7 +37,7 @@ export const BANCO: Pergunta[] = [
     enunciado: "Qual instrumento dá nome ao sotaque do Bumba Meu Boi típico da Ilha de São Luís?",
     opcoes: ["Matraca", "Pandeirão", "Zabumba", "Saxofone"],
     explicacao:
-      "O sotaque de Matraca leva esse nome por causa das duas peças de madeira que os brincantes batem uma na outra, uma em cada mão.",
+      "O sotaque leva o nome da matraca: duas peças de madeira que o brincante bate uma na outra.",
   },
   {
     id: "mes-do-boi",
@@ -143,9 +143,9 @@ export const BANCO: Pergunta[] = [
   {
     id: "duas-matracas",
     nivel: "facil",
-    enunciado: "Quantas matracas cada brincante toca ao mesmo tempo?",
-    opcoes: ["Duas, uma em cada mão", "Uma só", "Quatro", "Seis"],
-    explicacao: "O som seco vem de uma matraca batendo na outra. Duas peças, um ritmo.",
+    enunciado: "De quantas peças de madeira é feita uma matraca?",
+    opcoes: ["Duas", "Uma só", "Quatro", "Seis"],
+    explicacao: "Uma matraca são duas peças de madeira: o som seco vem de uma batendo na outra.",
   },
   {
     id: "serpente",
@@ -242,7 +242,7 @@ export const BANCO: Pergunta[] = [
     id: "couro-bordado",
     nivel: "medio",
     enunciado: "O que é o “couro” do boi de Bumba Meu Boi?",
-    opcoes: ["A roupa de veludo bordada que cobre a armação","O chão do arraial","O tambor grande","O couro de verdade do animal"],
+    opcoes: ["A vestimenta de veludo bordada que cobre a armação","O chão do arraial","O tambor grande","O couro de verdade do animal"],
     explicacao: "O couro é a veste bordada com miçangas e canutilhos; o bordado é um dos ofícios mais valorizados da festa.",
   },
   {

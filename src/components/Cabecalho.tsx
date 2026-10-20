@@ -35,17 +35,42 @@ export default function Cabecalho() {
     };
   }, [submenu]);
 
+  /* Menu mobile aberto: trava a rolagem da página (senão o dedo rola o fundo,
+     não o menu) e fecha com Escape. */
+  useEffect(() => {
+    if (!aberto) return;
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function aoTeclar(e: KeyboardEvent) {
+      if (e.key === "Escape") setAberto(false);
+    }
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.body.style.overflow = anterior;
+      document.removeEventListener("keydown", aoTeclar);
+    };
+  }, [aberto]);
+
   return (
     <header className="sticky top-0 z-40 border-b border-borda bg-fundo/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 lg:gap-4 py-4 sm:px-6">
         <Link href="/" aria-label="Kambada — página inicial" className="shrink-0">
+          {/* Escuro: logo toda amarela. Claro: mesmo desenho, sol amarelo e letras pretas. */}
           <Image
             src="/marca/kambada-logo-horizontal-amarelo.png"
             alt="Kambada"
             width={160}
             height={48}
             priority
-            className="h-9 w-auto sm:h-10 [html[data-tema='claro']_&]:[filter:drop-shadow(0_0_0.5px_#1d1e20)_drop-shadow(0_0_0.5px_#1d1e20)]"
+            className="so-escuro h-9 w-auto sm:h-10"
+          />
+          <Image
+            src="/marca/kambada-logo-horizontal-claro.png"
+            alt="Kambada"
+            width={160}
+            height={48}
+            priority
+            className="so-claro h-9 w-auto sm:h-10"
           />
         </Link>
 
@@ -194,9 +219,10 @@ export default function Cabecalho() {
         <nav
           id="menu-mobile"
           aria-label="Navegação principal"
-          className="border-t border-borda md:hidden"
+          // Rola por dentro: o cabeçalho é fixo, então sem limite de altura o fim da lista ficava fora da tela.
+          className="max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-borda md:hidden"
         >
-          <ul className="mx-auto max-w-6xl px-4 py-2 sm:px-6">
+          <ul className="mx-auto max-w-6xl px-4 pt-2 pb-20 sm:px-6">
             {NAV.map((item) => (
               <li key={item.href}>
                 <Link

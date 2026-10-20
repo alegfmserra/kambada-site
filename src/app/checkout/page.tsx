@@ -37,8 +37,8 @@ export default function PaginaCheckout() {
             <div className="rounded-3xl border border-dashed border-borda bg-superficie p-8">
               <p className="font-display text-xl font-bold">O pagamento pelo site está em configuração.</p>
               <p className="mt-2 text-texto-suave">
-                Seu carrinho continua salvo. Enquanto isso, você fecha o pedido pelo WhatsApp — a
-                mensagem já vai com as peças escolhidas.
+                Seu carrinho continua salvo. Enquanto isso, feche pelo WhatsApp: a mensagem já vai
+                com as peças.
               </p>
               <Link
                 href="/carrinho"

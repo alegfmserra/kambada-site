@@ -27,12 +27,11 @@ export default async function EntrarPage({
           Minha <span className="destaque">conta</span>
         </h1>
         <p className="mt-3 text-texto-suave">
-          Entre para ver seus pedidos, seu plano e as novidades. A mesma conta vale na loja e no Kambada Play.
+          Seus pedidos, seu plano e as novidades. A mesma conta vale na loja e no Kambada Play.
         </p>
         <FormularioEntrada de={destino} aviso={aviso} modo={modo} />
         <p className="mt-8 text-sm text-texto-tenue">
-          Comprou sem conta? Crie a conta com o mesmo e-mail do pedido e confirme o e-mail: seus pedidos aparecem
-          lá. Ou{" "}
+          Comprou sem conta? Crie a conta com o e-mail do pedido e confirme: seus pedidos aparecem lá. Ou{" "}
           <Link href="/pedido" className="font-semibold text-[var(--destaque-texto)] hover:underline">
             acompanhe pelo número do pedido
           </Link>

@@ -207,6 +207,31 @@ GALERIA[16701539267] = [K, ["Kit Anotação - Lendas Contracapa.jpeg", "Kit Anot
 acrescentar(16689788251, ["Livro Vermelho (Historinha do Boi)  Verso.jpeg"]);
 GALERIA[16701503283] = [K, ["placa-redonda-kambada-2026-10-18-4.jpeg", "placa-redonda-kambada-2026-10-18-2.jpeg", "placa-redonda-kambada-2026-10-18-3.jpeg", "Placa de Madeeira Bumba Boi Vazado.jpeg"]]; // boi azul, boi preto, Cazumbá, vazado — uma por item
 
+// ── Correções da Wilzanira (20/10/2026, autorizadas pelo Alexandre) ──
+// Matraca Grande com Suporte: a capa era uma matraca SEM suporte (bandeira, com saquinho) —
+// sai do produto; a capa passa a ser a grande com suporte de boi (Will, fundo claro, em pé).
+FOTOS[16698775382] = [T1, `${W}matraca-grande-com-suporte-boi.jpg`, "Matraca Grande com Suporte — capa com suporte (Wilzanira, 20/10)"];
+GALERIA[16698775382][1] = GALERIA[16698775382][1].filter((a) => a !== `${W}matraca-grande-com-suporte-boi.jpg`);
+// Matraca Pequena sem Suporte é a pintada à mão: as 5 fotos DTF (estampa impressa, mais barata)
+// saem daqui e vão para o produto próprio da Matraca Mini DTF, quando ele existir no Bling.
+GALERIA[16698777979][1] = GALERIA[16698777979][1].filter((a) => !/dtf/i.test(a));
+/** Fotos da Matraca Mini DTF, à espera do ID (o cadastro espera o preço). Ao criar: FOTOS[id] e GALERIA[id] com estas. */
+export const FOTOS_DTF_PENDENTES = {
+  pasta: T1,
+  principal: `${W}matraca-mini-cazumba-colorido-dtf.jpg`,
+  galeria: [`${W}matraca-mini-miolo-de-boi-colorido-dtf.jpg`, `${W}matraca-mini-boi-preto-dtf.jpg`, `${W}matraca-mini-cazumba-preto-dtf.jpg`, `${W}matraca-mini-miolo-de-boi-preto-dtf.jpg`],
+};
+// Pareôs Cidade dos Azulejos ("São Luís") e Reggae Roots: a foto da galeria era a MESMA da capa
+// (conferido por comparação de imagem). Fica só a capa, como Mosaico e Revoada.
+delete GALERIA[16701478379];
+delete GALERIA[16701478418];
+// Placa de Madeira Grande → "Placa de Madeira Retangular", modelos Coreira e Coreiro. As fotos das
+// placas coreira/coreiro estavam no cadastro "Placa de Madeira Reta" (16701503257), INATIVO no Bling.
+FOTOS[16701503321] = [PL, `${W}placa-coreira.jpg`, "Placa de Madeira Retangular — Coreira"];
+GALERIA[16701503321] = [PL, [`${W}placa-coreiro.jpg`, `${W}detalhe-placa-coreira.jpg`, `${W}placa-retangular-em-pinus-coreiro.jpg`]];
+delete FOTOS[16701503257];
+delete GALERIA[16701503257];
+
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;
 

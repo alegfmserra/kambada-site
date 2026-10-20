@@ -221,17 +221,15 @@ export function Placar() {
         </h2>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-texto-suave">
           <li>
-            A semana vai de segunda a domingo. Valem os seus melhores pontos em cada jogo, somados.
+            Semana de segunda a domingo; soma o seu melhor resultado em cada jogo.
           </li>
           <li>
-            Os 3 primeiros ganham cupom de desconto nas peças da loja: <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º
-            lugar e <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e o 3º.
+            Top 3 ganha cupom nas peças da loja: <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º lugar e{" "}
+            <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e o 3º. Mínimo de {PONTOS_MINIMOS_PREMIO} pontos.
           </li>
-          <li>É preciso somar pelo menos {PONTOS_MINIMOS_PREMIO} pontos na semana.</li>
           <li>
-            Na segunda-feira, volte a esta página, no mesmo navegador e aparelho em que jogou, e resgate o cupom em até{" "}
-            {REGRAS_PREMIO.prazoParaResgatarDias} dias. Ele vale por {REGRAS_PREMIO.validadeCupomDias} dias, para uma
-            compra.
+            Resgate aqui, no mesmo navegador e aparelho em que jogou, em até {REGRAS_PREMIO.prazoParaResgatarDias} dias
+            a partir da segunda-feira. O cupom vale por {REGRAS_PREMIO.validadeCupomDias} dias, para uma compra.
           </li>
           <li>Sem e-mail e sem cadastro: seu apelido é só um apelido.</li>
         </ul>

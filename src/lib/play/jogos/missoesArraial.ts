@@ -85,7 +85,7 @@ export const MISSOES: Missao[] = [
       brincante: {
         falas: [
           "Escuta esse estalo seco! É matraca, meu filho. Aqui na Ilha de São Luís a gente brinca o sotaque de matraca, com matracas e pandeirões.",
-          "Mas o Maranhão tem vários jeitos de brincar o boi, que a gente chama de sotaques: matraca, zabumba, orquestra, baixada, costa de mão. Cada um tem seu som e sua roupa.",
+          "Mas o Maranhão tem vários jeitos de brincar o boi, que a gente chama de sotaques: matraca, zabumba, orquestra, baixada, costa de mão. Cada um tem seu som e sua vestimenta.",
           "No sotaque da baixada aparece o Cazumbá: mascarado, de careta e chocalho, nem bicho nem gente. Ele brinca e assusta ao mesmo tempo!",
           "E os vaqueiros de fita usam o capelo, um chapéu enfeitado de fitas compridas que voam quando o brincante gira.",
           "Agora vai na barraca da Kambada: lá eles te mostram o couro do boi de pertinho.",

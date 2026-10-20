@@ -235,8 +235,7 @@ export default async function PaginaProduto({ params }: Props) {
                     ))}
                   </ul>
                   <p className="mt-3 text-sm text-texto-suave">
-                    Diga qual você quer na mensagem — a gente confirma a
-                    disponibilidade na hora.
+                    Diga qual quer na mensagem; a gente confirma na hora.
                   </p>
                 </div>
               )}
@@ -300,17 +299,16 @@ export default async function PaginaProduto({ params }: Props) {
                 <li>📍 Retirada grátis no ateliê, em São Luís.</li>
                 <li>💳 {TEXTO_REGRA_PARCELAS}</li>
                 <li>
-                  ↩️ Trocas e devoluções conforme o Código de Defesa do Consumidor —{" "}
+                  ↩️ Trocas e devoluções pelo Código de Defesa do Consumidor —{" "}
                   <Link href="/trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">
-                    veja como funciona
+                    veja como
                   </Link>
                   .
                 </li>
               </ul>
 
               <p className="mt-6 text-sm leading-relaxed text-texto-suave">
-                Feito em São Luís do Maranhão. Preço e disponibilidade saem
-                direto do nosso estoque — se está aqui, existe de verdade.
+                Feito em São Luís. Preço e estoque vêm direto do nosso sistema.
               </p>
             </div>
           </div>

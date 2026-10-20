@@ -131,10 +131,6 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "largura": 900,
     "altura": 1200
   },
-  "16701503257": {
-    "largura": 900,
-    "altura": 1200
-  },
   "16698778218": {
     "largura": 900,
     "altura": 1200
@@ -229,6 +225,10 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
   },
   "16701503283": {
     "largura": 900,
+    "altura": 1200
+  },
+  "16701503321": {
+    "largura": 800,
     "altura": 1200
   }
 };
@@ -497,28 +497,6 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "altura": 1200
     }
   ],
-  "16701503257": [
-    {
-      "n": 1,
-      "largura": 800,
-      "altura": 1200
-    },
-    {
-      "n": 2,
-      "largura": 800,
-      "altura": 1200
-    },
-    {
-      "n": 3,
-      "largura": 800,
-      "altura": 1200
-    },
-    {
-      "n": 4,
-      "largura": 900,
-      "altura": 1200
-    }
-  ],
   "16701503226": [
     {
       "n": 1,
@@ -630,7 +608,7 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 4,
-      "largura": 900,
+      "largura": 675,
       "altura": 1200
     },
     {
@@ -640,31 +618,6 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 6,
-      "largura": 900,
-      "altura": 1200
-    },
-    {
-      "n": 7,
-      "largura": 900,
-      "altura": 1200
-    },
-    {
-      "n": 8,
-      "largura": 900,
-      "altura": 1200
-    },
-    {
-      "n": 9,
-      "largura": 675,
-      "altura": 1200
-    },
-    {
-      "n": 10,
-      "largura": 900,
-      "altura": 1200
-    },
-    {
-      "n": 11,
       "largura": 675,
       "altura": 1200
     }
@@ -734,11 +687,6 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 13,
       "largura": 900,
       "altura": 1200
-    },
-    {
-      "n": 14,
-      "largura": 900,
-      "altura": 1200
     }
   ],
   "16719152093": [
@@ -761,20 +709,6 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 4,
       "largura": 1200,
       "altura": 800
-    }
-  ],
-  "16701478418": [
-    {
-      "n": 1,
-      "largura": 900,
-      "altura": 1200
-    }
-  ],
-  "16701478379": [
-    {
-      "n": 1,
-      "largura": 900,
-      "altura": 1200
     }
   ],
   "16698814825": [
@@ -903,6 +837,23 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 4,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701503321": [
+    {
+      "n": 1,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 800,
+      "altura": 1200
+    },
+    {
+      "n": 3,
       "largura": 900,
       "altura": 1200
     }

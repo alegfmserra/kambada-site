@@ -14,7 +14,7 @@ const JOGOS = [
     href: "/kambadaplay/jogos/quiz",
     selo: "Quiz",
     titulo: "Éguas! Quem é quem?",
-    texto: "10 perguntas sobre boi, tambor de crioula, São Luís e mais, em 3 níveis. Responda rápido e ganhe mais pontos.",
+    texto: "10 perguntas sobre boi, tambor de crioula e São Luís, em 3 níveis. Quanto mais rápido, mais pontos.",
     imagem: "/kambadaplay/images/atelie/placa-coreiro.webp",
     acao: "Jogar o quiz",
     ranking: true,
@@ -23,7 +23,7 @@ const JOGOS = [
     href: "/kambadaplay/jogos/memoria",
     selo: "Memória",
     titulo: "Memória das estampas",
-    texto: "Ache os pares das nossas artes: 6, 8 ou 12, conforme o nível. No difícil, o Cazumbá embaralha as cartas.",
+    texto: "6, 8 ou 12 pares, conforme o nível. No difícil, o Cazumbá embaralha as cartas.",
     imagem: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp",
     acao: "Jogar a memória",
     ranking: true,
@@ -32,7 +32,7 @@ const JOGOS = [
     href: "/kambadaplay/arraial",
     selo: "Aventura",
     titulo: "Arraial da Kambada",
-    texto: "Ande pela festa de São João, converse com o povo e junte as cinco fitinhas.",
+    texto: "Passeie pelo São João e junte as cinco fitinhas.",
     imagem: "/kambadaplay/images/arraial/poster.webp",
     acao: "Entrar no arraial",
     ranking: false,
@@ -48,7 +48,7 @@ export default function JogosPage() {
           Jogos com a <span className="destaque">nossa cara</span>
         </h1>
         <p className="mt-3 max-w-2xl text-lg text-texto-suave">
-          Aprenda a cultura maranhense brincando. Jogue, some pontos e suba no ranking da semana.
+          Aprenda a cultura maranhense brincando e suba no ranking da semana.
         </p>
 
         <ul className="mt-10 grid gap-6 md:grid-cols-3">
@@ -90,9 +90,9 @@ export default function JogosPage() {
         <section className="mt-12 rounded-2xl bg-kambada-amarelo p-6 text-kambada-grafite sm:p-8">
           <h2 className="font-display text-2xl font-extrabold sm:text-3xl">Cupom para o top 3 da semana</h2>
           <p className="mt-3 max-w-2xl text-lg">
-            Quem soma mais pontos de segunda a domingo ganha desconto nas peças da loja:{" "}
+            Pontos de segunda a domingo:{" "}
             <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º lugar e <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e
-            o 3º. É preciso somar pelo menos {PONTOS_MINIMOS_PREMIO} pontos.
+            o 3º na loja. Mínimo de {PONTOS_MINIMOS_PREMIO} pontos.
           </p>
           <Link
             href="/kambadaplay/placar"

@@ -12,7 +12,7 @@ export function ConviteArraial() {
         </p>
         <h2 className="mt-3 font-display text-4xl font-black tracking-[-0.02em] text-kambada-ink md:text-5xl">Entre no arraial</h2>
         <p className="mx-auto mt-4 max-w-[32ch] font-body text-kambada-ink/90 md:max-w-[42ch]">
-          Ande pela festa de São João, converse com o povo do arraial e junte as cinco fitinhas respondendo o quiz da tradição.
+          Passeie pelo São João e junte as cinco fitinhas no quiz da tradição.
         </p>
         <Link
           href="/kambadaplay/arraial"

@@ -27,11 +27,11 @@ export const metadata: Metadata = {
  * o valor não está aqui de propósito — sai no orçamento.
  */
 const PASSOS_ENCOMENDA = [
-  { titulo: "Você pede", texto: "Conta pra gente o evento, a peça e a quantidade, pelo WhatsApp." },
-  { titulo: "Taxa de criação", texto: "Paga antes, para começarmos a arte. O valor vem no orçamento." },
-  { titulo: "A arte em até 7 dias", texto: "Você recebe a arte aplicada na peça, para ver como fica." },
-  { titulo: "Aprovação e pagamento", texto: "Aprovou? Fechamos o pedido e o termo de exclusividade da arte." },
-  { titulo: "Produção", texto: "De 30 a 40 dias, feita à mão aqui em São Luís." },
+  { titulo: "Você pede", texto: "Evento, peça e quantidade, pelo WhatsApp." },
+  { titulo: "Taxa de criação", texto: "Paga antes de começarmos a arte; o valor vem no orçamento." },
+  { titulo: "A arte em até 7 dias", texto: "Você vê a arte aplicada na peça." },
+  { titulo: "Aprovação e pagamento", texto: "Aprovou? Fechamos o pedido e o termo de exclusividade." },
+  { titulo: "Produção", texto: "De 30 a 40 dias, à mão, em São Luís." },
 ] as const;
 
 export default function Encomendas() {
@@ -44,10 +44,9 @@ export default function Encomendas() {
             <span className="destaque">seu evento</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-texto-suave">
-            Já fizemos kit de boas-vindas, placa personalizada e porta-chaves
-            para empresas e eventos aqui do Maranhão. Cada encomenda é
-            pensada junto com você — arte, material e quantidade — e a
-            conversa começa no WhatsApp.
+            Kits, placas e porta-chaves personalizados para empresas e
+            eventos. Arte, material e quantidade a gente define junto, no
+            WhatsApp.
           </p>
 
           <a
@@ -71,7 +70,7 @@ export default function Encomendas() {
             Fazer minha encomenda
           </a>
           <p className="mt-5 text-sm text-texto-suave">
-            Prefere e-mail? Escreva para{" "}
+            Prefere e-mail?{" "}
             <a href={`mailto:${EMAILS.encomendas}`} className="break-all font-semibold text-texto underline underline-offset-4">
               {EMAILS.encomendas}
             </a>{" "}
@@ -85,9 +84,6 @@ export default function Encomendas() {
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
             O que a gente já fez
           </h2>
-          <p className="mt-3 max-w-2xl leading-relaxed text-texto-suave">
-            Um pouco do que já saiu da nossa oficina para eventos e empresas.
-          </p>
 
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-borda bg-superficie p-6">
@@ -95,9 +91,8 @@ export default function Encomendas() {
                 Kit de boas-vindas
               </h3>
               <p className="mt-2 leading-relaxed text-texto-suave">
-                Caixa personalizada com a arte do seu evento, bloco de
-                anotações, réguas e marcadores — para presentear
-                convidados e equipe.
+                Caixa com a arte do seu evento, bloco, réguas e marcadores
+                para convidados e equipe.
               </p>
             </div>
             <div className="rounded-2xl border border-borda bg-superficie p-6">
@@ -105,8 +100,8 @@ export default function Encomendas() {
                 Placa e porta-chaves personalizados
               </h3>
               <p className="mt-2 leading-relaxed text-texto-suave">
-                Peças em madeira, pintadas à mão, com a marca da sua empresa
-                ao lado da nossa arte maranhense.
+                Em madeira, pintados à mão, com a sua marca ao lado da nossa
+                arte.
               </p>
             </div>
           </div>
@@ -116,11 +111,11 @@ export default function Encomendas() {
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
-            Como funciona a sua encomenda
+            Como funciona
           </h2>
           <p className="mt-4 max-w-2xl leading-relaxed text-texto-suave">
-            As mais pedidas: chaveiro, bloquinho, lápis plantável, caneta e kit
-            ecológico — com a arte do seu evento ao lado da nossa.
+            Mais pedidos: chaveiro, bloquinho, lápis plantável, caneta e kit
+            ecológico.
           </p>
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {PASSOS_ENCOMENDA.map((passo, i) => (
@@ -137,13 +132,12 @@ export default function Encomendas() {
             ))}
           </ol>
           <div className="mt-8 rounded-2xl border border-kambada-amarelo-escuro p-5 text-sm leading-relaxed">
-            <strong>Arte exclusiva, e da Kambada.</strong> A arte criada para a sua
-            encomenda é feita só para você, e não a usamos em outro cliente. Os
-            direitos sobre ela continuam com a Kambada: ela não pode ser reproduzida
-            por terceiros sem autorização. Tudo isso vai num termo de exclusividade
-            junto com a aprovação.{" "}
+            <strong>Arte exclusiva, e da Kambada.</strong> A arte da sua encomenda é
+            só sua: não a usamos em outro cliente. Os direitos continuam com a
+            Kambada, e terceiros não podem reproduzi-la sem autorização — tudo no
+            termo de exclusividade assinado na aprovação.{" "}
             <Link href="/direitos-autorais" className="font-semibold underline underline-offset-4">
-              Saiba mais sobre direitos autorais
+              Direitos autorais
             </Link>
             .
           </div>

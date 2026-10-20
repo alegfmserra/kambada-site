@@ -19,7 +19,7 @@ export type TabelaDeMedidas = {
 };
 
 const OBSERVACAO =
-  "Medidas da peça deitada, de costura a costura. Como é confecção artesanal em lote pequeno, pode variar até 2 cm. Na dúvida entre dois tamanhos, chame no WhatsApp que a gente ajuda.";
+  "Medidas da peça deitada, de costura a costura. Confecção artesanal: pode variar até 2 cm. Na dúvida entre dois tamanhos, chame no WhatsApp.";
 
 const cm = (n: number) => `${String(n).replace(".", ",")} cm`;
 const bustoComprimento = (titulo: string, linhas: [string, number, number][]): TabelaDeMedidas => ({

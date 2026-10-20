@@ -37,6 +37,8 @@ export async function enviarConfirmacao(base: string, conta: Conta): Promise<{ e
   const link = `${base}/kambadaplay/confirmar?token=${encodeURIComponent(tokenDeEmail("confirmar", conta.id))}`;
   if (!emailConfigurado()) return { enviado: false, link };
   await enviarEmail({
+    remetente: "Kambada Play",
+    descadastro: linkDescadastro(base, conta),
     para: conta.email,
     assunto: "Confirme seu e-mail no Kambada Play",
     texto: `Éguas, ${conta.nome}! Falta um passo: confirme seu e-mail abrindo este endereço (vale 48 horas):\n\n${link}\n\nSe você não criou esta conta, ignore esta mensagem.`,
@@ -53,6 +55,8 @@ export async function enviarRedefinicao(base: string, conta: Conta): Promise<{ e
   const link = `${base}/kambadaplay/redefinir?token=${encodeURIComponent(tokenDeEmail("redefinir", conta))}`;
   if (!emailConfigurado()) return { enviado: false, link };
   await enviarEmail({
+    remetente: "Kambada Play",
+    descadastro: linkDescadastro(base, conta),
     para: conta.email,
     assunto: "Redefinir sua senha do Kambada Play",
     texto: `Olá, ${conta.nome}. Para criar uma nova senha, abra este endereço (vale 1 hora):\n\n${link}\n\nSe você não pediu, ignore esta mensagem — sua senha continua a mesma.`,
@@ -74,6 +78,8 @@ export async function enviarCupom(
   const [a, m, d] = premio.validoAte.split("-");
   const validade = `${d}/${m}/${a}`;
   await enviarEmail({
+    remetente: "Kambada Play",
+    descadastro: linkDescadastro(base, conta),
     para: conta.email,
     assunto: `Seu cupom de ${premio.percentual}% — ${premio.posicao}º lugar no Kambada Play`,
     texto: `Éguas, ${conta.nome}! Você ficou em ${premio.posicao}º lugar no ranking da semana e ganhou ${premio.percentual}% nas peças da loja.\n\nCupom: ${premio.codigo}\nVale até ${validade}, para uma compra (o frete não tem desconto).\n\nLoja: ${base}/loja`,

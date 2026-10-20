@@ -93,9 +93,8 @@ export default async function ContaPage({
 
             <h3 className="mt-8 font-display text-lg font-bold">Forma de pagamento</h3>
             <p className="mt-2 text-sm text-texto-suave">
-              Nenhuma cadastrada. Hoje você paga cada pedido no checkout, por Pix ou cartão, pelo Mercado Pago, e a
-              Kambada não guarda dados de cartão. Quando as assinaturas começarem, o cartão da assinatura fica
-              cadastrado no Mercado Pago e aparece aqui.
+              Nenhuma cadastrada. Cada pedido é pago no checkout (Pix ou cartão, pelo Mercado Pago); a Kambada não
+              guarda dados de cartão. Com as assinaturas, o cartão delas aparece aqui.
             </p>
           </article>
         </div>
@@ -160,9 +159,8 @@ export default async function ContaPage({
         <article className="mt-6 rounded-2xl border border-borda bg-superficie p-6">
           <h2 className="font-display text-xl font-bold">Pedidos recorrentes</h2>
           <p className="mt-3 text-sm text-texto-suave">
-            Quer receber as mesmas peças com frequência (brindes da empresa, revenda, presentes do mês)? Por enquanto
-            a gente combina pelo WhatsApp e separa para você. A programação automática na conta vem junto com as
-            assinaturas.
+            Quer as mesmas peças com frequência (brindes, revenda, presentes do mês)? Por enquanto, a gente combina
+            pelo WhatsApp.
           </p>
           <a
             href={recorrencia}

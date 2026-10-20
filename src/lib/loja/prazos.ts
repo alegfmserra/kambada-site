@@ -21,4 +21,4 @@ export function ehPintadaAMao(produto: { categoria: string; nome: string }): boo
 
 export const TEXTO_POSTAGEM = `Postamos em até ${POSTAGEM_DIAS_UTEIS} dias úteis após o pagamento`;
 
-export const TEXTO_PRODUCAO_PINTADA_A_MAO = `Pintada à mão, uma por uma: a produção leva de ${PRODUCAO_PINTADA_A_MAO.min} a ${PRODUCAO_PINTADA_A_MAO.max} dias antes da postagem, e cada peça pode variar um pouco da foto.`;
+export const TEXTO_PRODUCAO_PINTADA_A_MAO = `Pintada à mão: a produção leva de ${PRODUCAO_PINTADA_A_MAO.min} a ${PRODUCAO_PINTADA_A_MAO.max} dias antes da postagem, e cada peça varia um pouco da foto.`;

@@ -28,10 +28,8 @@ export default function Home() {
               <span className="destaque">maranhense que só</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-texto-suave">
-              Na Kambada, moda e arte se misturam para contar histórias do
-              Maranhão. Cada peça carrega o som da matraca, o gingado do reggae
-              e as cores do nosso Bumba Meu Boi. Vem sentir o tambor e levar o
-              orgulho maranhense no peito!
+              O som da matraca, o gingado do reggae e as cores do Bumba Meu
+              Boi, em peças pra levar o Maranhão no peito.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
@@ -44,7 +42,7 @@ export default function Home() {
                 href="/cultura"
                 className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro whitespace-nowrap"
               >
-                Explore a nossa cultura
+                Nossa cultura
               </Link>
             </div>
           </div>
@@ -144,14 +142,11 @@ export default function Home() {
             </h2>
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-texto-suave">
               <p>
-                A Kambada nasceu de uma brincadeira em família — o Arraial da
-                Cambada na Roça — e de umas matraquinhas dadas de lembrança aos
-                convidados. O brinde durou mais que a festa, e virou marca.
+                A Kambada nasceu de um arraial de família — o Arraial da
+                Cambada na Roça — e das matraquinhas dadas de lembrança aos
+                convidados. O brinde durou mais que a festa e virou marca.
               </p>
-              <p>
-                Cada peça é feita e pintada por gente daqui. Quando você veste
-                uma, leva junto o pedaço de história que veio com ela.
-              </p>
+              <p>Cada peça é feita e pintada por gente daqui.</p>
             </div>
             <Link
               href="/sobre"
@@ -174,8 +169,7 @@ export default function Home() {
               Uma por uma, <span className="destaque">nunca iguais</span>
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-texto-suave">
-              As matracas são pintadas à mão, uma a uma. Duas nunca saem
-              exatamente iguais — e é isso que faz cada uma ser sua.
+              Cada matraca é pintada à mão: a sua não tem gêmea.
             </p>
             <Link
               href="/loja/matracas"
@@ -245,16 +239,11 @@ export default function Home() {
             <h2 className="max-w-2xl font-display text-3xl leading-tight font-extrabold text-balance sm:text-4xl">
               Da Ilha do Amor para o mundo: bora vestir nossa cultura?
             </h2>
-            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-kambada-grafite/80">
-              Descubra a história da Kambada: marca maranhense que celebra o
-              Bumba Meu Boi, o reggae e as tradições da Ilha do Amor. Vista
-              identidade e cultura.
-            </p>
             <Link
-              href="/sobre"
+              href="/loja"
               className="mt-9 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto whitespace-nowrap"
             >
-              Conheça a Kambada
+              Ver a loja
             </Link>
           </div>
         </div>

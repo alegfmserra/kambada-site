@@ -88,8 +88,7 @@ export default async function Categoria({ params }: Props) {
               Não achou o que queria?
             </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-kambada-grafite/80">
-              A gente também faz sob encomenda. Chama no WhatsApp e conta o que
-              você tem em mente.
+              Também fazemos sob encomenda. Conta no WhatsApp o que você quer.
             </p>
             <a
               href={linkWhatsApp(

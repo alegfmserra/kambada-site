@@ -77,17 +77,25 @@ export async function enviarEmail(m: {
   /** Cópia oculta — o cliente não vê o endereço da loja na lista. */
   copiaOculta?: string;
   anexos?: Anexo[];
+  /** Nome que aparece como remetente (padrão: "Kambada — Pedidos"). */
+  remetente?: string;
+  /** Link de descadastro: vira o cabeçalho List-Unsubscribe (Gmail/Outlook pesam isso contra spam). */
+  descadastro?: string;
 }): Promise<void> {
   if (!emailConfigurado()) throw new Error("e-mail não configurado");
-  const imagem = await logo();
+  // Logo só quando o HTML a usa: anexo inline sem uso aparece como anexo solto e pesa contra.
+  const imagem = m.html.includes(`cid:${CID_LOGO}`) ? await logo() : null;
   await obterTransporte().sendMail({
-    from: { name: "Kambada — Pedidos", address: process.env.EMAIL_SMTP_USUARIO as string },
+    from: { name: m.remetente ?? "Kambada — Pedidos", address: process.env.EMAIL_SMTP_USUARIO as string },
     to: m.para,
     bcc: m.copiaOculta,
-    replyTo: m.responderPara,
+    replyTo: m.responderPara ?? "contato@somoskambada.com.br",
     subject: m.assunto,
     text: m.texto,
     html: m.html,
+    ...(m.descadastro
+      ? { list: { unsubscribe: [{ url: m.descadastro, comment: "Descadastrar" }, "contato@somoskambada.com.br"] } }
+      : {}),
     attachments: [
       ...(imagem ? [{ filename: "kambada.png", content: imagem, cid: CID_LOGO }] : []),
       ...(m.anexos ?? []).map((a) => ({ filename: a.nome, content: a.conteudo, contentType: a.tipo })),

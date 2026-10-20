@@ -21,7 +21,7 @@ export function TiposDeMatraca() {
       <Reveal className="mt-6 flex justify-center">
         <Image
           src="/kambadaplay/images/xilogravuras/xilo-matracas.webp"
-          alt="Xilogravura de um par de matracas de madeira batendo, com linhas de som saindo do impacto"
+          alt="Xilogravura de uma matraca: duas peças de madeira batendo uma na outra, com linhas de som saindo do impacto"
           width={560}
           height={560}
           sizes="(min-width: 768px) 144px, 112px"

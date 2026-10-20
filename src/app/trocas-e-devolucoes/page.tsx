@@ -26,23 +26,21 @@ export default function PaginaTrocas() {
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         <h1 className="font-display text-4xl font-extrabold">Trocas e devoluções</h1>
         <p className="mt-3 text-lg text-texto-suave">
-          Cada peça da Kambada é feita com cuidado. Se algo não saiu como você esperava, a gente
-          resolve junto.
+          Algo não saiu como você esperava? A gente resolve junto.
         </p>
 
         <div className="mt-10 space-y-10 leading-relaxed">
           <article>
             <h2 className="font-display text-2xl font-bold">Desistiu da compra?</h2>
             <p className="mt-3">
-              Comprou pelo site? Você pode desistir em até <strong>7 dias corridos</strong>, contados
-              do dia em que recebeu ou retirou a peça, sem precisar explicar o motivo (Código de
-              Defesa do Consumidor, art. 49).
+              Comprou pelo site? Você pode desistir em até <strong>7 dias corridos</strong> do
+              recebimento ou da retirada, sem explicar o motivo (Código de Defesa do Consumidor,
+              art. 49).
             </p>
             <p className="mt-3">
               Devolvemos <strong>tudo o que você pagou, inclusive o frete</strong>, pelo mesmo meio de
-              pagamento — o estorno é feito no Mercado Pago (Decreto 7.962/2013, art. 5º). O envio de
-              volta é por nossa conta: a gente combina a postagem com você pelo WhatsApp. Só pedimos
-              que a peça volte bem embalada, do jeito que chegou.
+              pagamento, com estorno no Mercado Pago (Decreto 7.962/2013, art. 5º). O envio de volta
+              é por nossa conta e combinado pelo WhatsApp; só pedimos que a peça volte bem embalada.
             </p>
           </article>
 
@@ -50,8 +48,8 @@ export default function PaginaTrocas() {
             <h2 className="font-display text-2xl font-bold">Chegou com defeito ou danificada?</h2>
             <p className="mt-3">
               Avise em até <strong>90 dias</strong> depois de receber (Código de Defesa do
-              Consumidor, art. 26) e mande fotos pela conversa — elas aceleram tudo. Se a peça chegou
-              danificada pelo transporte, avise assim que abrir a embalagem.
+              Consumidor, art. 26), com fotos. Se o dano foi no transporte, avise assim que abrir a
+              embalagem.
             </p>
             <p className="mt-3">
               Se o problema não for resolvido em até 30 dias, você escolhe: troca por uma peça igual,
@@ -63,28 +61,26 @@ export default function PaginaTrocas() {
           <article>
             <h2 className="font-display text-2xl font-bold">Quer trocar por outra estampa ou tamanho?</h2>
             <p className="mt-3">
-              A gente trabalha com lotes pequenos, feitos à mão, e por isso as trocas seguem o que o
-              Código de Defesa do Consumidor prevê: desistência em 7 dias ou defeito. A troca só por
-              gosto — trocou o Guará pela Carranca, ou o tamanho não serviu — não está entre elas.
+              Como trabalhamos com lotes pequenos, feitos à mão, as trocas seguem o Código de Defesa do
+              Consumidor: desistência em 7 dias ou defeito. Troca só por gosto (outra estampa, o
+              tamanho não serviu) não entra.
             </p>
             <p className="mt-3">
-              <strong>Ainda está nos 7 dias do recebimento?</strong> Você pode desistir da compra, sem
-              custo, e comprar a outra estampa ou o outro tamanho — vale o que for melhor para você.
+              <strong>Ainda está nos 7 dias do recebimento?</strong> Desista da compra, sem custo, e
+              compre a outra estampa ou tamanho.
             </p>
             <p className="mt-3">
-              Aconteceu algo fora do comum? Chame a gente no WhatsApp e conte o que houve. Aqui tem
-              gente do outro lado, e a gente conversa caso a caso.
+              Caso fora do comum? Chame no WhatsApp: a gente conversa caso a caso.
             </p>
           </article>
 
           <article>
             <h2 className="font-display text-2xl font-bold">Peças personalizadas</h2>
             <p className="mt-3">
-              Peça feita sob encomenda, com o seu nome ou a sua arte, e aprovada por você antes da
-              produção, foi feita só para você — por isso <strong>não tem troca por gosto</strong>{" "}
-              nem devolução por mudança de ideia depois de aprovada. O que continua valendo, como em
-              toda compra: a desistência em 7 dias prevista em lei e a garantia se a peça vier com
-              defeito.
+              Peça sob encomenda, com o seu nome ou a sua arte e aprovada por você antes da produção,
+              <strong>não tem troca por gosto</strong> nem devolução por mudança de ideia depois de
+              aprovada. Continuam valendo, como em toda compra, a desistência em 7 dias prevista em lei
+              e a garantia por defeito.
             </p>
           </article>
 
@@ -92,8 +88,8 @@ export default function PaginaTrocas() {
             <h2 className="font-display text-2xl font-bold">Como pedir</h2>
             <ol className="mt-3 list-decimal space-y-2 pl-6">
               <li>
-                Tenha em mãos o <strong>número do pedido</strong> (começa com KMB-). Ele está na
-                página de confirmação da compra.
+                Tenha o <strong>número do pedido</strong> (começa com KMB-), que está na confirmação
+                da compra.
               </li>
               <li>
                 Abra o{" "}
@@ -102,7 +98,7 @@ export default function PaginaTrocas() {
                 </Link>
                 , escolha o motivo e conte o que houve.
               </li>
-              <li>A mensagem chega pronta no nosso WhatsApp, e a gente segue com você por lá.</li>
+              <li>A mensagem chega pronta no nosso WhatsApp, e seguimos por lá.</li>
             </ol>
           </article>
         </div>

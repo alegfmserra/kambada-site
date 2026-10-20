@@ -358,8 +358,8 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       <div className="space-y-10">
         {!pagamentoOnline && (
           <p className="rounded-xl bg-superficie px-4 py-3 text-sm text-texto-suave">
-            O pagamento pelo site entra em breve. Por enquanto: informe seu nome e CEP, veja o frete,
-            e o pedido vai pronto para o nosso WhatsApp — com a entrega e o total calculados.
+            O pagamento pelo site entra em breve. Por enquanto, informe nome e CEP, veja o frete e o
+            pedido vai pronto, com o total, para o nosso WhatsApp.
           </p>
         )}
 
@@ -618,7 +618,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
           </>
         ) : (
           <p className="mt-3 text-center text-xs text-texto-tenue">
-            A mensagem abre no WhatsApp com as peças, a entrega e o total. É só enviar.
+            A mensagem abre no WhatsApp com peças, entrega e total. É só enviar.
           </p>
         )}
       </aside>

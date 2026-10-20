@@ -13,9 +13,9 @@ const CRIAR = "/kambadaplay/entrar?modo=criar&de=/kambadaplay";
 
 /** O que fica do outro lado da conta: aparece trancado, para dar vontade (não para cobrar). */
 const VITRINE = [
-  { titulo: "Arraial da Kambada", texto: "Ande pelo arraial em 3D, converse com o povo da festa e junte as 5 fitinhas.", img: "/kambadaplay/images/arraial/poster.webp" },
-  { titulo: "Memória das estampas", texto: "Encontre os pares das nossas estampas e descubra o que cada uma conta.", img: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp" },
-  { titulo: "HQ da Kambadinha", texto: "Kambadinha em: Na Batida do Tambor, a primeira história em quadrinhos.", img: "/kambadaplay/hq/kambadinha-na-batida-do-tambor/01.webp" },
+  { titulo: "Arraial da Kambada", texto: "O São João em 3D: junte as 5 fitinhas.", img: "/kambadaplay/images/arraial/poster.webp" },
+  { titulo: "Memória das estampas", texto: "Ache os pares das nossas estampas.", img: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp" },
+  { titulo: "HQ da Kambadinha", texto: "Na Batida do Tambor, a primeira HQ.", img: "/kambadaplay/hq/kambadinha-na-batida-do-tambor/01.webp" },
   { titulo: "Animação", texto: "A Kambadinha cai na roda do Tambor de Crioula.", img: "/kambadaplay/videos/kambadinha-na-batida-do-tambor.jpg" },
 ];
 
@@ -30,10 +30,10 @@ export default function ExperimentePage() {
       <section className="border-t border-borda bg-superficie px-4 py-12 sm:px-6" aria-labelledby="vitrine-titulo">
         <div className="mx-auto max-w-5xl">
           <p className="text-center text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
-            Tem muito mais do outro lado
+            Tem muito mais
           </p>
           <h2 id="vitrine-titulo" className="mt-2 text-center font-display text-3xl font-extrabold text-texto">
-            Com a conta grátis, você libera <span className="destaque">tudo até 31/12</span>
+            Conta grátis libera <span className="destaque">tudo até 31/12</span>
           </h2>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {VITRINE.map((v) => (
@@ -46,7 +46,7 @@ export default function ExperimentePage() {
                   <div className="p-4">
                     <p className="font-display text-lg font-extrabold text-texto">{v.titulo}</p>
                     <p className="mt-1 text-sm text-texto-suave">{v.texto}</p>
-                    <p className="mt-3 text-sm font-bold text-[var(--destaque-texto)]">Liberar com a conta grátis →</p>
+                    <p className="mt-3 text-sm font-bold text-[var(--destaque-texto)]">Liberar →</p>
                   </div>
                 </a>
               </li>

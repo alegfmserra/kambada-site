@@ -82,13 +82,13 @@ export const npcs: Npc[] = [
     quiz: {
       pergunta: "Como se toca a matraca no sotaque da Ilha de São Luís?",
       opcoes: [
-        "Batendo as duas metades de madeira, uma em cada mão",
+        "Batendo uma na outra as duas peças de madeira",
         "Esfregando ela num reco-reco",
         "Sacudindo ela como um chocalho",
       ],
       correta: 0,
-      acerto: "Aí sim! Uma metade em cada mão, batendo em par, num som seco e cadenciado que conduz o boi pelas ruas. Tu mereceu essa fitinha!",
-      erro: "Ainda não é assim, não! A matraca se toca batendo as duas metades, uma em cada mão. Escuta o arraial e volta aqui!",
+      acerto: "Aí sim! A matraca são duas peças de madeira batidas uma na outra, num som seco que conduz o boi. Tu mereceu essa fitinha!",
+      erro: "Ainda não! A matraca se toca batendo uma na outra as duas peças de madeira. Escuta o arraial e volta aqui!",
     },
   },
   {

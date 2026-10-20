@@ -155,7 +155,7 @@ export function MinhaConta({
         <span>
           <strong>Receber novidades, promoções e os cupons do ranking por e-mail.</strong>
           <br />
-          <span className="text-texto-suave">Você pode desligar aqui ou pelo link que vai em todo e-mail.</span>
+          <span className="text-texto-suave">Desligue aqui ou pelo link em qualquer e-mail.</span>
         </span>
       </label>
 

@@ -77,7 +77,7 @@ export const CATEGORIAS: Categoria[] = [
     slug: "camisas",
     nome: "Camisas",
     chamada:
-      "Estampadas com as lendas e símbolos do nosso Maranhão. Vista-se de história e identidade.",
+      "Lendas e símbolos do Maranhão, estampados pra vestir.",
     // Pai e filha sentados, de camisa: em 2:1 (desktop) e 4:3 (celular) o foco a 30%
     // mostra cabeça e camisa; o que sai é o joelho, não o rosto. O close do peito
     // (camisaIlhaEncantada) ficava sem cabeça na capa.
@@ -88,21 +88,21 @@ export const CATEGORIAS: Categoria[] = [
     slug: "matracas",
     nome: "Matracas",
     chamada:
-      "Aqui quem dita o ritmo é a matraca. Feitas e pintadas à mão, uma por uma.",
+      "Quem dita o ritmo é ela. Pintadas à mão, uma por uma.",
     foto: FOTOS.catMatracas,
   },
   {
     slug: "ecobags",
     nome: "Ecobags",
     chamada:
-      "Bolsa de feira, de praia e de arraial. Cabe tudo e ainda conta história.",
+      "De feira, de praia e de arraial. Cabe tudo e conta história.",
     foto: FOTOS.catEcobags,
   },
   {
     slug: "bones",
     nome: "Bonés",
     chamada:
-      'Com o charme da ilha, perfeitos para curtir o reggae na praça ou proteger a moleira.',
+      "Pro reggae na praça e pra proteger a moleira.",
     foto: FOTOS.catBones,
   },
   {
@@ -119,17 +119,17 @@ export const CATEGORIAS: Categoria[] = [
   {
     slug: "papelaria",
     nome: "Papelaria",
-    chamada: "Para anotar, escrever e desenhar — sempre com um toque sustentável.",
+    chamada: "Para anotar, escrever e desenhar, com toque sustentável.",
   },
   {
     slug: "brindes",
     nome: "Brindes",
-    chamada: "Mimos pequenos, com a nossa cara, pra presentear ou levar de lembrança.",
+    chamada: "Mimos pra presentear ou levar de lembrança.",
   },
   {
     slug: "decoracao",
     nome: "Decoração",
-    chamada: "Para decorar seu lar com a arte do Maranhão.",
+    chamada: "A arte do Maranhão na sua casa.",
   },
 ];
 

@@ -28,17 +28,17 @@ const ETAPAS = [
   {
     titulo: "O couro bordado",
     texto:
-      "O capelo de miçangas traz a estrela guia dos brincantes, bordada ponto a ponto sobre o veludo.",
+      "A estrela guia dos brincantes, bordada em miçangas sobre o veludo.",
   },
   {
     titulo: "A madeira",
     texto:
-      "Madeira maciça, entalhada e pintada à mão, com o boi nas cores da bandeira do Maranhão.",
+      "Madeira maciça, entalhada e pintada à mão.",
   },
   {
     titulo: "O som",
     texto:
-      "Batida em par, uma em cada mão, o som seco que marca o compasso e conduz o boi pelas ruas.",
+      "Duas peças de madeira batidas uma na outra: o som seco que marca o compasso do boi.",
   },
 ];
 

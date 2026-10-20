@@ -113,7 +113,7 @@ export default async function Artigo({ params }: Props) {
             Gostou? A gente também veste isso.
           </h2>
           <p className="mt-3 leading-relaxed text-kambada-grafite/80">
-            Camisetas, matracas e bonés feitos por quem vive o que escreve aqui.
+            Camisetas, matracas e bonés de quem vive o que escreve.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link

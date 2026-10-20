@@ -8,6 +8,7 @@ import {
   type PerguntaPublica,
   type RespostaQuiz,
 } from "@/lib/play/jogos/tipos";
+import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
 
@@ -97,6 +98,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
       setFase("pergunta");
     } else {
       setFase("fim");
+      setTimeout(() => pedirPesquisa("quiz"), 3000);
     }
   }
 
@@ -110,8 +112,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           Éguas! <span className="destaque">Quanto tu sabes do Maranhão?</span>
         </h1>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
-          10 perguntas sobre boi, tambor, matraca e São Luís. Leva 2 minutinhos, e depois de cada resposta vem uma
-          curiosidade.
+          10 perguntas sobre boi, tambor, matraca e São Luís, em 2 minutinhos. Cada resposta traz uma curiosidade.
         </p>
         {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
         <button
@@ -147,12 +148,12 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           <p className="font-display text-2xl font-extrabold text-texto">
             Não deixa esses {pontos} pontos irem embora.
           </p>
-          <p className="mt-2 text-texto-suave">Crie sua conta grátis (leva 30 segundos) e ganhe:</p>
+          <p className="mt-2 text-texto-suave">Com a conta grátis, você ganha:</p>
           <ul className="mt-3 space-y-2 text-texto">
             <li>🏆 Vaga no <strong>ranking da semana</strong>: o top 3 ganha cupom de até 10 % na loja</li>
             <li>🔥 Níveis <strong>médio e difícil</strong>, com até o dobro de pontos</li>
-            <li>🃏 A <strong>memória das estampas</strong> e os jogos novos que estão chegando</li>
-            <li>🎁 <strong>Tudo liberado de graça até 31/12</strong>, inclusive o que vai ser dos assinantes</li>
+            <li>🃏 A <strong>memória das estampas</strong> e os jogos novos</li>
+            <li>🎁 <strong>Tudo liberado de graça até 31/12</strong></li>
           </ul>
           <a
             href="/kambadaplay/entrar?modo=criar&de=/kambadaplay/jogos/quiz"
@@ -181,8 +182,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           Éguas! <span className="destaque">Quem é quem?</span>
         </h1>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
-          10 perguntas sobre a cultura maranhense. Quanto mais rápido você acerta, mais pontos ganha. Depois de
-          cada resposta, uma curiosidade.
+          10 perguntas sobre a cultura maranhense. Quanto mais rápido, mais pontos.
         </p>
 
         <fieldset className="mx-auto mt-8 max-w-lg text-left">

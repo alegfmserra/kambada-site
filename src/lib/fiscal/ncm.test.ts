@@ -25,3 +25,10 @@ describe("NCM pelas notas já emitidas", () => {
     expect(ncmDoProduto("Livro Trilíngue")).toBeNull();
   });
 });
+
+describe("chaveiros: Kambadinha (3D, plástico) × pinus (madeira)", () => {
+  it("cada um com o seu NCM", () => {
+    expect(ncmDoProduto("Chaveiros Kambadinha")?.ncm).toBe("39269090");
+    expect(ncmDoProduto("Chaveiros em Madeira Pinus")?.ncm).toBe("44219900");
+  });
+});

@@ -63,6 +63,8 @@ export function ncmDoProduto(nomeBruto: string): RegraNcm | null {
       alerta: "A NF 2 (2023) usou 44209000; segui a NF 27 (2026).",
     };
   }
+  // Kambadinha é impresso em 3D (plástico); o de pinus é madeira (Alexandre, 20/10/2026).
+  if (/^chaveiro.*kambadinha/.test(n)) return { ncm: "39269090", fonte: "NF 27 — Chaveiro de Caranguejo (3D, plástico)" };
   if (/^chaveiro/.test(n)) return { ncm: "44219900", fonte: "NF 27 — Chaveiro Pinus DTF" };
 
   return null;

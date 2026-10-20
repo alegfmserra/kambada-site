@@ -65,7 +65,7 @@ export default function Cabecalho() {
             className="so-escuro h-9 w-auto sm:h-10"
           />
           <Image
-            src="/marca/kambada-logo-horizontal-claro.png"
+            src="/marca/kambada-logo-horizontal-preto.png"
             alt="Kambada"
             width={160}
             height={48}

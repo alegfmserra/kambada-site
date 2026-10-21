@@ -36,6 +36,8 @@ const DESTINO = "C:/dev/kambada-site/public/fotos/produtos";
  * busca pelo nome em qualquer subpasta da mesma categoria; por fim no acervo todo.
  */
 function localizarArquivo(pasta, arquivo) {
+  // Caminho absoluto (fotos por estampa já geradas, pasta de pendências): usa direto.
+  if (/^[A-Za-z]:[\/]/.test(pasta) || pasta.startsWith("/")) return join(pasta, arquivo);
   const direto = join(ACERVO, pasta, arquivo);
   if (existsSync(direto)) return direto;
   const procurar = (dir) => {
@@ -244,6 +246,97 @@ GALERIA[16701502913] = [PD, ["Chaveiro Kambadinha - Amarelo.jpeg"]];
 FOTOS[16701478191] = [PD, "necessaire_guaras_01.jpg", "Necessaire Guarás"];
 // Prévia JPEG tirada do RAW (.ARW) da câmera e girada para ficar em pé.
 FOTOS[16698808484] = [PD, "Camisa Bumba meu Boi Infantil - em pe.jpg", "Camisa Bumba Meu Boi Infantil"];
+
+// ── Matracas migradas (21/10/2026) e Chaveiro Kambadinha por cor: foto por VARIAÇÃO, para o Bling ──
+//    Variação com qualquer suporte → foto "com suporte" da estampa; sem suporte → "sem suporte" ou a única.
+//    Caboclo de Pena (Grande): sem foto no acervo — fica com a capa do produto.
+const ABS_EST = "C:/dev/kambada-site/public/fotos/produtos/estampas";
+const ABS_PD = "C:/Users/alegf/OneDrive/Documentos/Claude/Fred - Kambada/comercial/portfolio/Imagens para Portfólio/Kambada_2026-10-20-pendencias";
+FOTOS[16722498826] = [ABS_EST, "matraca-kambada-grande--bandeira-do-maranhao.jpg", "matraca-kambada-grande Bandeira do Maranhão · Com suporte"];
+FOTOS[16722498827] = [ABS_EST, "matraca-kambada-grande--bandeira-do-maranhao.jpg", "matraca-kambada-grande Bandeira do Maranhão · Leque Bordado"];
+FOTOS[16722498825] = [ABS_EST, "matraca-kambada-grande--bandeira-do-maranhao.jpg", "matraca-kambada-grande Bandeira do Maranhão · Sem suporte"];
+FOTOS[16722498829] = [ABS_EST, "matraca-kambada-grande--bandeira-do-maranhao.jpg", "matraca-kambada-grande Bandeira do Maranhão · Topo Boi Preto"];
+FOTOS[16722498848] = [ABS_EST, "matraca-kambada-grande--boi-blackout--com-suporte.jpg", "matraca-kambada-grande Boi Blackout · Com suporte"];
+FOTOS[16722498849] = [ABS_EST, "matraca-kambada-grande--boi-blackout--com-suporte.jpg", "matraca-kambada-grande Boi Blackout · Leque Bordado"];
+FOTOS[16722498847] = [ABS_EST, "matraca-kambada-grande--boi-blackout--sem-suporte.jpg", "matraca-kambada-grande Boi Blackout · Sem suporte"];
+FOTOS[16722498851] = [ABS_EST, "matraca-kambada-grande--boi-blackout--com-suporte.jpg", "matraca-kambada-grande Boi Blackout · Topo Boi Preto"];
+FOTOS[16722498855] = [ABS_EST, "matraca-kambada-grande--boi-estrelado--com-suporte.jpg", "matraca-kambada-grande Boi Estrelado · Com suporte"];
+FOTOS[16722498856] = [ABS_EST, "matraca-kambada-grande--boi-estrelado--com-suporte.jpg", "matraca-kambada-grande Boi Estrelado · Leque Bordado"];
+FOTOS[16722498854] = [ABS_EST, "matraca-kambada-grande--boi-estrelado--sem-suporte.jpg", "matraca-kambada-grande Boi Estrelado · Sem suporte"];
+FOTOS[16722498857] = [ABS_EST, "matraca-kambada-grande--boi-estrelado--com-suporte.jpg", "matraca-kambada-grande Boi Estrelado · Topo Boi Preto"];
+FOTOS[16722498859] = [ABS_EST, "matraca-kambada-grande--boi-miolo--com-suporte.jpg", "matraca-kambada-grande Boi Miolo · Com suporte"];
+FOTOS[16722498860] = [ABS_EST, "matraca-kambada-grande--boi-miolo--com-suporte.jpg", "matraca-kambada-grande Boi Miolo · Leque Bordado"];
+FOTOS[16722498858] = [ABS_EST, "matraca-kambada-grande--boi-miolo--sem-suporte.jpg", "matraca-kambada-grande Boi Miolo · Sem suporte"];
+FOTOS[16722498862] = [ABS_EST, "matraca-kambada-grande--boi-miolo--com-suporte.jpg", "matraca-kambada-grande Boi Miolo · Topo Boi Preto"];
+FOTOS[16722498865] = [ABS_EST, "matraca-kambada-grande--boi-multicores--com-suporte.jpg", "matraca-kambada-grande Boi Multicores · Com suporte"];
+FOTOS[16722498866] = [ABS_EST, "matraca-kambada-grande--boi-multicores--com-suporte.jpg", "matraca-kambada-grande Boi Multicores · Leque Bordado"];
+FOTOS[16722498863] = [ABS_EST, "matraca-kambada-grande--boi-multicores--sem-suporte.jpg", "matraca-kambada-grande Boi Multicores · Sem suporte"];
+FOTOS[16722498867] = [ABS_EST, "matraca-kambada-grande--boi-multicores--com-suporte.jpg", "matraca-kambada-grande Boi Multicores · Topo Boi Preto"];
+FOTOS[16722498874] = [ABS_EST, "matraca-kambada-grande--boi-de-estrelas--com-suporte.jpg", "matraca-kambada-grande Boi de Estrelas · Com suporte"];
+FOTOS[16722498875] = [ABS_EST, "matraca-kambada-grande--boi-de-estrelas--com-suporte.jpg", "matraca-kambada-grande Boi de Estrelas · Leque Bordado"];
+FOTOS[16722498872] = [ABS_EST, "matraca-kambada-grande--boi-de-estrelas--sem-suporte.jpg", "matraca-kambada-grande Boi de Estrelas · Sem suporte"];
+FOTOS[16722498877] = [ABS_EST, "matraca-kambada-grande--boi-de-estrelas--com-suporte.jpg", "matraca-kambada-grande Boi de Estrelas · Topo Boi Preto"];
+FOTOS[16722498879] = [ABS_EST, "matraca-kambada-grande--boi-do-maranhao.jpg", "matraca-kambada-grande Boi do Maranhão · Com suporte"];
+FOTOS[16722498880] = [ABS_EST, "matraca-kambada-grande--boi-do-maranhao.jpg", "matraca-kambada-grande Boi do Maranhão · Leque Bordado"];
+FOTOS[16722498878] = [ABS_EST, "matraca-kambada-grande--boi-do-maranhao.jpg", "matraca-kambada-grande Boi do Maranhão · Sem suporte"];
+FOTOS[16722498881] = [ABS_EST, "matraca-kambada-grande--boi-do-maranhao.jpg", "matraca-kambada-grande Boi do Maranhão · Topo Boi Preto"];
+FOTOS[16722498896] = [ABS_EST, "matraca-kambada-grande--cazumba-frontal.jpg", "matraca-kambada-grande Cazumbá Frontal · Com suporte"];
+FOTOS[16722498897] = [ABS_EST, "matraca-kambada-grande--cazumba-frontal.jpg", "matraca-kambada-grande Cazumbá Frontal · Leque Bordado"];
+FOTOS[16722498894] = [ABS_EST, "matraca-kambada-grande--cazumba-frontal.jpg", "matraca-kambada-grande Cazumbá Frontal · Sem suporte"];
+FOTOS[16722498900] = [ABS_EST, "matraca-kambada-grande--cazumba-frontal.jpg", "matraca-kambada-grande Cazumbá Frontal · Topo Boi Preto"];
+FOTOS[16722498883] = [ABS_EST, "matraca-kambada-grande--chapeu-de-fitas-maranhao--com-suporte.jpg", "matraca-kambada-grande Chapéu de Fitas Maranhão · Com suporte"];
+FOTOS[16722498885] = [ABS_EST, "matraca-kambada-grande--chapeu-de-fitas-maranhao--com-suporte.jpg", "matraca-kambada-grande Chapéu de Fitas Maranhão · Leque Bordado"];
+FOTOS[16722498882] = [ABS_EST, "matraca-kambada-grande--chapeu-de-fitas-maranhao--sem-suporte.jpg", "matraca-kambada-grande Chapéu de Fitas Maranhão · Sem suporte"];
+FOTOS[16722498886] = [ABS_EST, "matraca-kambada-grande--chapeu-de-fitas-maranhao--com-suporte.jpg", "matraca-kambada-grande Chapéu de Fitas Maranhão · Topo Boi Preto"];
+FOTOS[16722498888] = [ABS_EST, "matraca-kambada-grande--fitas-coloridas--com-suporte.jpg", "matraca-kambada-grande Fitas Coloridas · Com suporte"];
+FOTOS[16722498889] = [ABS_EST, "matraca-kambada-grande--fitas-coloridas--com-suporte.jpg", "matraca-kambada-grande Fitas Coloridas · Leque Bordado"];
+FOTOS[16722498887] = [ABS_EST, "matraca-kambada-grande--fitas-coloridas--sem-suporte.jpg", "matraca-kambada-grande Fitas Coloridas · Sem suporte"];
+FOTOS[16722498891] = [ABS_EST, "matraca-kambada-grande--fitas-coloridas--com-suporte.jpg", "matraca-kambada-grande Fitas Coloridas · Topo Boi Preto"];
+FOTOS[16722498832] = [ABS_EST, "matraca-kambada-grande--mosaico-colorido--com-suporte.jpg", "matraca-kambada-grande Mosaico Colorido · Com suporte"];
+FOTOS[16722498834] = [ABS_EST, "matraca-kambada-grande--mosaico-colorido--com-suporte.jpg", "matraca-kambada-grande Mosaico Colorido · Leque Bordado"];
+FOTOS[16722498831] = [ABS_EST, "matraca-kambada-grande--mosaico-colorido--sem-suporte.jpg", "matraca-kambada-grande Mosaico Colorido · Sem suporte"];
+FOTOS[16722498835] = [ABS_EST, "matraca-kambada-grande--mosaico-colorido--com-suporte.jpg", "matraca-kambada-grande Mosaico Colorido · Topo Boi Preto"];
+FOTOS[16722498869] = [ABS_EST, "matraca-kambada-grande--reggae-roots--com-suporte.jpg", "matraca-kambada-grande Reggae Roots · Com suporte"];
+FOTOS[16722498870] = [ABS_EST, "matraca-kambada-grande--reggae-roots--com-suporte.jpg", "matraca-kambada-grande Reggae Roots · Leque Bordado"];
+FOTOS[16722498868] = [ABS_EST, "matraca-kambada-grande--reggae-roots--sem-suporte.jpg", "matraca-kambada-grande Reggae Roots · Sem suporte"];
+FOTOS[16722498871] = [ABS_EST, "matraca-kambada-grande--reggae-roots--com-suporte.jpg", "matraca-kambada-grande Reggae Roots · Topo Boi Preto"];
+FOTOS[16722498838] = [ABS_EST, "matraca-kambada-grande--serpente-e-rei-da-ilha.jpg", "matraca-kambada-grande Serpente e Rei da Ilha · Com suporte"];
+FOTOS[16722498839] = [ABS_EST, "matraca-kambada-grande--serpente-e-rei-da-ilha.jpg", "matraca-kambada-grande Serpente e Rei da Ilha · Leque Bordado"];
+FOTOS[16722498837] = [ABS_EST, "matraca-kambada-grande--serpente-e-rei-da-ilha.jpg", "matraca-kambada-grande Serpente e Rei da Ilha · Sem suporte"];
+FOTOS[16722498840] = [ABS_EST, "matraca-kambada-grande--serpente-e-rei-da-ilha.jpg", "matraca-kambada-grande Serpente e Rei da Ilha · Topo Boi Preto"];
+FOTOS[16722498712] = [ABS_EST, "matraca-kambada-mini-dtf--boi-preto.jpg", "matraca-kambada-mini-dtf Boi Preto"];
+FOTOS[16722498714] = [ABS_EST, "matraca-kambada-mini-dtf--cazumba-colorido.jpg", "matraca-kambada-mini-dtf Cazumbá Colorido"];
+FOTOS[16722498715] = [ABS_EST, "matraca-kambada-mini-dtf--cazumba-preto.jpg", "matraca-kambada-mini-dtf Cazumbá Preto"];
+FOTOS[16722498716] = [ABS_EST, "matraca-kambada-mini-dtf--miolo-de-boi-colorido.jpg", "matraca-kambada-mini-dtf Miolo de Boi Colorido"];
+FOTOS[16722498718] = [ABS_EST, "matraca-kambada-mini-dtf--miolo-de-boi-preto.jpg", "matraca-kambada-mini-dtf Miolo de Boi Preto"];
+FOTOS[16698780234] = FOTOS[16698778218]; // Boi de Frente = foto atual da Play
+FOTOS[16722500157] = [ABS_EST, "matraca-kambada-play--boi-de-lado.jpg", "Play Boi de Lado"];
+FOTOS[16722497302] = [ABS_PD, "Chaveiro Kambadinha - Amarelo.jpeg", "Chaveiro Kambadinha Amarelo"];
+FOTOS[16722497303] = [ABS_PD, "Chaveiro Kambadinha - Preto.jpeg", "Chaveiro Kambadinha Preto"];
+FOTOS[16722498785] = [ABS_EST, "matraca-kambada-mini--bandeira-do-maranhao.jpg", "matraca-kambada-mini Bandeira do Maranhão · Com suporte"];
+FOTOS[16722498784] = [ABS_EST, "matraca-kambada-mini--bandeira-do-maranhao.jpg", "matraca-kambada-mini Bandeira do Maranhão · Sem suporte"];
+FOTOS[16722498772] = [ABS_EST, "matraca-kambada-mini--boi-do-maranhao.jpg", "matraca-kambada-mini Boi do Maranhão · Com suporte"];
+FOTOS[16722498771] = [ABS_EST, "matraca-kambada-mini--boi-do-maranhao.jpg", "matraca-kambada-mini Boi do Maranhão · Sem suporte"];
+FOTOS[16722498770] = [ABS_EST, "matraca-kambada-mini--boizinho-estrelado.jpg", "matraca-kambada-mini Boizinho Estrelado · Com suporte"];
+FOTOS[16722498768] = [ABS_EST, "matraca-kambada-mini--boizinho-estrelado.jpg", "matraca-kambada-mini Boizinho Estrelado · Sem suporte"];
+FOTOS[16722498762] = [ABS_EST, "matraca-kambada-mini--boizinho-miolo.jpg", "matraca-kambada-mini Boizinho Miolo · Com suporte"];
+FOTOS[16722498759] = [ABS_EST, "matraca-kambada-mini--boizinho-miolo.jpg", "matraca-kambada-mini Boizinho Miolo · Sem suporte"];
+FOTOS[16722498767] = [ABS_EST, "matraca-kambada-mini--boizinho-perfil--com-suporte.jpg", "matraca-kambada-mini Boizinho Perfil · Com suporte"];
+FOTOS[16722498765] = [ABS_EST, "matraca-kambada-mini--boizinho-perfil--sem-suporte.jpg", "matraca-kambada-mini Boizinho Perfil · Sem suporte"];
+FOTOS[16722498764] = [ABS_EST, "matraca-kambada-mini--cazumbazinho.jpg", "matraca-kambada-mini Cazumbazinho · Com suporte"];
+FOTOS[16722498763] = [ABS_EST, "matraca-kambada-mini--cazumbazinho.jpg", "matraca-kambada-mini Cazumbazinho · Sem suporte"];
+FOTOS[16722498776] = [ABS_EST, "matraca-kambada-mini--cazumba-frontal.jpg", "matraca-kambada-mini Cazumbá Frontal · Com suporte"];
+FOTOS[16722498773] = [ABS_EST, "matraca-kambada-mini--cazumba-frontal.jpg", "matraca-kambada-mini Cazumbá Frontal · Sem suporte"];
+FOTOS[16722498779] = [ABS_EST, "matraca-kambada-mini--chapeu-de-fita-bandeira-do-maranhao.jpg", "matraca-kambada-mini Chapéu de Fita Bandeira do Maranhão · Com suporte"];
+FOTOS[16722498777] = [ABS_EST, "matraca-kambada-mini--chapeu-de-fita-bandeira-do-maranhao.jpg", "matraca-kambada-mini Chapéu de Fita Bandeira do Maranhão · Sem suporte"];
+FOTOS[16722498783] = [ABS_EST, "matraca-kambada-mini--miolinho.jpg", "matraca-kambada-mini Miolinho · Com suporte"];
+FOTOS[16722498780] = [ABS_EST, "matraca-kambada-mini--miolinho.jpg", "matraca-kambada-mini Miolinho · Sem suporte"];
+FOTOS[16722498823] = [ABS_EST, "matraca-kambada-grande--boi-estrelado--com-suporte.jpg", "pai novo de matraca"];
+GALERIA[16722498823] = [ABS_EST, ["matraca-kambada-grande--boi-blackout--com-suporte.jpg","matraca-kambada-grande--bandeira-do-maranhao.jpg","matraca-kambada-grande--boi-blackout--sem-suporte.jpg","matraca-kambada-grande--boi-estrelado--sem-suporte.jpg","matraca-kambada-grande--boi-miolo--com-suporte.jpg","matraca-kambada-grande--boi-miolo--sem-suporte.jpg","matraca-kambada-grande--boi-multicores--com-suporte.jpg","matraca-kambada-grande--boi-multicores--sem-suporte.jpg","matraca-kambada-grande--boi-de-estrelas--com-suporte.jpg","matraca-kambada-grande--boi-de-estrelas--sem-suporte.jpg","matraca-kambada-grande--boi-do-maranhao.jpg","matraca-kambada-grande--cazumba-frontal.jpg","matraca-kambada-grande--chapeu-de-fitas-maranhao--com-suporte.jpg","matraca-kambada-grande--chapeu-de-fitas-maranhao--sem-suporte.jpg","matraca-kambada-grande--fitas-coloridas--com-suporte.jpg","matraca-kambada-grande--fitas-coloridas--sem-suporte.jpg","matraca-kambada-grande--mosaico-colorido--com-suporte.jpg","matraca-kambada-grande--mosaico-colorido--sem-suporte.jpg","matraca-kambada-grande--reggae-roots--com-suporte.jpg","matraca-kambada-grande--reggae-roots--sem-suporte.jpg","matraca-kambada-grande--serpente-e-rei-da-ilha.jpg"]];
+FOTOS[16722498711] = [ABS_EST, "matraca-kambada-mini-dtf--boi-preto.jpg", "pai novo de matraca"];
+GALERIA[16722498711] = [ABS_EST, ["matraca-kambada-mini-dtf--cazumba-colorido.jpg","matraca-kambada-mini-dtf--cazumba-preto.jpg","matraca-kambada-mini-dtf--miolo-de-boi-colorido.jpg","matraca-kambada-mini-dtf--miolo-de-boi-preto.jpg"]];
+FOTOS[16722498758] = [ABS_EST, "matraca-kambada-mini--boizinho-perfil--com-suporte.jpg", "pai novo de matraca"];
+GALERIA[16722498758] = [ABS_EST, ["matraca-kambada-mini--bandeira-do-maranhao.jpg","matraca-kambada-mini--boi-do-maranhao.jpg","matraca-kambada-mini--boizinho-estrelado.jpg","matraca-kambada-mini--boizinho-miolo.jpg","matraca-kambada-mini--boizinho-perfil--sem-suporte.jpg","matraca-kambada-mini--cazumbazinho.jpg","matraca-kambada-mini--cazumba-frontal.jpg","matraca-kambada-mini--chapeu-de-fita-bandeira-do-maranhao.jpg","matraca-kambada-mini--miolinho.jpg"]];
 
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;

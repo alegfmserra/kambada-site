@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { RespostaToken, TokensSalvos } from "./tipos";
@@ -93,8 +93,10 @@ export async function gravarTokens(resposta: RespostaToken): Promise<TokensSalvo
 async function escreverTokens(tokens: TokensSalvos): Promise<void> {
   const caminho = arquivoTokens();
   await mkdir(dirname(caminho), { recursive: true });
-  await writeFile(`${caminho}.tmp`, JSON.stringify(tokens, null, 2), "utf8");
-  await rename(`${caminho}.tmp`, caminho);
+  // Temporário com o PID: dois processos não disputam o mesmo .tmp.
+  const tmp = `${caminho}.${process.pid}.tmp`;
+  await writeFile(tmp, JSON.stringify(tokens, null, 2), "utf8");
+  await rename(tmp, caminho);
 }
 
 /** Folga mínima para considerar o token "fresco" sem renovar. */
@@ -111,13 +113,72 @@ export async function renovarSeVencerEm(folgaMs: number): Promise<{ renovou: boo
   if (!tokens) throw new ErroBling("O aplicativo ainda não foi autorizado no Bling.", 401);
   if (tokens.invalido) throw new ErroBling("Refresh token recusado pelo Bling — reautorizar em /api/bling/autorizar.", 401);
   if (!precisaRenovar(tokens.expiraEm, folgaMs)) return { renovou: false, expiraEm: tokens.expiraEm };
+  const novos = await renovarUmaVez(folgaMs);
+  return { renovou: novos.renovadoEm !== tokens.renovadoEm, expiraEm: novos.expiraEm };
+}
+
+/**
+ * O build (`next build`) roda em outros processos, ao mesmo tempo que o site no
+ * ar, e lê o MESMO arquivo de tokens. Ele nunca renova: usa o token se ainda
+ * estiver válido; senão a página cai no catálogo local e se refaz depois.
+ */
+const EM_BUILD = process.env.NEXT_PHASE === "phase-production-build";
+
+/**
+ * Trava ENTRE PROCESSOS (21/10/2026). A trava em memória só vale dentro de um
+ * processo; site no ar + build da Hostinger + rotas de manutenção renovando
+ * juntos gastavam o mesmo refresh token duas vezes — o Bling aceita o primeiro
+ * e recusa o segundo, e o perdedor marcava a conexão como inválida: o Bling
+ * "desconectava". `mkdir` é atômico: só um processo cria a pasta da trava.
+ */
+const TRAVA_VENCIDA_MS = 60_000;
+async function comTrava<T>(trabalho: () => Promise<T>): Promise<T> {
+  const trava = `${arquivoTokens()}.trava`;
+  await mkdir(dirname(trava), { recursive: true });
+  const inicio = Date.now();
+  for (;;) {
+    try {
+      await mkdir(trava);
+      break;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+      try {
+        // Processo que morreu segurando a trava não pode travar a loja para sempre.
+        if (Date.now() - (await stat(trava)).mtimeMs > TRAVA_VENCIDA_MS) {
+          await rm(trava, { recursive: true, force: true });
+          continue;
+        }
+      } catch {
+        continue; // a trava sumiu entre o mkdir e o stat: tenta de novo
+      }
+      if (Date.now() - inicio > 30_000) throw new ErroBling("Renovação do Bling em andamento em outro processo.", 503);
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+  try {
+    return await trabalho();
+  } finally {
+    await rm(trava, { recursive: true, force: true }).catch(() => undefined);
+  }
+}
+
+/** Renova com trava; quem chega depois relê o arquivo e usa o token que o outro já renovou. */
+function renovarUmaVez(folgaMs: number): Promise<TokensSalvos> {
+  if (EM_BUILD) {
+    return Promise.reject(new ErroBling("Build não renova o token do Bling (usa só token válido).", 503));
+  }
   if (!renovacaoEmAndamento) {
-    renovacaoEmAndamento = renovarTokens(tokens.refreshToken).finally(() => {
+    renovacaoEmAndamento = comTrava(async () => {
+      const atuais = await lerTokens();
+      if (!atuais) throw new ErroBling("O aplicativo ainda não foi autorizado no Bling.", 401);
+      if (atuais.invalido) throw new ErroBling("Refresh token recusado pelo Bling — reautorizar em /api/bling/autorizar.", 401);
+      if (!precisaRenovar(atuais.expiraEm, folgaMs)) return atuais; // outro processo já renovou
+      return renovarTokens(atuais.refreshToken);
+    }).finally(() => {
       renovacaoEmAndamento = null;
     });
   }
-  const novos = await renovacaoEmAndamento;
-  return { renovou: true, expiraEm: novos.expiraEm };
+  return renovacaoEmAndamento;
 }
 
 async function pedirToken(corpo: Record<string, string>): Promise<RespostaToken> {
@@ -160,6 +221,9 @@ export async function renovarTokens(refreshToken: string): Promise<TokensSalvos>
     // antes, cada requisição repetia o POST ao OAuth e podia bloquear o client.
     if (e instanceof ErroBling && (e.status === 400 || e.status === 401)) {
       const atuais = await lerTokens();
+      // Se o arquivo já tem OUTRO refresh token, alguém renovou no meio do caminho:
+      // a conexão está viva — usa o novo, não marca nada.
+      if (atuais && !atuais.invalido && atuais.refreshToken !== refreshToken) return atuais;
       if (atuais) await escreverTokens({ ...atuais, invalido: true });
     }
     throw e;
@@ -198,13 +262,7 @@ export async function tokenValido(): Promise<string> {
   }
   if (Date.now() < tokens.expiraEm) return tokens.accessToken;
 
-  if (!renovacaoEmAndamento) {
-    renovacaoEmAndamento = renovarTokens(tokens.refreshToken).finally(() => {
-      renovacaoEmAndamento = null;
-    });
-  }
-
-  const renovados = await renovacaoEmAndamento;
+  const renovados = await renovarUmaVez(0);
   return renovados.accessToken;
 }
 

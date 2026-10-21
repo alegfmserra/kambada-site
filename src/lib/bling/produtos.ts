@@ -311,11 +311,15 @@ export function opcoesDoProduto(
   return filhos
     .map((f): Opcao | null => {
       const preco = precoDe(f) ?? precoDe(pai);
-      const rotulo = estampaUnica ? "Único" : rotuloDaVariacao(f.nome, pai.nome);
+      // "Leque Bordado" virou "Folhas" (21/10/2026). O Bling guarda o atributo antigo
+      // no pai (renomear exige salvar o pai, que repõe o preço de todas as variações);
+      // trocar aqui faz site, carrinho, pedido e nota saírem com o nome novo.
+      const nomeDaVariacao = f.nome.replace(/(Suporte:\s*)Leque Bordado/i, "$1Folhas");
+      const rotulo = estampaUnica ? "Único" : rotuloDaVariacao(nomeDaVariacao, pai.nome);
       if (!preco || !rotulo) return null;
       // Dois atributos ou mais (Estampa × Suporte, matracas de 21/10/2026): a página
       // monta um seletor por atributo. Com um só, a lista simples de sempre basta.
-      const atributos = atributosDaVariacao(f.nome, pai.nome);
+      const atributos = atributosDaVariacao(nomeDaVariacao, pai.nome);
       const mais = Object.keys(atributos).length >= 2 ? { atributos } : {};
       return { rotulo, idBling: f.id, preco, quantidade: saldos.get(f.id) ?? 0, ...mais };
     })

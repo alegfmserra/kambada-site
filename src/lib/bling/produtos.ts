@@ -257,10 +257,15 @@ export function opcoesDoProduto(
       : [];
   }
 
+  // Variação única de ESTAMPA não é escolha: é herança da importação antiga (ex.: todo o
+  // estoque da Matraca Play numa variação "Caboclo de Pena"). Aparece como "Único".
+  // Tamanho e modelo continuam com o nome (o Regatão GG precisa dizer que é GG).
+  const estampaUnica = filhos.length === 1 && /estampa\s*:/i.test(filhos[0].nome);
+
   return filhos
     .map((f): Opcao | null => {
       const preco = precoDe(f) ?? precoDe(pai);
-      const rotulo = rotuloDaVariacao(f.nome, pai.nome);
+      const rotulo = estampaUnica ? "Único" : rotuloDaVariacao(f.nome, pai.nome);
       if (!preco || !rotulo) return null;
       return { rotulo, idBling: f.id, preco, quantidade: saldos.get(f.id) ?? 0 };
     })

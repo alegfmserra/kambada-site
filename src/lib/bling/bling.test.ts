@@ -8,6 +8,7 @@ import {
   nomesDeProdutosPai,
   paiDoProduto,
   paraSlug,
+  opcoesDoProduto,
   rotuloDaVariacao,
 } from "./produtos";
 import type { ProdutoBling } from "./tipos";
@@ -420,5 +421,16 @@ describe("dormir", () => {
     const t = Date.now();
     await dormir(30);
     expect(Date.now() - t).toBeGreaterThanOrEqual(25);
+  });
+});
+
+describe("variação única de estampa", () => {
+  it("aparece como Único; tamanho único continua com o nome", () => {
+    const pai = { id: 1, nome: "Matraca Kambada Play", preco: 220, formato: "V" } as never;
+    const play = opcoesDoProduto(pai, [{ id: 2, nome: "Matraca Kambada Play Estampa:Caboclo de Pena", preco: 220, formato: "S" } as never], new Map([[2, 4]]));
+    expect(play.map((o) => o.rotulo)).toEqual(["Único"]);
+    const reg = { id: 3, nome: "Camisa Regatão", preco: 89.9, formato: "V" } as never;
+    const gg = opcoesDoProduto(reg, [{ id: 4, nome: "Camisa Regatão Tamanho:GG", preco: 89.9, formato: "S" } as never], new Map([[4, 1]]));
+    expect(gg.map((o) => o.rotulo)).toEqual(["GG"]);
   });
 });

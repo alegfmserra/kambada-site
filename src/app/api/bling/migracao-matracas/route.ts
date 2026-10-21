@@ -80,6 +80,18 @@ const filhosDe = (p: Obj) =>
     atributos: (v.variacao as Obj | undefined)?.nome,
   }));
 
+/**
+ * O Bling ignora o preço dos filhos num PUT do pai (o filho criado com
+ * cloneInfo herda o do pai — conferido em 21/10/2026: 9 na Mini e 42 na Grande
+ * ficaram a 110/145). Então grava o preço em cada variação, uma a uma.
+ */
+async function corrigirPrecosNosFilhos(lista: { id: number; para: number }[]): Promise<void> {
+  for (const { id, para } of lista) {
+    const filho = await ler(id);
+    await chamarBling(`/produtos/${id}`, { metodo: "PUT", corpo: { ...filho, preco: para } });
+  }
+}
+
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
   if (!segredoDeManutencao(requisicao)) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
@@ -122,6 +134,11 @@ async function responder(requisicao: Request, escrever: boolean) {
       if (dif.precoErrado.length) {
         await chamarBling(`/produtos/${criado.data.id}`, { metodo: "PUT", corpo: corpoComPrecosCorrigidos(lido, pai) });
         lido = await ler(criado.data.id);
+        const ainda = diferencas(pai, filhosDe(lido)).precoErrado;
+        if (ainda.length) {
+          await corrigirPrecosNosFilhos(ainda);
+          lido = await ler(criado.data.id);
+        }
       }
       const depois = diferencas(pai, filhosDe(lido));
       feitos.push({
@@ -157,6 +174,11 @@ async function responder(requisicao: Request, escrever: boolean) {
     if (diferencas(pai, filhosDe(lido)).precoErrado.length) {
       await chamarBling(`/produtos/${existente.id}`, { metodo: "PUT", corpo: corpoComPrecosCorrigidos(lido, pai) });
       lido = await ler(existente.id);
+      const ainda = diferencas(pai, filhosDe(lido)).precoErrado;
+      if (ainda.length) {
+        await corrigirPrecosNosFilhos(ainda);
+        lido = await ler(existente.id);
+      }
     }
     const depois = diferencas(pai, filhosDe(lido));
     feitos.push({ ...plano, acao: "completado", criados, conferido: filhosDe(lido), bateu: depois.faltam.length === 0 && depois.precoErrado.length === 0, pendencias: depois });

@@ -118,7 +118,16 @@ export function montarNotaDeDevolucao(venda: NotaBling, idNatureza: number, ref:
   };
 }
 
-/** A natureza de devolução: variável, ou a que tiver "devolu" no nome. */
+/**
+ * A natureza "Devolução de venda" — exatamente esta. Na conta existem também
+ * "Devolução de compra" e "Devolução de venda com ST" (conferido em 21/10/2026,
+ * id 15110388646); pegar a primeira com "devolu" no nome escolheria a de COMPRA.
+ */
+export function escolherNaturezaDeDevolucao(naturezas: { id: number; descricao?: string; situacao?: number }[]): number | null {
+  const achada = naturezas.find((n) => /^\s*devolu[cç][aã]o de venda\s*$/i.test(n.descricao ?? "") && n.situacao !== 0);
+  return achada?.id ?? null;
+}
+
 export async function naturezaDeDevolucao(): Promise<number> {
   const fixa = Number(process.env.BLING_NATUREZA_DEVOLUCAO);
   if (fixa) return fixa;
@@ -126,7 +135,8 @@ export async function naturezaDeDevolucao(): Promise<number> {
     "/naturezas-operacoes?limite=100",
     { revalidar: 0 },
   );
-  const achada = r.data?.find((n) => /devolu/i.test(n.descricao ?? "") && n.situacao !== 0);
+  const id = escolherNaturezaDeDevolucao(r.data ?? []);
+  const achada = id ? { id } : null;
   if (!achada) {
     throw new Error(
       'não há natureza de operação de devolução no Bling — criar "Devolução de venda" (entrada, finalidade devolução, CFOP 1.202/2.202) em Cadastros → Naturezas de operação',

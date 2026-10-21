@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aamm, cfopDeDevolucao, montarNotaDeDevolucao } from "./devolucao";
+import { aamm, cfopDeDevolucao, escolherNaturezaDeDevolucao, montarNotaDeDevolucao } from "./devolucao";
 
 describe("nota de devolução (regra do Glauco: inversa da venda, sempre referenciando a nota de venda)", () => {
   it("CFOP inverso dos que a Kambada usa; o resto não se chuta", () => {
@@ -8,6 +8,16 @@ describe("nota de devolução (regra do Glauco: inversa da venda, sempre referen
     expect(cfopDeDevolucao("6102")).toBe("2202");
     expect(cfopDeDevolucao("5115")).toBeNull();
     expect(cfopDeDevolucao(undefined)).toBeNull();
+  });
+
+  it("escolhe exatamente 'Devolução de venda' — nunca a de compra nem a com ST", () => {
+    const naturezas = [
+      { id: 45, descricao: "Devolução de compra", situacao: 1 },
+      { id: 50, descricao: "Devolução de venda com ST", situacao: 1 },
+      { id: 46, descricao: "Devolução de venda", situacao: 1 },
+    ];
+    expect(escolherNaturezaDeDevolucao(naturezas)).toBe(46);
+    expect(escolherNaturezaDeDevolucao(naturezas.slice(0, 2))).toBeNull();
   });
 
   it("data da nota original em AAMM", () => {

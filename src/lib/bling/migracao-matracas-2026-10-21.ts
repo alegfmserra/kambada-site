@@ -55,7 +55,8 @@ type Obj = Record<string, unknown>;
  */
 export const SEM = "Sem suporte";
 export const COM = "Com suporte";
-export const LEQUE = "Leque Bordado";
+// Era "Leque Bordado"; virou "Folhas" (Alexandre, 21/10/2026, tarde) — preto no Boi Blackout, colorido nas outras.
+export const LEQUE = "Folhas";
 export const TOPO = "Topo Boi Preto";
 export type Suporte = string;
 
@@ -157,7 +158,7 @@ export const GRANDE: PaiNovo = {
     "",
     "Material: tatajuba (matraca) e pinus (suporte); tintas e verniz à base d'água.",
     "Medidas: matraca 20×10×2 cm · ~390 g. Com suporte: ~35×14 cm · ~805 g.",
-    "Acompanha: cordão. Suporte de parede nas opções com suporte: reto, Leque Bordado (recortado em folhas) ou Topo Boi Preto (boi recortado no alto).",
+    "Acompanha: cordão. Suporte de parede nas opções com suporte: reto, Folhas (recortado em folhas — preto no Boi Blackout, colorido nas estampas coloridas) ou Topo Boi Preto (boi recortado no alto).",
     "Escolha a estampa e o suporte.",
     CUIDADO,
     A_MAO,

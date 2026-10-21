@@ -16,6 +16,7 @@ import {
   rotuloDoValor,
   valorExiste,
 } from "@/lib/loja/seletorDuplo";
+import { chaveDaFotoDoSuporte } from "@/lib/fotosSuportes";
 import { useCarrinho } from "./ProvedorCarrinho";
 
 type Props = {
@@ -70,7 +71,8 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
     if (paraFoto) fotoAtiva?.escolher(paraFoto.idBling);
     // Clicou no suporte: a foto mostra a demonstração dele; clicou na estampa:
     // volta a foto da estampa (21/10/2026).
-    if (chave === "suporte") fotoAtiva?.destacarSuporte(valor === "Sem suporte" ? null : valor);
+    // Folhas: preto no Boi Blackout, colorido nas outras (chaveDaFotoDoSuporte).
+    if (chave === "suporte") fotoAtiva?.destacarSuporte(valor === "Sem suporte" ? null : chaveDaFotoDoSuporte(valor, nova.estampa));
     else fotoAtiva?.destacarSuporte(null);
     setQuantidade(1);
     setAdicionado(false);

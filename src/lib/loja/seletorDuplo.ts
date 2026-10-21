@@ -97,5 +97,7 @@ export function opcaoParaFoto(opcoes: Opcao[], eixos: Eixo[], escolha: Record<st
 
 /** Valor como o cliente lê: "Com" → "Com suporte". */
 export function rotuloDoValor(chave: string, valor: string): string {
+  // "Leque Bordado" passou a se chamar "Folhas" (Alexandre, 21/10/2026).
+  if (chave === "suporte" && /^leque bordado$/i.test(valor.trim())) return "Folhas";
   return chave === "suporte" && /^(com|sem)$/i.test(valor.trim()) ? `${valor.trim()} suporte` : valor;
 }

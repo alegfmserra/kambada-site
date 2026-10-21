@@ -11,6 +11,7 @@ import { conferirChave, mercadoPagoConfigurado } from "@/lib/mercadopago/cliente
 import { adminConfigurado } from "@/lib/admin/sessao";
 import { conferirEmail } from "@/lib/email/enviar";
 import { listarRegistros } from "@/lib/pedidos/registro";
+import { listarCupons } from "@/lib/cupons/cupons";
 import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
@@ -164,6 +165,17 @@ export async function GET(requisicao: Request) {
             situacao: f.situacao,
           }))
         : formas,
+      // Cupons (para os guias nominais dos parceiros, 21/10/2026).
+      cupons: (await listarCupons()).map((c) => ({
+        codigo: c.codigo,
+        percentual: c.percentual,
+        parceiro: c.parceiro,
+        comissao: c.comissaoPercentual,
+        limite: c.limite,
+        validoDe: c.validoDe,
+        validoAte: c.validoAte,
+        ativo: c.ativo,
+      })),
       // Situações do módulo de vendas — conferir os IDs que o pós-venda usa
       // (lib/pedidos/posVendaLoja.ts: em andamento, atendido, cancelado).
       naturezasDeOperacao: await (async () => {

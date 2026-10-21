@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { COOKIE_SESSAO, VALIDADE_SESSAO_S, credenciaisValidas, criarSessao, destinoSeguro } from "@/lib/play/acesso";
+import { COOKIE_SESSAO, VALIDADE_SESSAO_S, credenciaisValidas, criarSessao, demonstracaoLigada, destinoSeguro } from "@/lib/play/acesso";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,15 @@ export async function POST(requisicao: Request) {
   }
   const corpo = await corpoJson(requisicao);
   if (!corpo || !credenciaisValidas(corpo.usuario, corpo.senha)) {
-    return NextResponse.json({ ok: false, mensagem: "Login ou senha incorretos." }, { status: 401 });
+    return NextResponse.json(
+      {
+        ok: false,
+        mensagem: demonstracaoLigada()
+          ? "Login ou senha incorretos."
+          : "Para entrar, use o e-mail da sua conta. Ainda não tem? Crie grátis na aba \"Criar conta\".",
+      },
+      { status: 401 },
+    );
   }
 
   const resposta = NextResponse.json({ ok: true, destino: destinoSeguro(corpo.de) });

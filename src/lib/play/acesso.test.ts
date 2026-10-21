@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { ROTAS_PUBLICAS, VALIDADE_SESSAO_S, credenciaisValidas, criarSessao, destinoSeguro, ehArquivoEstatico, sessaoValida } from "./acesso";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ROTAS_PUBLICAS, VALIDADE_SESSAO_S, credenciaisValidas, criarSessao, criarSessaoDeConta, destinoSeguro, ehArquivoEstatico, sessaoValida } from "./acesso";
 
 afterEach(() => {
   delete process.env.PLAY_LOGIN;
@@ -24,6 +24,27 @@ describe("login do Kambada Play", () => {
     process.env.PLAY_SENHA = "outra-senha";
     expect(credenciaisValidas("equipe", "outra-senha")).toBe(true);
     expect(credenciaisValidas("somoskambada", "somoskambada")).toBe(false);
+  });
+});
+
+describe("demonstração desligada em produção", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+  it("em produção recusa o login e o cookie antigo de demonstração", () => {
+    vi.stubEnv("PLAY_SEGREDO", "segredo-de-teste");
+    const t0 = Date.parse("2026-10-20T12:00:00Z");
+    const cookie = criarSessao(t0);
+    vi.stubEnv("NODE_ENV", "production");
+    expect(credenciaisValidas("somoskambada", "somoskambada")).toBe(false);
+    expect(sessaoValida(cookie, t0 + 1000)).toBe(false);
+    // Conta com e-mail continua valendo.
+    expect(sessaoValida(criarSessaoDeConta("abc", t0), t0 + 1000)).toBe(true);
+  });
+  it("PLAY_DEMONSTRACAO=1 religa", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("PLAY_DEMONSTRACAO", "1");
+    expect(credenciaisValidas("somoskambada", "somoskambada")).toBe(true);
   });
 });
 

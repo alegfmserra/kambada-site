@@ -6,9 +6,12 @@ import { assinar, verificar } from "./jogos/seguranca";
  *
  * Dois jeitos de entrar, os dois com o mesmo cookie assinado:
  *  - **conta** (e-mail + senha, ver `contas.ts`) — é o caminho normal;
- *  - **demonstração** (login e senha únicos, padrão "somoskambada"; em
- *    produção, PLAY_LOGIN / PLAY_SENHA trocam o padrão) — para apresentações.
+ *  - **demonstração** (login e senha únicos, padrão "somoskambada";
+ *    PLAY_LOGIN / PLAY_SENHA trocam o padrão) — para apresentações.
  *    Quem entra assim não aparece na base de contas.
+ *    **Desligada em produção desde 20/10/2026** (Alexandre: "quem quiser
+ *    jogar cria conta"): nem o login entra nem cookie antigo de demonstração
+ *    vale. Religar só com PLAY_DEMONSTRACAO=1 na Hostinger.
  *
  * O `proxy` só confere se o cookie é válido; quem precisa saber QUEM é
  * (ranking, prêmio, "minha conta") usa `sessaoDaRequisicao`.
@@ -29,7 +32,12 @@ function iguais(a: string, b: string): boolean {
   return timingSafeEqual(resumo(a), resumo(b));
 }
 
+export function demonstracaoLigada(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.PLAY_DEMONSTRACAO === "1";
+}
+
 export function credenciaisValidas(usuario: unknown, senha: unknown): boolean {
+  if (!demonstracaoLigada()) return false;
   if (typeof usuario !== "string" || typeof senha !== "string") return false;
   if (usuario.length > 100 || senha.length > 100) return false;
   const loginCerto = process.env.PLAY_LOGIN || LOGIN_PADRAO;
@@ -57,7 +65,7 @@ export function criarSessaoDeConta(contaId: string, agora = Date.now()): string 
 export function lerSessao(cookie: unknown, agora = Date.now()): Sessao | null {
   const s = verificar<Sessao>(cookie);
   if (!s || typeof s.exp !== "number" || s.exp <= Math.floor(agora / 1000)) return null;
-  if (s.v === 1) return s;
+  if (s.v === 1) return demonstracaoLigada() ? s : null;
   if (s.v === 2 && typeof s.conta === "string" && s.conta) return s;
   return null;
 }

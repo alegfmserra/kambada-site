@@ -33,7 +33,7 @@ const ETAPAS = [
   {
     titulo: "A madeira",
     texto:
-      "Peças em madeira maciça, pintadas à mão.",
+      "Madeira maciça, entalhada e pintada à mão.",
   },
   {
     titulo: "O som",

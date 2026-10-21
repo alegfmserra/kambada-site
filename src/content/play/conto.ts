@@ -70,7 +70,7 @@ export const conto = {
   ] as CenaConto[],
   fecho: {
     titulo: "A história que você carrega",
-    texto: "O boi morreu e renasceu tantas vezes quantas o Maranhão precisou contar essa história. Você segurou uma matraca de verdade nas mãos, pintada à mão por quem guarda essa tradição.\nLeve o som dessa festa com você.",
+    texto: "O boi morreu e renasceu tantas vezes quantas o Maranhão precisou contar essa história. Você segurou uma matraca de verdade nas mãos, entalhada por quem guarda essa tradição.\nLeve o som dessa festa com você.",
     ctaMatraca: "Conhecer a matraca",
     ctaArraial: "Ver o arraial",
   },

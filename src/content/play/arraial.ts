@@ -97,7 +97,7 @@ export const npcs: Npc[] = [
     cor: "#F5EDE0",
     falas: [
       "Ei, visitante! Aqui na barraca da Kambada a tradição vira presente.",
-      "A gente faz matracas de verdade, peças em madeira pintadas à mão, do jeito que o boi merece.",
+      "A gente faz matracas de verdade, entalhadas e pintadas à mão, do jeito que o boi merece.",
     ],
     quiz: {
       pergunta: "A Kambada é uma marca nascida em qual cantinho do Brasil?",
@@ -141,7 +141,7 @@ export const lugares: Lugar[] = [
   {
     id: "barraca",
     nome: "Barraca da Kambada",
-    resumo: "Matracas: peças em madeira pintadas à mão.",
+    resumo: "Matracas entalhadas e pintadas à mão.",
     descricao: "A barraca da Kambada expõe a matraca de verdade, feita no Maranhão pro Bumba Meu Boi.",
     tipo: "conversa",
     cta: { label: "Conhecer a matraca", href: "/kambadaplay/matraca" },

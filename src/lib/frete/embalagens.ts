@@ -98,8 +98,15 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
       if (/play/.test(nome)) return E.matracaPlay;
       const grande = /grande/.test(nome);
       const pequena = /pequena|mini/.test(nome);
-      const semSuporte = /sem suporte/.test(nome);
-      const comSuporte = /com suporte|c\/ suporte/.test(nome);
+      // Desde 21/10/2026 o suporte é VARIAÇÃO (Mini/Grande × Estampa × Suporte):
+      // vem do atributo da opção; nos cadastros antigos, do nome do produto.
+      const suporte = sem(opcao?.atributos?.suporte ?? "");
+      const semSuporte = /^sem/.test(suporte) || /sem suporte/.test(rotulo) || /sem suporte/.test(nome) ||
+        // Mini DTF: estampa impressa, vendida sem suporte.
+        (!suporte && /\bdtf\b/.test(nome));
+      // Qualquer suporte que não seja "Sem" é com suporte: reto, Leque Bordado, Topo Boi Preto
+      // (Grande, 21/10/2026 — sem ficha própria: usa a da Grande c/ Suporte até medir).
+      const comSuporte = (suporte !== "" && !/^sem/.test(suporte)) || /com suporte/.test(rotulo) || /com suporte|c\/ suporte/.test(nome);
       if (grande && semSuporte) return E.matracaGrandeSemSuporte;
       if (grande && comSuporte) return E.matracaGrandeComSuporte;
       if (pequena && semSuporte) return E.matracaPequenaSemSuporte;

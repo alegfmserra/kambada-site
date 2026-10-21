@@ -44,6 +44,12 @@ export type Opcao = {
   idBling: number;
   preco: number;
   quantidade: number;
+  /**
+   * Só quando a variação tem dois atributos ou mais (matracas Estampa × Suporte,
+   * 21/10/2026): { estampa: "Boizinho Miolo", suporte: "Com suporte" }.
+   * A página monta um seletor por atributo; o frete lê o suporte.
+   */
+  atributos?: Record<string, string>;
 };
 
 export type Produto = {

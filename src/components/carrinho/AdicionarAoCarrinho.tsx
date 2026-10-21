@@ -6,6 +6,16 @@ import { MAXIMO_POR_ITEM } from "@/lib/carrinho/logica";
 import type { Opcao } from "@/lib/catalogo";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { useOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
+import {
+  acharOpcao,
+  eixoMudaPreco,
+  eixosDasOpcoes,
+  escolher as escolherValor,
+  opcaoParaFoto,
+  precoDoValor,
+  rotuloDoValor,
+  valorExiste,
+} from "@/lib/loja/seletorDuplo";
 import { useCarrinho } from "./ProvedorCarrinho";
 
 type Props = {
@@ -30,7 +40,14 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
   const [quantidade, setQuantidade] = useState(1);
   const [adicionado, setAdicionado] = useState(false);
 
-  const opcao = opcoes.find((o) => o.idBling === escolhida) ?? null;
+  // Matracas Estampa × Suporte (21/10/2026): um grupo de botões por atributo.
+  // Eixo com um valor só (ex.: todas com o mesmo suporte) já vem marcado.
+  const eixos = unica ? null : eixosDasOpcoes(opcoes);
+  const [escolha, setEscolha] = useState<Record<string, string>>(() =>
+    Object.fromEntries((eixos ?? []).filter((e) => e.valores.length === 1).map((e) => [e.chave, e.valores[0]])),
+  );
+
+  const opcao = eixos ? acharOpcao(opcoes, eixos, escolha) : (opcoes.find((o) => o.idBling === escolhida) ?? null);
   const noCarrinho = opcao ? (itens.find((i) => i.idBling === opcao.idBling)?.quantidade ?? 0) : 0;
   const disponivelNaOpcao = (o: Opcao) => (sobEncomenda ? MAXIMO_POR_ITEM : o.quantidade);
   const teto = opcao ? Math.max(0, Math.min(disponivelNaOpcao(opcao), MAXIMO_POR_ITEM) - noCarrinho) : 0;
@@ -40,6 +57,17 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
   function escolher(id: number) {
     setEscolhida(id);
     fotoAtiva?.escolher(id);
+    setQuantidade(1);
+    setAdicionado(false);
+  }
+
+  function escolherNoEixo(chave: string, valor: string) {
+    if (!eixos) return;
+    const nova = escolherValor(opcoes, eixos, escolha, chave, valor);
+    setEscolha(nova);
+    // A foto acompanha a estampa assim que ela é escolhida, mesmo sem o suporte.
+    const paraFoto = acharOpcao(opcoes, eixos, nova) ?? opcaoParaFoto(opcoes, eixos, nova);
+    if (paraFoto) fotoAtiva?.escolher(paraFoto.idBling);
     setQuantidade(1);
     setAdicionado(false);
   }
@@ -62,7 +90,55 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
 
   return (
     <div className="mt-8">
-      {!unica && (
+      {eixos &&
+        eixos.map((eixo) => {
+          const mostrarPreco = eixoMudaPreco(opcoes, eixo);
+          return (
+            <fieldset key={eixo.chave} className="mt-6 first:mt-0">
+              <legend className="font-display text-sm font-semibold text-texto-tenue uppercase">
+                {eixo.chave === "suporte"
+                  ? eixo.valores.length > 2
+                    ? "Escolha o suporte"
+                    : "Com ou sem suporte?"
+                  : `Escolha a ${eixo.rotulo.toLowerCase()}`}
+              </legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {eixo.valores.map((valor) => {
+                  const id = `${idGrupo}-${eixo.chave}-${valor}`;
+                  const existe = valorExiste(opcoes, eixos, escolha, eixo.chave, valor);
+                  const marcado = escolha[eixo.chave] === valor;
+                  const preco = mostrarPreco ? precoDoValor(opcoes, eixo.chave, valor) : null;
+                  return (
+                    <label
+                      key={valor}
+                      htmlFor={id}
+                      className={`min-h-11 cursor-pointer rounded-full border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
+                        marcado
+                          ? "border-kambada-amarelo-escuro bg-kambada-amarelo font-semibold text-kambada-grafite"
+                          : "border-borda hover:border-kambada-amarelo-escuro"
+                      } ${existe ? "" : "border-dashed text-texto-tenue"}`}
+                    >
+                      <input
+                        id={id}
+                        type="radio"
+                        name={`${idGrupo}-${eixo.chave}`}
+                        value={valor}
+                        checked={marcado}
+                        onChange={() => escolherNoEixo(eixo.chave, valor)}
+                        className="sr-only"
+                      />
+                      {rotuloDoValor(eixo.chave, valor)}
+                      {preco !== null && <span className={`ml-1 ${marcado ? "" : "text-texto-suave"}`}>· {formatarReais(preco)}</span>}
+                      {!existe && <span className="sr-only"> (não existe nesta combinação)</span>}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          );
+        })}
+
+      {!unica && !eixos && (
         <fieldset>
           <legend className="font-display text-sm font-semibold text-texto-tenue uppercase">
             {ehTamanho ? "Escolha o tamanho" : "Escolha a opção"}
@@ -101,7 +177,8 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
 
       {opcao && opcoes.some((o) => o.preco !== opcoes[0].preco) && (
         <p className="mt-4 text-sm text-texto-suave" aria-live="polite">
-          {opcao.rotulo}: <strong className="text-texto">{formatarReais(opcao.preco)}</strong>
+          {eixos ? eixos.map((e) => rotuloDoValor(e.chave, opcao.atributos?.[e.chave] ?? "")).join(" · ") : opcao.rotulo}:{" "}
+          <strong className="text-texto">{formatarReais(opcao.preco)}</strong>
         </p>
       )}
 
@@ -146,7 +223,11 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
 
       {!opcao && (
         <p className="mt-3 text-sm text-texto-suave">
-          {ehTamanho ? "Escolha o tamanho para adicionar ao carrinho." : "Escolha uma opção para adicionar ao carrinho."}
+          {eixos
+            ? `Escolha ${eixos.filter((e) => !escolha[e.chave]).map((e) => (e.chave === "suporte" ? (e.valores.length > 2 ? "o suporte" : "com ou sem suporte") : `a ${e.rotulo.toLowerCase()}`)).join(" e ") || "outra combinação"} para adicionar ao carrinho.`
+            : ehTamanho
+              ? "Escolha o tamanho para adicionar ao carrinho."
+              : "Escolha uma opção para adicionar ao carrinho."}
         </p>
       )}
       {opcao && teto <= 0 && !esgotada && (

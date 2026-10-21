@@ -8,7 +8,8 @@ import { ProvedorOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
 import { tabelaDeMedidas } from "@/lib/loja/medidas";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { embalagemDe } from "@/lib/frete/embalagens";
-import { fotoDoItem, fotoDoProduto, type FotoProduto, galeriaDoProduto } from "@/lib/fotoDoProduto";
+import { fotoDaOpcao, fotoDoProduto, type FotoProduto, galeriaDoProduto } from "@/lib/fotoDoProduto";
+import { destinoDoEnderecoAntigo } from "@/lib/loja/redirecionamentos";
 import {
   categoriaPorSlug,
   disponibilidade,
@@ -84,11 +85,11 @@ export default async function PaginaProduto({ params }: Props) {
   const { categoria: catSlug, produto: prodSlug } = await params;
   const produto = await acharProduto(catSlug, prodSlug);
   if (!produto) {
-    // O endereço leva o ID do Bling no fim: se o nome mudou lá, o link antigo
+    // O endereço leva o ID do Bling no fim: se o nome mudou lá, ou se o produto
+    // foi inativado e substituído (matracas, 21/10/2026), o link antigo
     // (WhatsApp, Instagram, Google) segue para a página nova em vez de dar 404.
-    const id = Number(prodSlug.match(/-(\d{8,})$/)?.[1]);
-    const atual = id ? (await buscarCatalogo()).produtos.find((p) => p.idBling === id) : undefined;
-    if (atual) permanentRedirect(`/loja/${atual.categoria}/${atual.slug}`);
+    const destino = destinoDoEnderecoAntigo(prodSlug, (await buscarCatalogo()).produtos);
+    if (destino) permanentRedirect(destino);
     notFound();
   }
 
@@ -102,10 +103,11 @@ export default async function PaginaProduto({ params }: Props) {
     produto.variacoes.length === 1 && produto.variacoes[0] === "Único";
 
   const foto = fotoDoProduto(produto);
-  // Foto de cada opção (estampa) — a página troca ao escolher.
+  // Foto de cada opção (estampa) — a página troca ao escolher. Opção sem foto
+  // própria nem de estampa fica de fora e mostra a foto do produto.
   const fotosPorOpcao: Record<number, FotoProduto> = {};
   for (const o of produto.opcoes ?? []) {
-    const f = fotoDoItem(o.idBling, produto.slug);
+    const f = fotoDaOpcao(produto, o);
     if (f) fotosPorOpcao[o.idBling] = f;
   }
   // Abre mostrando a primeira opção disponível que tenha foto própria — não a
@@ -188,7 +190,9 @@ export default async function PaginaProduto({ params }: Props) {
               </p>
               {temFaixa && (
                 <p className="mt-1 text-sm text-texto-tenue">
-                  O preço varia conforme o tamanho escolhido.
+                  {(produto.opcoes ?? []).some((o) => o.atributos?.suporte)
+                    ? "O preço muda com o suporte."
+                    : "O preço varia conforme o tamanho escolhido."}
                 </p>
               )}
 

@@ -29,6 +29,8 @@ export function textoDeProducao(produto: { nome: string }): string {
 const CATEGORIAS_PINTADAS_A_MAO = new Set(["matracas", "decoracao"]);
 
 export function ehPintadaAMao(produto: { categoria: string; nome: string }): boolean {
+  // Matraca Mini DTF (21/10/2026): estampa IMPRESSA — dizer "pintada à mão" seria falso.
+  if (/\bdtf\b/i.test(produto.nome)) return false;
   if (CATEGORIAS_PINTADAS_A_MAO.has(produto.categoria)) return true;
   return /^porta-?chave/i.test(produto.nome.normalize("NFD").replace(/[̀-ͯ]/g, ""));
 }

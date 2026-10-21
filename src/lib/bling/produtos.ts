@@ -233,6 +233,50 @@ export function rotuloDaVariacao(
 }
 
 /**
+ * Feita por encomenda — vende com saldo zero (o saldo do Bling vira só informação
+ * interna): todas as matracas (10/10), inclusive a Mini DTF, que às vezes está
+ * pronta mas também é feita sob pedido (Alexandre, 21/10/2026), e a Placa
+ * Retangular (20/10).
+ */
+export function ehSobEncomenda(categoria: string, nome: string): boolean {
+  return categoria === "matracas" || /^placa de madeira retangular/i.test(nome);
+}
+
+/** "Suporte" → "suporte", "Cor/Estampa" → "cor-estampa": a chave do atributo, sem acento nem caixa. */
+export function chaveDoAtributo(nome: string): string {
+  return paraSlug(nome);
+}
+
+/**
+ * Os atributos de um filho, pelo nome: "Matraca Kambada Mini
+ * Estampa:Boizinho Miolo;Suporte:Com suporte" → { estampa: "Boizinho Miolo",
+ * suporte: "Com suporte" }. Vazio quando o nome não traz "Atributo:Valor".
+ * Atributo igual ao valor ("Boi Frontal:Boi Frontal") fica de fora, como no rótulo.
+ */
+export function atributosDaVariacao(nomeDoFilho: string, nomeDoPai: string): Record<string, string> {
+  const semPai = nomeDoFilho.startsWith(`${nomeDoPai} `) ? nomeDoFilho.slice(nomeDoPai.length + 1) : nomeDoFilho;
+  const atributos: Record<string, string> = {};
+  for (const parte of semPai.split(";")) {
+    const m = parte.trim().match(/^([^:]{1,30}):(.*)$/);
+    if (!m) continue;
+    const [nome, valor] = [m[1].trim(), m[2].trim()];
+    if (!valor || nome.toLowerCase() === valor.toLowerCase()) continue;
+    atributos[chaveDoAtributo(nome)] = valor;
+  }
+  return atributos;
+}
+
+/**
+ * Nome com cara de filho de variação ("… Estampa:Caboclo de Pena"), usado
+ * quando o pai não está na lista de ativos — o pai foi inativado (migração das
+ * matracas, 21/10/2026) e o filho ficou ativo. Sem isto, o filho órfão viraria
+ * um card avulso na vitrine.
+ */
+export function pareceFilhoOrfao(nome: string): boolean {
+  return /\s(estampa|tamanho|suporte|modelo|cor|cor\/estampa)\s*:/i.test(nome);
+}
+
+/**
  * As opções compráveis de um produto, cada uma com o ID que vai no pedido.
  *
  * Com variações, a opção é o FILHO: é ele que tem saldo e é ele que o Bling
@@ -269,7 +313,11 @@ export function opcoesDoProduto(
       const preco = precoDe(f) ?? precoDe(pai);
       const rotulo = estampaUnica ? "Único" : rotuloDaVariacao(f.nome, pai.nome);
       if (!preco || !rotulo) return null;
-      return { rotulo, idBling: f.id, preco, quantidade: saldos.get(f.id) ?? 0 };
+      // Dois atributos ou mais (Estampa × Suporte, matracas de 21/10/2026): a página
+      // monta um seletor por atributo. Com um só, a lista simples de sempre basta.
+      const atributos = atributosDaVariacao(f.nome, pai.nome);
+      const mais = Object.keys(atributos).length >= 2 ? { atributos } : {};
+      return { rotulo, idBling: f.id, preco, quantidade: saldos.get(f.id) ?? 0, ...mais };
     })
     .filter((o): o is Opcao => o !== null)
     // P → XG, 2 → 14 anos: a ordem de uma arara, não a alfabética do Bling.
@@ -397,6 +445,7 @@ export async function montarDoBling(): Promise<Catalogo> {
       continue;
     }
     if (ehFilhoDeVariacao(p, nomesDePais)) continue; // filho sem pai na lista
+    if (pareceFilhoOrfao(p.nome)) continue; // pai inativado, filho ainda ativo
     paraVitrine.push(p); // produto simples, sem variação
   }
 
@@ -429,8 +478,7 @@ export async function montarDoBling(): Promise<Catalogo> {
     const quantidade = filhos.length
       ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
       : (saldos.get(p.id) ?? 0);
-    // Feita por encomenda: matracas (10/10) e Placa Retangular (20/10) — vendem com saldo zero.
-    const sobEncomenda = categoria === "matracas" || /^placa de madeira retangular/i.test(p.nome);
+    const sobEncomenda = ehSobEncomenda(categoria, p.nome);
 
     produtos.push({
       slug: paraSlug(`${p.nome}-${p.id}`),

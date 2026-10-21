@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { situacaoNoBling } from "@/lib/checkout/acompanhar";
 import { chamarBling, listarTudo } from "@/lib/bling/cliente";
+import { buscarCatalogo } from "@/lib/bling/produtos";
 import type { ProdutoBling } from "@/lib/bling/tipos";
 import { listarRegistros } from "@/lib/pedidos/registro";
 import { segredoDeManutencao } from "@/lib/seguranca/segredo";
@@ -27,6 +28,11 @@ type Linha = {
   preco?: number;
   saldoFisico?: number;
   saldoVirtual?: number;
+  /** Aparece na loja do site (produto não oculto, ou opção dele). */
+  noSite?: boolean;
+  /** Categoria e endereço da peça no site, quando aparece. */
+  categoriaNoSite?: string;
+  slugNoSite?: string;
 };
 
 const SITUACAO: Record<string, string> = { A: "ativo", I: "inativo", E: "excluído" };
@@ -68,6 +74,21 @@ export async function GET(requisicao: Request) {
     const s = saldos.get(l.id);
     l.saldoFisico = s?.fisico ?? 0;
     l.saldoVirtual = s?.virtual ?? 0;
+  }
+
+  // O que aparece na loja: produto não oculto (ativo, com saldo ou sob encomenda) e as opções dele.
+  const catalogo = await buscarCatalogo();
+  const noSite = new Map<number, { categoria: string; slug: string }>();
+  for (const p of catalogo.produtos) {
+    if (p.oculto) continue;
+    if (p.idBling) noSite.set(p.idBling, { categoria: p.categoria, slug: p.slug });
+    for (const o of p.opcoes ?? []) noSite.set(o.idBling, { categoria: p.categoria, slug: p.slug });
+  }
+  for (const l of linhas) {
+    const n = noSite.get(l.id);
+    l.noSite = Boolean(n);
+    l.categoriaNoSite = n?.categoria;
+    l.slugNoSite = n?.slug;
   }
 
   // Pedidos do site cancelados/estornados: estoque devolvido? cancelado no Bling?
@@ -117,6 +138,8 @@ export async function GET(requisicao: Request) {
       itensAtivosNegativos: contaveis.filter((l) => (l.saldoFisico ?? 0) < 0).length,
       pecasEmEstoque: contaveis.reduce((s, l) => s + Math.max(0, l.saldoFisico ?? 0), 0),
       pedidosCancelados: cancelados.length,
+      itensNoSite: linhas.filter((l) => l.noSite).length,
+      origemDoCatalogo: catalogo.origem,
     },
     linhas,
     cancelados: conferencia,

@@ -65,6 +65,8 @@ export type RegistroPedido = {
     situacaoMe?: string;
     rastreio?: string;
     conferidaEm?: string;
+    /** O Melhor Envio confirmou o cancelamento (o valor volta à carteira). */
+    canceladaNoMeEm?: string;
     erro?: string;
   };
   /**

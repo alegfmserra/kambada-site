@@ -301,5 +301,41 @@ export async function acompanharEtiquetas(): Promise<{ conferidas: number; erros
       erros.push(`${r.ref}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
+  await conferirEtiquetasCanceladas(erros);
   return { conferidas: abertos.length, erros };
+}
+
+const PRAZO_REEMBOLSO_ETIQUETA_MS = 3 * 24 * 60 * 60 * 1000;
+
+/**
+ * Etiqueta cancelada pelo site: o valor volta à carteira do Melhor Envio quando
+ * ELE processa o cancelamento (no 1º teste, 21/10/2026, não voltou na hora).
+ * Confere a situação a cada hora; quando aparecer "cancelada", registra; se em
+ * 3 dias não aparecer, avisa a loja para cobrar o Melhor Envio.
+ */
+async function conferirEtiquetasCanceladas(erros: string[]): Promise<void> {
+  const pendentes = (await listarRegistros(500)).filter(
+    (r) => r.cancelamento?.etiquetaMe?.feitoEm && r.etiqueta?.idMe && !r.etiqueta.canceladaNoMeEm,
+  );
+  for (const r of pendentes) {
+    try {
+      const o = await me<PedidoMe>(`/orders/${r.etiqueta!.idMe}`);
+      if (o.status === "canceled" || o.status === "cancelled") {
+        await atualizarRegistro(r.ref, { etiqueta: { ...r.etiqueta, situacaoMe: o.status, canceladaNoMeEm: new Date().toISOString() } });
+        continue;
+      }
+      await atualizarRegistro(r.ref, { etiqueta: { ...r.etiqueta, situacaoMe: o.status, conferidaEm: new Date().toISOString() } });
+      const desde = Date.parse(r.cancelamento!.etiquetaMe!.feitoEm!);
+      if (Date.now() - desde > PRAZO_REEMBOLSO_ETIQUETA_MS) {
+        const { alertar } = await import("../manutencao/alertas");
+        await alertar(
+          `etiqueta-sem-reembolso-${r.ref}`,
+          `Etiqueta do pedido ${r.ref} cancelada há 3 dias e não consta cancelada no Melhor Envio`,
+          `Situação no Melhor Envio: ${o.status ?? "?"}. Valor da etiqueta: R$ ${r.etiqueta!.valor ?? "?"}.\n\nConferir em melhorenvio.com.br (conta somoskambada@gmail.com) → Envios, e pedir o reembolso ao suporte se preciso.`,
+        );
+      }
+    } catch (e) {
+      erros.push(`cancelada ${r.ref}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
 }

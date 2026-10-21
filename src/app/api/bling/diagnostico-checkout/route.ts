@@ -151,6 +151,19 @@ export async function GET(requisicao: Request) {
             situacao: f.situacao,
           }))
         : formas,
+      // Situações do módulo de vendas — conferir os IDs que o pós-venda usa
+      // (lib/pedidos/posVendaLoja.ts: em andamento, atendido, cancelado).
+      situacoesDeVenda: await (async () => {
+        try {
+          const modulos = await chamarBling<{ data?: { id: number; nome?: string }[] }>("/situacoes/modulos", { revalidar: 0 });
+          const vendas = modulos.data?.find((m) => /venda/i.test(m.nome ?? ""));
+          if (!vendas) return { modulos: modulos.data };
+          const s = await chamarBling<{ data?: { id: number; nome?: string }[] }>(`/situacoes/modulos/${vendas.id}`, { revalidar: 0 });
+          return { modulo: vendas, situacoes: s.data?.map((x) => ({ id: x.id, nome: x.nome })) };
+        } catch (e) {
+          return e instanceof Error ? e.message : String(e);
+        }
+      })(),
     },
     loja: {
       produtosNaVitrine: catalogo.produtos.length,

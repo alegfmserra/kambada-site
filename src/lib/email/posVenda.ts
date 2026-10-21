@@ -134,3 +134,126 @@ export function htmlEstorno(r: RegistroPedido, status: string, cidLogo?: string)
     cidLogo,
   );
 }
+
+// ---------------------------------------------------------------------------
+// Produção, cancelamento (21/10/2026)
+// ---------------------------------------------------------------------------
+
+export type Mensagem = { assunto: string; texto: string; html: (cidLogo?: string) => string };
+
+const primeiroNome = (r: RegistroPedido) => r.cliente.nome.split(" ")[0];
+const reais = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const botao = (href: string, rotulo: string) =>
+  `<p style="margin:0 0 22px"><a href="${href}" style="display:inline-block;background:#FFD72B;color:#201E1F;text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:999px">${rotulo}</a></p>`;
+
+/** Ao cliente: a peça dele começou a ser feita (peças sob encomenda). */
+export function mensagemProducao(r: RegistroPedido, personalizado: boolean, urlDoSite: string): Mensagem {
+  const e = escaparHtml;
+  const link = `${urlDoSite}/pedido?ref=${encodeURIComponent(r.ref)}`;
+  const regra = personalizado
+    ? "Como a peça é personalizada, a partir de agora o pedido não pode mais ser cancelado."
+    : "Se precisar desistir, ainda dá para cancelar em até 3 dias a partir de hoje, pela página do pedido.";
+  return {
+    assunto: `Começamos a produzir o seu pedido ${r.ref} 🎨`,
+    texto: [
+      `Olá, ${primeiroNome(r)}!`,
+      "",
+      `A produção do seu pedido ${r.ref} começou hoje. Cada peça é feita à mão no nosso ateliê em São Luís.`,
+      regra,
+      "",
+      `Acompanhe aqui: ${link}`,
+      "",
+      "Avisamos de novo quando estiver pronto para envio ou retirada.",
+      "Kambada — São Luís, MA",
+    ].join("\n"),
+    html: (cid) =>
+      moldura(
+        `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
+<p style="margin:0 0 16px;font-size:20px;font-weight:bold">A produção da sua peça começou. 🎨</p>
+<p style="margin:0 0 12px">Pedido <strong>${e(r.ref)}</strong>. Cada peça é feita à mão no nosso ateliê em São Luís.</p>
+<p style="margin:0 0 18px;color:#6b6460">${e(regra)}</p>
+${botao(link, "Acompanhar o pedido")}
+<p style="margin:0">Avisamos de novo quando estiver pronto para envio ou retirada.</p>`,
+        cid,
+      ),
+  };
+}
+
+/** À loja: o cliente pediu para cancelar pela página do pedido. */
+export function mensagemCancelamentoSolicitadoLoja(r: RegistroPedido, motivo: string, urlDoSite: string): Mensagem {
+  const e = escaparHtml;
+  const admin = `${urlDoSite}/admin/pedidos`;
+  return {
+    assunto: `🛑 Pedido ${r.ref}: cliente pediu cancelamento`,
+    texto: [
+      `${r.cliente.nome} (${r.cliente.email}) pediu para cancelar o pedido ${r.ref} (${reais(r.total)}).`,
+      motivo ? `Motivo: ${motivo}` : "Motivo: não informado.",
+      "",
+      `Nada foi estornado ainda. Para aprovar: ${admin} → "Cancelar e estornar".`,
+      "Se já postou ou a peça é personalizada em produção, responda ao cliente explicando.",
+    ].join("\n"),
+    html: (cid) =>
+      moldura(
+        `<p style="margin:0 0 12px;font-size:20px;font-weight:bold;color:#c0392b">Pedido de cancelamento</p>
+<p style="margin:0 0 8px"><strong>${e(r.cliente.nome)}</strong> (${e(r.cliente.email)}) pediu para cancelar o pedido <strong>${e(r.ref)}</strong> — ${reais(r.total)}.</p>
+<p style="margin:0 0 16px">Motivo: ${motivo ? e(motivo) : "não informado"}</p>
+<p style="margin:0 0 16px"><strong>Nada foi estornado ainda.</strong> Para aprovar, use "Cancelar e estornar" na área de controle.</p>
+${botao(admin, "Abrir a área de controle")}`,
+        cid,
+      ),
+  };
+}
+
+/** Ao cliente: recebemos o pedido de cancelamento. */
+export function mensagemCancelamentoSolicitadoCliente(r: RegistroPedido): Mensagem {
+  const e = escaparHtml;
+  return {
+    assunto: `Recebemos seu pedido de cancelamento — ${r.ref}`,
+    texto: [
+      `Olá, ${primeiroNome(r)}!`,
+      "",
+      `Recebemos o seu pedido para cancelar a compra ${r.ref}. Vamos conferir e, em até 1 dia útil, confirmamos por e-mail o cancelamento e a devolução de ${reais(r.total)}.`,
+      "",
+      "Qualquer dúvida, é só responder este e-mail.",
+      "Kambada — São Luís, MA",
+    ].join("\n"),
+    html: (cid) =>
+      moldura(
+        `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
+<p style="margin:0 0 16px;font-size:20px;font-weight:bold">Recebemos seu pedido de cancelamento.</p>
+<p style="margin:0 0 16px">Pedido <strong>${e(r.ref)}</strong>. Vamos conferir e, em até 1 dia útil, confirmamos por e-mail o cancelamento e a devolução de <strong>${reais(r.total)}</strong>.</p>
+<p style="margin:0">Qualquer dúvida, é só responder este e-mail.</p>`,
+        cid,
+      ),
+  };
+}
+
+/** Ao cliente: pedido cancelado e pagamento devolvido. */
+export function mensagemPedidoCancelado(r: RegistroPedido, tipoPagamento?: string): Mensagem {
+  const e = escaparHtml;
+  const prazo =
+    tipoPagamento === "credit_card"
+      ? "No cartão de crédito, o valor aparece como crédito na fatura — pode levar até 2 faturas, conforme o banco."
+      : "No Pix, o valor volta para a conta de origem, normalmente no mesmo dia.";
+  return {
+    assunto: `Pedido ${r.ref} cancelado — devolução de ${reais(r.total)}`,
+    texto: [
+      `Olá, ${primeiroNome(r)}!`,
+      "",
+      `O seu pedido ${r.ref} foi cancelado e devolvemos ${reais(r.total)} pelo Mercado Pago.`,
+      prazo,
+      "",
+      "Esperamos ver você de novo por aqui. Qualquer dúvida, é só responder este e-mail.",
+      "Kambada — São Luís, MA",
+    ].join("\n"),
+    html: (cid) =>
+      moldura(
+        `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
+<p style="margin:0 0 16px;font-size:20px;font-weight:bold">Pedido cancelado e valor devolvido.</p>
+<p style="margin:0 0 8px">Pedido <strong>${e(r.ref)}</strong>: devolvemos <strong>${reais(r.total)}</strong> pelo Mercado Pago.</p>
+<p style="margin:0 0 16px;color:#6b6460">${e(prazo)}</p>
+<p style="margin:0">Esperamos ver você de novo por aqui. Qualquer dúvida, é só responder este e-mail.</p>`,
+        cid,
+      ),
+  };
+}

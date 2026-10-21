@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { consultarPedido, type RespostaConsulta } from "@/app/pedido/acoes";
+import { consultarPedido, pedirCancelamento, type RespostaCancelamento, type RespostaConsulta } from "@/app/pedido/acoes";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -104,9 +104,11 @@ function Resultado({ resposta }: { resposta: Extract<RespostaConsulta, { estado:
   const { dados, enderecoRetirada } = resposta;
   const passos = [
     { nome: "Pagamento", texto: dados.pagamento.texto, tom: dados.pagamento.tom },
-    ...(dados.pedido
-      ? [{ nome: "Pedido", texto: dados.pedido.situacao, tom: "ok" as const }]
-      : []),
+    ...(dados.posVenda && dados.pagamento.aprovado
+      ? [{ nome: "Pedido", texto: dados.posVenda.etapa, tom: "ok" as const }]
+      : dados.pedido
+        ? [{ nome: "Pedido", texto: dados.pedido.situacao, tom: "ok" as const }]
+        : []),
   ];
 
   return (
@@ -180,6 +182,14 @@ function Resultado({ resposta }: { resposta: Extract<RespostaConsulta, { estado:
         </ul>
       </div>
 
+      {dados.posVenda?.podeCancelar && <PedirCancelamento refPedido={dados.ref} email={resposta.email} />}
+      {dados.posVenda?.cancelamentoSolicitado && (
+        <p className="rounded-2xl border border-orange-500 p-5 text-sm">
+          Recebemos seu pedido de cancelamento. Em até 1 dia útil confirmamos por e-mail o cancelamento e a devolução
+          do valor.
+        </p>
+      )}
+
       <div className="flex flex-wrap gap-3">
         <Link
           href={`/pedido/atendimento?ref=${encodeURIComponent(dados.ref)}`}
@@ -195,5 +205,55 @@ function Resultado({ resposta }: { resposta: Extract<RespostaConsulta, { estado:
         </Link>
       </div>
     </div>
+  );
+}
+
+/** Pedir cancelamento — só aparece quando a regra permite (ver lib/pedidos/cancelamento.ts). */
+function PedirCancelamento({ refPedido, email }: { refPedido: string; email: string }) {
+  const [resposta, pedir, enviando] = useActionState<RespostaCancelamento, FormData>(pedirCancelamento, {
+    estado: "inicial",
+  });
+  if (resposta.estado === "ok") {
+    return (
+      <p role="status" className="rounded-2xl border border-orange-500 p-5 text-sm">
+        Pedido de cancelamento enviado. Mandamos a confirmação para o seu e-mail e, em até 1 dia útil, confirmamos o
+        cancelamento e a devolução do valor.
+      </p>
+    );
+  }
+  return (
+    <details className="rounded-2xl border border-borda p-5">
+      <summary className="cursor-pointer font-display font-bold">Quero cancelar este pedido</summary>
+      <form action={pedir} className="mt-3 space-y-3">
+        <input type="hidden" name="ref" value={refPedido} />
+        <input type="hidden" name="email" value={email} />
+        <p className="text-sm text-texto-suave">
+          Ainda dá para cancelar: o pedido não foi postado. O valor volta pelo Mercado Pago, na mesma forma de
+          pagamento, depois que a gente confirmar.
+        </p>
+        <label htmlFor="pd-motivo" className="block text-sm font-semibold">
+          Motivo (opcional)
+        </label>
+        <textarea
+          id="pd-motivo"
+          name="motivo"
+          maxLength={500}
+          rows={3}
+          className="w-full rounded-xl border border-borda bg-fundo px-4 py-2.5 outline-none focus:border-kambada-amarelo-escuro"
+        />
+        {resposta.estado === "erro" && (
+          <p role="alert" className="text-sm font-semibold text-red-500">
+            {resposta.mensagem}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={enviando}
+          className="rounded-full border border-red-500 px-6 py-3 font-display font-semibold text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-60"
+        >
+          {enviando ? "Enviando…" : "Pedir cancelamento"}
+        </button>
+      </form>
+    </details>
   );
 }

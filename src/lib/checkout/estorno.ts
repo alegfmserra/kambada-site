@@ -18,6 +18,14 @@ export async function registrarEstorno(ref: string, status: string): Promise<voi
   const r = await lerRegistro(ref);
   if (!r) return;
   if (r.estorno?.status === status && r.estorno.avisoLoja?.feitoEm) return;
+  // Estorno feito pelo próprio site (botão "Cancelar e estornar"): a loja já
+  // sabe e o resto já foi feito — só registra, sem o e-mail de alerta.
+  if (r.cancelamento?.estornoMp?.feitoEm) {
+    if (r.estorno?.status !== status) {
+      await atualizarRegistro(ref, { estorno: { status, detectadoEm: new Date().toISOString(), avisoLoja: { feitoEm: r.cancelamento.estornoMp.feitoEm, detalhe: "estorno feito pelo site" } } });
+    }
+    return;
+  }
 
   const estorno = { status, detectadoEm: r.estorno?.status === status ? r.estorno.detectadoEm : new Date().toISOString() };
   let avisoLoja: Etapa | undefined;

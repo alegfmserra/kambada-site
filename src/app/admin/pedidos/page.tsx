@@ -8,7 +8,16 @@ import { formatarReais } from "@/lib/loja/dinheiro";
 import { listarRegistros, type Etapa, type RegistroPedido } from "@/lib/pedidos/registro";
 import MenuAdmin from "@/components/admin/MenuAdmin";
 import { TRANSPORTADORAS, linkDeRastreio, rotuloEstorno } from "@/lib/email/posVenda";
-import { avisarPostagem, refazerPendencias } from "../acoes";
+import {
+  avisarPostagem,
+  cancelarEEstornar,
+  desfazerConclusaoPedido,
+  marcarConclusao,
+  marcarProducao,
+  notaResolvida,
+  refazerPendencias,
+} from "../acoes";
+import { avaliarCancelamento, etapaDoPedido } from "@/lib/pedidos/cancelamento";
 
 export const metadata: Metadata = {
   title: "Pedidos do site",
@@ -66,12 +75,124 @@ async function comSituacao(registros: RegistroPedido[]) {
   );
 }
 
+/** Produção, entrega/retirada e cancelamento — o pós-venda de um pedido ativo. */
+function AcoesDoPedido({ r }: { r: RegistroPedido }) {
+  const avaliacao = avaliarCancelamento(r);
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-borda pt-3 text-sm">
+      {!r.conclusao && !r.envio && (
+        <form action={marcarProducao} className="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="ref" value={r.ref} />
+          <label className="flex items-center gap-1.5">
+            <input type="checkbox" name="personalizado" defaultChecked={r.producao?.personalizado} /> personalizada
+          </label>
+          <button type="submit" className={BOTAO} title="Avisa o cliente por e-mail e põe o pedido em andamento no Bling">
+            {r.producao ? `Produção desde ${dataLocal(r.producao.iniciadaEm)} · reenviar aviso` : "Produção iniciada"}
+          </button>
+        </form>
+      )}
+      {r.conclusao ? (
+        <form action={desfazerConclusaoPedido} className="flex items-center gap-2">
+          <input type="hidden" name="ref" value={r.ref} />
+          <span className="font-semibold">
+            {r.conclusao.tipo === "retirado" ? "Retirado" : "Entregue"} em {dataLocal(r.conclusao.em)}
+            {r.conclusao.bling?.erro ? " · Bling não atualizou" : ""}
+          </span>
+          <button type="submit" className="text-xs underline">desfazer</button>
+        </form>
+      ) : (
+        <form action={marcarConclusao}>
+          <input type="hidden" name="ref" value={r.ref} />
+          <input type="hidden" name="tipo" value={r.entrega.retirada ? "retirado" : "entregue"} />
+          <button type="submit" className={BOTAO_FORTE} title="Encerra o pedido e marca Atendido no Bling">
+            {r.entrega.retirada ? "Cliente retirou" : "Entregue"}
+          </button>
+        </form>
+      )}
+      <details className="ml-auto">
+        <summary className="cursor-pointer text-sm font-semibold text-red-500">Cancelar e estornar</summary>
+        <form action={cancelarEEstornar} className="mt-2 max-w-sm space-y-2 rounded-xl border border-red-500 p-3">
+          <input type="hidden" name="ref" value={r.ref} />
+          {!avaliacao.pode && <p className="text-xs font-semibold text-red-500">Atenção: {avaliacao.motivo}</p>}
+          <p className="text-xs text-texto-suave">
+            Devolve {formatarReais(r.total)} pelo Mercado Pago, devolve o estoque, cancela o pedido no Bling e avisa o
+            cliente. A nota fiscal fica para você (o site mostra o que fazer).
+          </p>
+          <label className="flex items-center gap-1.5 text-xs font-semibold">
+            <input type="checkbox" name="confirmo" /> Confirmo o cancelamento e o estorno
+          </label>
+          <button type="submit" className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white">
+            Cancelar e estornar
+          </button>
+        </form>
+      </details>
+    </div>
+  );
+}
+
+/** Andamento de um cancelamento feito pelo site, com o lembrete da nota. */
+function BlocoCancelamento({ r }: { r: RegistroPedido }) {
+  const c = r.cancelamento!;
+  const nota = c.nota;
+  return (
+    <div className="mt-3 space-y-2 rounded-xl border border-red-500 px-4 py-3 text-sm">
+      <p className="font-semibold text-red-500">
+        {c.concluidoEm ? `Cancelado pelo site em ${dataLocal(c.concluidoEm)}` : "Cancelamento não concluído — o estorno falhou"}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Selo nome="Estorno MP" etapa={c.estornoMp} />
+        <Selo nome="Estoque devolvido" etapa={c.estoqueBling} desligada={!r.estoque?.feitoEm && !c.estoqueBling} />
+        <Selo nome="Pedido cancelado no Bling" etapa={c.pedidoBling} />
+        <Selo nome="E-mail ao cliente" etapa={c.emailCliente} />
+      </div>
+      {nota && nota.acao !== "sem-nota" && !nota.resolvidaEm && (
+        <form action={notaResolvida} className="flex flex-wrap items-center gap-2 rounded-lg bg-superficie p-2">
+          <input type="hidden" name="ref" value={r.ref} />
+          <span className="font-semibold">
+            {nota.acao === "cancelar-no-bling"
+              ? "Nota fiscal: cancelar no Bling (até 24 h da emissão), com justificativa."
+              : "Nota fiscal: passou de 24 h — emitir nota de devolução (CFOP com o Glauco)."}
+          </span>
+          {r.nfe?.idNota && (
+            <a href="https://www.bling.com.br/notas.fiscais.php" target="_blank" rel="noopener noreferrer" className="underline">
+              abrir notas no Bling
+            </a>
+          )}
+          <button type="submit" className={BOTAO}>Nota resolvida</button>
+        </form>
+      )}
+      {nota?.resolvidaEm && <p className="text-texto-suave">Nota resolvida em {dataLocal(nota.resolvidaEm)}.</p>}
+      {(!c.concluidoEm || [c.estoqueBling, c.pedidoBling, c.emailCliente].some((e) => e?.erro)) && (
+        <form action={cancelarEEstornar}>
+          <input type="hidden" name="ref" value={r.ref} />
+          <input type="hidden" name="confirmo" value="on" />
+          <button type="submit" className={BOTAO}>Refazer o que falhou</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+const cancelado = (r: RegistroPedido) => Boolean(r.cancelamento?.concluidoEm || r.estorno);
+
+/** Abas da lista: o que pede ação primeiro. */
+const FILTROS: { id: string; rotulo: string; casa: (r: RegistroPedido) => boolean }[] = [
+  { id: "abertos", rotulo: "Em aberto", casa: (r) => !cancelado(r) && !r.conclusao && !r.envio },
+  { id: "postados", rotulo: "Postados", casa: (r) => !cancelado(r) && !r.conclusao && Boolean(r.envio) },
+  { id: "concluidos", rotulo: "Entregues/retirados", casa: (r) => !cancelado(r) && Boolean(r.conclusao) },
+  { id: "cancelamento", rotulo: "Cancelamentos", casa: (r) => cancelado(r) || Boolean(r.cancelamento?.solicitadoEm) },
+  { id: "todos", rotulo: "Todos", casa: () => true },
+];
+
+const BOTAO = "rounded-full border border-borda px-4 py-1.5 text-sm font-semibold hover:border-kambada-amarelo-escuro";
+const BOTAO_FORTE = "rounded-full bg-kambada-amarelo px-4 py-1.5 text-sm font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro";
+
 export default async function PaginaAdminPedidos({
   searchParams,
 }: {
-  searchParams: Promise<{ aviso?: string }>;
+  searchParams: Promise<{ aviso?: string; filtro?: string }>;
 }) {
-  const { aviso } = await searchParams;
+  const { aviso, filtro = "abertos" } = await searchParams;
   if (!adminConfigurado()) {
     return (
       <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
@@ -93,8 +214,11 @@ export default async function PaginaAdminPedidos({
     );
   }
 
-  const linhas = await comSituacao(await listarRegistros(200));
-  const total = linhas.reduce((s, l) => s + l.r.total, 0);
+  const todos = await listarRegistros(200);
+  const contagem = Object.fromEntries(FILTROS.map((f) => [f.id, todos.filter(f.casa).length]));
+  const doFiltro = todos.filter((FILTROS.find((f) => f.id === filtro) ?? FILTROS[0]).casa);
+  const linhas = await comSituacao(doFiltro);
+  const total = todos.filter((r) => !cancelado(r)).reduce((s, r) => s + r.total, 0);
   const emailLigado = emailConfigurado();
   const notaLigada = process.env.BLING_EMITIR_NFE === "1";
 
@@ -105,16 +229,35 @@ export default async function PaginaAdminPedidos({
         <div>
           <h1 className="font-display text-3xl font-extrabold">Pedidos do site</h1>
           <p className="mt-1 text-texto-suave">
-            {linhas.length} {linhas.length === 1 ? "pedido" : "pedidos"} · {formatarReais(total)} pagos pelo site
+            {todos.length} {todos.length === 1 ? "pedido" : "pedidos"} · {formatarReais(total)} pagos pelo site (sem os cancelados)
           </p>
         </div>
       </div>
 
       <p className="mt-4 rounded-xl bg-superficie px-4 py-3 text-sm text-texto-suave">
-        Mudar situação, separar, emitir nota e etiqueta: no Bling (botão em cada pedido). E-mail de
-        confirmação: <strong>{emailLigado ? "ligado" : "desligado"}</strong> · Nota fiscal automática:{" "}
-        <strong>{notaLigada ? "ligada" : "desligada"}</strong>.
+        Produção, postagem, entrega/retirada e cancelamento: aqui — o site atualiza o Bling e avisa o cliente.
+        Etiqueta: no Melhor Envio. E-mails: <strong>{emailLigado ? "ligados" : "desligados"}</strong> · Nota fiscal
+        automática: <strong>{notaLigada ? "ligada" : "desligada"}</strong>.
       </p>
+
+      <nav className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar pedidos">
+        {FILTROS.map((f) => (
+          <a
+            key={f.id}
+            href={`/admin/pedidos?filtro=${f.id}`}
+            aria-current={filtro === f.id ? "page" : undefined}
+            className={filtro === f.id ? BOTAO_FORTE : BOTAO}
+          >
+            {f.rotulo} ({contagem[f.id]})
+          </a>
+        ))}
+      </nav>
+
+      {aviso === "confirmar-cancelamento" && (
+        <p role="alert" className="mt-4 rounded-xl border border-red-500 px-4 py-3 text-sm font-semibold text-red-500">
+          Para cancelar, marque &quot;Confirmo&quot; — o estorno do dinheiro não se desfaz.
+        </p>
+      )}
 
       {aviso === "rastreio-invalido" && (
         <p role="alert" className="mt-4 rounded-xl border border-red-500 px-4 py-3 text-sm font-semibold text-red-500">
@@ -123,7 +266,7 @@ export default async function PaginaAdminPedidos({
       )}
 
       {linhas.length === 0 ? (
-        <p className="mt-10 text-texto-suave">Nenhum pedido registrado ainda.</p>
+        <p className="mt-10 text-texto-suave">Nenhum pedido nesta aba.</p>
       ) : (
         <ul className="mt-8 space-y-4">
           {linhas.map(({ r, situacao }) => {
@@ -132,10 +275,11 @@ export default async function PaginaAdminPedidos({
               (emailLigado && (!r.email?.feitoEm || !r.emailLoja?.feitoEm)) ||
               (notaLigada && (!r.nfe?.feitoEm || (emailLigado && !r.emailNota?.feitoEm)));
             return (
-              <li key={r.ref} className="rounded-2xl border border-borda bg-superficie p-5">
+              <li key={r.ref} id={r.ref} className="scroll-mt-24 rounded-2xl border border-borda bg-superficie p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-mono font-bold">{r.ref}</p>
+                    <p className="text-sm font-semibold text-[var(--destaque-texto)]">{etapaDoPedido(r)}</p>
                     <p className="text-sm text-texto-suave">
                       {dataLocal(r.criadoEm)} · {r.cliente.nome} · {r.cliente.email}
                     </p>
@@ -165,7 +309,16 @@ export default async function PaginaAdminPedidos({
                   )}
                 </ul>
 
-                {r.estorno && (
+                {r.cancelamento?.solicitadoEm && !cancelado(r) && (
+                  <p className="mt-3 rounded-xl border border-orange-500 px-4 py-2 text-sm font-semibold text-orange-600">
+                    O cliente pediu cancelamento em {dataLocal(r.cancelamento.solicitadoEm)}
+                    {r.cancelamento.motivo ? ` — "${r.cancelamento.motivo}"` : ""}. Aprovar: &quot;Cancelar e estornar&quot; abaixo.
+                  </p>
+                )}
+
+                {r.cancelamento?.estornoMp && <BlocoCancelamento r={r} />}
+
+                {r.estorno && !r.cancelamento?.estornoMp?.feitoEm && (
                   <p className="mt-3 rounded-xl border border-red-500 px-4 py-2 text-sm font-semibold text-red-500">
                     Pagamento {rotuloEstorno(r.estorno.status)} em {dataLocal(r.estorno.detectadoEm)}. Cancelar no Bling,
                     devolver o estoque e ver a nota com o Glauco.{" "}
@@ -209,7 +362,9 @@ export default async function PaginaAdminPedidos({
                   )}
                 </div>
 
-                {!r.entrega.retirada && !r.estorno && (
+                {!cancelado(r) && <AcoesDoPedido r={r} />}
+
+                {!r.entrega.retirada && !cancelado(r) && !r.conclusao && (
                   <form action={avisarPostagem} className="mt-3 flex flex-wrap items-center gap-2 border-t border-borda pt-3 text-sm">
                     <input type="hidden" name="ref" value={r.ref} />
                     <label className="font-semibold" htmlFor={`rastreio-${r.ref}`}>

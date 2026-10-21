@@ -46,7 +46,33 @@ export type RegistroPedido = {
    */
   estorno?: { status: string; detectadoEm: string; avisoLoja?: Etapa };
   /** Postagem informada na área de controle e aviso "postamos" ao cliente. */
-  envio?: { codigo: string; transportadora: string; postadoEm: string; email?: Etapa };
+  envio?: { codigo: string; transportadora: string; postadoEm: string; email?: Etapa; bling?: Etapa };
+  /**
+   * Peça sob encomenda que começou a ser feita (área de controle). Personalizada
+   * em produção não se cancela; sem personalização, até 3 dias (21/10/2026).
+   */
+  producao?: { iniciadaEm: string; personalizado: boolean; email?: Etapa };
+  /** Fim do pós-venda: entregue pela transportadora/em mãos ou retirado no ateliê. */
+  conclusao?: { tipo: "entregue" | "retirado"; em: string; bling?: Etapa };
+  /**
+   * Cancelamento pedido pelo cliente (página do pedido) e/ou feito pela loja
+   * (área de controle). Cada etapa guarda o que já foi feito: refazer não
+   * estorna nem devolve estoque duas vezes.
+   */
+  cancelamento?: {
+    solicitadoEm?: string;
+    motivo?: string;
+    origem: "cliente" | "loja";
+    avisoLoja?: Etapa;
+    confirmacaoCliente?: Etapa;
+    concluidoEm?: string;
+    estornoMp?: Etapa;
+    estoqueBling?: Etapa;
+    pedidoBling?: Etapa;
+    /** NF-e: cancelar no Bling (até 24 h) ou nota de devolução com o Glauco. */
+    nota?: { acao: "sem-nota" | "cancelar-no-bling" | "devolucao-com-glauco"; resolvidaEm?: string };
+    emailCliente?: Etapa;
+  };
 };
 
 const FORMATO_REF = /^KMB-\d{8}-[0-9A-F]{6}$/;

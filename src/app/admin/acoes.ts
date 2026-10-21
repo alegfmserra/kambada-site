@@ -24,6 +24,14 @@ import {
   TRANSPORTADORAS,
 } from "@/lib/email/posVenda";
 import { atualizarRegistro, lerRegistro } from "@/lib/pedidos/registro";
+import {
+  cancelarPedido,
+  concluirPedido,
+  desfazerConclusao,
+  iniciarProducao,
+  marcarNotaResolvida,
+  marcarPostagemNoBling,
+} from "@/lib/pedidos/posVendaLoja";
 import { EMAILS } from "@/lib/site";
 import {
   FORMATO_CODIGO,
@@ -115,8 +123,62 @@ export async function avisarPostagem(formulario: FormData): Promise<void> {
     }
   }
   await atualizarRegistro(ref, { envio: { codigo, transportadora, postadoEm: new Date().toISOString(), email } });
+  await marcarPostagemNoBling(ref).catch(() => undefined);
   revalidatePath("/admin/pedidos");
   redirect("/admin/pedidos");
+}
+
+// ---------------------------------------------------------------------------
+// Produção, entrega/retirada e cancelamento (21/10/2026)
+// ---------------------------------------------------------------------------
+
+async function refDoFormulario(formulario: FormData): Promise<string> {
+  if (!sessaoValida((await cookies()).get(COOKIE_ADMIN)?.value)) redirect("/admin/pedidos");
+  const ref = String(formulario.get("ref") ?? "");
+  if (!/^KMB-\d{8}-[0-9A-F]{6}$/.test(ref)) redirect("/admin/pedidos");
+  return ref;
+}
+
+async function voltar(ref: string, aviso?: string): Promise<never> {
+  revalidatePath("/admin/pedidos");
+  redirect(`/admin/pedidos${aviso ? `?aviso=${aviso}` : ""}#${ref}`);
+}
+
+export async function marcarProducao(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  await iniciarProducao(ref, formulario.get("personalizado") === "on");
+  await voltar(ref);
+}
+
+export async function marcarConclusao(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  const tipo = formulario.get("tipo") === "retirado" ? "retirado" : "entregue";
+  await concluirPedido(ref, tipo);
+  await voltar(ref);
+}
+
+export async function desfazerConclusaoPedido(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  await desfazerConclusao(ref);
+  await voltar(ref);
+}
+
+/** Exige marcar "confirmo": estorno de dinheiro não se desfaz. */
+export async function cancelarEEstornar(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  if (formulario.get("confirmo") !== "on") await voltar(ref, "confirmar-cancelamento");
+  try {
+    await cancelarPedido(ref);
+  } catch (e) {
+    console.error("[admin] cancelar:", e instanceof Error ? e.message : e);
+  }
+  await voltar(ref);
+}
+
+export async function notaResolvida(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  await marcarNotaResolvida(ref);
+  await voltar(ref);
 }
 
 // ---------------------------------------------------------------------------

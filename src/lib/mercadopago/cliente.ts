@@ -183,6 +183,18 @@ export async function buscarPagamento(id: string | number): Promise<Pagamento> {
 }
 
 /**
+ * Devolve o pagamento inteiro ao cliente (cancelamento pela área de controle).
+ * A chave de idempotência é o pedido: clicar duas vezes não estorna duas vezes.
+ */
+export async function estornarPagamento(id: string | number, chave: string): Promise<{ id?: number; status?: string }> {
+  return chamar(`/v1/payments/${encodeURIComponent(String(id))}/refunds`, {
+    method: "POST",
+    body: "{}",
+    headers: { "X-Idempotency-Key": chave },
+  });
+}
+
+/**
  * Pagamentos de um pedido nosso, do mais recente para o mais antigo. Um
  * pedido pode ter mais de um (cartão recusado e depois Pix aprovado).
  */

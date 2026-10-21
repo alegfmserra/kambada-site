@@ -7,6 +7,7 @@
  * e-mail de outra pessoa e veria os pedidos dela.
  */
 
+import { etapaDoPedido } from "../pedidos/cancelamento";
 import type { RegistroPedido } from "../pedidos/registro";
 
 export type ResumoPedido = {
@@ -23,12 +24,7 @@ function normalizar(email: string): string {
   return email.trim().toLowerCase();
 }
 
-export function situacaoDoPedido(r: RegistroPedido): string {
-  if (r.estorno) return "Pagamento devolvido ou cancelado";
-  if (r.envio) return `Postado em ${new Date(r.envio.postadoEm).toLocaleDateString("pt-BR", { timeZone: "America/Fortaleza" })}`;
-  if (r.entrega.retirada) return "Pago · retirada no ateliê";
-  return "Pago · em preparação";
-}
+export const situacaoDoPedido = etapaDoPedido;
 
 export function pedidosDaConta(
   registros: RegistroPedido[],

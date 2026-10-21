@@ -14,6 +14,7 @@
 import { chamarBling } from "../bling/cliente";
 import { buscarPedidoPorNumeroLoja, numeroLojaDe } from "../bling/pedidos";
 import { buscarPagamento, buscarPagamentosDoPedido, type Pagamento } from "../mercadopago/cliente";
+import { avaliarCancelamento, etapaDoPedido } from "../pedidos/cancelamento";
 import { lerRegistro } from "../pedidos/registro";
 import { lerRetrato } from "./pedido";
 
@@ -60,6 +61,8 @@ export type Acompanhamento = {
   total: number;
   pagamento: { texto: string; tom: "ok" | "espera" | "problema"; aprovado: boolean };
   pedido: { situacao: string; rastreios: { servico?: string; codigo: string }[] } | null;
+  /** Só para pedidos com registro (a partir de 08/10/2026): etapa e se dá para cancelar. */
+  posVenda?: { etapa: string; podeCancelar: boolean; motivoNaoPode?: string; cancelamentoSolicitado: boolean };
 };
 
 type PedidoBling = {
@@ -120,7 +123,19 @@ export async function acompanharPedido(
       .map(normalizarEmail);
     if (!emails.includes(email)) return null;
     const aprovado = pagamento.status === "approved";
+    const noBling = aprovado ? await situacaoNoBlingSegura(registro.bling.idPedido) : null;
+    // Rastreio informado na área de controle também aparece aqui, não só o do Bling.
+    if (noBling && registro.envio && !noBling.rastreios.some((x) => x.codigo === registro.envio?.codigo)) {
+      noBling.rastreios.push({ servico: registro.envio.transportadora, codigo: registro.envio.codigo });
+    }
+    const avaliacao = avaliarCancelamento(registro);
     return {
+      posVenda: {
+        etapa: etapaDoPedido(registro),
+        podeCancelar: aprovado && avaliacao.pode && !registro.cancelamento?.solicitadoEm,
+        motivoNaoPode: avaliacao.pode ? undefined : avaliacao.motivo,
+        cancelamentoSolicitado: Boolean(registro.cancelamento?.solicitadoEm),
+      },
       ref,
       feitoEm: registro.criadoEm,
       itens: registro.itens.map((i) => ({ nome: i.nome, quantidade: i.quantidade, preco: i.preco })),
@@ -131,7 +146,7 @@ export async function acompanharPedido(
       },
       total: registro.total,
       pagamento: { ...situacaoDoPagamento(pagamento.status), aprovado },
-      pedido: aprovado ? await situacaoNoBlingSegura(registro.bling.idPedido) : null,
+      pedido: noBling,
     };
   }
 

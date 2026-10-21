@@ -419,6 +419,11 @@ export async function montarDoBling(): Promise<Catalogo> {
     const menor = Math.min(...precos);
     const maior = Math.max(...precos);
     const opcoes = opcoesDoProduto(p, filhos, saldos);
+    const quantidade = filhos.length
+      ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
+      : (saldos.get(p.id) ?? 0);
+    // Feita por encomenda: matracas (10/10) e Placa Retangular (20/10) — vendem com saldo zero.
+    const sobEncomenda = categoria === "matracas" || /^placa de madeira retangular/i.test(p.nome);
 
     produtos.push({
       slug: paraSlug(`${p.nome}-${p.id}`),
@@ -432,13 +437,13 @@ export async function montarDoBling(): Promise<Catalogo> {
       // A descrição mora no Bling (campo "descrição curta"): uma fonte só para
       // site e Mercado Livre. Vazia enquanto não for escrita lá.
       descricao: limparDescricao(p.descricaoCurta),
-      quantidade: filhos.length
-        ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
-        : (saldos.get(p.id) ?? 0),
+      quantidade,
       idBling: p.id,
       opcoes,
-      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || undefined,
-      sobEncomenda: categoria === "matracas" || undefined,
+      // Esgotado sai da vitrine, das categorias e do Google (regra do Alexandre, 20/10/2026);
+      // pelo link direto a página segue mostrando "Esgotado" e o "me avise quando voltar".
+      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || (quantidade <= 0 && !sobEncomenda) || undefined,
+      sobEncomenda: sobEncomenda || undefined,
     });
   }
 

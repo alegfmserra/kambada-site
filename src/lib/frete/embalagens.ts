@@ -112,6 +112,8 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
       return null;
     case "decoracao":
       if (/placa.*redonda/.test(nome)) return E.placaRedonda;
+      // Puxador + parafuso (item à parte, 20/10/2026): envelope pequeno, como o bloquinho — PROVISÓRIO até ter ficha.
+      if (/puxador/.test(nome)) return E.bloquinho;
       if (/placa.*ret/.test(nome)) return E.placaRetangular;
       // Mandala: a ficha diz "não temos caixa nesse tamanho". Placa Grande:
       // sem ficha. Ambas ficam no WhatsApp até ter medida real.
@@ -123,7 +125,10 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
       if (/produto teste/.test(nome)) return E.lapis;
       if (/caneta/.test(nome)) return E.caneta;
       if (/bloco|bloquinho/.test(nome)) return E.bloquinho;
-      // Livros, joguinhos e Kambada Goods: sem ficha de embalagem.
+      // Livro Vermelho entra no site (20/10/2026): PROVISÓRIO com a embalagem do kit de anotação
+      // (maior que o livro — o frete sai um pouco acima, nunca abaixo) até ter a medida real.
+      if (/^livro vermelho/.test(nome)) return E.kitAnotacao;
+      // Livro Trilíngue, joguinhos e Kambada Goods: sem ficha de embalagem.
       return null;
     default:
       return null;

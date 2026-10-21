@@ -20,6 +20,7 @@
 
 import type { Foto } from "./fotos";
 import { FOTOS } from "./fotos";
+import { prazoDeProducao } from "./loja/prazos";
 
 export type Categoria = {
   slug: string;
@@ -610,7 +611,10 @@ export function disponibilidade(produto: Produto): {
   texto: string;
   disponivel: boolean;
 } {
-  if (produto.sobEncomenda) return { texto: "Feita por encomenda · 3 a 7 dias", disponivel: true };
+  if (produto.sobEncomenda) {
+    const p = prazoDeProducao(produto);
+    return { texto: `Feita por encomenda · ${p.min} a ${p.max} dias`, disponivel: true };
+  }
   if (produto.quantidade <= 0) return { texto: "Esgotado", disponivel: false };
   if (produto.quantidade <= 5)
     return { texto: "Últimas unidades", disponivel: true };

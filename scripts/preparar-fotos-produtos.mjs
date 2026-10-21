@@ -232,6 +232,19 @@ GALERIA[16701503321] = [PL, [`${W}placa-coreiro.jpg`, `${W}detalhe-placa-coreira
 delete FOTOS[16701503257];
 delete GALERIA[16701503257];
 
+// ── Fotos pendentes (Alexandre, 20/10/2026 — pasta "Fotos Site - Pendencias", nomeadas pelo produto) ──
+const PD = "Kambada_2026-10-20-pendencias";
+FOTOS[16701503083] = [PD, "Blocos de Anotacao - R$ 17,00.jpeg", "Bloco Anotação Caderninho Ecológico (R$ 17)"];
+GALERIA[16701503083] = [PD, ["WhatsApp Image 2026-10-20 at 22.57.44 (1).jpeg"]];
+FOTOS[16689786870] = [PD, "Bloquinho - R$ 9,00 - 1.jpeg", "Bloquinho (R$ 9)"];
+GALERIA[16689786870] = [PD, ["Bloquinho - R$ 9,00 - 2.jpeg", "Bloquinho - R$ 9,00 - 3.jpeg"]];
+FOTOS[16701502720] = [PD, "Canetas Ecologicas Kambada.jpeg", "Canetas Ecológicas"];
+FOTOS[16701502913] = [PD, "Chaveiro Kambadinha - Preto.jpeg", "Chaveiro Kambadinha (preto)"];
+GALERIA[16701502913] = [PD, ["Chaveiro Kambadinha - Amarelo.jpeg"]];
+FOTOS[16701478191] = [PD, "necessaire_guaras_01.jpg", "Necessaire Guarás"];
+// Prévia JPEG tirada do RAW (.ARW) da câmera e girada para ficar em pé.
+FOTOS[16698808484] = [PD, "Camisa Bumba meu Boi Infantil - em pe.jpg", "Camisa Bumba Meu Boi Infantil"];
+
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;
 

@@ -17,6 +17,7 @@ import { listarCupons } from "../cupons/cupons";
 import { escaparHtml } from "../email/confirmacao";
 import { emailConfigurado, emailDaLoja, enviarEmail } from "../email/enviar";
 import { listarRegistros, type RegistroPedido } from "../pedidos/registro";
+import { liberar, pastaDeDadosPresente, reservar } from "./reserva";
 
 const FUSO = "America/Fortaleza";
 
@@ -131,6 +132,19 @@ export async function enviarResumoDiario(opcoes: { forcar?: boolean; agora?: Dat
   const estado = await lerEstado();
   if (!opcoes.forcar && estado.ultimoResumo === dia) return { dia, pedidos: 0, total: 0, enviado: false, motivo: "já enviado" };
   if (!emailConfigurado()) return { dia, pedidos: 0, total: 0, enviado: false, motivo: "e-mail não configurado" };
+  if (!pastaDeDadosPresente()) return { dia, pedidos: 0, total: 0, enviado: false, motivo: "pasta de dados ausente neste processo" };
+  // Mais de um processo de pé (20/10/2026): só quem ganhar a reserva manda.
+  const reserva = `resumo-${dia}`;
+  if (!opcoes.forcar && !(await reservar(reserva))) return { dia, pedidos: 0, total: 0, enviado: false, motivo: "já enviado" };
+  try {
+    return await montarEEnviar(dia, estado);
+  } catch (e) {
+    if (!opcoes.forcar) await liberar(reserva).catch(() => undefined);
+    throw e;
+  }
+}
+
+async function montarEEnviar(dia: string, estado: Estado): Promise<ResumoEnviado> {
 
   const [registros, cupons] = await Promise.all([listarRegistros(5000), listarCupons()]);
   const doDia = pedidosDoDia(registros, dia).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));

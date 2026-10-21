@@ -12,6 +12,7 @@ import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 import { emailConfigurado, emailDaLoja, enviarEmail } from "../email/enviar";
 import { escaparHtml } from "../email/confirmacao";
+import { liberar, pastaDeDadosPresente, reservar } from "./reserva";
 
 const SILENCIO_MS = 6 * 60 * 60 * 1000;
 
@@ -45,9 +46,16 @@ export async function alertar(chave: string, assunto: string, corpo: string): Pr
     console.error(`[alerta sem e-mail] ${assunto}\n${corpo}`);
     return "sem_email";
   }
+  if (!pastaDeDadosPresente()) {
+    console.error(`[alerta] processo sem a pasta de dados (sobra de deploy antigo?) — não envio: ${assunto}`);
+    return "silenciado";
+  }
   const ultimos = await lerUltimos();
   const agora = Date.now();
   if (ultimos[chave] && agora - ultimos[chave] < SILENCIO_MS) return "silenciado";
+  // Dois processos podem passar juntos pela conferência acima: só um envia.
+  const reserva = `alerta-${chave}-${Math.floor(agora / SILENCIO_MS)}`;
+  if (!(await reservar(reserva))) return "silenciado";
   try {
     await enviarEmail({
       para: emailDaLoja(),
@@ -61,6 +69,7 @@ export async function alertar(chave: string, assunto: string, corpo: string): Pr
     return "enviado";
   } catch (e) {
     console.error("[alerta] falhou ao enviar:", e instanceof Error ? e.message : e);
+    await liberar(reserva).catch(() => undefined);
     return "falhou";
   }
 }

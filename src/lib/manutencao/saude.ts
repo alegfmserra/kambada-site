@@ -65,8 +65,22 @@ async function bling(): Promise<Saude["bling"]> {
 
 async function melhorEnvio(): Promise<Item> {
   if (!freteConfigurado()) return { ok: false, detalhe: "MELHORENVIO_TOKEN ausente" };
-  const r = await conferirMelhorEnvio();
-  return r.ok ? { ok: true, detalhe: `conta ${r.conta}` } : { ok: false, detalhe: `HTTP ${r.status} — token vencido ou inválido; gerar novo no painel do Melhor Envio` };
+  let r = await conferirMelhorEnvio();
+  // Sem resposta (HTTP 0) ou erro do lado deles é quase sempre um soluço: o
+  // alerta de 21/10/2026 00:05 foi isso, e 1 min depois respondia. Confere de
+  // novo antes de acusar.
+  if (!r.ok && (r.status === 0 || r.status >= 500)) {
+    await new Promise((ok) => setTimeout(ok, 20_000));
+    r = await conferirMelhorEnvio();
+  }
+  if (r.ok) return { ok: true, detalhe: `conta ${r.conta}` };
+  if (r.status === 401 || r.status === 403) {
+    return { ok: false, detalhe: `HTTP ${r.status} — token vencido ou inválido; gerar novo no painel do Melhor Envio e colar em MELHORENVIO_TOKEN na Hostinger` };
+  }
+  return {
+    ok: false,
+    detalhe: `${r.status === 0 ? "sem resposta" : `HTTP ${r.status}`} do Melhor Envio em duas tentativas — instabilidade deles ou da rede, não do token. O site confere de novo em 6 h; testar a cotação no carrinho`,
+  };
 }
 
 async function mercadoPago(): Promise<Item> {
@@ -165,7 +179,7 @@ export async function rotinaDeManutencao(
   const url = (process.env.URL_DO_SITE ?? "https://somoskambada.com.br").replace(/\/+$/, "");
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
-  if (!s.melhorEnvio.ok) alertas.melhorEnvio = await alertar("melhor-envio", "Melhor Envio fora", `${s.melhorEnvio.detalhe}\n\nSem ele, o cliente de fora de São Luís só vê a retirada no ateliê. Gerar token novo no painel do Melhor Envio e colar em MELHORENVIO_TOKEN na Hostinger.`);
+  if (!s.melhorEnvio.ok) alertas.melhorEnvio = await alertar("melhor-envio", "Melhor Envio fora", `${s.melhorEnvio.detalhe}.\n\nEnquanto durar, o carrinho só oferece a retirada no ateliê.`);
   if (!s.mercadoPago.ok) alertas.mercadoPago = await alertar("mercado-pago", "Mercado Pago com credencial inválida", `${s.mercadoPago.detalhe}\n\nSem ele, ninguém consegue pagar.`);
   if (!s.email.ok) alertas.email = await alertar("smtp", "E-mail da loja não autentica", s.email.detalhe);
   if (!s.pedidosComFalha.ok && s.pedidosComFalha.refs.length) {

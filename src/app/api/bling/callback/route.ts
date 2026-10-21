@@ -29,7 +29,7 @@ export async function GET(requisicao: Request) {
   if (!esperado || esperado !== state) {
     // Sem isso, um link forjado poderia conectar a loja a outra conta.
     return pagina(
-      "O código de verificação não confere. Comece de novo por /api/bling/autorizar.",
+      "O código de verificação não confere. Comece de novo por /api/bling/autorizar?token=(senha de manutenção).",
       false,
     );
   }

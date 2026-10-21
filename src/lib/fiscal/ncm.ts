@@ -28,10 +28,13 @@ export function ncmDoProduto(nomeBruto: string): RegraNcm | null {
       : { ncm: "61091000", fonte: "NF 25 — Camiseta 100% algodão (adulto e infantil)" };
   }
   if (n.startsWith("ecobag")) {
+    // Bolsa de tecido para compras: 4202.22.20 (IPI 6,5 %) no lugar de 6305.20.00
+    // (sacos de embalagem, IPI 9,75 %) — orientação do Glauco ao Alexandre em
+    // 20/10/2026: entre os NCMs que cabem, o de menor tributação.
     return {
-      ncm: "63052000",
-      fonte: "NF 26 — Ecobag Grande / Mini",
-      alerta: "A NF 2 (2023) usou 42021220; a 26 (2026) usou 63052000 — segui a mais recente.",
+      ncm: "42022220",
+      fonte: "Glauco/Alexandre 20/10/2026 — bolsa de matéria têxtil",
+      alerta: "As NF 2 e 26 usaram 42021220 e 63052000.",
     };
   }
   if (n.startsWith("necessaire")) return { ncm: "42029200", fonte: "NF 26 — Necessaires" };
@@ -53,8 +56,13 @@ export function ncmDoProduto(nomeBruto: string): RegraNcm | null {
   if (/^bloquinho|^joguinhos|kambada goods|livrinho/.test(n)) {
     return { ncm: "48202000", fonte: "NF 27 — Bloquinho / Livrinho Kambada Goods" };
   }
+  // Livro de histórias (texto com os personagens): 4901.99.00, livro imune.
+  // Vendido em consignação — CFOP de venda de consignado fica com o Glauco.
+  if (/^livro vermelho/.test(n)) return { ncm: "49019900", fonte: "Alexandre 20/10/2026 — livro infantil de histórias" };
   if (/^lapis/.test(n)) return { ncm: "44209000", fonte: "NF 27 — Lápis Ecológico Plantável" };
   if (/^caneta/.test(n)) return { ncm: "44209000", fonte: "NF 27 — Caneta Ecológica" };
+  // Puxador: peça de madeira com um parafuso — "outras obras de madeira" (20/10/2026).
+  if (/puxador/.test(n)) return { ncm: "44219900", fonte: "Alexandre 20/10/2026 — obra de madeira (puxador + parafuso)" };
   if (/^placa|^mandala/.test(n)) return { ncm: "44209000", fonte: "NF 27 — Placas e Mandala" };
   if (/^porta-?chave/.test(n)) {
     return {

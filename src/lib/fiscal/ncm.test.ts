@@ -5,7 +5,7 @@ describe("NCM pelas notas já emitidas", () => {
   it("cada tipo de peça recebe o NCM que saiu nas NF-e da Kambada", () => {
     expect(ncmDoProduto("Camisa Cazumbá")?.ncm).toBe("61091000");
     expect(ncmDoProduto("Camisa Revoada dos Guarás Suede Unissex")?.ncm).toBe("61099000");
-    expect(ncmDoProduto("Ecobag Carcará")?.ncm).toBe("63052000");
+    expect(ncmDoProduto("Ecobag Carcará")?.ncm).toBe("42022220");
     expect(ncmDoProduto("Necessaire Guarás")?.ncm).toBe("42029200");
     expect(ncmDoProduto("Pareô Mosaico")?.ncm).toBe("62149010");
     expect(ncmDoProduto("Lápis Plantável")?.ncm).toBe("44209000");
@@ -30,5 +30,13 @@ describe("chaveiros: Kambadinha (3D, plástico) × pinus (madeira)", () => {
   it("cada um com o seu NCM", () => {
     expect(ncmDoProduto("Chaveiros Kambadinha")?.ncm).toBe("39269090");
     expect(ncmDoProduto("Chaveiros em Madeira Pinus")?.ncm).toBe("44219900");
+  });
+});
+
+describe("NCM revisto em 20/10/2026", () => {
+  it("puxador é obra de madeira e livro de histórias é 4901", () => {
+    expect(ncmDoProduto("Placa de Madeira - Parafuso e Puxador")?.ncm).toBe("44219900");
+    expect(ncmDoProduto("Livro Vermelho (Historinha)")?.ncm).toBe("49019900");
+    expect(ncmDoProduto("Matraca Kambada Play")?.ncm).toBe("44201100");
   });
 });

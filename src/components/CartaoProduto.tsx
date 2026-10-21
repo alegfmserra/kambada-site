@@ -3,6 +3,39 @@ import Link from "next/link";
 import type { Produto } from "@/lib/catalogo";
 import { disponibilidade, precoExibido } from "@/lib/catalogo";
 import { fotoDoProduto } from "@/lib/fotoDoProduto";
+import { eixosDasOpcoes } from "@/lib/loja/seletorDuplo";
+
+/** Até quantas opções o cartão mostra como quadrinhos; acima disso, só o resumo. */
+const MAXIMO_DE_QUADRINHOS = 6;
+
+/**
+ * As opções no cartão da vitrine, sem textão (Alexandre, 21/10/2026): a matraca
+ * listava as 56 combinações estampa × suporte por extenso. Agora, produto com
+ * dois eixos mostra só "14 estampas · 4 suportes"; lista curta vira
+ * quadrinhos; lista longa, "N opções". A escolha em si fica na página da peça.
+ */
+function ResumoDasOpcoes({ produto }: { produto: Produto }) {
+  const eixos = eixosDasOpcoes(produto.opcoes ?? []);
+  if (eixos) {
+    return (
+      <p className="mt-2 flex-1 text-sm text-texto-suave">
+        {eixos.map((e) => `${e.valores.length} ${e.valores.length === 1 ? e.chave : `${e.chave}s`}`).join(" · ")}
+      </p>
+    );
+  }
+  if (produto.variacoes.length > MAXIMO_DE_QUADRINHOS) {
+    return <p className="mt-2 flex-1 text-sm text-texto-suave">{produto.variacoes.length} opções</p>;
+  }
+  return (
+    <ul className="mt-2 flex flex-1 flex-wrap content-start gap-1.5" aria-label="Opções disponíveis">
+      {produto.variacoes.map((v) => (
+        <li key={v} className="rounded-md border border-borda px-2 py-0.5 text-xs text-texto-suave">
+          {v}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function CartaoProduto({ produto }: { produto: Produto }) {
   const estoque = disponibilidade(produto);
@@ -46,10 +79,7 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
         </Link>
       </h3>
 
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-texto-suave">
-        <span className="sr-only">Opções disponíveis: </span>
-        {produto.variacoes.join(" · ")}
-      </p>
+      <ResumoDasOpcoes produto={produto} />
 
       <p className="mt-4 font-display text-xl font-bold">
         {precoExibido(produto)}

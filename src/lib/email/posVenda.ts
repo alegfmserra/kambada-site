@@ -289,3 +289,31 @@ ${botao(pesquisa, "Avaliar minha experiência")}
       ),
   };
 }
+
+/** Ao cliente: pedido com retirada está pronto no ateliê. */
+export function mensagemProntoParaRetirada(r: RegistroPedido, endereco: string, linkWhatsApp: string): Mensagem {
+  const e = escaparHtml;
+  return {
+    assunto: `Seu pedido ${r.ref} está pronto para retirada! 🛍️`,
+    texto: [
+      `Olá, ${primeiroNome(r)}!`,
+      "",
+      `Seu pedido ${r.ref} está pronto e esperando por você no nosso ateliê:`,
+      endereco,
+      "",
+      `Combine o dia e o horário pelo WhatsApp antes de vir: ${linkWhatsApp}`,
+      "",
+      "Kambada — São Luís, MA",
+    ].join("\n"),
+    html: (cid) =>
+      moldura(
+        `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
+<p style="margin:0 0 16px;font-size:20px;font-weight:bold">Seu pedido está pronto para retirada. 🛍️</p>
+<p style="margin:0 0 6px">Pedido <strong>${e(r.ref)}</strong>, no nosso ateliê:</p>
+<p style="margin:0 0 18px;font-weight:bold">${e(endereco)}</p>
+${botao(linkWhatsApp, "Combinar horário no WhatsApp")}
+<p style="margin:0;color:#6b6460">Combine o dia e o horário antes de vir, para alguém estar lá para te receber.</p>`,
+        cid,
+      ),
+  };
+}

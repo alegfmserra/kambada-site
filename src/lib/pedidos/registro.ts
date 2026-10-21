@@ -88,6 +88,8 @@ export type RegistroPedido = {
    * produção iniciada o pedido não se cancela mais (21/10/2026).
    */
   producao?: { iniciadaEm: string; personalizado: boolean; email?: Etapa };
+  /** Retirada: a loja avisou que o pedido está pronto no ateliê. */
+  prontoParaRetirada?: { em: string; email?: Etapa };
   /** Fim do pós-venda: entregue pela transportadora/em mãos ou retirado no ateliê. */
   conclusao?: { tipo: "entregue" | "retirado"; em: string; bling?: Etapa; email?: Etapa };
   /**

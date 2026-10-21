@@ -18,6 +18,7 @@ import { FORMATO_RASTREIO, normalizarRastreio, TRANSPORTADORAS } from "@/lib/ema
 import { lerRegistro } from "@/lib/pedidos/registro";
 import {
   avisarPostagemAoCliente,
+  avisarProntoParaRetirada,
   cancelarPedido,
   concluirPedido,
   desfazerConclusao,
@@ -156,6 +157,16 @@ export async function marcarConclusao(formulario: FormData): Promise<void> {
   const tipo = formulario.get("tipo") === "retirado" ? "retirado" : "entregue";
   await concluirPedido(ref, tipo);
   await voltar(ref, "concluido", "concluidos");
+}
+
+export async function marcarProntoRetirada(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  try {
+    await avisarProntoParaRetirada(ref);
+  } catch (e) {
+    console.error("[admin] pronto para retirada:", e instanceof Error ? e.message : e);
+  }
+  await voltar(ref, "pronto");
 }
 
 export async function desfazerConclusaoPedido(formulario: FormData): Promise<void> {

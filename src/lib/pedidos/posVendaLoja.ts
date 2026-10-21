@@ -22,12 +22,14 @@ import {
   mensagemConcluido,
   mensagemPedidoCancelado,
   mensagemProducao,
+  mensagemProntoParaRetirada,
   textoEnvio,
   type Mensagem,
 } from "../email/posVenda";
 import { cancelarEtiquetaMe } from "../frete/meApi";
 import { buscarPagamento, estornarPagamento } from "../mercadopago/cliente";
-import { EMAILS } from "../site";
+import { EMAILS, linkWhatsApp } from "../site";
+import { enderecoAtelieEmUmaLinha } from "../loja/enderecoAtelie";
 import { acaoDaNota, avaliarCancelamento } from "./cancelamento";
 import { atualizarRegistro, lerRegistro, type Etapa, type RegistroPedido } from "./registro";
 
@@ -88,6 +90,17 @@ export async function iniciarProducao(ref: string, personalizado: boolean): Prom
   const email = await enviar(r.cliente.email, mensagemProducao(r, personalizado, urlPublica()), { copiaOculta: emailDaLoja() });
   await mudarSituacaoNoBling(r.bling.idPedido, situacoesBling().emAndamento);
   return atualizarRegistro(ref, { producao: { iniciadaEm, personalizado, email } });
+}
+
+/** Retirada: avisa o cliente que está pronto, com o endereço do ateliê e o WhatsApp para combinar. */
+export async function avisarProntoParaRetirada(ref: string): Promise<RegistroPedido | null> {
+  const r = await exigir(ref);
+  if (!r.entrega.retirada) throw new Error("pedido com entrega — use a etiqueta");
+  const link = linkWhatsApp(`Oi! Meu pedido ${r.ref} está pronto — quero combinar a retirada no ateliê.`);
+  const email = await enviar(r.cliente.email, mensagemProntoParaRetirada(r, enderecoAtelieEmUmaLinha(), link), {
+    copiaOculta: emailDaLoja(),
+  });
+  return atualizarRegistro(ref, { prontoParaRetirada: { em: r.prontoParaRetirada?.em ?? agoraIso(), email } });
 }
 
 /** "Entregue" ou "Retirado": encerra o pós-venda e marca "atendido" no Bling. */

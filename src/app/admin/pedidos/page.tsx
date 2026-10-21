@@ -20,6 +20,7 @@ import {
   desfazerConclusaoPedido,
   marcarConclusao,
   marcarProducao,
+  marcarProntoRetirada,
   notaResolvida,
   refazerPendencias,
 } from "../acoes";
@@ -98,6 +99,14 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
           </BotaoComEspera>
         </form>
       )}
+      {r.entrega.retirada && !r.conclusao && (
+        <form action={marcarProntoRetirada}>
+          <input type="hidden" name="ref" value={r.ref} />
+          <BotaoComEspera esperando="Avisando o cliente…" className={BOTAO} title="E-mail ao cliente com o endereço do ateliê e o WhatsApp para combinar o horário">
+            {r.prontoParaRetirada ? `Pronto desde ${dataLocal(r.prontoParaRetirada.em)} · reenviar aviso` : "Pronto para retirada"}
+          </BotaoComEspera>
+        </form>
+      )}
       {r.conclusao ? (
         <form action={desfazerConclusaoPedido} className="flex items-center gap-2">
           <input type="hidden" name="ref" value={r.ref} />
@@ -120,6 +129,28 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
           </BotaoComEspera>
         </form>
       )}
+      <span className="flex flex-wrap items-center gap-1.5 text-xs">
+        <span className="font-semibold">WhatsApp:</span>
+        {[
+          ["geral", "conversa", true],
+          ["producao", "produção", Boolean(r.producao)],
+          ["pronto", "pronto p/ retirar", r.entrega.retirada],
+          ["rastreio", "rastreio", Boolean(r.envio)],
+          ["problema", "problema na entrega", Boolean(r.envio) && !r.conclusao],
+        ]
+          .filter(([, , mostra]) => mostra)
+          .map(([tipo, rotulo]) => (
+            <a
+              key={String(tipo)}
+              href={`/admin/whatsapp?ref=${r.ref}&tipo=${tipo}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-green-600 px-2.5 py-0.5 font-semibold text-green-700 hover:bg-green-600 hover:text-white"
+            >
+              {rotulo}
+            </a>
+          ))}
+      </span>
       {(r.envio || r.conclusao) && (
         <details className="ml-auto">
           <summary className="cursor-pointer text-sm font-semibold text-orange-600">Devolução recebida (arrependimento)</summary>
@@ -345,6 +376,9 @@ function AvisoDaAcao({ aviso, r }: { aviso?: string; r?: RegistroPedido }) {
     texto = ok
       ? `Melhor Envio consultado: ${SITUACAO_ME[r.etiqueta.situacaoMe ?? ""] ?? r.etiqueta.situacaoMe ?? "sem novidade"}${r.envio ? " · cliente já avisado da postagem" : ""}.`
       : `Não consegui consultar o Melhor Envio: ${r.etiqueta.erro}`;
+  } else if (aviso === "pronto" && r.prontoParaRetirada) {
+    ok = Boolean(r.prontoParaRetirada.email?.feitoEm);
+    texto = ok ? `Cliente avisado: pedido ${r.ref} pronto para retirada.` : "Aviso registrado, mas o e-mail ao cliente falhou.";
   } else if (aviso === "devolucao-criada" && r.devolucao) {
     ok = Boolean(r.devolucao.idNota) && !r.devolucao.erro;
     texto = ok

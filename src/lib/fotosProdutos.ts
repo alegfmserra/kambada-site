@@ -574,6 +574,42 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
   "16722498758": {
     "largura": 900,
     "altura": 1200
+  },
+  "16701485938": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701485939": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490748": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490753": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490750": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490705": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490706": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16701490854": {
+    "largura": 900,
+    "altura": 1200
+  },
+  "16722270860": {
+    "largura": 900,
+    "altura": 1200
   }
 };
 
@@ -1202,13 +1238,6 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "altura": 1200
     }
   ],
-  "16701503083": [
-    {
-      "n": 1,
-      "largura": 675,
-      "altura": 1200
-    }
-  ],
   "16689786870": [
     {
       "n": 1,
@@ -1217,6 +1246,36 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 2,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 7,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 8,
       "largura": 900,
       "altura": 1200
     }
@@ -1400,6 +1459,25 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
     },
     {
       "n": 9,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16701490748": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200
+    }
+  ],
+  "16722270860": [
+    {
+      "n": 1,
       "largura": 900,
       "altura": 1200
     }

@@ -337,6 +337,38 @@ GALERIA[16722498711] = [ABS_EST, ["matraca-kambada-mini-dtf--cazumba-colorido.jp
 FOTOS[16722498758] = [ABS_EST, "matraca-kambada-mini--boizinho-perfil--com-suporte.jpg", "pai novo de matraca"];
 GALERIA[16722498758] = [ABS_EST, ["matraca-kambada-mini--bandeira-do-maranhao.jpg","matraca-kambada-mini--boi-do-maranhao.jpg","matraca-kambada-mini--boizinho-estrelado.jpg","matraca-kambada-mini--boizinho-miolo.jpg","matraca-kambada-mini--boizinho-perfil--sem-suporte.jpg","matraca-kambada-mini--cazumbazinho.jpg","matraca-kambada-mini--cazumba-frontal.jpg","matraca-kambada-mini--chapeu-de-fita-bandeira-do-maranhao.jpg","matraca-kambada-mini--miolinho.jpg"]];
 
+// ── Fotos do Alexandre, 21/10/2026 (pasta "Nova pasta" em Downloads → acervo Kambada_2026-10-21-fotos) ──
+//    Bloquinhos: o 16689786870 (era "Bloquinho", R$ 9) vira o caderninho KRAFT de 4 estampas — as fotos dele já
+//    eram do kraft; o 16701503083 vira o de capa impressa (R$ 10) e fica com as fotos que já tinha.
+//    A galeria dele repetia a foto principal (mesma imagem) — saiu.
+const F21 = "Kambada_2026-10-21-fotos";
+delete GALERIA[16701503083];
+FOTOS[16689786870] = [F21, "Bloquinho de Kraft - Brincantes(17,00).jpeg", "Caderninho kraft — Bumba meu Boi (brincantes)"];
+GALERIA[16689786870] = [F21, [
+  "Bloquinho de Kraft - Kazumbá(17,00).jpeg",
+  "Bloquinho de Kraft - Caboclo Pena(17,00).jpeg",
+  "Bloquinho de Kraft - Lendas (17,00).jpeg",
+  "Bloquinho de Kraft Verso - Brincantes (17,00).jpeg",
+  "Bloquinho de Kraft - Kazumbá Verso(17,00).jpeg",
+  "Bloquinho de Kraft Verso - Caboclo Pena(17,00).jpeg",
+  "Bloquinho de Kraft Verso - Lendas (17,00).jpeg",
+  "Bloquinhos de Kraft - Interior Geral (17,00).jpeg",
+]];
+// Carcará: as duas fotos são quase iguais — vai uma só (regra de 18/10: sem foto repetida).
+FOTOS[16701485938] = [F21, "Ecobag Carcará Grande.jpeg", "Ecobag Carcará Grande"];
+FOTOS[16701485939] = [F21, "Ecobag Carcará Grande.jpeg", "Ecobag Carcará · Grande"];
+FOTOS[16701490748] = [F21, "Ecobag Guarás Grande.jpeg", "Ecobag Revoada dos Guarás Grande"];
+GALERIA[16701490748] = [F21, ["Ecobag Guarás Grande 2.jpeg", "Ecobag Guarás  Mini.jpeg"]];
+FOTOS[16701490753] = [F21, "Ecobag Guarás Grande.jpeg", "Ecobag Revoada dos Guarás · Grande"];
+FOTOS[16701490750] = [F21, "Ecobag Guarás  Mini.jpeg", "Ecobag Revoada dos Guarás · Mini"];
+FOTOS[16701490705] = [F21, "Ecobag Tradições 3 Grande.jpeg", "Ecobag Tradição Grande"];
+FOTOS[16701490706] = [F21, "Ecobag Tradições 3 Grande.jpeg", "Ecobag Tradição · Grande"];
+// Serpente: a foto antiga era da Carranca Encantada ("São Luís Ilha Encantada"), que não tem estoque.
+FOTOS[16701490850] = [F21, "Ecobag Serpente em Tons de Azul - Grande.jpeg", "Ecobag Serpente Tons de Azul (no lugar da foto da Carranca)"];
+FOTOS[16701490854] = [F21, "Ecobag Serpente em Tons de Azul - Grande.jpeg", "Ecobag Serpente Tons de Azul · Grande"];
+FOTOS[16722270860] = [F21, "Suporte para Coreira.jpeg", "Puxador - Suporte para Coreira"];
+GALERIA[16722270860] = [F21, ["Suporte Para Coreira em uso.jpeg"]];
+
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;
 

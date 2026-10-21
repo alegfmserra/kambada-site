@@ -127,6 +127,7 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
   "placa-de-madeira-grande": "decoracao",
   "placa-de-madeira-retangular": "decoracao", // a Grande renomeada (Wilzanira, 20/10/2026)
   "placa-de-madeira-parafuso-e-puxador": "decoracao", // fixação vendida à parte (20/10/2026)
+  "puxador-suporte-para-coreira": "decoracao", // o mesmo cadastro, renomeado (Alexandre, 21/10/2026)
   // Produto de teste (centavos) — fica OCULTO da vitrine; ver PRODUTOS_OCULTOS.
   "produto-teste-kambada": "papelaria",
 };

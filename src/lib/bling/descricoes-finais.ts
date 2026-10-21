@@ -361,14 +361,17 @@ export const DESCRICOES: Record<number, string> = {
   ),
 
   // ───────────────── Papelaria ─────────────────
-  16701503083: texto(
-    "Pra anotar o que não pode esquecer: a lista da feira, o verso que veio do nada, o nome de quem a gente conheceu no arraial. Bloquinho de capa kraft com a turma da cultura maranhense — o boi, o Cazumbá, o Caboclo de Pena, a lenda da serpente.",
+  // Kraft de capa ilustrada, 4 estampas (Alexandre, 21/10/2026). Era o cadastro "Bloquinho" (R$ 9) — as fotos
+  // dele já eram do kraft; o texto do kraft estava no cadastro 16701503083, que passou a ser o de capa impressa.
+  16689786870: texto(
+    "Pra anotar o que não pode esquecer: a lista da feira, o verso que veio do nada, o nome de quem a gente conheceu no arraial. Bloquinho de capa kraft com a turma da cultura maranhense — o Bumba meu Boi, o Cazumbá, o Caboclo de Pena e as lendas da Ilha do Amor.",
     "Papel: 40 folhas off set branco, sem pauta.",
     "Medidas: 14 × 10 cm.",
     "Capa: mole, em papel kraft, encadernação costurada.",
-    "Estampas: Boi, Cazumbá, Caboclo de Pena e Lenda da Serpente — você escolhe a estampa.",
+    "Estampas: Bumba meu Boi, Cazumbá, Caboclo de Pena e Ilha do Amor — você escolhe a estampa.",
   ),
-  16689786870: texto(
+  // Capa impressa, R$ 10 (Alexandre, 21/10/2026): o texto que era do "Bloquinho" (16689786870).
+  16701503083: texto(
     "Pequeno, leve, com cara de Maranhão. Pra lista, recado, rabisco e aquele verso que chega sem avisar no meio da tarde. Capa branca com figuras da cultura maranhense.",
     "Papel: 40 folhas off set branco, sem pauta.",
     "Medidas: 14 × 10 cm.",

@@ -479,10 +479,6 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }>
     "largura": 900,
     "altura": 1200
   },
-  "16698780234": {
-    "largura": 900,
-    "altura": 1200
-  },
   "16722500157": {
     "largura": 900,
     "altura": 1200

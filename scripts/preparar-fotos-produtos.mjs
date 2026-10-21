@@ -309,7 +309,6 @@ FOTOS[16722498714] = [ABS_EST, "matraca-kambada-mini-dtf--cazumba-colorido.jpg",
 FOTOS[16722498715] = [ABS_EST, "matraca-kambada-mini-dtf--cazumba-preto.jpg", "matraca-kambada-mini-dtf Cazumbá Preto"];
 FOTOS[16722498716] = [ABS_EST, "matraca-kambada-mini-dtf--miolo-de-boi-colorido.jpg", "matraca-kambada-mini-dtf Miolo de Boi Colorido"];
 FOTOS[16722498718] = [ABS_EST, "matraca-kambada-mini-dtf--miolo-de-boi-preto.jpg", "matraca-kambada-mini-dtf Miolo de Boi Preto"];
-FOTOS[16698780234] = FOTOS[16698778218]; // Boi de Frente = foto atual da Play
 FOTOS[16722500157] = [ABS_EST, "matraca-kambada-play--boi-de-lado.jpg", "Play Boi de Lado"];
 FOTOS[16722497302] = [ABS_PD, "Chaveiro Kambadinha - Amarelo.jpeg", "Chaveiro Kambadinha Amarelo"];
 FOTOS[16722497303] = [ABS_PD, "Chaveiro Kambadinha - Preto.jpeg", "Chaveiro Kambadinha Preto"];

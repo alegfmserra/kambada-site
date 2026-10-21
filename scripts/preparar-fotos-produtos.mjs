@@ -368,6 +368,11 @@ FOTOS[16701490850] = [F21, "Ecobag Serpente em Tons de Azul - Grande.jpeg", "Eco
 FOTOS[16701490854] = [F21, "Ecobag Serpente em Tons de Azul - Grande.jpeg", "Ecobag Serpente Tons de Azul · Grande"];
 FOTOS[16722270860] = [F21, "Suporte para Coreira.jpeg", "Puxador - Suporte para Coreira"];
 GALERIA[16722270860] = [F21, ["Suporte Para Coreira em uso.jpeg"]];
+// Variações do caderninho kraft, criadas em 21/10 pela rota ajustes-2026-10-21 (foto da capa de cada estampa, para o Bling).
+FOTOS[16722783299] = [F21, "Bloquinho de Kraft - Brincantes(17,00).jpeg", "Caderninho kraft · Bumba meu Boi"];
+FOTOS[16722783302] = [F21, "Bloquinho de Kraft - Kazumbá(17,00).jpeg", "Caderninho kraft · Cazumbá"];
+FOTOS[16722783305] = [F21, "Bloquinho de Kraft - Caboclo Pena(17,00).jpeg", "Caderninho kraft · Caboclo de Pena"];
+FOTOS[16722783308] = [F21, "Bloquinho de Kraft - Lendas (17,00).jpeg", "Caderninho kraft · Ilha do Amor"];
 
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;

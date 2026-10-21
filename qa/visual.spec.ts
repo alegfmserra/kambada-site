@@ -35,8 +35,15 @@ for (const pagina of PAGINAS) {
       fullPage: true,
     });
 
-    const logo = page.locator('header img[alt="Kambada"]');
-    await expect(logo).toBeVisible();
+    // O cabeçalho tem duas logos (amarela no escuro, preta no claro) e o CSS
+    // mostra uma só: exatamente uma visível, e a do tema certo.
+    const logo = page.locator('header img[alt="Kambada"]:visible');
+    await expect(logo).toHaveCount(1);
+    const temaClaro = await page.evaluate(() => {
+      const t = document.documentElement.dataset.tema;
+      return t ? t === "claro" : matchMedia("(prefers-color-scheme: light)").matches;
+    });
+    expect(await logo.getAttribute("src")).toContain(temaClaro ? "preto" : "amarelo");
     expect(
       await logo.evaluate((img: HTMLImageElement) => img.naturalWidth),
     ).toBeGreaterThan(0);
@@ -90,6 +97,9 @@ test("o tema alterna, persiste e é capturado no claro", async ({
     () => getComputedStyle(document.body).backgroundColor,
   );
   expect(fundoInicial).toBe("rgb(29, 30, 32)");
+  const logoVisivel = page.locator('header img[alt="Kambada"]:visible');
+  // Regra do Alexandre (21/10/2026): escuro = logo amarela; claro = logo preta.
+  expect(await logoVisivel.getAttribute("src")).toContain("amarelo");
 
   await page.getByRole("button", { name: /Mudar para o tema claro/i }).click();
 
@@ -98,6 +108,8 @@ test("o tema alterna, persiste e é capturado no claro", async ({
   );
   // Bege #F3EEE4 — branco e off-white foram considerados agressivos à vista.
   expect(fundoClaro).toBe("rgb(243, 238, 228)");
+  await expect(logoVisivel).toHaveCount(1);
+  expect(await logoVisivel.getAttribute("src")).toContain("preto");
 
   await page.screenshot({
     path: `qa/screenshots/${DATA}/tema-claro/home.png`,

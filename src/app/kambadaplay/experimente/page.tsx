@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description:
     "Quanto você sabe do Maranhão? 10 perguntas sobre Bumba Meu Boi, Tambor de Crioula, matraca e São Luís. Grátis, sem cadastro.",
   robots: { index: true, follow: true },
+  // Sem isto herdava o canonical "/" do layout raiz e o Google tratava o quiz como cópia da home.
+  alternates: { canonical: "/kambadaplay/experimente" },
 };
 
 const CRIAR = "/kambadaplay/entrar?modo=criar&de=/kambadaplay";
@@ -15,7 +17,7 @@ const CRIAR = "/kambadaplay/entrar?modo=criar&de=/kambadaplay";
 const VITRINE = [
   { titulo: "Arraial da Kambada", texto: "O São João em 3D: junte as 5 fitinhas.", img: "/kambadaplay/images/arraial/poster.webp" },
   { titulo: "Memória das estampas", texto: "Ache os pares das nossas estampas.", img: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp" },
-  { titulo: "HQ da Kambadinha", texto: "Na Batida do Tambor, a primeira HQ.", img: "/kambadaplay/hq/kambadinha-na-batida-do-tambor/01.webp" },
+  { titulo: "HQs do Kambadinha", texto: "A Hora dos Guarás e Na Batida do Tambor.", img: "/kambadaplay/hq/kambadinha-a-hora-dos-guaras/01.webp" },
   { titulo: "Animação", texto: "A Kambadinha cai na roda do Tambor de Crioula.", img: "/kambadaplay/videos/kambadinha-na-batida-do-tambor.jpg" },
 ];
 

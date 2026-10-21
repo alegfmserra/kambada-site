@@ -11,6 +11,15 @@ export type HQ = {
 };
 
 export const HQS: HQ[] = [
+  // A primeira da lista é a que aparece em destaque no hub.
+  {
+    slug: "kambadinha-a-hora-dos-guaras",
+    titulo: "Kambadinha em: A Hora dos Guarás",
+    resumo:
+      "No mangue, o Kambadinha anima um guará com medo de voar. O amigo ganha o céu de São Luís e, no fim da tarde, descobre a revoada dos guarás.",
+    autoria: "Roteiro: Alexandre Serra · Ilustrações: Ricardo Pontes",
+    paginas: 5,
+  },
   {
     slug: "kambadinha-na-batida-do-tambor",
     titulo: "Kambadinha em: Na Batida do Tambor",

@@ -56,6 +56,33 @@ function seguranca(play: boolean) {
 const SEGURANCA = seguranca(false);
 const SEGURANCA_PLAY = seguranca(true);
 
+/** Site antigo → site novo. Matracas vão para a categoria (os IDs do Bling mudaram na migração de 21/10). */
+const ENDERECOS_DO_SITE_ANTIGO: [string, string][] = [
+  ["/somos-kambada-o-afeto-que-veste-e-abraca", "/sobre"],
+  ["/kambada", "/sobre"],
+  ["/kambadamoda-maranhense", "/loja/camisas"],
+  ["/cultura-maranhense", "/cultura"],
+  ["/matraca-personalizada-kambada-para-eventos", "/encomendas"],
+  ["/matraca-grande-com-suporte-reto-edicao-colorida-tradicional-do-bumba-meu-boi", "/loja/matracas"],
+  ["/matraca-grande-com-suporte-edicao-bandeira-do-maranhao", "/loja/matracas"],
+  ["/matraca-grande-do-bumba-meu-boi-edicao-colorida", "/loja/matracas"],
+  ["/matraca-mini-bumba-meu-boi-com-suporte-", "/loja/matracas"],
+  ["/matraca-grande-edicao-chapeu-de-fita", "/loja/matracas"],
+  ["/matraca-mini-chapeu-de-fita-colorido-ores-do-boi", "/loja/matracas"],
+  ["/matraca-grande-do-bumba-meu-boi-edicao-bandeirinhas", "/loja/matracas"],
+  ["/matraca-grande-bumba-meu-boi-maranhense", "/loja/matracas"],
+  ["/matraca-mini-do-bumba-meu-boi-boi-perfil-direito", "/loja/matracas"],
+  ["/matraca-mini-geometrica-chapeu-de-pena", "/loja/matracas"],
+  // Peças que a Kambada não vende mais: vão para a decoração.
+  ["/tabuas-de-corte-decorativas", "/loja/decoracao"],
+  ["/berimbau-miniatura-decorativa", "/loja/decoracao"],
+  ["/prancha-de-madeira-decorativa", "/loja/decoracao"],
+  ["/maraca-de-madeira-artesanal", "/loja/decoracao"],
+  ["/arte-decorativa-de-touro-em-madeira", "/loja/decoracao"],
+  ["/placa-decorativa-afro-brasileira", "/loja/decoracao"],
+  ["/porta-vinho-decorativo-de-madeira", "/loja/decoracao"],
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   /**
@@ -74,6 +101,22 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
+  },
+  /**
+   * 301s (21/10/2026): www → domínio sem www (um endereço só para o Google) e
+   * os endereços do site antigo (construtor da Hostinger, sitemap de 20/10)
+   * → a página nova equivalente, para não perder link compartilhado nem busca.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:caminho*",
+        has: [{ type: "host", value: "www.somoskambada.com.br" }],
+        destination: "https://somoskambada.com.br/:caminho*",
+        permanent: true,
+      },
+      ...ENDERECOS_DO_SITE_ANTIGO.map(([source, destination]) => ({ source, destination, permanent: true })),
+    ];
   },
   async headers() {
     return [

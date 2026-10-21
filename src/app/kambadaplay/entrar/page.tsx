@@ -19,13 +19,22 @@ export default async function EntrarPage({
   return (
     <div className="play-tema-site">
       <div className="mx-auto max-w-md px-4 py-14 text-center sm:py-20">
+        {/* Mesma regra do cabeçalho: amarela no escuro, preta no claro. */}
         <Image
           src="/marca/kambada-logo-horizontal-amarelo.png"
           alt="Kambada"
           width={360}
           height={120}
           priority
-          className="mx-auto h-auto w-44"
+          className="so-escuro mx-auto h-auto w-44"
+        />
+        <Image
+          src="/marca/kambada-logo-horizontal-preto.png"
+          alt="Kambada"
+          width={360}
+          height={120}
+          priority
+          className="so-claro mx-auto h-auto w-44"
         />
         <p className="mt-8 text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Kambada Play</p>
         <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight text-texto sm:text-4xl">

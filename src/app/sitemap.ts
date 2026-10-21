@@ -9,11 +9,17 @@ import { NAV, SITE } from "@/lib/site";
  * os artigos. Sem `lastModified` inventado: data só onde ela é real (artigos).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const paginas: MetadataRoute.Sitemap = NAV.map((item) => ({
-    url: new URL(item.href, SITE.url).toString(),
-    changeFrequency: item.href === "/" ? "weekly" : "monthly",
-    priority: item.href === "/" ? 1 : 0.8,
-  }));
+  // /kambadaplay fica de fora: sem conta ele redireciona (307) e o hub é noindex.
+  // No lugar entram as duas portas públicas do Play: o quiz sem cadastro e os planos.
+  const paginas: MetadataRoute.Sitemap = [
+    ...NAV.filter((item) => item.href !== "/kambadaplay").map((item) => ({
+      url: new URL(item.href, SITE.url).toString(),
+      changeFrequency: item.href === "/" ? ("weekly" as const) : ("monthly" as const),
+      priority: item.href === "/" ? 1 : 0.8,
+    })),
+    { url: new URL("/kambadaplay/experimente", SITE.url).toString(), changeFrequency: "monthly", priority: 0.7 },
+    { url: new URL("/kambadaplay/planos", SITE.url).toString(), changeFrequency: "monthly", priority: 0.6 },
+  ];
 
   let produtos: MetadataRoute.Sitemap = [];
   try {

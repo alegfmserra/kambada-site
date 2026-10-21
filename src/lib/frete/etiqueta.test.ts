@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { ItemValidado } from "../carrinho/validar";
 import { diasUteisEntre, pedidosParados } from "../manutencao/resumoDiario";
 import type { RegistroPedido } from "../pedidos/registro";
-import { montarFreteDoCarrinho, traduzirErro } from "./etiqueta";
+import { montarFreteDoCarrinho } from "./etiqueta";
+import { traduzirErro } from "./meApi";
 
 const embalagem = { comprimento: 30, largura: 20, altura: 5, peso: 0.4, origem: "teste" };
 const item = (q: number): ItemValidado => ({

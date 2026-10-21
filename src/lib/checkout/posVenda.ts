@@ -337,6 +337,25 @@ export function executarPosVenda(
       r = { ...r, emailNota: await etapaEmailNota(r) };
       await salvarRegistro(r);
     }
+    // Etiqueta comprada sozinha no Melhor Envio (saldo da carteira), com a nota
+    // já vinculada — pronta entrega só (ver frete/etiqueta.ts). Desligar com
+    // ETIQUETA_AUTOMATICA=0. Falhou (sem saldo, por exemplo)? Avisa a loja; o
+    // botão da área de controle continua de onde parou.
+    const notaOk = process.env.BLING_EMITIR_NFE !== "1" || Boolean(r.nfe?.feitoEm);
+    if (process.env.ETIQUETA_AUTOMATICA !== "0" && !soTeste && !r.entrega.retirada && !r.etiqueta?.idMe && notaOk) {
+      const { gerarEtiqueta } = await import("../frete/etiqueta");
+      const { alertar } = await import("../manutencao/alertas");
+      try {
+        r = (await gerarEtiqueta(r.ref, urlPublica(), { automatica: true })) ?? r;
+        if (r.etiqueta?.erro) {
+          await alertar(`etiqueta-${r.ref}`, `Etiqueta do pedido ${r.ref} não foi comprada`, `${r.etiqueta.erro}
+
+Se for falta de saldo: carregar a carteira do Melhor Envio (conta somoskambada@gmail.com) e clicar em "Continuar compra da etiqueta" em ${urlPublica()}/admin/pedidos.`);
+        }
+      } catch (e) {
+        console.error("[pos-venda] etiqueta automática:", e instanceof Error ? e.message : e);
+      }
+    }
     return r;
   })().finally(() => emAndamento.delete(retrato.ref));
 

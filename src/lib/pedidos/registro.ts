@@ -68,6 +68,22 @@ export type RegistroPedido = {
     erro?: string;
   };
   /**
+   * Nota fiscal de devolução (entrada, finalidade devolução), sempre
+   * referenciando a nota de venda. Criada pelo site no Bling e enviada à SEFAZ
+   * só depois de a loja conferir (lib/fiscal/devolucao.ts).
+   */
+  devolucao?: {
+    idNota?: number;
+    criadaEm?: string;
+    referencia?: string;
+    enviadaEm?: string;
+    numero?: string;
+    situacao?: number;
+    erro?: string;
+    /** Arrependimento: peça recebida de volta no ateliê. */
+    pecaRecebidaEm?: string;
+  };
+  /**
    * Peça sob encomenda que começou a ser feita (área de controle). Com a
    * produção iniciada o pedido não se cancela mais (21/10/2026).
    */
@@ -91,6 +107,8 @@ export type RegistroPedido = {
     retido?: number;
     estoqueBling?: Etapa;
     pedidoBling?: Etapa;
+    /** Etiqueta do Melhor Envio cancelada (valor de volta à carteira). */
+    etiquetaMe?: Etapa;
     /** NF-e: cancelar no Bling (até 24 h) ou nota de devolução com o Glauco. */
     nota?: { acao: "sem-nota" | "cancelar-no-bling" | "devolucao-com-glauco"; resolvidaEm?: string };
     emailCliente?: Etapa;

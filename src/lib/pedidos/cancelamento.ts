@@ -51,6 +51,9 @@ export function avaliarCancelamento(r: RegistroPedido, agora = Date.now()): Aval
 /** O que fazer com a nota no cancelamento. */
 export function acaoDaNota(r: RegistroPedido, agora = Date.now()): "sem-nota" | "cancelar-no-bling" | "devolucao-com-glauco" {
   if (!r.nfe?.idNota) return "sem-nota";
+  // A mercadoria saiu (postada, entregue, retirada ou devolvida): nunca se
+  // cancela a nota — é nota de devolução, mesmo dentro das 24 h.
+  if (r.envio || r.conclusao || r.devolucao?.pecaRecebidaEm) return "devolucao-com-glauco";
   const emitida = Date.parse(r.nfe.feitoEm ?? r.criadoEm);
   return agora - emitida <= PRAZO_CANCELAR_NOTA_MS ? "cancelar-no-bling" : "devolucao-com-glauco";
 }

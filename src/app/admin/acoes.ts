@@ -23,7 +23,9 @@ import {
   desfazerConclusao,
   iniciarProducao,
   marcarNotaResolvida,
+  marcarPecaDevolvida,
 } from "@/lib/pedidos/posVendaLoja";
+import { criarNotaDeDevolucao, enviarNotaDeDevolucao } from "@/lib/fiscal/devolucao";
 import { atualizarRastreio, gerarEtiqueta } from "@/lib/frete/etiqueta";
 import {
   FORMATO_CODIGO,
@@ -160,6 +162,46 @@ export async function desfazerConclusaoPedido(formulario: FormData): Promise<voi
   const ref = await refDoFormulario(formulario);
   await desfazerConclusao(ref);
   await voltar(ref);
+}
+
+/** Nota de devolução, passo 1: cria no Bling (rascunho) referenciando a nota de venda. */
+export async function criarDevolucao(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  try {
+    await criarNotaDeDevolucao(ref);
+  } catch (e) {
+    console.error("[admin] devolução:", e instanceof Error ? e.message : e);
+  }
+  await voltar(ref, "devolucao-criada", "cancelamento");
+}
+
+/** Nota de devolução, passo 2: a loja conferiu no Bling; envia à SEFAZ (exige "confirmo"). */
+export async function enviarDevolucao(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  if (formulario.get("confirmo") !== "on") await voltar(ref, "confirmar-devolucao", "cancelamento");
+  try {
+    await enviarNotaDeDevolucao(ref);
+  } catch (e) {
+    console.error("[admin] devolução (envio):", e instanceof Error ? e.message : e);
+  }
+  await voltar(ref, "devolucao-enviada", "cancelamento");
+}
+
+/**
+ * Arrependimento (até 7 dias do recebimento): a peça voltou ao ateliê. Registra,
+ * estorna tudo (inclusive o frete), devolve o estoque e cancela no Bling; a
+ * nota de devolução segue pelos dois passos acima.
+ */
+export async function registrarDevolucaoRecebida(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  if (formulario.get("confirmo") !== "on") await voltar(ref, "confirmar-cancelamento");
+  try {
+    await marcarPecaDevolvida(ref);
+    await cancelarPedido(ref, 0);
+  } catch (e) {
+    console.error("[admin] devolução recebida:", e instanceof Error ? e.message : e);
+  }
+  await voltar(ref, "cancelado", "cancelamento");
 }
 
 /** Exige marcar "confirmo": estorno de dinheiro não se desfaz. */

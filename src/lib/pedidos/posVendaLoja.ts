@@ -25,6 +25,7 @@ import {
   textoEnvio,
   type Mensagem,
 } from "../email/posVenda";
+import { cancelarEtiquetaMe } from "../frete/meApi";
 import { buscarPagamento, estornarPagamento } from "../mercadopago/cliente";
 import { EMAILS } from "../site";
 import { acaoDaNota, avaliarCancelamento } from "./cancelamento";
@@ -184,6 +185,12 @@ export async function cancelarPedido(ref: string, reter = 0): Promise<RegistroPe
   c.concluidoEm ??= agoraIso();
   c.nota ??= { acao: acaoDaNota(r) };
 
+  // 1b. Etiqueta comprada e ainda não postada: cancela, o valor volta à carteira.
+  if (r.etiqueta?.compradaEm && r.etiqueta.idMe && !r.envio && !c.etiquetaMe?.feitoEm) {
+    const idMe = r.etiqueta.idMe;
+    c.etiquetaMe = await etapa(() => cancelarEtiquetaMe(idMe, `Pedido ${ref} cancelado`));
+  }
+
   // 2. Peças de volta ao estoque (só se o site tinha baixado).
   if (r.estoque?.feitoEm && !c.estoqueBling?.feitoEm) {
     c.estoqueBling = await etapa(() => chamarBling(`/pedidos/vendas/${r.bling.idPedido}/estornar-estoque`, { metodo: "POST" }));
@@ -195,6 +202,13 @@ export async function cancelarPedido(ref: string, reter = 0): Promise<RegistroPe
     c.emailCliente = await enviar(r.cliente.email, mensagemPedidoCancelado(r, r.pagamento.tipo, c.retido ?? 0), { copiaOculta: emailDaLoja() });
   }
   return salvar();
+}
+
+/** Arrependimento: a peça voltou ao ateliê (antes de cancelar e estornar). */
+export async function marcarPecaDevolvida(ref: string): Promise<RegistroPedido | null> {
+  const r = await exigir(ref);
+  if (r.devolucao?.pecaRecebidaEm) return r;
+  return atualizarRegistro(ref, { devolucao: { ...r.devolucao, pecaRecebidaEm: agoraIso() } });
 }
 
 /** A loja resolveu a nota (cancelou no Bling ou emitiu a de devolução). */

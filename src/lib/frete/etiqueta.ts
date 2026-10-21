@@ -25,41 +25,13 @@ import { SITE, WHATSAPP } from "../site";
 import { montarCaixaUnica } from "./caixa";
 import { cotarCarrinho } from "./cotar";
 import { embalagemDe } from "./embalagens";
-import { base, ErroFrete, nomeDaEntrega, userAgent } from "./melhorEnvio";
+import { chamarMe } from "./meApi";
+import { nomeDaEntrega } from "./melhorEnvio";
 import { CEP_ORIGEM } from "./regras";
 
 const so = (s: string | undefined) => (s ?? "").replace(/\D/g, "");
 
-async function me<T>(caminho: string, corpo?: unknown): Promise<T> {
-  const token = process.env.MELHORENVIO_TOKEN;
-  if (!token) throw new ErroFrete("Melhor Envio não configurado", 503);
-  const r = await fetch(`${base()}/api/v2/me${caminho}`, {
-    method: corpo === undefined ? "GET" : "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      "User-Agent": userAgent(),
-    },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo),
-    cache: "no-store",
-    signal: AbortSignal.timeout(30_000),
-  });
-  const texto = await r.text();
-  if (!r.ok) throw new ErroFrete(`Melhor Envio respondeu ${r.status}: ${traduzirErro(texto)}`, r.status, texto.slice(0, 500));
-  return (texto ? JSON.parse(texto) : {}) as T;
-}
-
-/** As mensagens do Melhor Envio vêm em JSON com `message` e `errors`; mostra o essencial. */
-export function traduzirErro(texto: string): string {
-  try {
-    const d = JSON.parse(texto) as { message?: string; error?: string; errors?: Record<string, string[]> };
-    const detalhes = d.errors ? Object.values(d.errors).flat().slice(0, 3).join(" · ") : "";
-    return [d.message ?? d.error, detalhes].filter(Boolean).join(" — ").slice(0, 300) || texto.slice(0, 200);
-  } catch {
-    return texto.slice(0, 200);
-  }
-}
+const me = chamarMe;
 
 type PedidoBling = {
   data?: {
@@ -70,6 +42,12 @@ type PedidoBling = {
   };
 };
 type ContatoBling = { data?: { celular?: string; telefone?: string; email?: string; numeroDocumento?: string } };
+
+/** Alguma peça do pedido é feita sob encomenda? */
+async function temEncomenda(r: RegistroPedido): Promise<boolean> {
+  const indice = indexarOpcoes(await buscarCatalogo());
+  return r.itens.some((i) => indice.get(i.id)?.produto.sobEncomenda ?? true);
+}
 
 /** Itens do pedido com a embalagem de cada um, a partir do catálogo (ocultos inclusive). */
 async function itensComEmbalagem(r: RegistroPedido): Promise<ItemValidado[]> {
@@ -154,11 +132,19 @@ export function montarFreteDoCarrinho(d: {
  * Compra (ou continua comprando) a etiqueta de um pedido. Idempotente: cada
  * passo feito fica gravado e não se repete.
  */
-export async function gerarEtiqueta(ref: string, urlDoSite: string): Promise<RegistroPedido | null> {
+export async function gerarEtiqueta(
+  ref: string,
+  urlDoSite: string,
+  opcoes: { automatica?: boolean } = {},
+): Promise<RegistroPedido | null> {
   const r = await lerRegistro(ref);
   if (!r) throw new Error(`pedido ${ref} não encontrado`);
   if (r.entrega.retirada) throw new Error("pedido com retirada no ateliê não tem etiqueta");
   if (r.cancelamento?.concluidoEm || r.estorno) throw new Error("pedido cancelado");
+  // Compra automática (no pagamento) só para pronta entrega: peça sob encomenda
+  // leva dias para ficar pronta e a etiqueta tem prazo para ser postada — essas
+  // a loja compra pelo botão quando a peça estiver pronta.
+  if (opcoes.automatica && (await temEncomenda(r))) return r;
 
   const e: NonNullable<RegistroPedido["etiqueta"]> = { ...r.etiqueta, erro: undefined };
   const salvar = () => atualizarRegistro(ref, { etiqueta: { ...e } });

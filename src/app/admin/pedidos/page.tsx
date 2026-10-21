@@ -13,6 +13,9 @@ import {
   avisarPostagem,
   comprarEtiqueta,
   conferirRastreio,
+  criarDevolucao,
+  enviarDevolucao,
+  registrarDevolucaoRecebida,
   cancelarEEstornar,
   desfazerConclusaoPedido,
   marcarConclusao,
@@ -117,7 +120,25 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
           </BotaoComEspera>
         </form>
       )}
-      <details className="ml-auto">
+      {(r.envio || r.conclusao) && (
+        <details className="ml-auto">
+          <summary className="cursor-pointer text-sm font-semibold text-orange-600">Devolução recebida (arrependimento)</summary>
+          <form action={registrarDevolucaoRecebida} className="mt-2 max-w-sm space-y-2 rounded-xl border border-orange-500 p-3">
+            <input type="hidden" name="ref" value={r.ref} />
+            <p className="text-xs text-texto-suave">
+              Use quando a peça VOLTOU ao ateliê (até 7 dias do recebimento). Devolve {formatarReais(r.total)} (com o frete),
+              devolve o estoque, cancela no Bling e avisa o cliente. Depois, a nota de devolução em dois passos.
+            </p>
+            <label className="flex items-center gap-1.5 text-xs font-semibold">
+              <input type="checkbox" name="confirmo" /> Confirmo que a peça voltou
+            </label>
+            <BotaoComEspera esperando="Registrando e estornando… não feche a página" className="rounded-full bg-orange-600 px-4 py-1.5 text-sm font-semibold text-white">
+              Registrar devolução e estornar
+            </BotaoComEspera>
+          </form>
+        </details>
+      )}
+      <details className={r.envio || r.conclusao ? "" : "ml-auto"}>
         <summary className="cursor-pointer text-sm font-semibold text-red-500">Cancelar e estornar</summary>
         <form action={cancelarEEstornar} className="mt-2 max-w-sm space-y-2 rounded-xl border border-red-500 p-3">
           <input type="hidden" name="ref" value={r.ref} />
@@ -161,23 +182,24 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
         <Selo nome="Estoque devolvido" etapa={c.estoqueBling} desligada={!r.estoque?.feitoEm && !c.estoqueBling} />
         <Selo nome="Pedido cancelado no Bling" etapa={c.pedidoBling} />
         <Selo nome="E-mail ao cliente" etapa={c.emailCliente} />
+        {r.etiqueta?.compradaEm && !r.envio && <Selo nome="Etiqueta cancelada (saldo de volta)" etapa={c.etiquetaMe} />}
       </div>
-      {nota && nota.acao !== "sem-nota" && !nota.resolvidaEm && (
+      {r.devolucao?.pecaRecebidaEm && (
+        <p className="text-texto-suave">Peça devolvida pelo cliente recebida em {dataLocal(r.devolucao.pecaRecebidaEm)}.</p>
+      )}
+      {nota?.acao === "cancelar-no-bling" && !nota.resolvidaEm && (
         <form action={notaResolvida} className="flex flex-wrap items-center gap-2 rounded-lg bg-superficie p-2">
           <input type="hidden" name="ref" value={r.ref} />
-          <span className="font-semibold">
-            {nota.acao === "cancelar-no-bling"
-              ? "Nota fiscal: cancelar no Bling (até 24 h da emissão), com justificativa."
-              : "Nota fiscal: passou de 24 h — emitir nota de devolução (entrada) com o CFOP inverso ao da venda (ex.: 5.102 → 1.202; 6.102/6.108 → 2.202), referenciando a nota original."}
-          </span>
+          <span className="font-semibold">Nota fiscal: cancelar no Bling (até 24 h da emissão), com justificativa de 15+ caracteres.</span>
           {r.nfe?.idNota && (
-            <a href="https://www.bling.com.br/notas.fiscais.php" target="_blank" rel="noopener noreferrer" className="underline">
-              abrir notas no Bling
+            <a href={`https://www.bling.com.br/notas.fiscais.php#edit/${r.nfe.idNota}`} target="_blank" rel="noopener noreferrer" className="underline">
+              abrir a nota no Bling
             </a>
           )}
-          <BotaoComEspera esperando="Salvando…" className={BOTAO}>Nota resolvida</BotaoComEspera>
+          <BotaoComEspera esperando="Salvando…" className={BOTAO}>Nota cancelada</BotaoComEspera>
         </form>
       )}
+      {nota?.acao === "devolucao-com-glauco" && <BlocoDevolucao r={r} />}
       {nota?.resolvidaEm && <p className="text-texto-suave">Nota resolvida em {dataLocal(nota.resolvidaEm)}.</p>}
       {(!c.concluidoEm || [c.estoqueBling, c.pedidoBling, c.emailCliente].some((e) => e?.erro)) && (
         <form action={cancelarEEstornar}>
@@ -186,6 +208,42 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
           <BotaoComEspera esperando="Refazendo…" className={BOTAO}>Refazer o que falhou</BotaoComEspera>
         </form>
       )}
+    </div>
+  );
+}
+
+/** Nota de devolução em dois passos: criar (rascunho no Bling) → conferir → enviar à SEFAZ. */
+function BlocoDevolucao({ r }: { r: RegistroPedido }) {
+  const d = r.devolucao;
+  return (
+    <div className="space-y-2 rounded-lg bg-superficie p-2">
+      <p className="font-semibold">
+        Nota fiscal de devolução (entrada, CFOP inverso ao da venda, referenciando a nota de venda)
+        {d?.enviadaEm ? ` — enviada à SEFAZ em ${dataLocal(d.enviadaEm)}${d.numero ? `, nº ${d.numero}` : ""}` : ""}
+      </p>
+      {!d?.idNota && (
+        <form action={criarDevolucao}>
+          <input type="hidden" name="ref" value={r.ref} />
+          <BotaoComEspera esperando="Criando a nota no Bling…" className={BOTAO_FORTE} title="Cria no Bling, sem enviar à SEFAZ">
+            1. Criar nota de devolução (rascunho)
+          </BotaoComEspera>
+        </form>
+      )}
+      {d?.idNota && !d.enviadaEm && (
+        <form action={enviarDevolucao} className="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="ref" value={r.ref} />
+          <a href={`https://www.bling.com.br/notas.fiscais.php#edit/${d.idNota}`} target="_blank" rel="noopener noreferrer" className="underline">
+            conferir a nota no Bling{d.referencia ? ` (referencia ${d.referencia})` : ""}
+          </a>
+          <label className="flex items-center gap-1.5 text-xs font-semibold">
+            <input type="checkbox" name="confirmo" /> Conferi
+          </label>
+          <BotaoComEspera esperando="Enviando à SEFAZ…" className={BOTAO_FORTE}>
+            2. Enviar à SEFAZ
+          </BotaoComEspera>
+        </form>
+      )}
+      {d?.erro && <p className="text-xs font-semibold text-red-500">Devolução: {d.erro}</p>}
     </div>
   );
 }
@@ -287,6 +345,17 @@ function AvisoDaAcao({ aviso, r }: { aviso?: string; r?: RegistroPedido }) {
     texto = ok
       ? `Melhor Envio consultado: ${SITUACAO_ME[r.etiqueta.situacaoMe ?? ""] ?? r.etiqueta.situacaoMe ?? "sem novidade"}${r.envio ? " · cliente já avisado da postagem" : ""}.`
       : `Não consegui consultar o Melhor Envio: ${r.etiqueta.erro}`;
+  } else if (aviso === "devolucao-criada" && r.devolucao) {
+    ok = Boolean(r.devolucao.idNota) && !r.devolucao.erro;
+    texto = ok
+      ? `Nota de devolução criada no Bling (referencia ${r.devolucao.referencia}). Confira e clique em "2. Enviar à SEFAZ".`
+      : `Nota de devolução não criada: ${r.devolucao.erro}`;
+  } else if (aviso === "devolucao-enviada" && r.devolucao) {
+    ok = Boolean(r.devolucao.enviadaEm) && !r.devolucao.erro;
+    texto = ok ? `Nota de devolução enviada à SEFAZ${r.devolucao.numero ? ` (nº ${r.devolucao.numero})` : ""}.` : `Envio da nota de devolução falhou: ${r.devolucao.erro}`;
+  } else if (aviso === "confirmar-devolucao") {
+    ok = false;
+    texto = 'Para enviar a nota de devolução à SEFAZ, marque "Conferi" — nota autorizada não se desfaz.';
   } else if (aviso === "postado" && r.envio) {
     ok = Boolean(r.envio.email?.feitoEm);
     texto = ok ? `Rastreio ${r.envio.codigo} enviado ao cliente.` : `Rastreio salvo, mas o e-mail ao cliente falhou.`;

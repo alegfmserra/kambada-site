@@ -17,6 +17,7 @@
 
 import { lerTokens, renovarSeVencerEm } from "../bling/tokens";
 import { conferirEmail, emailConfigurado } from "../email/enviar";
+import { saldoDaCarteira } from "../frete/meApi";
 import { conferirMelhorEnvio, freteConfigurado } from "../frete/melhorEnvio";
 import { conferirChave, mercadoPagoConfigurado } from "../mercadopago/cliente";
 import { listarRegistros } from "../pedidos/registro";
@@ -180,6 +181,24 @@ export async function rotinaDeManutencao(
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
   if (!s.melhorEnvio.ok) alertas.melhorEnvio = await alertar("melhor-envio", "Melhor Envio fora", `${s.melhorEnvio.detalhe}.\n\nEnquanto durar, o carrinho só oferece a retirada no ateliê.`);
+  // Carteira do Melhor Envio: as etiquetas saem do saldo pré-carregado.
+  if (s.melhorEnvio.ok) {
+    try {
+      const saldo = await saldoDaCarteira();
+      const minimo = Number(process.env.MELHORENVIO_SALDO_MINIMO ?? 40);
+      if (saldo < minimo) {
+        alertas.saldoMelhorEnvio = await alertar(
+          "saldo-melhor-envio",
+          `Saldo baixo no Melhor Envio: ${saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+          `As etiquetas são pagas com o saldo da carteira do Melhor Envio (conta somoskambada@gmail.com). Abaixo de R$ ${minimo}, a próxima compra automática pode falhar.
+
+Carregar: melhorenvio.com.br → Carteira → Adicionar saldo (Pix cai na hora).`,
+        );
+      }
+    } catch {
+      // Sem permissão de ler o saldo: a compra da etiqueta mostrará o erro.
+    }
+  }
   if (!s.mercadoPago.ok) alertas.mercadoPago = await alertar("mercado-pago", "Mercado Pago com credencial inválida", `${s.mercadoPago.detalhe}\n\nSem ele, ninguém consegue pagar.`);
   if (!s.email.ok) alertas.email = await alertar("smtp", "E-mail da loja não autentica", s.email.detalhe);
   if (!s.pedidosComFalha.ok && s.pedidosComFalha.refs.length) {

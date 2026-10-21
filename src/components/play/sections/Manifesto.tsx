@@ -57,7 +57,7 @@ export function Manifesto() {
             <div ref={imgRef} className="will-change-transform">
               <Image
                 src="/kambadaplay/images/renders/estrela-capelo.webp"
-                alt="Capelo da matraca em detalhe: estrela bordada em miçangas brancas sobre veludo azul-marinho, cercada de tracinhos coloridos"
+                alt="Suporte da matraca em detalhe: estrela bordada em miçangas brancas sobre veludo azul-marinho, cercada de tracinhos coloridos"
                 width={1000}
                 height={1000}
                 sizes="(max-width: 768px) 100vw, 32rem"

@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { NextResponse } from "next/server";
@@ -7,6 +6,7 @@ import { DESCRICOES, DIVERGENCIAS } from "@/lib/bling/descricoes-finais";
 import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
 import { ErroBling } from "@/lib/bling/tipos";
 import { arquivoTokens } from "@/lib/bling/tokens";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -28,14 +28,6 @@ export const maxDuration = 60;
  * pulado, então a rota pode rodar quantas vezes for preciso.
  */
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 type ProdutoCompleto = Record<string, unknown> & { nome?: string; descricaoCurta?: string };
 
 const normalizar = (t: string | undefined) => (t ?? "").replace(/\r\n/g, "\n").trim();
@@ -50,7 +42,7 @@ async function guardarCopia(originais: unknown[]): Promise<string> {
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
   const apenas = url.searchParams.get("apenas");

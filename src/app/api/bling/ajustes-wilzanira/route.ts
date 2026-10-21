@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { NextResponse } from "next/server";
@@ -28,6 +27,7 @@ import { DESCRICOES } from "@/lib/bling/descricoes-finais";
 import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
 import { arquivoTokens } from "@/lib/bling/tokens";
 import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -46,14 +46,6 @@ export const maxDuration = 120;
  *  - não recria o que já existe pelo nome (pode rodar de novo sem duplicar);
  *  - para no primeiro erro.
  */
-
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 type Obj = Record<string, unknown>;
 const hoje = () => new Date().toISOString().slice(0, 10);
@@ -84,7 +76,7 @@ const variacoesDe = (p: Obj) => ((p.variacoes as Obj[] | undefined) ?? []).map((
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
+  if (!segredoDeManutencao(requisicao)) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
 
   const apenas = url.searchParams.get("apenas") as ChavePasso | null;
   if (apenas && !PASSOS.some((p) => p.chave === apenas)) {

@@ -1,6 +1,6 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { processarPagamento } from "@/lib/checkout/processar";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -19,17 +19,9 @@ export const dynamic = "force-dynamic";
  * Use antes o raio-X (GET /api/checkout/inspecionar) para ver o que aconteceria.
  */
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function POST(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
   const id = url.searchParams.get("pagamento");

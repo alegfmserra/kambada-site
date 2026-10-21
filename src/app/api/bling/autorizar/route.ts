@@ -1,7 +1,8 @@
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { urlDeAutorizacao } from "@/lib/bling/tokens";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -19,16 +20,8 @@ export const dynamic = "force-dynamic";
  * Bling, troque a conexão da loja pela dele. Sem a senha, nem começa.
  */
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function GET(requisicao: Request) {
-  if (!segredoConfere(new URL(requisicao.url).searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

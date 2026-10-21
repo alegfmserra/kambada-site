@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { NextResponse } from "next/server";
@@ -7,6 +6,7 @@ import { ErroBling } from "@/lib/bling/tipos";
 import { arquivoTokens } from "@/lib/bling/tokens";
 import { FOTOS_PRODUTOS, GALERIA_PRODUTOS } from "@/lib/fotosProdutos";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -34,14 +34,6 @@ export const dynamic = "force-dynamic";
  * guardá-la no armazenamento dele; por isso o arquivo precisa estar publicado
  * no site ANTES de chamar esta rota.
  */
-
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 type Imagens = { externas?: unknown[]; internas?: unknown[] };
 type ProdutoCompleto = Record<string, unknown> & {
@@ -73,7 +65,7 @@ const MAXIMO_PADRAO = 10;
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

@@ -1,10 +1,10 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buscarPedidoPorNumeroLoja, numeroLojaDe } from "@/lib/bling/pedidos";
 import { lerRetrato } from "@/lib/checkout/pedido";
 import { valorConfere } from "@/lib/checkout/processar";
 import { emCentavos } from "@/lib/loja/dinheiro";
 import { buscarPagamento, totalDoRetratoEmCentavos } from "@/lib/mercadopago/cliente";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -18,17 +18,9 @@ export const dynamic = "force-dynamic";
  *   /api/checkout/inspecionar?token=REVALIDATE_SECRET&pagamento=ID
  */
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function GET(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
   const id = url.searchParams.get("pagamento");

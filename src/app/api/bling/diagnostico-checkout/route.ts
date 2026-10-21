@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { chamarBling } from "@/lib/bling/cliente";
 import { buscarCatalogo } from "@/lib/bling/produtos";
@@ -12,6 +11,7 @@ import { conferirChave, mercadoPagoConfigurado } from "@/lib/mercadopago/cliente
 import { adminConfigurado } from "@/lib/admin/sessao";
 import { conferirEmail } from "@/lib/email/enviar";
 import { listarRegistros } from "@/lib/pedidos/registro";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -29,14 +29,6 @@ export const dynamic = "force-dynamic";
  *    o que prova que o token funciona.
  */
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 async function tentarLer(caminho: string) {
   try {
     const r = await chamarBling<{ data?: unknown[] }>(caminho, { revalidar: 0 });
@@ -52,7 +44,7 @@ async function tentarLer(caminho: string) {
 
 export async function GET(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

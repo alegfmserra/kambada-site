@@ -86,7 +86,7 @@ export default async function PaginaProduto({ params }: Props) {
   if (!produto) {
     // O endereço leva o ID do Bling no fim: se o nome mudou lá, o link antigo
     // (WhatsApp, Instagram, Google) segue para a página nova em vez de dar 404.
-    const id = Number(prodSlug.match(/-(d{8,})$/)?.[1]);
+    const id = Number(prodSlug.match(/-(\d{8,})$/)?.[1]);
     const atual = id ? (await buscarCatalogo()).produtos.find((p) => p.idBling === id) : undefined;
     if (atual) permanentRedirect(`/loja/${atual.categoria}/${atual.slug}`);
     notFound();

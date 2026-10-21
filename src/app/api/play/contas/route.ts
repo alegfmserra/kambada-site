@@ -1,27 +1,19 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { contasParaCsv, estadoDoArmazenamento, listarContas, publica } from "@/lib/play/contas";
+import { segredoDaExportacao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Base de contas do Kambada Play, para a equipe de marketing.
- * Protegida por REVALIDATE_SECRET (o mesmo das rotas de diagnóstico).
+ * Senha própria: EXPORTACAO_SECRET (enquanto não existir, vale REVALIDATE_SECRET).
  *
- *   /api/play/contas?token=…            → JSON (sem senhas)
- *   /api/play/contas?token=…&formato=csv → CSV para planilha (só quem aceitou novidades: &so=novidades)
+ *   curl -H "Authorization: Bearer SENHA" /api/play/contas                → JSON (sem senhas)
+ *   … /api/play/contas?formato=csv                                         → CSV (só quem aceitou novidades: &so=novidades)
  */
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function GET(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDaExportacao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
   let contas = await listarContas();

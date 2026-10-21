@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sessaoDaRequisicao } from "@/lib/play/acesso";
+import { contaDaSessao } from "@/lib/play/contas";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { iniciarPartida, nivelDaPartida, responder } from "@/lib/play/jogos/quiz";
 
@@ -21,7 +22,9 @@ export async function POST(requisicao: Request) {
   }
   const corpo = await corpoJson(requisicao);
   if (!corpo) return NextResponse.json({ ok: false, mensagem: "Requisição inválida." }, { status: 400 });
-  const visitante = !sessaoDaRequisicao(requisicao);
+  // Visitante = sem demonstração e sem conta válida (senha trocada derruba a sessão).
+  const sessao = sessaoDaRequisicao(requisicao);
+  const visitante = !(sessao?.v === 1 || (await contaDaSessao(sessao)));
 
   if (corpo.acao === "iniciar") {
     return NextResponse.json({ ok: true, ...iniciarPartida(visitante ? "facil" : corpo.nivel) });

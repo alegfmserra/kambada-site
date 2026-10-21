@@ -39,7 +39,7 @@ describe("demonstração desligada em produção", () => {
     expect(credenciaisValidas("somoskambada", "somoskambada")).toBe(false);
     expect(sessaoValida(cookie, t0 + 1000)).toBe(false);
     // Conta com e-mail continua valendo.
-    expect(sessaoValida(criarSessaoDeConta("abc", t0), t0 + 1000)).toBe(true);
+    expect(sessaoValida(criarSessaoDeConta("abc", "marca1", t0), t0 + 1000)).toBe(true);
   });
   it("PLAY_DEMONSTRACAO=1 religa", () => {
     vi.stubEnv("NODE_ENV", "production");

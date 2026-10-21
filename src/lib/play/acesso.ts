@@ -50,15 +50,20 @@ export function credenciaisValidas(usuario: unknown, senha: unknown): boolean {
 
 export type Sessao =
   | { v: 1; exp: number } // demonstração
-  | { v: 2; exp: number; conta: string }; // conta com e-mail
+  | { v: 2; exp: number; conta: string; s: string }; // conta com e-mail (s = marca da senha)
 
 export function criarSessao(agora = Date.now()): string {
   const s: Sessao = { v: 1, exp: Math.floor(agora / 1000) + VALIDADE_SESSAO_S };
   return assinar(s);
 }
 
-export function criarSessaoDeConta(contaId: string, agora = Date.now()): string {
-  const s: Sessao = { v: 2, exp: Math.floor(agora / 1000) + VALIDADE_SESSAO_S, conta: contaId };
+/**
+ * `marca` = impressão curta da senha atual (`marcaDaSenha` em contas.ts).
+ * Trocou a senha, as sessões antigas deixam de valer (21/10/2026): quem
+ * confere é `contaDaSessao`, que compara a marca do cookie com a da conta.
+ */
+export function criarSessaoDeConta(contaId: string, marca: string, agora = Date.now()): string {
+  const s: Sessao = { v: 2, exp: Math.floor(agora / 1000) + VALIDADE_SESSAO_S, conta: contaId, s: marca };
   return assinar(s);
 }
 
@@ -66,7 +71,8 @@ export function lerSessao(cookie: unknown, agora = Date.now()): Sessao | null {
   const s = verificar<Sessao>(cookie);
   if (!s || typeof s.exp !== "number" || s.exp <= Math.floor(agora / 1000)) return null;
   if (s.v === 1) return demonstracaoLigada() ? s : null;
-  if (s.v === 2 && typeof s.conta === "string" && s.conta) return s;
+  // Cookie de conta sem marca é anterior a 21/10/2026: entra de novo.
+  if (s.v === 2 && typeof s.conta === "string" && s.conta && typeof s.s === "string" && s.s) return s;
   return null;
 }
 

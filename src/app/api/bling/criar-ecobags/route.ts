@@ -1,7 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { chamarBling, listarTudo } from "@/lib/bling/cliente";
 import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -60,15 +60,6 @@ const ECOBAGS: NovaEcobag[] = [
   { slug: "boizinho-matraca", estampa: "Boizinho com fio de matraca", tamanhos: [{ rotulo: "Mini", quantidade: 19 }] },
 ];
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
 function precoDoTamanho(rotulo: "Mini" | "Grande"): number {
   return rotulo === "Mini" ? VENDA_MINI : VENDA_GRANDE;
 }
@@ -79,7 +70,7 @@ function nomePai(e: NovaEcobag): string {
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

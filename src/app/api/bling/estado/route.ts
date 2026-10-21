@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { NextResponse } from "next/server";
@@ -7,6 +6,7 @@ import { buscarCatalogo, montarDoBling, paraSlug } from "@/lib/bling/produtos";
 import type { CategoriaBling, ProdutoBling } from "@/lib/bling/tipos";
 import { arquivoTokens, estaAutorizado, lerTokens } from "@/lib/bling/tokens";
 import { CATEGORIAS } from "@/lib/catalogo";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -20,18 +20,9 @@ export const dynamic = "force-dynamic";
  * Uso: /api/bling/estado?token=SEU_REVALIDATE_SECRET
  */
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
 export async function GET(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

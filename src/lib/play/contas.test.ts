@@ -7,6 +7,8 @@ import {
   autenticar,
   cadastrar,
   confirmarEmail,
+  contaDaSessao,
+  marcaDaSenha,
   contasParaCsv,
   descadastrar,
   gerarHash,
@@ -105,7 +107,7 @@ describe("tokens de e-mail", () => {
 
 describe("sessão de conta", () => {
   it("o cookie carrega o id da conta e é lido da requisição", () => {
-    const cookie = criarSessaoDeConta("abc123");
+    const cookie = criarSessaoDeConta("abc123", "marca1");
     expect(lerSessao(cookie)).toMatchObject({ v: 2, conta: "abc123" });
     const req = new Request("http://x/api", { headers: { cookie: `outro=1; kambada-play=${cookie}` } });
     expect(sessaoDaRequisicao(req)).toMatchObject({ v: 2, conta: "abc123" });
@@ -120,5 +122,26 @@ describe("exportação", () => {
     expect(linhas[0]).toContain("email;aceita_novidades");
     expect(linhas[1]).toContain("ana@teste.com");
     expect(csv).not.toContain("scrypt$");
+  });
+});
+
+describe("troca de senha derruba as sessões antigas", () => {
+  it("cookie emitido antes da troca deixa de valer; o novo vale", async () => {
+    const r = await cadastrar({ nome: "Sessao Teste", email: "sessao@exemplo.com", senha: "senha-antiga-1", novidades: false });
+    if (!r.ok) throw new Error(r.mensagem);
+    const antigo = lerSessao(criarSessaoDeConta(r.conta.id, marcaDaSenha(r.conta)));
+    expect((await contaDaSessao(antigo))?.id).toBe(r.conta.id);
+
+    const nova = await redefinirSenha(tokenDeEmail("redefinir", r.conta), "senha-nova-22");
+    expect(nova).not.toBeNull();
+    expect(await contaDaSessao(antigo)).toBeNull();
+
+    const novo = lerSessao(criarSessaoDeConta(nova!.id, marcaDaSenha(nova!)));
+    expect((await contaDaSessao(novo))?.id).toBe(r.conta.id);
+  });
+  it("marca adulterada ou sem sessão não passa", async () => {
+    expect(await contaDaSessao(null)).toBeNull();
+    const [c] = (await listarContas()).filter((x) => x.email === "sessao@exemplo.com");
+    expect(await contaDaSessao(lerSessao(criarSessaoDeConta(c.id, "0000000000000000")))).toBeNull();
   });
 });

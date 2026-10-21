@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { NextResponse } from "next/server";
@@ -15,6 +14,7 @@ import { chamarBling, listarTudo } from "@/lib/bling/cliente";
 import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
 import { arquivoTokens } from "@/lib/bling/tokens";
 import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -30,14 +30,6 @@ export const maxDuration = 120;
  * roda uma etapa só, tudo relido depois de gravar, para no primeiro erro,
  * e nunca cria o que já existe pelo nome (pode rodar de novo sem duplicar).
  */
-
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 
@@ -56,7 +48,7 @@ async function balancar(id: number, saldo: number, motivo: string) {
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
+  if (!segredoDeManutencao(requisicao)) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   const aplicar = escrever && url.searchParams.get("aplicar") === "1";
   const etapa = Number(url.searchParams.get("etapa") || 0); // 0 = todas
 

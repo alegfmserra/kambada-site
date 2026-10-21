@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { NextResponse } from "next/server";
@@ -11,6 +10,7 @@ import {
 import { nomesDeProdutosPai } from "@/lib/bling/produtos";
 import { arquivoTokens } from "@/lib/bling/tokens";
 import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -30,15 +30,6 @@ export const dynamic = "force-dynamic";
  * A atualização é feita relendo o produto inteiro e devolvendo-o com dois
  * campos trocados — nunca montando um objeto novo, que apagaria o resto.
  */
-
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
 
 type Passo = {
   id: number;
@@ -267,7 +258,7 @@ async function aplicar(passos: Passo[], maximo: number) {
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

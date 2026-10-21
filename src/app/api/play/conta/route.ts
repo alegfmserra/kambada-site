@@ -11,7 +11,10 @@ import {
   atualizarNovidades,
   autenticar,
   buscarPorEmail,
-  buscarPorId,
+  contaDaRequisicao,
+  contaDaSessao,
+  type Conta,
+  marcaDaSenha,
   cadastrar,
   confirmarEmail,
   descadastrar,
@@ -26,10 +29,10 @@ export const dynamic = "force-dynamic";
 const DEZ_MIN = 10 * 60 * 1000;
 const emProducao = process.env.NODE_ENV === "production";
 
-function comCookie(resposta: NextResponse, contaId: string): NextResponse {
+function comCookie(resposta: NextResponse, conta: Conta): NextResponse {
   resposta.cookies.set({
     name: COOKIE_SESSAO,
-    value: criarSessaoDeConta(contaId),
+    value: criarSessaoDeConta(conta.id, marcaDaSenha(conta)),
     httpOnly: true,
     sameSite: "lax",
     secure: emProducao,
@@ -51,7 +54,7 @@ export async function GET(requisicao: Request) {
   const sessao = sessaoDaRequisicao(requisicao);
   if (!sessao) return NextResponse.json({ ok: true, conta: null, demonstracao: false });
   if (sessao.v === 1) return NextResponse.json({ ok: true, conta: null, demonstracao: true });
-  const conta = await buscarPorId(sessao.conta);
+  const conta = await contaDaSessao(sessao);
   return NextResponse.json({ ok: true, conta: conta ? publica(conta) : null, demonstracao: false });
 }
 
@@ -86,7 +89,7 @@ export async function POST(requisicao: Request) {
           linkDeConfirmacao: !emProducao && confirmacao ? confirmacao.link : undefined,
           destino: destinoSeguro(corpo.de),
         }),
-        r.conta.id,
+        r.conta,
       );
     }
 
@@ -96,17 +99,15 @@ export async function POST(requisicao: Request) {
       }
       const conta = await autenticar(corpo.email, corpo.senha);
       if (!conta) return NextResponse.json({ ok: false, mensagem: "E-mail ou senha incorretos." }, { status: 401 });
-      return comCookie(NextResponse.json({ ok: true, conta: publica(conta), destino: destinoSeguro(corpo.de) }), conta.id);
+      return comCookie(NextResponse.json({ ok: true, conta: publica(conta), destino: destinoSeguro(corpo.de) }), conta);
     }
 
     case "reenviar-confirmacao": {
-      const sessao = sessaoDaRequisicao(requisicao);
-      if (!sessao || sessao.v !== 2) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
+      const conta = await contaDaRequisicao(requisicao);
+      if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
       if (!dentroDoLimite(ip, "conta-reenviar", 3, DEZ_MIN)) {
         return NextResponse.json({ ok: false, mensagem: "Já reenviamos há pouco. Confira a caixa de spam." }, { status: 429 });
       }
-      const conta = await buscarPorId(sessao.conta);
-      if (!conta) return NextResponse.json({ ok: false, mensagem: "Conta não encontrada." }, { status: 404 });
       if (conta.confirmadoEm) return NextResponse.json({ ok: true, jaConfirmado: true });
       try {
         const r = await enviarConfirmacao(base, conta);
@@ -119,7 +120,7 @@ export async function POST(requisicao: Request) {
     case "confirmar": {
       const conta = await confirmarEmail(corpo.token);
       if (!conta) return NextResponse.json({ ok: false, mensagem: "Link inválido ou vencido. Peça um novo na sua conta." }, { status: 400 });
-      return comCookie(NextResponse.json({ ok: true, conta: publica(conta) }), conta.id);
+      return comCookie(NextResponse.json({ ok: true, conta: publica(conta) }), conta);
     }
 
     case "esqueci": {
@@ -143,13 +144,13 @@ export async function POST(requisicao: Request) {
     case "redefinir": {
       const conta = await redefinirSenha(corpo.token, corpo.senha);
       if (!conta) return NextResponse.json({ ok: false, mensagem: "Link inválido ou vencido, ou senha curta (mínimo 8)." }, { status: 400 });
-      return comCookie(NextResponse.json({ ok: true, conta: publica(conta) }), conta.id);
+      return comCookie(NextResponse.json({ ok: true, conta: publica(conta) }), conta);
     }
 
     case "novidades": {
-      const sessao = sessaoDaRequisicao(requisicao);
-      if (!sessao || sessao.v !== 2) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
-      const ok = await atualizarNovidades(sessao.conta, corpo.quer === true);
+      const conta = await contaDaRequisicao(requisicao);
+      if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
+      const ok = await atualizarNovidades(conta.id, corpo.quer === true);
       return NextResponse.json({ ok });
     }
 

@@ -1,7 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { chamarBling } from "@/lib/bling/cliente";
 import { ErroBling } from "@/lib/bling/tipos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -79,15 +79,6 @@ const ALVOS: AlvoDeEstoque[] = [
   },
 ];
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
 async function saldoAtual(idProduto: number): Promise<number | null> {
   const r = await chamarBling<{ data?: { saldoVirtualTotal?: number }[] }>(
     `/estoques/saldos?idsProdutos[]=${idProduto}`,
@@ -98,7 +89,7 @@ async function saldoAtual(idProduto: number): Promise<number | null> {
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

@@ -8,7 +8,7 @@ import { linkDeRastreio } from "@/lib/email/posVenda";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
 import { COOKIE_SESSAO, lerSessao } from "@/lib/play/acesso";
-import { buscarPorId } from "@/lib/play/contas";
+import { contaDaSessao } from "@/lib/play/contas";
 import { listarRegistros } from "@/lib/pedidos/registro";
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default async function ContaPage({
 }) {
   const p = await searchParams;
   const sessao = lerSessao((await cookies()).get(COOKIE_SESSAO)?.value);
-  const conta = sessao?.v === 2 ? await buscarPorId(sessao.conta) : null;
+  const conta = await contaDaSessao(sessao);
   if (!conta) redirect("/entrar?de=/conta");
 
   const pedidos = pedidosDaConta(await listarRegistros(1000), conta);

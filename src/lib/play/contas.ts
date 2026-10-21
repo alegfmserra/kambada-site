@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 import { assinar, idAleatorio, verificar } from "./jogos/seguranca";
+import { sessaoDaRequisicao, type Sessao } from "./acesso";
 
 /**
  * Contas do Kambada Play (somente servidor).
@@ -239,9 +240,27 @@ type TokenEmail = {
   s?: string;
 };
 
-/** Impressão curta do hash da senha (nunca o hash em si). */
-function marcaDaSenha(c: Pick<Conta, "senhaHash">): string {
+/** Impressão curta do hash da senha (nunca o hash em si). Vai no link de redefinição e no cookie da sessão. */
+export function marcaDaSenha(c: Pick<Conta, "senhaHash">): string {
   return createHash("sha256").update(c.senhaHash).digest("hex").slice(0, 16);
+}
+
+/**
+ * A conta de uma sessão, só se a senha ainda é a mesma de quando a pessoa
+ * entrou. É o que derruba as sessões antigas depois de uma troca de senha.
+ */
+export async function contaDaSessao(sessao: Sessao | null): Promise<Conta | null> {
+  if (!sessao || sessao.v !== 2) return null;
+  const c = await buscarPorId(sessao.conta);
+  if (!c) return null;
+  const a = Buffer.from(sessao.s);
+  const b = Buffer.from(marcaDaSenha(c));
+  return a.length === b.length && timingSafeEqual(a, b) ? c : null;
+}
+
+/** Atalho para as rotas de API: lê o cookie e confere a marca da senha. */
+export function contaDaRequisicao(requisicao: Request): Promise<Conta | null> {
+  return contaDaSessao(sessaoDaRequisicao(requisicao));
 }
 
 const VALIDADE: Record<TokenEmail["tipo"], number> = {

@@ -4,20 +4,23 @@ import {
   COOKIE_SESSAO,
   ROTAS_PUBLICAS,
   ehArquivoEstatico,
-  sessaoValida,
+  lerSessao,
 } from "@/lib/play/acesso";
+import { contaDaSessao } from "@/lib/play/contas";
 
 /**
  * Porteiro do Kambada Play: só a degustação (quiz fácil), os planos e as telas de conta abrem sem login.
  * Páginas mandam para /kambadaplay/entrar; a API responde 401.
  * (O resto do site não passa por aqui: ver `matcher`.)
  */
-export function proxy(requisicao: NextRequest) {
+export async function proxy(requisicao: NextRequest) {
   const { pathname, search } = requisicao.nextUrl;
 
   if (ROTAS_PUBLICAS.includes(pathname) || ehArquivoEstatico(pathname)) return NextResponse.next();
 
-  if (sessaoValida(requisicao.cookies.get(COOKIE_SESSAO)?.value)) return NextResponse.next();
+  // Demonstração passa pelo cookie; conta passa só se a senha não mudou desde o login.
+  const sessao = lerSessao(requisicao.cookies.get(COOKIE_SESSAO)?.value);
+  if (sessao?.v === 1 || (await contaDaSessao(sessao))) return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ ok: false, mensagem: "Entre no Kambada Play para jogar." }, { status: 401 });

@@ -1,7 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { chamarBling, listarTudo } from "@/lib/bling/cliente";
 import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -112,15 +112,6 @@ const NOVOS: NovoProduto[] = [
   { slug: "placa-grande", nome: "Placa de Madeira Grande", preco: 160, quantidade: 0, origem: "Decoração" },
 ];
 
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
 /**
  * Nomes já cadastrados e ativos no Bling.
  *
@@ -139,7 +130,7 @@ async function nomesExistentes(): Promise<Set<string>> {
 
 async function responder(requisicao: Request, escrever: boolean) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
 

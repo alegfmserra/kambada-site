@@ -1,24 +1,17 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { gravarResposta, listarRespostas, respostasParaCsv, resumir, validarResposta } from "@/lib/pesquisa/pesquisa";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Pesquisa de satisfação.
- *   POST                                → grava uma resposta (anônima)
- *   GET ?token=REVALIDATE_SECRET         → resumo + respostas (JSON)
- *   GET ?token=…&formato=csv             → planilha
+ *   POST                                     → grava uma resposta (anônima)
+ *   GET  (Authorization: Bearer SENHA)       → resumo + respostas (JSON)
+ *   GET  …&formato=csv                       → planilha
+ * SENHA = REVALIDATE_SECRET (ver lib/seguranca/segredo.ts).
  */
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function POST(requisicao: Request) {
   if (!dentroDoLimite(ipDaRequisicao(requisicao), "pesquisa", 3, 10 * 60_000)) {
     return NextResponse.json({ ok: false, mensagem: "Recebemos sua resposta. Obrigado!" }, { status: 429 });
@@ -32,7 +25,7 @@ export async function POST(requisicao: Request) {
 
 export async function GET(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
   const respostas = await listarRespostas();

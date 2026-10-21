@@ -1,8 +1,8 @@
-import { timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { chamarBling } from "@/lib/bling/cliente";
 import { ID_PRODUTO_TESTE } from "@/lib/bling/produtos";
+import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
 
@@ -16,18 +16,9 @@ export const dynamic = "force-dynamic";
  *   POST /api/bling/produto-teste?token=REVALIDATE_SECRET&preco=1.00
  */
 
-
-function segredoConfere(recebido: string | null): boolean {
-  const esperado = process.env.REVALIDATE_SECRET;
-  if (!esperado || !recebido) return false;
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function POST(requisicao: Request) {
   const url = new URL(requisicao.url);
-  if (!segredoConfere(url.searchParams.get("token"))) {
+  if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
   const preco = Number(url.searchParams.get("preco"));

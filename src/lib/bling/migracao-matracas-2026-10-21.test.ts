@@ -39,10 +39,10 @@ describe("plano de migração das matracas (21/10/2026)", () => {
     expect(problemasDoPlano()).toEqual([]);
   });
 
-  it("preços aprovados: Mini 110/145, Grande 145 / 190 com qualquer suporte, DTF 85, Play 220", () => {
+  it("preços aprovados: Mini 110/145, Grande 145 / 190 reto / 195 Leque e Topo, DTF 85, Play 220", () => {
     const preco = (pai: typeof MINI, suporte: string) => variacoesPlanejadas(pai).find((v) => v.suporte === suporte)?.preco;
     expect([preco(MINI, "Sem suporte"), preco(MINI, "Com suporte")]).toEqual([110, 145]);
-    expect([preco(GRANDE, "Sem suporte"), preco(GRANDE, "Com suporte"), preco(GRANDE, "Leque Bordado"), preco(GRANDE, "Topo Boi Preto")]).toEqual([145, 190, 190, 190]);
+    expect([preco(GRANDE, "Sem suporte"), preco(GRANDE, "Com suporte"), preco(GRANDE, "Leque Bordado"), preco(GRANDE, "Topo Boi Preto")]).toEqual([145, 190, 195, 195]);
     expect(variacoesPlanejadas(DTF).every((v) => v.preco === 85)).toBe(true);
     expect(PLAY.preco).toBe(220);
   });
@@ -104,7 +104,7 @@ describe("plano de migração das matracas (21/10/2026)", () => {
     const c = corpoPaiNovo(GRANDE) as Record<string, any>;
     expect(c).toMatchObject({ nome: "Matraca Kambada Grande", formato: "V", situacao: "A", preco: 145 });
     const leque = c.variacoes.find((v: any) => v.variacao.nome === "Estampa:Mosaico Colorido;Suporte:Leque Bordado");
-    expect(leque).toMatchObject({ nome: "Matraca Kambada Grande Estampa:Mosaico Colorido;Suporte:Leque Bordado", preco: 190, formato: "S" });
+    expect(leque).toMatchObject({ nome: "Matraca Kambada Grande Estampa:Mosaico Colorido;Suporte:Leque Bordado", preco: 195, formato: "S" });
     expect(c.variacoes).toHaveLength(56); // 14 estampas × 4 suportes
     expect((corpoPaiNovo(MINI) as any).variacoes).toHaveLength(18); // 9 × 2
     expect((corpoPaiNovo(DTF) as any).variacoes).toHaveLength(5);

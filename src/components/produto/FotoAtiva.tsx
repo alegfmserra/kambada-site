@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FotoEmoldurada from "@/components/FotoEmoldurada";
 import type { FotoProduto } from "@/lib/fotoDoProduto";
+import { nomeDoSuporte } from "@/lib/fotosSuportes";
 import { useOpcaoAtiva } from "./OpcaoAtiva";
 
 /**
@@ -16,11 +17,14 @@ export default function FotoAtiva({
   padrao,
   porOpcao,
   galeria = [],
+  porSuporte = {},
 }: {
   nome: string;
   padrao: FotoProduto | null;
   porOpcao: Record<number, FotoProduto>;
   galeria?: FotoProduto[];
+  /** Demonstração de cada suporte (matracas) — ver lib/fotosSuportes.ts. */
+  porSuporte?: Record<string, FotoProduto>;
 }) {
   const ativa = useOpcaoAtiva();
   const daOpcao = (ativa?.idOpcao !== null && ativa?.idOpcao !== undefined ? porOpcao[ativa.idOpcao] : undefined) ?? padrao;
@@ -30,6 +34,26 @@ export default function FotoAtiva({
   const escolher = (f: FotoProduto) => setEscolhida({ foto: f, opcao: ativa?.idOpcao ?? null });
   const foto = (escolhida && escolhida.opcao === (ativa?.idOpcao ?? null) ? escolhida.foto : null) ?? daOpcao;
   const todas = daOpcao ? [daOpcao, ...galeria.filter((g) => g.src !== daOpcao.src)] : galeria;
+
+  // Acabou de escolher um suporte: mostra a demonstração dele (21/10/2026).
+  const suporte = ativa?.suporteEmDestaque ?? null;
+  const doSuporte = suporte ? porSuporte[suporte] : undefined;
+  if (suporte && doSuporte) {
+    return (
+      <figure>
+        <FotoEmoldurada
+          key={doSuporte.src}
+          src={doSuporte.src}
+          alt={`Demonstração do ${nomeDoSuporte(suporte)}`}
+          sizes="(min-width: 1024px) 34rem, 92vw"
+          className="aspect-[3/4] rounded-3xl"
+        />
+        <figcaption className="mt-3 rounded-xl bg-superficie px-4 py-2 text-sm">
+          <strong>Foto ilustrativa do {nomeDoSuporte(suporte)}.</strong> A sua matraca vai com a estampa que você escolheu.
+        </figcaption>
+      </figure>
+    );
+  }
 
   if (!foto) {
     // Peça ainda sem foto no acervo: um espaço honesto — melhor que uma

@@ -132,8 +132,8 @@ export const GRANDE: PaiNovo = {
   nome: "Matraca Kambada Grande",
   // Alexandre 21/10: Leque Bordado e Topo Boi Preto são TIPOS DE SUPORTE, só da Grande.
   suportes: [SEM, COM, LEQUE, TOPO],
-  // Com suporte = SEMPRE R$ 190, qualquer tipo (Alexandre, 21/10).
-  precos: { [SEM]: 145, [COM]: 190, [LEQUE]: 190, [TOPO]: 190 },
+  // Suporte reto R$ 190; Leque Bordado e Topo Boi Preto R$ 195, corte diferenciado (Alexandre, 21/10, tarde).
+  precos: { [SEM]: 145, [COM]: 190, [LEQUE]: 195, [TOPO]: 195 },
   temSuporte: true,
   estampas: [
     { nome: "Bandeira do Maranhão", status: "confirmada", origem: "proposta de 13/10 (aprovada) · variação já existente na Grande com Suporte" },

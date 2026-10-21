@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
 import FotoAtiva from "@/components/produto/FotoAtiva";
+import { fotosDosSuportes } from "@/lib/fotosSuportes";
 import GuiaDeTamanhos from "@/components/produto/GuiaDeTamanhos";
 import { ProvedorOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
 import { tabelaDeMedidas } from "@/lib/loja/medidas";
@@ -178,7 +179,13 @@ export default async function PaginaProduto({ params }: Props) {
 
           <ProvedorOpcaoAtiva inicial={opcoesCompraveis.length === 1 ? opcoesCompraveis[0].idBling : null}>
           <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
-            <FotoAtiva nome={produto.nome} padrao={fotoInicial} porOpcao={fotosPorOpcao} galeria={galeriaDoProduto(produto)} />
+            <FotoAtiva
+              nome={produto.nome}
+              padrao={fotoInicial}
+              porOpcao={fotosPorOpcao}
+              galeria={galeriaDoProduto(produto)}
+              porSuporte={fotosDosSuportes(produto.nome)}
+            />
 
             <div className="flex flex-col">
               <h1 className="font-display text-3xl leading-tight font-extrabold text-balance sm:text-4xl">

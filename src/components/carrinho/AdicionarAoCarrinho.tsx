@@ -68,6 +68,10 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
     // A foto acompanha a estampa assim que ela é escolhida, mesmo sem o suporte.
     const paraFoto = acharOpcao(opcoes, eixos, nova) ?? opcaoParaFoto(opcoes, eixos, nova);
     if (paraFoto) fotoAtiva?.escolher(paraFoto.idBling);
+    // Clicou no suporte: a foto mostra a demonstração dele; clicou na estampa:
+    // volta a foto da estampa (21/10/2026).
+    if (chave === "suporte") fotoAtiva?.destacarSuporte(valor === "Sem suporte" ? null : valor);
+    else fotoAtiva?.destacarSuporte(null);
     setQuantidade(1);
     setAdicionado(false);
   }
@@ -137,6 +141,13 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
             </fieldset>
           );
         })}
+
+      {escolha.suporte && escolha.suporte !== "Sem suporte" && (
+        <p className="mt-3 text-sm text-texto-suave">
+          A foto do suporte é ilustrativa: a matraca vai com a estampa que você escolheu
+          {escolha.estampa ? ` (${rotuloDoValor("estampa", escolha.estampa)})` : ""}.
+        </p>
+      )}
 
       {!unica && !eixos && (
         <fieldset>

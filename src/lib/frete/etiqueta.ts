@@ -15,7 +15,7 @@
  */
 
 import { chamarBling } from "../bling/cliente";
-import { buscarCatalogo } from "../bling/produtos";
+import { buscarCatalogo, invalidarCatalogoEmMemoria } from "../bling/produtos";
 import { indexarOpcoes, type ItemValidado } from "../carrinho/validar";
 import { ENDERECO_ATELIE } from "../loja/enderecoAtelie";
 import { liberar, reservar } from "../manutencao/reserva";
@@ -44,9 +44,23 @@ type PedidoBling = {
 type ContatoBling = { data?: { celular?: string; telefone?: string; email?: string; numeroDocumento?: string } };
 
 /** Alguma peça do pedido é feita sob encomenda? */
-async function temEncomenda(r: RegistroPedido): Promise<boolean> {
-  const indice = indexarOpcoes(await buscarCatalogo());
-  return r.itens.some((i) => indice.get(i.id)?.produto.sobEncomenda ?? true);
+/**
+ * Por que a compra AUTOMÁTICA não deve acontecer — ou null se pode. Item fora do
+ * catálogo (ex.: catálogo ainda carregando logo após um reinício — pedido
+ * KMB-20261021-F56814) recarrega uma vez antes de desistir.
+ */
+async function motivoParaNaoComprar(r: RegistroPedido): Promise<string | null> {
+  let indice = indexarOpcoes(await buscarCatalogo());
+  if (r.itens.some((i) => !indice.has(i.id))) {
+    invalidarCatalogoEmMemoria();
+    indice = indexarOpcoes(await buscarCatalogo());
+  }
+  for (const i of r.itens) {
+    const achado = indice.get(i.id);
+    if (!achado) return `"${i.nome}" não foi achado no catálogo`;
+    if (achado.produto.sobEncomenda) return `"${i.nome}" é feito sob encomenda — comprar quando a peça ficar pronta`;
+  }
+  return null;
 }
 
 /** Itens do pedido com a embalagem de cada um, a partir do catálogo (ocultos inclusive). */
@@ -144,7 +158,10 @@ export async function gerarEtiqueta(
   // Compra automática (no pagamento) só para pronta entrega: peça sob encomenda
   // leva dias para ficar pronta e a etiqueta tem prazo para ser postada — essas
   // a loja compra pelo botão quando a peça estiver pronta.
-  if (opcoes.automatica && (await temEncomenda(r))) return r;
+  if (opcoes.automatica && !r.etiqueta?.idMe) {
+    const motivo = await motivoParaNaoComprar(r);
+    if (motivo) return atualizarRegistro(ref, { etiqueta: { ...r.etiqueta, erro: `Compra automática não feita: ${motivo}. Use "Comprar etiqueta".` } });
+  }
 
   const e: NonNullable<RegistroPedido["etiqueta"]> = { ...r.etiqueta, erro: undefined };
   const salvar = () => atualizarRegistro(ref, { etiqueta: { ...e } });

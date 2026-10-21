@@ -51,7 +51,7 @@ export function Artesanato() {
           <div className="-ml-8 -mt-16 w-3/4 overflow-hidden rounded-r-[2rem] border-4 border-kambada-cream/70 shadow-2xl shadow-black/50 md:ml-0 md:mt-0 md:w-full md:rounded-[2rem]">
             <Image
               src="/kambadaplay/images/renders/moody-detail.webp"
-              alt="Matraca na parede sob a sombra de folhagens, com o capelo de miçangas aparecendo no alto"
+              alt="Matraca na parede sob a sombra de folhagens, com o suporte de miçangas aparecendo no alto"
               width={900}
               height={900}
               sizes="(max-width: 768px) 75vw, (max-width: 1024px) 35vw, 22rem"

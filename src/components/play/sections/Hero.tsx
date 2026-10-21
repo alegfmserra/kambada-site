@@ -9,7 +9,7 @@ export function Hero() {
       {/* Render frontal como cenário de fundo (matraca na parede terracota) */}
       <Image
         src="/kambadaplay/images/renders/hero-matraca.webp"
-        alt="Matraca Kambada pendurada em uma parede de estuque, com capelo de miçangas e o boi pintado à mão"
+        alt="Matraca Kambada pendurada em uma parede de estuque, com o suporte de miçangas e o boi pintado à mão"
         fill
         priority
         sizes="100vw"

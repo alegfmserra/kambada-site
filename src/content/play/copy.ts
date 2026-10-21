@@ -9,7 +9,7 @@ export const copy = {
   manifesto: {
     linha1: "Cada miçanga guarda",
     linha2: "uma noite de São João.",
-    apoio: "O capelo bordado à mão traz a estrela guia dos brincantes da Ilha.",
+    apoio: "O suporte bordado à mão traz a estrela guia dos brincantes da Ilha.",
   },
   origem: {
     title: "A origem do Bumba Meu Boi de Matraca",
@@ -48,7 +48,7 @@ export const copy = {
   },
   artesanato: {
     title: "A peça, o artesanato",
-    body: "Entalhada e pintada à mão, com o capelo de miçangas e o boi nas cores da bandeira do Maranhão. Cada peça sai única.",
+    body: "Peças em madeira pintadas à mão, com o suporte de miçangas e o boi nas cores da bandeira do Maranhão. Cada peça sai única.",
     detalhes: ["Pintura à mão", "Madeira maciça", "Miçangas contadas uma a uma"],
   },
   precoEntrega: {

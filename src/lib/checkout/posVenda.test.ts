@@ -88,6 +88,9 @@ const pagamento: Pagamento = {
 
 describe("pós-venda", () => {
   beforeEach(() => {
+    // A compra automática da etiqueta tem testes próprios (frete/etiqueta.test.ts);
+    // aqui ela carregaria o catálogo e deixaria o teste lento e instável.
+    vi.stubEnv("ETIQUETA_AUTOMATICA", "0");
     chamadas.bling = [];
     chamadas.emails = [];
     chamadas.situacaoNota = 5;

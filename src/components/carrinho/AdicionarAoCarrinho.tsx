@@ -178,7 +178,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
       {opcao && opcoes.some((o) => o.preco !== opcoes[0].preco) && (
         <p className="mt-4 text-sm text-texto-suave" aria-live="polite">
           {eixos ? eixos.map((e) => rotuloDoValor(e.chave, opcao.atributos?.[e.chave] ?? "")).join(" · ") : opcao.rotulo}:{" "}
-          <strong className="text-texto">{formatarReais(opcao.preco)}</strong>
+          <strong className="font-display text-2xl text-texto">{formatarReais(opcao.preco)}</strong>
         </p>
       )}
 

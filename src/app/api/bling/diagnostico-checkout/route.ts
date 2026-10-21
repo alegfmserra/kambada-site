@@ -116,6 +116,19 @@ export async function GET(requisicao: Request) {
         emailLoja: r.emailLoja,
         nfe: r.nfe,
         emailNota: r.emailNota,
+        cancelamento: r.cancelamento
+          ? {
+              solicitadoEm: r.cancelamento.solicitadoEm,
+              concluidoEm: r.cancelamento.concluidoEm,
+              estornoMp: r.cancelamento.estornoMp,
+              estoqueBling: r.cancelamento.estoqueBling,
+              pedidoBling: r.cancelamento.pedidoBling,
+              etiquetaMe: r.cancelamento.etiquetaMe,
+              emailCliente: r.cancelamento.emailCliente,
+              nota: r.cancelamento.nota,
+            }
+          : undefined,
+        etiqueta: r.etiqueta ? { situacao: r.etiqueta.situacaoMe, comprada: Boolean(r.etiqueta.compradaEm), erro: r.etiqueta.erro } : undefined,
       })),
     },
     saldoProdutoTeste: await (async () => {

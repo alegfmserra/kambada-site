@@ -782,6 +782,11 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number; v
     "largura": 900,
     "altura": 1200,
     "v": "b2151498"
+  },
+  "16722800147": {
+    "largura": 900,
+    "altura": 1200,
+    "v": "72f32e97"
   }
 };
 

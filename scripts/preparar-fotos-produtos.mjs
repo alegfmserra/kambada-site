@@ -374,6 +374,8 @@ FOTOS[16722783299] = [F21, "Bloquinho de Kraft - Brincantes(17,00).jpeg", "Cader
 FOTOS[16722783302] = [F21, "Bloquinho de Kraft - Kazumbá(17,00).jpeg", "Caderninho kraft · Cazumbá"];
 FOTOS[16722783305] = [F21, "Bloquinho de Kraft - Caboclo Pena(17,00).jpeg", "Caderninho kraft · Caboclo de Pena"];
 FOTOS[16722783308] = [F21, "Bloquinho de Kraft - Lendas (17,00).jpeg", "Caderninho kraft · Ilha do Amor"];
+// Ecobag Carranca Encantada (cadastro criado em 21/10, só Grande, sem estoque): a foto que estava na Serpente.
+FOTOS[16722800147] = [T3, `${W}ecobag-grande-ilha-encantada.jpg`, "Ecobag Carranca Encantada (Will)"];
 
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;

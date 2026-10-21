@@ -53,7 +53,7 @@ export type RegistroPedido = {
    */
   producao?: { iniciadaEm: string; personalizado: boolean; email?: Etapa };
   /** Fim do pós-venda: entregue pela transportadora/em mãos ou retirado no ateliê. */
-  conclusao?: { tipo: "entregue" | "retirado"; em: string; bling?: Etapa };
+  conclusao?: { tipo: "entregue" | "retirado"; em: string; bling?: Etapa; email?: Etapa };
   /**
    * Cancelamento pedido pelo cliente (página do pedido) e/ou feito pela loja
    * (área de controle). Cada etapa guarda o que já foi feito: refazer não
@@ -67,6 +67,8 @@ export type RegistroPedido = {
     confirmacaoCliente?: Etapa;
     concluidoEm?: string;
     estornoMp?: Etapa;
+    /** Valor retido (desenvolvimento da arte de personalizada cancelada antes da produção). */
+    retido?: number;
     estoqueBling?: Etapa;
     pedidoBling?: Etapa;
     /** NF-e: cancelar no Bling (até 24 h) ou nota de devolução com o Glauco. */

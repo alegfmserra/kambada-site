@@ -79,6 +79,14 @@ export default function PesquisaSatisfacao() {
     return () => window.removeEventListener(EVENTO, aoPedir);
   }, [convidar]);
 
+  // Link do e-mail "seu pedido chegou" (?avaliar=1): abre a pesquisa direto.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("avaliar") === "1") {
+      const t = setTimeout(() => convidar("pos-entrega", true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [convidar]);
+
   // Navegação: 3 páginas + 45 s; compra concluída: na hora.
   useEffect(() => {
     if (FORA.some((r) => r.test(caminho))) return;

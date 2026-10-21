@@ -165,6 +165,26 @@ export async function GET(requisicao: Request) {
         }
       })(),
     },
+    // Etiqueta pelo site (21/10/2026): o token precisa ler saldo e carrinho.
+    // Só leitura — 401/403 aqui = gerar token novo com esses escopos.
+    melhorEnvioEtiqueta: await (async () => {
+      const token = process.env.MELHORENVIO_TOKEN;
+      if (!token) return "sem token";
+      const ler = async (caminho: string) => {
+        try {
+          const r = await fetch(`https://www.melhorenvio.com.br/api/v2/me${caminho}`, {
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}`, "User-Agent": "Site Kambada (somoskambada.com.br)" },
+            cache: "no-store",
+            signal: AbortSignal.timeout(15_000),
+          });
+          const texto = await r.text();
+          return { status: r.status, amostra: texto.slice(0, 160) };
+        } catch (e) {
+          return { status: 0, amostra: e instanceof Error ? e.message : String(e) };
+        }
+      };
+      return { saldo: await ler("/balance"), carrinho: await ler("/cart"), pedidos: await ler("/orders?per_page=1") };
+    })(),
     loja: {
       produtosNaVitrine: catalogo.produtos.length,
       compraveisPeloSite: compraveis.length,

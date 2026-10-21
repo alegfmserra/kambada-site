@@ -29,14 +29,9 @@ describe("quando o pedido pode ser cancelado (regras de 21/10/2026)", () => {
     expect(avaliarCancelamento({ ...base, conclusao: { tipo: "retirado", em: iso(H) } }, agora).pode).toBe(false);
   });
 
-  it("personalizada em produção: não pode", () => {
-    const r = { ...base, producao: { iniciadaEm: iso(H), personalizado: true } };
-    expect(avaliarCancelamento(r, agora).pode).toBe(false);
-  });
-
-  it("sem personalização em produção: até 3 dias", () => {
-    expect(avaliarCancelamento({ ...base, producao: { iniciadaEm: iso(71 * H), personalizado: false } }, agora).pode).toBe(true);
-    expect(avaliarCancelamento({ ...base, producao: { iniciadaEm: iso(73 * H), personalizado: false } }, agora).pode).toBe(false);
+  it("produção iniciada (personalizada ou não): não pode, nem 1 hora depois", () => {
+    expect(avaliarCancelamento({ ...base, producao: { iniciadaEm: iso(H), personalizado: true } }, agora).pode).toBe(false);
+    expect(avaliarCancelamento({ ...base, producao: { iniciadaEm: iso(H), personalizado: false } }, agora).pode).toBe(false);
   });
 
   it("já cancelado ou estornado: não pode de novo", () => {

@@ -1,11 +1,13 @@
 /**
- * Quando um pedido do site pode ser cancelado — regras do Alexandre (21/10/2026).
+ * Quando um pedido do site pode ser cancelado — regras do Alexandre (21/10/2026,
+ * revistas à tarde).
  *
  *  - Já postado, entregue ou retirado: não se cancela; vira devolução
  *    (arrependimento em 7 dias, pela página de atendimento).
- *  - Peça PERSONALIZADA cuja produção começou: não se cancela.
- *  - Peça sob encomenda SEM personalização em produção: até 3 dias depois de
- *    a produção começar.
+ *  - Produção iniciada (encomenda, personalizada ou não): NÃO se cancela — o
+ *    cliente é avisado por e-mail quando a produção começa.
+ *  - Personalizada cancelada ANTES da produção: a loja retém o valor do
+ *    desenvolvimento da arte (campo "reter" no cancelamento da área de controle).
  *  - O resto (pago, ainda em separação): pode.
  *
  * Nota fiscal: até 24 h da emissão dá para cancelar no Bling; depois disso,
@@ -16,7 +18,6 @@
 
 import type { RegistroPedido } from "./registro";
 
-export const PRAZO_CANCELAR_EM_PRODUCAO_MS = 3 * 24 * 60 * 60 * 1000;
 export const PRAZO_CANCELAR_NOTA_MS = 24 * 60 * 60 * 1000;
 
 export type Avaliacao = { pode: true } | { pode: false; motivo: string };
@@ -41,12 +42,7 @@ export function avaliarCancelamento(r: RegistroPedido, agora = Date.now()): Aval
     };
   }
   if (r.producao) {
-    if (r.producao.personalizado) {
-      return { pode: false, motivo: "A peça é personalizada e a produção já começou — não dá mais para cancelar." };
-    }
-    if (agora - Date.parse(r.producao.iniciadaEm) > PRAZO_CANCELAR_EM_PRODUCAO_MS) {
-      return { pode: false, motivo: "A produção começou há mais de 3 dias — não dá mais para cancelar." };
-    }
+    return { pode: false, motivo: "A produção da peça já começou — a partir daí o pedido não pode ser cancelado." };
   }
   return { pode: true };
 }

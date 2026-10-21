@@ -7,6 +7,7 @@ import { emailConfigurado } from "@/lib/email/enviar";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { listarRegistros, type Etapa, type RegistroPedido } from "@/lib/pedidos/registro";
 import MenuAdmin from "@/components/admin/MenuAdmin";
+import BotaoComEspera from "@/components/admin/BotaoComEspera";
 import { TRANSPORTADORAS, linkDeRastreio, rotuloEstorno } from "@/lib/email/posVenda";
 import {
   avisarPostagem,
@@ -83,12 +84,13 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
       {!r.conclusao && !r.envio && (
         <form action={marcarProducao} className="flex flex-wrap items-center gap-2">
           <input type="hidden" name="ref" value={r.ref} />
-          <label className="flex items-center gap-1.5">
-            <input type="checkbox" name="personalizado" defaultChecked={r.producao?.personalizado} /> personalizada
-          </label>
-          <button type="submit" className={BOTAO} title="Avisa o cliente por e-mail e põe o pedido em andamento no Bling">
+          <BotaoComEspera
+            esperando="Avisando o cliente…"
+            className={BOTAO}
+            title="Avisa o cliente por e-mail (daqui em diante o pedido não pode ser cancelado) e põe o pedido em andamento no Bling"
+          >
             {r.producao ? `Produção desde ${dataLocal(r.producao.iniciadaEm)} · reenviar aviso` : "Produção iniciada"}
-          </button>
+          </BotaoComEspera>
         </form>
       )}
       {r.conclusao ? (
@@ -104,9 +106,13 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
         <form action={marcarConclusao}>
           <input type="hidden" name="ref" value={r.ref} />
           <input type="hidden" name="tipo" value={r.entrega.retirada ? "retirado" : "entregue"} />
-          <button type="submit" className={BOTAO_FORTE} title="Encerra o pedido e marca Atendido no Bling">
+          <BotaoComEspera
+            esperando="Concluindo…"
+            className={BOTAO_FORTE}
+            title="Encerra o pedido, marca Atendido no Bling e manda ao cliente o e-mail com a pesquisa"
+          >
             {r.entrega.retirada ? "Cliente retirou" : "Entregue"}
-          </button>
+          </BotaoComEspera>
         </form>
       )}
       <details className="ml-auto">
@@ -115,15 +121,22 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
           <input type="hidden" name="ref" value={r.ref} />
           {!avaliacao.pode && <p className="text-xs font-semibold text-red-500">Atenção: {avaliacao.motivo}</p>}
           <p className="text-xs text-texto-suave">
-            Devolve {formatarReais(r.total)} pelo Mercado Pago, devolve o estoque, cancela o pedido no Bling e avisa o
-            cliente. A nota fiscal fica para você (o site mostra o que fazer).
+            Devolve {formatarReais(r.total)} pelo Mercado Pago (menos o valor retido, se houver), devolve o estoque,
+            cancela o pedido no Bling e avisa o cliente. A nota fiscal fica para você (o site mostra o que fazer).
           </p>
+          <label className="flex flex-wrap items-center gap-1.5 text-xs">
+            Reter (arte de personalizada) R$
+            <input name="reter" inputMode="decimal" placeholder="0,00" className="w-20 rounded border border-borda bg-fundo px-2 py-1" />
+          </label>
           <label className="flex items-center gap-1.5 text-xs font-semibold">
             <input type="checkbox" name="confirmo" /> Confirmo o cancelamento e o estorno
           </label>
-          <button type="submit" className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white">
+          <BotaoComEspera
+            esperando="Cancelando e estornando… não feche a página"
+            className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white"
+          >
             Cancelar e estornar
-          </button>
+          </BotaoComEspera>
         </form>
       </details>
     </div>
@@ -137,7 +150,9 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
   return (
     <div className="mt-3 space-y-2 rounded-xl border border-red-500 px-4 py-3 text-sm">
       <p className="font-semibold text-red-500">
-        {c.concluidoEm ? `Cancelado pelo site em ${dataLocal(c.concluidoEm)}` : "Cancelamento não concluído — o estorno falhou"}
+        {c.concluidoEm
+          ? `Cancelado pelo site em ${dataLocal(c.concluidoEm)}${c.retido ? ` · retido ${formatarReais(c.retido)} (arte)` : ""}`
+          : "Cancelamento não concluído — o estorno falhou"}
       </p>
       <div className="flex flex-wrap gap-2">
         <Selo nome="Estorno MP" etapa={c.estornoMp} />
@@ -151,14 +166,14 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
           <span className="font-semibold">
             {nota.acao === "cancelar-no-bling"
               ? "Nota fiscal: cancelar no Bling (até 24 h da emissão), com justificativa."
-              : "Nota fiscal: passou de 24 h — emitir nota de devolução (CFOP com o Glauco)."}
+              : "Nota fiscal: passou de 24 h — emitir nota de devolução (entrada) com o CFOP inverso ao da venda (ex.: 5.102 → 1.202; 6.102/6.108 → 2.202), referenciando a nota original."}
           </span>
           {r.nfe?.idNota && (
             <a href="https://www.bling.com.br/notas.fiscais.php" target="_blank" rel="noopener noreferrer" className="underline">
               abrir notas no Bling
             </a>
           )}
-          <button type="submit" className={BOTAO}>Nota resolvida</button>
+          <BotaoComEspera esperando="Salvando…" className={BOTAO}>Nota resolvida</BotaoComEspera>
         </form>
       )}
       {nota?.resolvidaEm && <p className="text-texto-suave">Nota resolvida em {dataLocal(nota.resolvidaEm)}.</p>}
@@ -166,10 +181,49 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
         <form action={cancelarEEstornar}>
           <input type="hidden" name="ref" value={r.ref} />
           <input type="hidden" name="confirmo" value="on" />
-          <button type="submit" className={BOTAO}>Refazer o que falhou</button>
+          <BotaoComEspera esperando="Refazendo…" className={BOTAO}>Refazer o que falhou</BotaoComEspera>
         </form>
       )}
     </div>
+  );
+}
+
+/** O que acabou de acontecer, em uma frase — para não ficar na dúvida se o clique pegou. */
+function AvisoDaAcao({ aviso, r }: { aviso?: string; r?: RegistroPedido }) {
+  if (!aviso || !r) return null;
+  let ok = true;
+  let texto: string | null = null;
+  if (aviso === "cancelado") {
+    const c = r.cancelamento;
+    if (c?.concluidoEm) {
+      const devolvido = r.total - (c.retido ?? 0);
+      const falhas = [c.estoqueBling, c.pedidoBling, c.emailCliente].filter((e) => e?.erro).length;
+      texto = `Pedido ${r.ref} cancelado. Estorno de ${formatarReais(devolvido)} enviado ao Mercado Pago${
+        c.emailCliente?.feitoEm ? " e cliente avisado por e-mail" : ""
+      }.${falhas ? ` ${falhas} etapa(s) falharam — veja abaixo e use "Refazer o que falhou".` : ""}`;
+      ok = falhas === 0;
+    } else {
+      ok = false;
+      texto = `Pedido ${r.ref} NÃO foi cancelado: o estorno no Mercado Pago falhou${c?.estornoMp?.erro ? ` (${c.estornoMp.erro})` : ""}. Nada foi devolvido.`;
+    }
+  } else if (aviso === "producao") {
+    ok = Boolean(r.producao?.email?.feitoEm);
+    texto = ok ? `Produção do pedido ${r.ref} registrada e cliente avisado.` : `Produção registrada, mas o e-mail ao cliente falhou.`;
+  } else if (aviso === "concluido" && r.conclusao) {
+    ok = Boolean(r.conclusao.email?.feitoEm);
+    texto = `Pedido ${r.ref} ${r.conclusao.tipo === "retirado" ? "retirado" : "entregue"}${
+      ok ? " — cliente recebeu o e-mail com a pesquisa." : " — o e-mail ao cliente falhou."
+    }`;
+  }
+  if (!texto) return null;
+  return (
+    <p
+      role="status"
+      className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${ok ? "bg-kambada-amarelo text-kambada-grafite" : "border border-red-500 text-red-500"}`}
+    >
+      {ok ? "✓ " : "⚠ "}
+      {texto}
+    </p>
   );
 }
 
@@ -190,9 +244,9 @@ const BOTAO_FORTE = "rounded-full bg-kambada-amarelo px-4 py-1.5 text-sm font-se
 export default async function PaginaAdminPedidos({
   searchParams,
 }: {
-  searchParams: Promise<{ aviso?: string; filtro?: string }>;
+  searchParams: Promise<{ aviso?: string; filtro?: string; ref?: string }>;
 }) {
-  const { aviso, filtro = "abertos" } = await searchParams;
+  const { aviso, filtro = "abertos", ref: refDoAviso } = await searchParams;
   if (!adminConfigurado()) {
     return (
       <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
@@ -252,6 +306,8 @@ export default async function PaginaAdminPedidos({
           </a>
         ))}
       </nav>
+
+      <AvisoDaAcao aviso={aviso} r={todos.find((x) => x.ref === refDoAviso)} />
 
       {aviso === "confirmar-cancelamento" && (
         <p role="alert" className="mt-4 rounded-xl border border-red-500 px-4 py-3 text-sm font-semibold text-red-500">

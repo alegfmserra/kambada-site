@@ -139,22 +139,27 @@ async function refDoFormulario(formulario: FormData): Promise<string> {
   return ref;
 }
 
-async function voltar(ref: string, aviso?: string): Promise<never> {
+/** Volta à área de controle com o aviso do que acabou de acontecer, na aba onde o pedido está agora. */
+async function voltar(ref: string, aviso?: string, filtro?: string): Promise<never> {
   revalidatePath("/admin/pedidos");
-  redirect(`/admin/pedidos${aviso ? `?aviso=${aviso}` : ""}#${ref}`);
+  const q = new URLSearchParams();
+  if (filtro) q.set("filtro", filtro);
+  if (aviso) q.set("aviso", aviso);
+  q.set("ref", ref);
+  redirect(`/admin/pedidos?${q}#${ref}`);
 }
 
 export async function marcarProducao(formulario: FormData): Promise<void> {
   const ref = await refDoFormulario(formulario);
   await iniciarProducao(ref, formulario.get("personalizado") === "on");
-  await voltar(ref);
+  await voltar(ref, "producao");
 }
 
 export async function marcarConclusao(formulario: FormData): Promise<void> {
   const ref = await refDoFormulario(formulario);
   const tipo = formulario.get("tipo") === "retirado" ? "retirado" : "entregue";
   await concluirPedido(ref, tipo);
-  await voltar(ref);
+  await voltar(ref, "concluido", "concluidos");
 }
 
 export async function desfazerConclusaoPedido(formulario: FormData): Promise<void> {
@@ -168,17 +173,18 @@ export async function cancelarEEstornar(formulario: FormData): Promise<void> {
   const ref = await refDoFormulario(formulario);
   if (formulario.get("confirmo") !== "on") await voltar(ref, "confirmar-cancelamento");
   try {
-    await cancelarPedido(ref);
+    const reter = Number(String(formulario.get("reter") ?? "0").replace(",", ".")) || 0;
+    await cancelarPedido(ref, reter);
   } catch (e) {
     console.error("[admin] cancelar:", e instanceof Error ? e.message : e);
   }
-  await voltar(ref);
+  await voltar(ref, "cancelado", "cancelamento");
 }
 
 export async function notaResolvida(formulario: FormData): Promise<void> {
   const ref = await refDoFormulario(formulario);
   await marcarNotaResolvida(ref);
-  await voltar(ref);
+  await voltar(ref, undefined, "cancelamento");
 }
 
 // ---------------------------------------------------------------------------

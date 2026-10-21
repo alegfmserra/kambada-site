@@ -183,13 +183,18 @@ export async function buscarPagamento(id: string | number): Promise<Pagamento> {
 }
 
 /**
- * Devolve o pagamento inteiro ao cliente (cancelamento pela área de controle).
+ * Devolve o pagamento ao cliente — inteiro, ou parte dele (cancelamento pela área de controle).
  * A chave de idempotência é o pedido: clicar duas vezes não estorna duas vezes.
  */
-export async function estornarPagamento(id: string | number, chave: string): Promise<{ id?: number; status?: string }> {
+export async function estornarPagamento(
+  id: string | number,
+  chave: string,
+  valor?: number,
+): Promise<{ id?: number; status?: string }> {
   return chamar(`/v1/payments/${encodeURIComponent(String(id))}/refunds`, {
     method: "POST",
-    body: "{}",
+    // Sem valor = devolução total; com valor = parcial (retenção da arte).
+    body: valor ? JSON.stringify({ amount: Number(valor.toFixed(2)) }) : "{}",
     headers: { "X-Idempotency-Key": chave },
   });
 }

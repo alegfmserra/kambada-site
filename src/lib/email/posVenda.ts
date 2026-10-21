@@ -150,9 +150,7 @@ const botao = (href: string, rotulo: string) =>
 export function mensagemProducao(r: RegistroPedido, personalizado: boolean, urlDoSite: string): Mensagem {
   const e = escaparHtml;
   const link = `${urlDoSite}/pedido?ref=${encodeURIComponent(r.ref)}`;
-  const regra = personalizado
-    ? "Como a peça é personalizada, a partir de agora o pedido não pode mais ser cancelado."
-    : "Se precisar desistir, ainda dá para cancelar em até 3 dias a partir de hoje, pela página do pedido.";
+  const regra = `Com a produção iniciada${personalizado ? " (peça personalizada)" : ""}, o pedido não pode mais ser cancelado.`;
   return {
     assunto: `Começamos a produzir o seu pedido ${r.ref} 🎨`,
     texto: [
@@ -229,18 +227,21 @@ export function mensagemCancelamentoSolicitadoCliente(r: RegistroPedido): Mensag
 }
 
 /** Ao cliente: pedido cancelado e pagamento devolvido. */
-export function mensagemPedidoCancelado(r: RegistroPedido, tipoPagamento?: string): Mensagem {
+export function mensagemPedidoCancelado(r: RegistroPedido, tipoPagamento?: string, retido = 0): Mensagem {
+  const devolvido = Math.round((r.total - retido) * 100) / 100;
+  const retencao = retido > 0 ? `Retivemos ${reais(retido)} referentes ao desenvolvimento da arte, já feito antes do cancelamento.` : "";
   const e = escaparHtml;
   const prazo =
     tipoPagamento === "credit_card"
       ? "No cartão de crédito, o valor aparece como crédito na fatura — pode levar até 2 faturas, conforme o banco."
       : "No Pix, o valor volta para a conta de origem, normalmente no mesmo dia.";
   return {
-    assunto: `Pedido ${r.ref} cancelado — devolução de ${reais(r.total)}`,
+    assunto: `Pedido ${r.ref} cancelado — devolução de ${reais(devolvido)}`,
     texto: [
       `Olá, ${primeiroNome(r)}!`,
       "",
-      `O seu pedido ${r.ref} foi cancelado e devolvemos ${reais(r.total)} pelo Mercado Pago.`,
+      `O seu pedido ${r.ref} foi cancelado e devolvemos ${reais(devolvido)} pelo Mercado Pago.`,
+      retencao,
       prazo,
       "",
       "Esperamos ver você de novo por aqui. Qualquer dúvida, é só responder este e-mail.",
@@ -250,9 +251,40 @@ export function mensagemPedidoCancelado(r: RegistroPedido, tipoPagamento?: strin
       moldura(
         `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
 <p style="margin:0 0 16px;font-size:20px;font-weight:bold">Pedido cancelado e valor devolvido.</p>
-<p style="margin:0 0 8px">Pedido <strong>${e(r.ref)}</strong>: devolvemos <strong>${reais(r.total)}</strong> pelo Mercado Pago.</p>
+<p style="margin:0 0 8px">Pedido <strong>${e(r.ref)}</strong>: devolvemos <strong>${reais(devolvido)}</strong> pelo Mercado Pago.</p>
+${retencao ? `<p style="margin:0 0 8px">${e(retencao)}</p>` : ""}
 <p style="margin:0 0 16px;color:#6b6460">${e(prazo)}</p>
 <p style="margin:0">Esperamos ver você de novo por aqui. Qualquer dúvida, é só responder este e-mail.</p>`,
+        cid,
+      ),
+  };
+}
+
+/** Ao cliente: pedido entregue ou retirado — agradece e convida para a pesquisa. */
+export function mensagemConcluido(r: RegistroPedido, tipo: "entregue" | "retirado", urlDoSite: string): Mensagem {
+  const e = escaparHtml;
+  const pesquisa = `${urlDoSite}/?avaliar=1`;
+  const abertura = tipo === "retirado" ? "Obrigado por buscar seu pedido no ateliê!" : "Seu pedido chegou!";
+  return {
+    assunto: tipo === "retirado" ? `Obrigado, ${primeiroNome(r)}! Pedido ${r.ref} retirado 💛` : `Seu pedido ${r.ref} chegou! 🎉`,
+    texto: [
+      `Olá, ${primeiroNome(r)}!`,
+      "",
+      `${abertura} Pedido ${r.ref}.`,
+      "Conta pra gente como foi? São perguntas rápidas e ajudam muito a Kambada a melhorar:",
+      pesquisa,
+      "",
+      "Se algo não saiu como esperado, é só responder este e-mail.",
+      "Bora vestir o Maranhão!",
+      "Kambada — São Luís, MA",
+    ].join("\n"),
+    html: (cid) =>
+      moldura(
+        `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
+<p style="margin:0 0 16px;font-size:20px;font-weight:bold">${e(abertura)} ${tipo === "retirado" ? "💛" : "🎉"}</p>
+<p style="margin:0 0 16px">Pedido <strong>${e(r.ref)}</strong>. Conta pra gente como foi? São perguntas rápidas e ajudam muito a Kambada a melhorar.</p>
+${botao(pesquisa, "Avaliar minha experiência")}
+<p style="margin:0">Se algo não saiu como esperado, é só responder este e-mail. Bora vestir o Maranhão!</p>`,
         cid,
       ),
   };

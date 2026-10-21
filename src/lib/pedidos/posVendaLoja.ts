@@ -17,6 +17,7 @@ import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "../email/e
 import {
   mensagemCancelamentoSolicitadoCliente,
   mensagemCancelamentoSolicitadoLoja,
+  mensagemConcluido,
   mensagemPedidoCancelado,
   mensagemProducao,
   type Mensagem,
@@ -88,8 +89,10 @@ export async function iniciarProducao(ref: string, personalizado: boolean): Prom
 /** "Entregue" ou "Retirado": encerra o pós-venda e marca "atendido" no Bling. */
 export async function concluirPedido(ref: string, tipo: "entregue" | "retirado"): Promise<RegistroPedido | null> {
   const r = await exigir(ref);
-  const bling = await mudarSituacaoNoBling(r.bling.idPedido, situacoesBling().atendido);
-  return atualizarRegistro(ref, { conclusao: { tipo, em: r.conclusao?.em ?? agoraIso(), bling } });
+  const bling = r.conclusao?.bling?.feitoEm ? r.conclusao.bling : await mudarSituacaoNoBling(r.bling.idPedido, situacoesBling().atendido);
+  // "Chegou!" com convite à pesquisa — uma vez só, mesmo se marcar de novo.
+  const email = r.conclusao?.email?.feitoEm ? r.conclusao.email : await enviar(r.cliente.email, mensagemConcluido(r, tipo, urlPublica()));
+  return atualizarRegistro(ref, { conclusao: { tipo, em: r.conclusao?.em ?? agoraIso(), bling, email } });
 }
 
 /** Desfaz um "Entregue/Retirado" marcado por engano (não mexe no Bling). */
@@ -132,17 +135,21 @@ export async function solicitarCancelamento(ref: string, motivo: string): Promis
  * A LOJA cancela: estorna no Mercado Pago, devolve o estoque e cancela o
  * pedido no Bling, diz o que fazer com a nota e avisa o cliente. Idempotente.
  */
-export async function cancelarPedido(ref: string): Promise<RegistroPedido | null> {
+export async function cancelarPedido(ref: string, reter = 0): Promise<RegistroPedido | null> {
   const r = await exigir(ref);
   const c: NonNullable<RegistroPedido["cancelamento"]> = { origem: "loja", ...r.cancelamento };
+  if (!c.estornoMp?.feitoEm) {
+    if (!(reter >= 0 && reter < r.total)) throw new Error("valor a reter inválido");
+    c.retido = reter > 0 ? Math.round(reter * 100) / 100 : undefined;
+  }
   const salvar = () => atualizarRegistro(ref, { cancelamento: { ...c } });
 
   // 1. Dinheiro de volta — a etapa que decide se o pedido está cancelado.
   if (!c.estornoMp?.feitoEm) {
     c.estornoMp = await etapa(async () => {
       const p = await buscarPagamento(r.pagamentoId);
-      if (p.status === "refunded") return;
-      await estornarPagamento(r.pagamentoId, `cancelamento-${ref}`);
+      if (p.status === "refunded" || p.status === "partially_refunded") return;
+      await estornarPagamento(r.pagamentoId, `cancelamento-${ref}`, c.retido ? r.total - c.retido : undefined);
     });
     await salvar();
     if (!c.estornoMp.feitoEm) return lerRegistro(ref);
@@ -158,7 +165,7 @@ export async function cancelarPedido(ref: string): Promise<RegistroPedido | null
   if (!c.pedidoBling?.feitoEm) c.pedidoBling = await mudarSituacaoNoBling(r.bling.idPedido, situacoesBling().cancelado);
   // 4. Cliente avisado.
   if (!c.emailCliente?.feitoEm) {
-    c.emailCliente = await enviar(r.cliente.email, mensagemPedidoCancelado(r, r.pagamento.tipo), { copiaOculta: emailDaLoja() });
+    c.emailCliente = await enviar(r.cliente.email, mensagemPedidoCancelado(r, r.pagamento.tipo, c.retido ?? 0), { copiaOculta: emailDaLoja() });
   }
   return salvar();
 }

@@ -56,9 +56,8 @@ export const copy = {
     price: "[PREÇO A DEFINIR]",
     delivery: "[CONDIÇÕES DE ENTREGA A DEFINIR]",
     ctaLabel: "Quero a minha",
-    // PLACEHOLDER: número de WhatsApp fictício (55XXXXXXXXXXX). Substituir pelo número
-    // real da Kambada antes de colocar o QR code nas matracas físicas.
-    whatsappUrl: "https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20quero%20uma%20matraca%20Kambada!",
+    // WhatsApp oficial da Kambada (o mesmo do site).
+    whatsappUrl: "https://wa.me/5598984435295?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20quero%20uma%20matraca%20Kambada!",
   },
   footer: {
     instagramHandle: "@somos.kambada",

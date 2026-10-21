@@ -155,7 +155,7 @@ export async function rotinaDeManutencao(
   } catch (e) {
     relatorioMensal = { enviado: false, motivo: e instanceof Error ? e.message : String(e) };
   }
-  const url = (process.env.URL_DO_SITE ?? "https://maroon-heron-459360.hostingersite.com").replace(/\/+$/, "");
+  const url = (process.env.URL_DO_SITE ?? "https://somoskambada.com.br").replace(/\/+$/, "");
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
   if (!s.melhorEnvio.ok) alertas.melhorEnvio = await alertar("melhor-envio", "Melhor Envio fora", `${s.melhorEnvio.detalhe}\n\nSem ele, o cliente de fora de São Luís só vê a retirada no ateliê. Gerar token novo no painel do Melhor Envio e colar em MELHORENVIO_TOKEN na Hostinger.`);

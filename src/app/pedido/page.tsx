@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   title: "Acompanhar pedido",
   description: "Veja a situação do seu pedido da Kambada: pagamento, separação e entrega.",
   alternates: { canonical: "/pedido" },
+  // Página de consulta: não vai para o Google (o robots.txt já a bloqueia).
+  robots: { index: false, follow: false },
 };
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };

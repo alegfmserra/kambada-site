@@ -24,7 +24,7 @@ export async function register() {
   setTimeout(rodar, 2 * 60 * 1000).unref();
   // Páginas de produto aquecidas 3 min depois de subir (deploy/reinício).
   setTimeout(() => {
-    aquecerPaginas(process.env.URL_DO_SITE ?? "https://maroon-heron-459360.hostingersite.com")
+    aquecerPaginas(process.env.URL_DO_SITE ?? "https://somoskambada.com.br")
       .then((a) => console.log(`[aquecimento] ${a.ok}/${a.paginas} páginas em ${a.ms} ms`))
       .catch((e) => console.error("[aquecimento] falhou:", e instanceof Error ? e.message : e));
   }, 3 * 60 * 1000).unref();

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { cotarCarrinho } from "@/lib/frete/cotar";
@@ -17,6 +18,12 @@ export const dynamic = "force-dynamic";
  * catálogo, no servidor.
  */
 export async function POST(requisicao: Request) {
+  // Cada cotação consulta o Melhor Envio: limite por IP contra abuso.
+  // Sem IP conhecido não há limite: senão todos os clientes dividiriam o mesmo balde.
+  const ip = ipDaRequisicao(requisicao);
+  if (ip !== "sem-ip" && !dentroDoLimite(ip, "frete", 30, 10 * 60_000)) {
+    return NextResponse.json({ erro: "Muitas cotações seguidas. Espere alguns minutos e tente de novo." }, { status: 429 });
+  }
   let corpo: Record<string, unknown>;
   try {
     corpo = (await requisicao.json()) as Record<string, unknown>;

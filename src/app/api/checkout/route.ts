@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { buscarCatalogo, saldoAoVivo } from "@/lib/bling/produtos";
 import { indexarOpcoes, lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
 import { lerDadosCliente } from "@/lib/checkout/cliente";
@@ -27,6 +28,11 @@ export const dynamic = "force-dynamic";
  * não viu.
  */
 export async function POST(requisicao: Request) {
+  // Sem IP conhecido não há limite: senão todos os clientes dividiriam o mesmo balde.
+  const ip = ipDaRequisicao(requisicao);
+  if (ip !== "sem-ip" && !dentroDoLimite(ip, "checkout", 10, 10 * 60_000)) {
+    return NextResponse.json({ erro: "Muitas tentativas seguidas. Espere alguns minutos e tente de novo." }, { status: 429 });
+  }
   if (!mercadoPagoConfigurado()) {
     return NextResponse.json(
       {

@@ -50,7 +50,7 @@ import type { RetratoPedido } from "./pedido";
 
 /** O endereço que vai nos links do e-mail. */
 export function urlPublica(): string {
-  return (process.env.URL_DO_SITE ?? "https://maroon-heron-459360.hostingersite.com").replace(/\/+$/, "");
+  return (process.env.URL_DO_SITE ?? "https://somoskambada.com.br").replace(/\/+$/, "");
 }
 
 export function montarRegistro(

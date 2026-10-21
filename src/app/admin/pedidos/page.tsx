@@ -11,6 +11,8 @@ import BotaoComEspera from "@/components/admin/BotaoComEspera";
 import { TRANSPORTADORAS, linkDeRastreio, rotuloEstorno } from "@/lib/email/posVenda";
 import {
   avisarPostagem,
+  comprarEtiqueta,
+  conferirRastreio,
   cancelarEEstornar,
   desfazerConclusaoPedido,
   marcarConclusao,
@@ -188,6 +190,69 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
   );
 }
 
+const SITUACAO_ME: Record<string, string> = {
+  pending: "no carrinho (não paga)",
+  released: "paga",
+  generated: "gerada — falta postar",
+  posted: "postada",
+  delivered: "entregue",
+  canceled: "cancelada no Melhor Envio",
+  undelivered: "não entregue",
+};
+
+/** Etiqueta do Melhor Envio comprada pelo site: comprar, imprimir, conferir rastreio. */
+function BlocoEtiqueta({ r }: { r: RegistroPedido }) {
+  const e = r.etiqueta;
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-borda pt-3 text-sm">
+      <span className="font-semibold">Etiqueta:</span>
+      {e?.compradaEm ? (
+        <>
+          <span>
+            {e.transportadora} {e.servico}
+            {e.valor ? ` · ${formatarReais(e.valor)}` : ""} · {SITUACAO_ME[e.situacaoMe ?? ""] ?? (e.geradaEm ? "gerada — falta postar" : "paga")}
+            {e.rastreio ? ` · ${e.rastreio}` : ""}
+          </span>
+          {e.urlImpressao && (
+            <a href={e.urlImpressao} target="_blank" rel="noopener noreferrer" className={BOTAO_FORTE}>
+              Imprimir etiqueta
+            </a>
+          )}
+          <form action={conferirRastreio}>
+            <input type="hidden" name="ref" value={r.ref} />
+            <BotaoComEspera esperando="Consultando o Melhor Envio…" className={BOTAO}>
+              Atualizar rastreio
+            </BotaoComEspera>
+          </form>
+        </>
+      ) : (
+        <span className="text-texto-suave">
+          {e?.idMe ? `no carrinho do Melhor Envio (${e.transportadora} ${e.servico}${e.valor ? ` · ${formatarReais(e.valor)}` : ""})` : `${r.entrega.descricao} — ainda não comprada`}
+        </span>
+      )}
+      {(!e?.compradaEm || !e.geradaEm || !e.urlImpressao) && (
+        <form action={comprarEtiqueta}>
+          <input type="hidden" name="ref" value={r.ref} />
+          <BotaoComEspera
+            esperando="Comprando a etiqueta…"
+            className={BOTAO_FORTE}
+            title="Usa o saldo da carteira do Melhor Envio, com o mesmo serviço que o cliente escolheu e a nota fiscal vinculada"
+          >
+            {e?.idMe ? "Continuar compra da etiqueta" : "Comprar etiqueta (Melhor Envio)"}
+          </BotaoComEspera>
+        </form>
+      )}
+      {e?.erro && <p className="w-full text-xs font-semibold text-red-500">Melhor Envio: {e.erro}</p>}
+      {e?.compradaEm && (
+        <p className="w-full text-xs text-texto-suave">
+          O site confere o Melhor Envio a cada hora: quando a etiqueta for postada, o cliente recebe o rastreio; quando for
+          entregue, o pedido é concluído e o cliente recebe o e-mail com a pesquisa.
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** O que acabou de acontecer, em uma frase — para não ficar na dúvida se o clique pegou. */
 function AvisoDaAcao({ aviso, r }: { aviso?: string; r?: RegistroPedido }) {
   if (!aviso || !r) return null;
@@ -209,6 +274,22 @@ function AvisoDaAcao({ aviso, r }: { aviso?: string; r?: RegistroPedido }) {
   } else if (aviso === "producao") {
     ok = Boolean(r.producao?.email?.feitoEm);
     texto = ok ? `Produção do pedido ${r.ref} registrada e cliente avisado.` : `Produção registrada, mas o e-mail ao cliente falhou.`;
+  } else if (aviso === "etiqueta" && r.etiqueta) {
+    const e = r.etiqueta;
+    ok = !e.erro && Boolean(e.urlImpressao);
+    texto = ok
+      ? `Etiqueta do pedido ${r.ref} comprada (${e.transportadora} ${e.servico}${e.valor ? `, ${formatarReais(e.valor)}` : ""}). Clique em "Imprimir etiqueta".`
+      : `Etiqueta do pedido ${r.ref} não concluída: ${e.erro ?? "falta imprimir"}.${
+          e.idMe && !e.compradaEm ? " O frete ficou no carrinho do Melhor Envio — com saldo, clique em continuar." : ""
+        }`;
+  } else if (aviso === "rastreio" && r.etiqueta) {
+    ok = !r.etiqueta.erro;
+    texto = ok
+      ? `Melhor Envio consultado: ${SITUACAO_ME[r.etiqueta.situacaoMe ?? ""] ?? r.etiqueta.situacaoMe ?? "sem novidade"}${r.envio ? " · cliente já avisado da postagem" : ""}.`
+      : `Não consegui consultar o Melhor Envio: ${r.etiqueta.erro}`;
+  } else if (aviso === "postado" && r.envio) {
+    ok = Boolean(r.envio.email?.feitoEm);
+    texto = ok ? `Rastreio ${r.envio.codigo} enviado ao cliente.` : `Rastreio salvo, mas o e-mail ao cliente falhou.`;
   } else if (aviso === "concluido" && r.conclusao) {
     ok = Boolean(r.conclusao.email?.feitoEm);
     texto = `Pedido ${r.ref} ${r.conclusao.tipo === "retirado" ? "retirado" : "entregue"}${
@@ -419,6 +500,8 @@ export default async function PaginaAdminPedidos({
                 </div>
 
                 {!cancelado(r) && <AcoesDoPedido r={r} />}
+
+                {!r.entrega.retirada && !cancelado(r) && !r.conclusao && <BlocoEtiqueta r={r} />}
 
                 {!r.entrega.retirada && !cancelado(r) && !r.conclusao && (
                   <form action={avisarPostagem} className="mt-3 flex flex-wrap items-center gap-2 border-t border-borda pt-3 text-sm">

@@ -14,25 +14,17 @@ import {
 } from "@/lib/admin/sessao";
 import { processarPagamento } from "@/lib/checkout/processar";
 import { urlPublica } from "@/lib/checkout/posVenda";
-import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "@/lib/email/enviar";
+import { FORMATO_RASTREIO, normalizarRastreio, TRANSPORTADORAS } from "@/lib/email/posVenda";
+import { lerRegistro } from "@/lib/pedidos/registro";
 import {
-  assuntoEnvio,
-  FORMATO_RASTREIO,
-  htmlEnvio,
-  normalizarRastreio,
-  textoEnvio,
-  TRANSPORTADORAS,
-} from "@/lib/email/posVenda";
-import { atualizarRegistro, lerRegistro } from "@/lib/pedidos/registro";
-import {
+  avisarPostagemAoCliente,
   cancelarPedido,
   concluirPedido,
   desfazerConclusao,
   iniciarProducao,
   marcarNotaResolvida,
-  marcarPostagemNoBling,
 } from "@/lib/pedidos/posVendaLoja";
-import { EMAILS } from "@/lib/site";
+import { atualizarRastreio, gerarEtiqueta } from "@/lib/frete/etiqueta";
 import {
   FORMATO_CODIGO,
   listarCupons,
@@ -104,28 +96,30 @@ export async function avisarPostagem(formulario: FormData): Promise<void> {
   }
   const r = await lerRegistro(ref).catch(() => null);
   if (!r) redirect("/admin/pedidos");
+  await avisarPostagemAoCliente(ref, codigo, transportadora);
+  await voltar(ref, "postado", "postados");
+}
 
-  let email: { feitoEm?: string; erro?: string } | undefined;
-  if (emailConfigurado()) {
-    try {
-      const dados = { registro: r, codigo, transportadora, urlDoSite: urlPublica() };
-      await enviarEmail({
-        para: r.cliente.email,
-        copiaOculta: emailDaLoja(),
-        assunto: assuntoEnvio(r),
-        texto: textoEnvio(dados),
-        html: htmlEnvio(dados, CID_LOGO),
-        responderPara: EMAILS.contato,
-      });
-      email = { feitoEm: new Date().toISOString() };
-    } catch (e) {
-      email = { erro: e instanceof Error ? e.message : String(e) };
-    }
+/** Compra a etiqueta no Melhor Envio (saldo da carteira) e devolve o link de impressão. */
+export async function comprarEtiqueta(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  try {
+    await gerarEtiqueta(ref, urlPublica());
+  } catch (e) {
+    console.error("[admin] etiqueta:", e instanceof Error ? e.message : e);
   }
-  await atualizarRegistro(ref, { envio: { codigo, transportadora, postadoEm: new Date().toISOString(), email } });
-  await marcarPostagemNoBling(ref).catch(() => undefined);
-  revalidatePath("/admin/pedidos");
-  redirect("/admin/pedidos");
+  await voltar(ref, "etiqueta");
+}
+
+/** Lê agora a situação da etiqueta no Melhor Envio (sem esperar a conferência de hora em hora). */
+export async function conferirRastreio(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  try {
+    await atualizarRastreio(ref);
+  } catch (e) {
+    console.error("[admin] rastreio:", e instanceof Error ? e.message : e);
+  }
+  await voltar(ref, "rastreio");
 }
 
 // ---------------------------------------------------------------------------

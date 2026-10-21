@@ -22,6 +22,7 @@ export const PRAZO_CANCELAR_NOTA_MS = 24 * 60 * 60 * 1000;
 
 export type Avaliacao = { pode: true } | { pode: false; motivo: string };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- mantido para regra futura com prazo
 export function avaliarCancelamento(r: RegistroPedido, agora = Date.now()): Avaliacao {
   if (r.cancelamento?.concluidoEm || r.estorno) {
     return { pode: false, motivo: "Este pedido já foi cancelado e o pagamento devolvido." };

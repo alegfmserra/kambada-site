@@ -46,10 +46,30 @@ export type RegistroPedido = {
    */
   estorno?: { status: string; detectadoEm: string; avisoLoja?: Etapa };
   /** Postagem informada na área de controle e aviso "postamos" ao cliente. */
-  envio?: { codigo: string; transportadora: string; postadoEm: string; email?: Etapa; bling?: Etapa };
+  envio?: { codigo: string; transportadora: string; postadoEm: string; email?: Etapa; bling?: Etapa; automatico?: boolean };
   /**
-   * Peça sob encomenda que começou a ser feita (área de controle). Personalizada
-   * em produção não se cancela; sem personalização, até 3 dias (21/10/2026).
+   * Etiqueta comprada pelo site no Melhor Envio (saldo da carteira). O
+   * acompanhamento lê a situação lá: postado → avisa o cliente; entregue →
+   * conclui o pedido e manda o e-mail com a pesquisa.
+   */
+  etiqueta?: {
+    idMe?: string;
+    servicoId?: number;
+    servico?: string;
+    transportadora?: string;
+    valor?: number;
+    noCarrinhoEm?: string;
+    compradaEm?: string;
+    geradaEm?: string;
+    urlImpressao?: string;
+    situacaoMe?: string;
+    rastreio?: string;
+    conferidaEm?: string;
+    erro?: string;
+  };
+  /**
+   * Peça sob encomenda que começou a ser feita (área de controle). Com a
+   * produção iniciada o pedido não se cancela mais (21/10/2026).
    */
   producao?: { iniciadaEm: string; personalizado: boolean; email?: Etapa };
   /** Fim do pós-venda: entregue pela transportadora/em mãos ou retirado no ateliê. */

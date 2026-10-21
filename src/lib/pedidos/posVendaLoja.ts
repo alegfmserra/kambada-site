@@ -15,11 +15,14 @@ import { chamarBling } from "../bling/cliente";
 import { urlPublica } from "../checkout/posVenda";
 import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "../email/enviar";
 import {
+  assuntoEnvio,
+  htmlEnvio,
   mensagemCancelamentoSolicitadoCliente,
   mensagemCancelamentoSolicitadoLoja,
   mensagemConcluido,
   mensagemPedidoCancelado,
   mensagemProducao,
+  textoEnvio,
   type Mensagem,
 } from "../email/posVenda";
 import { buscarPagamento, estornarPagamento } from "../mercadopago/cliente";
@@ -99,6 +102,30 @@ export async function concluirPedido(ref: string, tipo: "entregue" | "retirado")
 export async function desfazerConclusao(ref: string): Promise<RegistroPedido | null> {
   await exigir(ref);
   return atualizarRegistro(ref, { conclusao: undefined });
+}
+
+/**
+ * "Seu pedido foi postado": grava o rastreio, manda o e-mail ao cliente (cópia
+ * oculta à loja) e põe o pedido em andamento no Bling. Usado pelo formulário
+ * da área de controle e pelo acompanhamento automático da etiqueta.
+ */
+export async function avisarPostagemAoCliente(
+  ref: string,
+  codigo: string,
+  transportadora: string,
+  opcoes: { automatico?: boolean; postadoEm?: string } = {},
+): Promise<RegistroPedido | null> {
+  const r = await exigir(ref);
+  const dados = { registro: r, codigo, transportadora, urlDoSite: urlPublica() };
+  const email = await enviar(
+    r.cliente.email,
+    { assunto: assuntoEnvio(r), texto: textoEnvio(dados), html: (cid) => htmlEnvio(dados, cid) },
+    { copiaOculta: emailDaLoja() },
+  );
+  const postadoEm = opcoes.postadoEm ? new Date(opcoes.postadoEm).toISOString() : agoraIso();
+  await atualizarRegistro(ref, { envio: { codigo, transportadora, postadoEm, email, automatico: opcoes.automatico || undefined } });
+  await marcarPostagemNoBling(ref).catch(() => undefined);
+  return lerRegistro(ref);
 }
 
 /** Postagem informada: pedido "em andamento" no Bling (o rastreio já está no registro e no e-mail). */

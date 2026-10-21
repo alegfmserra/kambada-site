@@ -70,7 +70,7 @@ export function freteConfigurado(): boolean {
   return Boolean(process.env.MELHORENVIO_TOKEN);
 }
 
-function base(): string {
+export function base(): string {
   return process.env.MELHORENVIO_AMBIENTE === "sandbox" ? BASES.sandbox : BASES.producao;
 }
 
@@ -78,7 +78,7 @@ function base(): string {
  * O User-Agent é exigido pela API com um e-mail de contato técnico. Fica em
  * variável própria para que esse e-mail seja escolha do dono da conta.
  */
-function userAgent(): string {
+export function userAgent(): string {
   const contato = process.env.MELHORENVIO_CONTATO?.trim();
   return contato ? `Site Kambada (${contato})` : "Site Kambada (somoskambada.com.br)";
 }

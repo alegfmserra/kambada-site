@@ -58,6 +58,36 @@ export function comissoesDoDia(pedidos: RegistroPedido[]): { parceiro: string; c
   return [...porParceiro.values()].map((c) => ({ ...c, vendas: Math.round(c.vendas * 100) / 100, comissao: Math.round(c.comissao * 100) / 100 }));
 }
 
+/** Prazo de separação prometido no site: passou disso sem postar/retirar, o resumo cobra. */
+export const DIAS_UTEIS_PARADO = 3;
+
+/** Dias úteis (seg–sex) inteiros entre duas datas. Feriados não entram — é um alerta, não um prazo legal. */
+export function diasUteisEntre(inicio: Date, fim: Date): number {
+  let dias = 0;
+  const d = new Date(inicio);
+  d.setUTCHours(12, 0, 0, 0);
+  const limite = new Date(fim);
+  limite.setUTCHours(12, 0, 0, 0);
+  while (d < limite) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const semana = d.getUTCDay();
+    if (semana !== 0 && semana !== 6) dias += 1;
+  }
+  return dias;
+}
+
+/** Pagos, sem postagem, retirada, conclusão nem cancelamento, há mais de 3 dias úteis. */
+export function pedidosParados(registros: RegistroPedido[], agora = new Date()): RegistroPedido[] {
+  return registros.filter(
+    (r) =>
+      !r.envio &&
+      !r.conclusao &&
+      !r.estorno &&
+      !r.cancelamento?.concluidoEm &&
+      diasUteisEntre(new Date(r.criadoEm), agora) > DIAS_UTEIS_PARADO,
+  );
+}
+
 function arquivoEstado(): string {
   return join(dirname(arquivoTokens()), "manutencao-estado.json");
 }
@@ -151,8 +181,12 @@ async function montarEEnviar(dia: string, estado: Estado): Promise<ResumoEnviado
   const total = doDia.reduce((s, r) => s + r.total, 0);
   const falhas = doDia.filter((r) => r.estoque?.erro || r.email?.erro || r.nfe?.erro || r.emailLoja?.erro);
   const comissoes = comissoesDoDia(doDia);
+  const parados = pedidosParados(registros);
   const [a, m, d] = dia.split("-");
   const diaBr = `${d}/${m}/${a}`;
+  const paradosTexto = parados.length
+    ? [`⏳ ${parados.length} pedido(s) pago(s) há mais de ${DIAS_UTEIS_PARADO} dias úteis sem postar nem retirar:`, ...parados.map((r) => `• ${r.ref} · ${r.cliente.nome} · ${r.entrega.retirada ? "retirada" : r.entrega.descricao}${r.producao ? " · em produção" : ""}`)]
+    : [];
 
   const linhasTexto = doDia.length
     ? doDia.map((r) => `• ${r.ref} · ${r.cliente.nome} · ${r.itens.map((i) => `${i.quantidade}× ${i.nome}`).join(", ")} · ${r.entrega.retirada ? "retirada" : r.entrega.descricao} · ${real(r.total)}`)
@@ -164,6 +198,7 @@ async function montarEEnviar(dia: string, estado: Estado): Promise<ResumoEnviado
     ...linhasTexto,
     "",
     falhas.length ? `⚠️ ${falhas.length} pedido(s) com etapa falhada — abrir /admin/pedidos.` : "Todas as etapas (estoque, e-mails, nota) concluídas.",
+    ...(paradosTexto.length ? ["", ...paradosTexto] : []),
     "",
     "COMISSÕES DE CUPOM DO DIA (a pagar ao dono do cupom)",
     ...(comissoes.length
@@ -192,6 +227,13 @@ async function montarEEnviar(dia: string, estado: Estado): Promise<ResumoEnviado
         <tbody>${linhasHtml}</tbody>
       </table>
       <p style="margin:16px 0 0;font-size:14px">${falhas.length ? `⚠️ <strong>${falhas.length}</strong> pedido(s) com etapa falhada — abrir o controle de pedidos.` : "✅ Todas as etapas (estoque, e-mails, nota) concluídas."}</p>
+      ${
+        parados.length
+          ? `<p style="margin:12px 0 4px;font-size:14px;color:#b45309"><strong>⏳ ${parados.length} pedido(s) pago(s) há mais de ${DIAS_UTEIS_PARADO} dias úteis sem postar nem retirar:</strong></p><ul style="margin:0;padding-left:20px;font-size:14px">${parados
+              .map((r) => `<li><span style="font-family:monospace">${escaparHtml(r.ref)}</span> · ${escaparHtml(r.cliente.nome)} · ${escaparHtml(r.entrega.retirada ? "retirada" : r.entrega.descricao)}${r.producao ? " · em produção" : ""}</li>`)
+              .join("")}</ul>`
+          : ""
+      }
       <h2 style="margin:20px 0 6px;font-size:15px">Comissões de cupom do dia</h2>
       ${
         comissoes.length

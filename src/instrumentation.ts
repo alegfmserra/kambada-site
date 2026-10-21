@@ -30,6 +30,21 @@ export async function register() {
   }, 3 * 60 * 1000).unref();
   setInterval(rodar, 6 * 60 * 60 * 1000).unref();
 
+  // Etiquetas do Melhor Envio: a cada hora, postado → rastreio ao cliente;
+  // entregue → pedido concluído + pesquisa. Só um processo por hora (reserva).
+  const { acompanharEtiquetas } = await import("./lib/frete/etiqueta");
+  const { pastaDeDadosPresente, reservar } = await import("./lib/manutencao/reserva");
+  setInterval(async () => {
+    try {
+      if (!pastaDeDadosPresente()) return;
+      if (!(await reservar(`etiquetas-${Math.floor(Date.now() / 3_600_000)}`))) return;
+      const r = await acompanharEtiquetas();
+      if (r.conferidas) console.log(`[etiquetas] ${r.conferidas} conferida(s)${r.erros.length ? `, erros: ${r.erros.join("; ")}` : ""}`);
+    } catch (e) {
+      console.error("[etiquetas] falhou:", e instanceof Error ? e.message : e);
+    }
+  }, 60 * 60 * 1000).unref();
+
   // Resumo do dia às 00:01 de São Luís (recorte fechado do dia anterior).
   const agendarResumo = () => {
     setTimeout(async () => {

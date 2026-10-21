@@ -103,6 +103,12 @@ function naFila<T>(trabalho: () => Promise<T>): Promise<T> {
 let usarTemporario = false;
 const arquivoTemporario = () => join(tmpdir(), "kambada-play-placar.json");
 
+/** Todas as pontuações e prêmios — para a exportação da área de controle (só leitura). */
+export async function dadosDoPlacar(): Promise<{ pontuacoes: Pontuacao[]; premios: PremioEmitido[] }> {
+  const d = await ler();
+  return { pontuacoes: d.pontuacoes, premios: d.premios };
+}
+
 async function ler(): Promise<Dados> {
   const caminhos = usarTemporario ? [arquivoTemporario()] : [arquivoPlacar(), arquivoTemporario()];
   for (const c of caminhos) {

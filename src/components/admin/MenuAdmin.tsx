@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { sair } from "@/app/admin/acoes";
 
-/** Navegação da área de controle — pedidos e cupons. */
-export default function MenuAdmin({ ativa }: { ativa: "pedidos" | "cupons" }) {
+/** Navegação da área de controle — pedidos, cupons e dados do site. */
+export default function MenuAdmin({ ativa }: { ativa: "pedidos" | "cupons" | "dados" }) {
   const item = (href: string, rotulo: string, chave: typeof ativa) => (
     <Link
       href={href}
@@ -18,6 +18,7 @@ export default function MenuAdmin({ ativa }: { ativa: "pedidos" | "cupons" }) {
     <nav aria-label="Área de controle" className="flex flex-wrap items-center gap-2">
       {item("/admin/pedidos", "Pedidos", "pedidos")}
       {item("/admin/cupons", "Cupons", "cupons")}
+      {item("/admin/dados", "Dados e exportação", "dados")}
       <form action={sair} className="ml-auto">
         <button type="submit" className="rounded-full border border-borda px-4 py-2 text-sm font-semibold hover:border-kambada-amarelo-escuro">
           Sair

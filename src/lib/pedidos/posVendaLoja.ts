@@ -230,3 +230,91 @@ export async function marcarNotaResolvida(ref: string): Promise<RegistroPedido |
   if (!r.cancelamento?.nota) return r;
   return atualizarRegistro(ref, { cancelamento: { ...r.cancelamento, nota: { ...r.cancelamento.nota, resolvidaEm: agoraIso() } } });
 }
+
+// ---------------------------------------------------------------------------
+// Fase C — problema na entrega e troca de peça (21/10/2026)
+// ---------------------------------------------------------------------------
+
+const ROTULO_PROBLEMA = {
+  "nao-entregue": "não entregue (tentativa sem sucesso)",
+  devolvido: "devolvido ao remetente",
+  extravio: "extraviado",
+} as const;
+
+export function rotuloProblema(tipo: keyof typeof ROTULO_PROBLEMA): string {
+  return ROTULO_PROBLEMA[tipo];
+}
+
+/** Registra o problema e avisa a loja (uma vez por pedido e tipo). */
+export async function registrarProblemaEntrega(
+  ref: string,
+  tipo: keyof typeof ROTULO_PROBLEMA,
+  origem: "melhor-envio" | "loja",
+  observacao?: string,
+): Promise<RegistroPedido | null> {
+  const r = await exigir(ref);
+  if (r.problemaEntrega?.tipo === tipo && !r.problemaEntrega.resolvidoEm) return r;
+  const { alertar } = await import("../manutencao/alertas");
+  const resultado = await alertar(
+    `problema-${tipo}-${ref}`,
+    `Pedido ${ref}: ${rotuloProblema(tipo)}`,
+    [
+      `${r.cliente.nome} (${r.cliente.email}) · ${r.entrega.descricao}${r.envio ? ` · rastreio ${r.envio.codigo}` : ""}`,
+      observacao ? `Obs.: ${observacao}` : "",
+      "",
+      tipo === "extravio"
+        ? "Abrir reclamação no Melhor Envio (Pedidos → o envio → Ajuda). O seguro cobre o valor declarado, que o site já preenche com o valor das peças. Combinar com o cliente: reenvio (nova etiqueta) ou estorno."
+        : "Falar com o cliente pelo WhatsApp (botão 'problema na entrega' na área de controle): confirmar endereço e horário. Se voltou ao ateliê, reenviar com nova etiqueta ou estornar.",
+      `Área de controle: ${urlPublica()}/admin/pedidos`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
+  return atualizarRegistro(ref, {
+    problemaEntrega: {
+      tipo,
+      origem,
+      detectadoEm: agoraIso(),
+      observacao: observacao?.slice(0, 300) || undefined,
+      avisoLoja: resultado === "enviado" ? { feitoEm: agoraIso() } : { detalhe: resultado },
+    },
+  });
+}
+
+export async function resolverProblemaEntrega(ref: string): Promise<RegistroPedido | null> {
+  const r = await exigir(ref);
+  if (!r.problemaEntrega) return r;
+  return atualizarRegistro(ref, { problemaEntrega: { ...r.problemaEntrega, resolvidoEm: agoraIso() } });
+}
+
+/** Depósito "Geral" — o único da conta (ver api/bling/estoque). */
+const ID_DEPOSITO = Number(process.env.BLING_DEPOSITO ?? 14888952004);
+
+/**
+ * Troca de peça: a antiga volta ao estoque (entrada) e a nova sai (saída), com
+ * observação do pedido. A nota da troca (devolução + nova venda) fica com o
+ * Glauco; a etiqueta de ida da peça nova, pelo botão de etiqueta ou no
+ * Melhor Envio.
+ */
+export async function trocarPeca(
+  ref: string,
+  de: { id: number; nome: string },
+  para: { id: number; nome: string },
+  quantidade: number,
+): Promise<RegistroPedido | null> {
+  const r = await exigir(ref);
+  if (!r.itens.some((i) => i.id === de.id)) throw new Error("a peça a trocar não é deste pedido");
+  if (!(quantidade >= 1)) throw new Error("quantidade inválida");
+  const obs = `Troca do pedido ${ref} (site)`;
+  const estoque = await etapa(async () => {
+    await chamarBling("/estoques", {
+      metodo: "POST",
+      corpo: { produto: { id: de.id }, deposito: { id: ID_DEPOSITO }, operacao: "E", quantidade, observacoes: `${obs}: peça devolvida` },
+    });
+    await chamarBling("/estoques", {
+      metodo: "POST",
+      corpo: { produto: { id: para.id }, deposito: { id: ID_DEPOSITO }, operacao: "S", quantidade, observacoes: `${obs}: peça enviada` },
+    });
+  });
+  return atualizarRegistro(ref, { trocas: [...(r.trocas ?? []), { em: agoraIso(), de, para, quantidade, estoque }] });
+}

@@ -88,6 +88,20 @@ export type RegistroPedido = {
    * produção iniciada o pedido não se cancela mais (21/10/2026).
    */
   producao?: { iniciadaEm: string; personalizado: boolean; email?: Etapa };
+  /**
+   * Problema na entrega (Fase C): não entregue / devolvido ao remetente
+   * (detectado no Melhor Envio) ou extravio (marcado pela loja).
+   */
+  problemaEntrega?: {
+    tipo: "nao-entregue" | "devolvido" | "extravio";
+    origem: "melhor-envio" | "loja";
+    detectadoEm: string;
+    observacao?: string;
+    avisoLoja?: Etapa;
+    resolvidoEm?: string;
+  };
+  /** Troca de peça (tamanho/cor): estoque da antiga volta, o da nova sai (Fase C). */
+  trocas?: { em: string; de: { id: number; nome: string }; para: { id: number; nome: string }; quantidade: number; estoque?: Etapa }[];
   /** Retirada: a loja avisou que o pedido está pronto no ateliê. */
   prontoParaRetirada?: { em: string; email?: Etapa };
   /** Fim do pós-venda: entregue pela transportadora/em mãos ou retirado no ateliê. */

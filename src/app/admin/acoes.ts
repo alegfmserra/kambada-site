@@ -25,8 +25,13 @@ import {
   iniciarProducao,
   marcarNotaResolvida,
   marcarPecaDevolvida,
+  registrarProblemaEntrega,
+  resolverProblemaEntrega,
+  trocarPeca,
 } from "@/lib/pedidos/posVendaLoja";
 import { criarNotaDeDevolucao, enviarNotaDeDevolucao } from "@/lib/fiscal/devolucao";
+import { buscarCatalogo } from "@/lib/bling/produtos";
+import { indexarOpcoes } from "@/lib/carrinho/validar";
 import { atualizarRastreio, gerarEtiqueta } from "@/lib/frete/etiqueta";
 import {
   FORMATO_CODIGO,
@@ -157,6 +162,41 @@ export async function marcarConclusao(formulario: FormData): Promise<void> {
   const tipo = formulario.get("tipo") === "retirado" ? "retirado" : "entregue";
   await concluirPedido(ref, tipo);
   await voltar(ref, "concluido", "concluidos");
+}
+
+export async function marcarProblemaEntrega(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  const tipo = String(formulario.get("tipo") ?? "");
+  if (tipo === "nao-entregue" || tipo === "devolvido" || tipo === "extravio") {
+    await registrarProblemaEntrega(ref, tipo, "loja", String(formulario.get("observacao") ?? ""));
+  }
+  await voltar(ref, "problema");
+}
+
+export async function problemaResolvido(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  await resolverProblemaEntrega(ref);
+  await voltar(ref);
+}
+
+/** Troca de peça: as duas opções precisam ser variações do MESMO produto no catálogo. */
+export async function trocarPecaDoPedido(formulario: FormData): Promise<void> {
+  const ref = await refDoFormulario(formulario);
+  const de = Number(formulario.get("de"));
+  const para = Number(formulario.get("para"));
+  const quantidade = Number(formulario.get("quantidade") ?? 1);
+  try {
+    const indice = indexarOpcoes(await buscarCatalogo());
+    const a = indice.get(de);
+    const b = indice.get(para);
+    if (!a || !b || a.produto.slug !== b.produto.slug || de === para) throw new Error("escolha outra variação do mesmo produto");
+    const nome = (x: NonNullable<typeof a>) => `${x.produto.nome} (${x.opcao.rotulo})`;
+    await trocarPeca(ref, { id: de, nome: nome(a) }, { id: para, nome: nome(b) }, quantidade);
+  } catch (e) {
+    console.error("[admin] troca:", e instanceof Error ? e.message : e);
+    await voltar(ref, "troca-invalida");
+  }
+  await voltar(ref, "troca");
 }
 
 export async function marcarProntoRetirada(formulario: FormData): Promise<void> {

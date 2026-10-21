@@ -11,6 +11,9 @@ import BotaoComEspera from "@/components/admin/BotaoComEspera";
 import { TRANSPORTADORAS, linkDeRastreio, rotuloEstorno } from "@/lib/email/posVenda";
 import {
   avisarPostagem,
+  marcarProblemaEntrega,
+  problemaResolvido,
+  trocarPecaDoPedido,
   comprarEtiqueta,
   conferirRastreio,
   criarDevolucao,
@@ -25,6 +28,9 @@ import {
   refazerPendencias,
 } from "../acoes";
 import { avaliarCancelamento, etapaDoPedido } from "@/lib/pedidos/cancelamento";
+import { rotuloProblema } from "@/lib/pedidos/posVendaLoja";
+import { buscarCatalogo } from "@/lib/bling/produtos";
+import { indexarOpcoes } from "@/lib/carrinho/validar";
 
 export const metadata: Metadata = {
   title: "Pedidos do site",
@@ -243,6 +249,101 @@ function BlocoCancelamento({ r }: { r: RegistroPedido }) {
   );
 }
 
+type Variacoes = Map<number, { id: number; rotulo: string; quantidade: number }[]>;
+
+/** Para cada peça vendida, as outras variações do mesmo produto (troca de tamanho/cor). */
+async function variacoesParaTroca(registros: RegistroPedido[]): Promise<Variacoes> {
+  const mapa: Variacoes = new Map();
+  try {
+    const indice = indexarOpcoes(await buscarCatalogo());
+    for (const r of registros) {
+      for (const i of r.itens) {
+        const achado = indice.get(i.id);
+        if (!achado || mapa.has(i.id)) continue;
+        const outras = (achado.produto.opcoes ?? [])
+          .filter((o) => o.idBling !== i.id)
+          .map((o) => ({ id: o.idBling, rotulo: o.rotulo, quantidade: o.quantidade }));
+        if (outras.length) mapa.set(i.id, outras);
+      }
+    }
+  } catch {
+    // Catálogo indisponível: a troca some da tela, o resto continua.
+  }
+  return mapa;
+}
+
+const ORIENTACAO_PROBLEMA = {
+  "nao-entregue": "Falar com o cliente (WhatsApp → problema na entrega): confirmar endereço e horário. A transportadora costuma tentar de novo; se voltar ao ateliê, reenviar com nova etiqueta ou estornar.",
+  devolvido: "A peça está voltando ao ateliê. Combinar com o cliente: reenvio (nova etiqueta, endereço confirmado) ou estorno.",
+  extravio: "Abrir reclamação no Melhor Envio (Pedidos → o envio → Ajuda). O seguro cobre o valor declarado (valor das peças). Combinar com o cliente: reenvio ou estorno.",
+} as const;
+
+/** Problema na entrega (aviso + orientação) e troca de peça. */
+function BlocoProblemaETroca({ r, variacoes }: { r: RegistroPedido; variacoes: Variacoes }) {
+  const p = r.problemaEntrega;
+  const trocaveis = r.itens.filter((i) => variacoes.has(i.id));
+  return (
+    <>
+      {p && !p.resolvidoEm && (
+        <form action={problemaResolvido} className="mt-3 space-y-1 rounded-xl border border-red-500 px-4 py-3 text-sm">
+          <input type="hidden" name="ref" value={r.ref} />
+          <p className="font-semibold text-red-500">
+            Entrega: {rotuloProblema(p.tipo)} — {p.origem === "melhor-envio" ? "informado pelo Melhor Envio" : "marcado pela loja"} em {dataLocal(p.detectadoEm)}
+            {p.observacao ? ` · ${p.observacao}` : ""}
+          </p>
+          <p className="text-texto-suave">{ORIENTACAO_PROBLEMA[p.tipo]}</p>
+          <BotaoComEspera esperando="Salvando…" className={BOTAO}>Problema resolvido</BotaoComEspera>
+        </form>
+      )}
+      {(r.trocas ?? []).map((t) => (
+        <p key={t.em} className="mt-2 text-sm">
+          Troca em {dataLocal(t.em)}: {t.quantidade}× {t.de.nome} → {t.para.nome}{" "}
+          {t.estoque?.feitoEm ? "· estoque ajustado no Bling" : t.estoque?.erro ? `· estoque NÃO ajustado: ${t.estoque.erro}` : ""}
+        </p>
+      ))}
+      <div className="mt-2 flex flex-wrap gap-4 text-sm">
+        {r.envio && !r.conclusao && (!p || p.resolvidoEm) && (
+          <details>
+            <summary className="cursor-pointer font-semibold text-red-500">Problema na entrega</summary>
+            <form action={marcarProblemaEntrega} className="mt-2 flex max-w-md flex-wrap items-center gap-2 rounded-xl border border-borda p-3">
+              <input type="hidden" name="ref" value={r.ref} />
+              <select name="tipo" className="rounded-lg border border-borda bg-fundo px-2 py-1">
+                <option value="nao-entregue">Não entregue</option>
+                <option value="devolvido">Devolvido ao remetente</option>
+                <option value="extravio">Extraviado</option>
+              </select>
+              <input name="observacao" placeholder="observação (opcional)" className="min-w-0 flex-1 rounded-lg border border-borda bg-fundo px-2 py-1" />
+              <BotaoComEspera esperando="Registrando…" className={BOTAO}>Registrar</BotaoComEspera>
+            </form>
+          </details>
+        )}
+        {trocaveis.length > 0 && (
+          <details>
+            <summary className="cursor-pointer font-semibold">Trocar peça (tamanho/cor)</summary>
+            {trocaveis.map((i) => (
+              <form key={i.id} action={trocarPecaDoPedido} className="mt-2 flex max-w-xl flex-wrap items-center gap-2 rounded-xl border border-borda p-3">
+                <input type="hidden" name="ref" value={r.ref} />
+                <input type="hidden" name="de" value={i.id} />
+                <span className="font-semibold">{i.nome} →</span>
+                <select name="para" className="rounded-lg border border-borda bg-fundo px-2 py-1">
+                  {variacoes.get(i.id)!.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.rotulo} ({v.quantidade} em estoque)
+                    </option>
+                  ))}
+                </select>
+                <input type="number" name="quantidade" min={1} max={i.quantidade} defaultValue={i.quantidade} className="w-16 rounded-lg border border-borda bg-fundo px-2 py-1" />
+                <BotaoComEspera esperando="Ajustando estoque…" className={BOTAO}>Trocar</BotaoComEspera>
+                <span className="w-full text-xs text-texto-suave">Devolve a antiga ao estoque e baixa a nova no Bling. Nota da troca: com o Glauco. Etiqueta de ida: Melhor Envio.</span>
+              </form>
+            ))}
+          </details>
+        )}
+      </div>
+    </>
+  );
+}
+
 /** Nota de devolução em dois passos: criar (rascunho no Bling) → conferir → enviar à SEFAZ. */
 function BlocoDevolucao({ r }: { r: RegistroPedido }) {
   const d = r.devolucao;
@@ -376,6 +477,15 @@ function AvisoDaAcao({ aviso, r }: { aviso?: string; r?: RegistroPedido }) {
     texto = ok
       ? `Melhor Envio consultado: ${SITUACAO_ME[r.etiqueta.situacaoMe ?? ""] ?? r.etiqueta.situacaoMe ?? "sem novidade"}${r.envio ? " · cliente já avisado da postagem" : ""}.`
       : `Não consegui consultar o Melhor Envio: ${r.etiqueta.erro}`;
+  } else if (aviso === "problema" && r.problemaEntrega) {
+    texto = `Problema registrado no pedido ${r.ref}: ${rotuloProblema(r.problemaEntrega.tipo)}.`;
+  } else if (aviso === "troca" && r.trocas?.length) {
+    const t = r.trocas[r.trocas.length - 1];
+    ok = Boolean(t.estoque?.feitoEm);
+    texto = ok ? `Troca registrada: ${t.de.nome} → ${t.para.nome}, estoque ajustado no Bling.` : `Troca registrada, mas o estoque não foi ajustado: ${t.estoque?.erro}`;
+  } else if (aviso === "troca-invalida") {
+    ok = false;
+    texto = "Troca não feita: escolha outra variação do mesmo produto.";
   } else if (aviso === "pronto" && r.prontoParaRetirada) {
     ok = Boolean(r.prontoParaRetirada.email?.feitoEm);
     texto = ok ? `Cliente avisado: pedido ${r.ref} pronto para retirada.` : "Aviso registrado, mas o e-mail ao cliente falhou.";
@@ -453,6 +563,7 @@ export default async function PaginaAdminPedidos({
   }
 
   const todos = await listarRegistros(200);
+  const variacoes = await variacoesParaTroca(todos);
   const contagem = Object.fromEntries(FILTROS.map((f) => [f.id, todos.filter(f.casa).length]));
   const doFiltro = todos.filter((FILTROS.find((f) => f.id === filtro) ?? FILTROS[0]).casa);
   const linhas = await comSituacao(doFiltro);
@@ -603,6 +714,7 @@ export default async function PaginaAdminPedidos({
                 </div>
 
                 {!cancelado(r) && <AcoesDoPedido r={r} />}
+                {!cancelado(r) && <BlocoProblemaETroca r={r} variacoes={variacoes} />}
 
                 {!r.entrega.retirada && !cancelado(r) && !r.conclusao && <BlocoEtiqueta r={r} />}
 

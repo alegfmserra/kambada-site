@@ -19,7 +19,7 @@ import { buscarCatalogo } from "../bling/produtos";
 import { indexarOpcoes, type ItemValidado } from "../carrinho/validar";
 import { ENDERECO_ATELIE } from "../loja/enderecoAtelie";
 import { liberar, reservar } from "../manutencao/reserva";
-import { avisarPostagemAoCliente, concluirPedido } from "../pedidos/posVendaLoja";
+import { avisarPostagemAoCliente, concluirPedido, registrarProblemaEntrega } from "../pedidos/posVendaLoja";
 import { atualizarRegistro, lerRegistro, listarRegistros, type RegistroPedido } from "../pedidos/registro";
 import { SITE, WHATSAPP } from "../site";
 import { montarCaixaUnica } from "./caixa";
@@ -256,6 +256,10 @@ export async function atualizarRastreio(ref: string): Promise<RegistroPedido | n
         throw erro;
       }
     }
+  }
+  // Não entregue / devolvido ao remetente: alerta a loja e marca no pedido.
+  if (o.status === "undelivered" || o.status === "returned") {
+    await registrarProblemaEntrega(ref, o.status === "returned" ? "devolvido" : "nao-entregue", "melhor-envio");
   }
   if (o.status === "delivered" && (await reservar(`entregue-${ref}`))) {
     await concluirPedido(ref, "entregue");

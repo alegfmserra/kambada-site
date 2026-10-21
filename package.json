@@ -11,7 +11,7 @@
     "test": "vitest run",
     "qa:visual": "playwright test",
     "qa:build": "node scripts/build-qa.mjs",
-    "qa:lighthouse": "npm run qa:build && lhci autorun",
+    "qa:lighthouse": "npm run qa:build && npx -y @lhci/cli@0.15.1 autorun",
     "icones": "node scripts/gerar-icones.mjs"
   },
   "dependencies": {
@@ -26,7 +26,6 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
-    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

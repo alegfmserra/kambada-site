@@ -37,14 +37,21 @@ export type Saude = {
   pedidosComFalha: Item & { refs: string[] };
 };
 
-const UM_DIA = 24 * 60 * 60 * 1000;
+/**
+ * Renova só quando faltar menos de 2 h. O token do Bling dura ~6 h: com folga de
+ * 24 h (como era), TODA passada renovava — após cada deploy, a cada 6 h e a cada
+ * cron —, multiplicando as chances de dois processos gastarem o mesmo refresh
+ * token (queda de 21/10/2026). Entre uma passada e outra, quem precisa do Bling
+ * renova sob demanda, com trava (lib/bling/tokens.ts).
+ */
+const FOLGA_RENOVACAO = 2 * 60 * 60 * 1000;
 
 async function bling(): Promise<Saude["bling"]> {
   const tokens = await lerTokens();
   if (!tokens) return { ok: false, detalhe: "Bling não autorizado — abrir /api/bling/autorizar" };
   if (tokens.invalido) return { ok: false, detalhe: "Refresh token recusado pelo Bling — reautorizar em /api/bling/autorizar" };
   try {
-    const r = await renovarSeVencerEm(UM_DIA);
+    const r = await renovarSeVencerEm(FOLGA_RENOVACAO);
     return {
       ok: true,
       detalhe: r.renovou ? "token renovado agora" : "token válido",

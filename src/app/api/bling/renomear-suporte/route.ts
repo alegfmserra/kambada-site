@@ -37,6 +37,9 @@ async function responder(requisicao: Request, escrever: boolean) {
   const limite = Math.min(14, Math.max(1, Number(url.searchParams.get("limite") ?? 7)));
   const pai = await paiGrande();
 
+  // ATENÇÃO: salvar o PAI faz o Bling repor o preço dele em todas as variações
+  // (aconteceu em 21/10/2026: 42 voltaram a 145). Depois desta parte, rodar
+  // /api/bling/precos-variacoes de novo.
   if (url.searchParams.get("parte") === "descricao") {
     const atual = String(pai.descricaoCurta ?? "");
     const nova = atual.replace(DESCRICAO_DE, DESCRICAO_PARA);
@@ -53,7 +56,8 @@ async function responder(requisicao: Request, escrever: boolean) {
 
   const alvos = ((pai.variacoes as Obj[]) ?? [])
     .map((v) => ({ id: Number(v.id), nome: String(v.nome ?? ""), atributos: String((v.variacao as Obj | undefined)?.nome ?? "") }))
-    .filter((v) => v.atributos.includes(`Suporte:${DE}`) || v.nome.includes(`Suporte:${DE}`));
+    // Pelo NOME da variação: o atributo interno não muda pelo PUT do filho (21/10/2026).
+    .filter((v) => v.nome.includes(`Suporte:${DE}`));
   if (!aplicar) return NextResponse.json({ modo: "ensaio", faltam: alvos.length, alvos });
 
   const feitos: unknown[] = [];

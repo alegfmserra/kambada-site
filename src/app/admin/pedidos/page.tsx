@@ -386,8 +386,12 @@ const SITUACAO_ME: Record<string, string> = {
   generated: "gerada — falta postar",
   posted: "postada",
   delivered: "entregue",
+  received: "recebida no ponto de coleta",
   canceled: "cancelada no Melhor Envio",
+  cancelled: "cancelada no Melhor Envio",
   undelivered: "não entregue",
+  paused: "entrega pausada (destinatário precisa agir)",
+  suspended: "envio suspenso",
 };
 
 /** Etiqueta do Melhor Envio comprada pelo site: comprar, imprimir, conferir rastreio. */

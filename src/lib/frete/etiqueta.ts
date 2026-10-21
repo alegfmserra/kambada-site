@@ -243,7 +243,10 @@ export async function atualizarRastreio(ref: string): Promise<RegistroPedido | n
   const etiqueta = { ...r.etiqueta, situacaoMe: o.status, rastreio: o.tracking ?? r.etiqueta.rastreio, conferidaEm: new Date().toISOString(), erro: undefined };
   await atualizarRegistro(ref, { etiqueta });
 
-  const postado = o.status === "posted" || o.status === "delivered" || Boolean(o.posted_at);
+  // Estados conferidos na documentação (webhooks, 21/10/2026): pending, released,
+  // generated, received, posted, delivered, undelivered, paused, suspended, cancelled.
+  const entregue = o.status === "delivered" || Boolean(o.delivered_at);
+  const postado = o.status === "posted" || o.status === "received" || entregue || Boolean(o.posted_at);
   const codigo = o.tracking ?? undefined;
   if (postado && codigo && !r.envio) {
     // Dois processos podem conferir juntos: só um manda o "postado".
@@ -258,10 +261,11 @@ export async function atualizarRastreio(ref: string): Promise<RegistroPedido | n
     }
   }
   // Não entregue / devolvido ao remetente: alerta a loja e marca no pedido.
-  if (o.status === "undelivered" || o.status === "returned") {
-    await registrarProblemaEntrega(ref, o.status === "returned" ? "devolvido" : "nao-entregue", "melhor-envio");
+  if (!entregue && (o.status === "undelivered" || o.status === "paused" || o.status === "suspended")) {
+    const obs = o.status === "paused" ? "entrega pausada — o destinatário precisa agir" : o.status === "suspended" ? "envio suspenso" : undefined;
+    await registrarProblemaEntrega(ref, "nao-entregue", "melhor-envio", obs);
   }
-  if (o.status === "delivered" && (await reservar(`entregue-${ref}`))) {
+  if (entregue && (await reservar(`entregue-${ref}`))) {
     await concluirPedido(ref, "entregue");
   }
   return lerRegistro(ref);

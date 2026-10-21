@@ -15,6 +15,7 @@
  * `/api/saude` expõe só ok/não-ok (200/503) para um monitor externo.
  */
 
+import { precosForaDaRegra } from "../bling/conferirPrecosVariacoes";
 import { lerTokens, renovarSeVencerEm } from "../bling/tokens";
 import { conferirEmail, emailConfigurado } from "../email/enviar";
 import { saldoDaCarteira } from "../frete/meApi";
@@ -207,6 +208,24 @@ Carregar: melhorenvio.com.br → Carteira → Adicionar saldo (Pix cai na hora).
       "Pedidos com etapa falhada",
       `${s.pedidosComFalha.detalhe}: ${s.pedidosComFalha.refs.join(", ")}\n\nAbra ${url}/admin/pedidos e use "Refazer pendências".`,
     );
+  }
+  // Preço de variação fora da regra (ecobag Mini/Grande, suportes da matraca): o checkout cobra o
+  // preço da variação no Bling, e salvar o produto-pai repõe o preço dele nos filhos (21/10/2026).
+  // Só avisa — a correção é pela rota, com a senha de manutenção.
+  if (s.bling.ok) {
+    try {
+      const { mudar } = await precosForaDaRegra();
+      if (mudar.length) {
+        alertas.precosVariacoes = await alertar(
+          "precos-variacoes",
+          `Preço fora da regra em ${mudar.length} variação(ões) no Bling`,
+          mudar.map((m) => `• ${m.pai} · ${m.variacao}: R$ ${m.de} → deveria ser R$ ${m.para}`).join("\n") +
+            `\n\nO site cobra o preço que está no Bling. Corrigir: POST ${url}/api/bling/precos-variacoes?aplicar=1 (senha de manutenção no cabeçalho).`,
+        );
+      }
+    } catch {
+      // Falha de leitura do Bling já aparece no alerta "Bling desconectado".
+    }
   }
   // Páginas de produto prontas antes do próximo visitante (ver aquecer.ts).
   let aquecimento: Aquecimento | { paginas: 0; motivo: string };

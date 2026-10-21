@@ -25,11 +25,11 @@ export type FotoProduto = { src: string; largura: number; altura: number };
 function porId(id: number | undefined): FotoProduto | null {
   if (!id) return null;
   const m = FOTOS_PRODUTOS[id];
-  return m ? { src: `/fotos/produtos/${id}.jpg`, largura: m.largura, altura: m.altura } : null;
+  return m ? { src: `/fotos/produtos/${id}.jpg${m.v ? `?v=${m.v}` : ""}`, largura: m.largura, altura: m.altura } : null;
 }
 
 function galeriaPorId(id: number): FotoProduto[] {
-  return (GALERIA_PRODUTOS[id] ?? []).map((g) => ({ src: `/fotos/produtos/galeria/${id}-${g.n}.jpg`, largura: g.largura, altura: g.altura }));
+  return (GALERIA_PRODUTOS[id] ?? []).map((g) => ({ src: `/fotos/produtos/galeria/${id}-${g.n}.jpg${g.v ? `?v=${g.v}` : ""}`, largura: g.largura, altura: g.altura }));
 }
 
 /** "matraca-kambada-mini-16722270999" → "matraca-kambada-mini". */

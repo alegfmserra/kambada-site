@@ -101,6 +101,9 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
+    // Fotos de produto levam ?v=<impressão do arquivo> (troca de foto fura o cache); o Next 16 só
+    // aceita imagem local com parâmetro se o padrão a liberar.
+    localPatterns: [{ pathname: "/**" }],
   },
   /**
    * 301s (21/10/2026): www → domínio sem www (um endereço só para o Google) e

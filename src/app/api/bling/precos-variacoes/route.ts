@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { chamarBling, listarTudo } from "@/lib/bling/cliente";
-import { precoDaRegra } from "@/lib/bling/precosVariacoes";
+import { chamarBling } from "@/lib/bling/cliente";
+import { precosForaDaRegra } from "@/lib/bling/conferirPrecosVariacoes";
 import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
-import type { ProdutoBling } from "@/lib/bling/tipos";
 import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
@@ -21,30 +20,12 @@ export const maxDuration = 60;
 
 type Obj = Record<string, unknown>;
 
-async function planejar() {
-  const pais = (await listarTudo<ProdutoBling>("/produtos?criterio=2", { revalidar: 0 })).filter(
-    (p) => p.formato === "V" && (/^ecobag/i.test(p.nome) || /^matraca kambada (mini|grande)$/i.test(p.nome)),
-  );
-  const mudar: { pai: string; id: number; variacao: string; de: unknown; para: number }[] = [];
-  for (const pai of pais) {
-    const lido = (await chamarBling<{ data: Obj }>(`/produtos/${pai.id}`, { revalidar: 0 })).data;
-    for (const v of (lido.variacoes as Obj[] | undefined) ?? []) {
-      const atributos = String((v.variacao as Obj | undefined)?.nome ?? v.nome ?? "");
-      const para = precoDaRegra(pai.nome, atributos);
-      if (para !== null && Number(v.preco) !== para) {
-        mudar.push({ pai: pai.nome, id: Number(v.id), variacao: atributos, de: v.preco, para });
-      }
-    }
-  }
-  return { produtos: pais.map((p) => p.nome), mudar };
-}
-
 async function responder(requisicao: Request, escrever: boolean) {
   if (!segredoDeManutencao(requisicao)) return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   const url = new URL(requisicao.url);
   const aplicar = escrever && url.searchParams.get("aplicar") === "1";
   const limite = Math.min(30, Math.max(1, Number(url.searchParams.get("limite") ?? 12)));
-  const plano = await planejar();
+  const plano = await precosForaDaRegra();
   if (!aplicar) {
     return NextResponse.json({ modo: "ensaio", produtos: plano.produtos, faltam: plano.mudar.length, mudar: plano.mudar });
   }

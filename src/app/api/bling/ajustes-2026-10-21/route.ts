@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 import {
   BLOQUINHO_CAPA,
   CADERNINHO_KRAFT,
+  CARRANCA,
+  ID_CATEGORIA,
+  corpoCarranca,
   ID_DEPOSITO,
   KAMBADINHA,
   PASSOS,
@@ -14,11 +17,11 @@ import {
   variacoesDoKraft,
   type ChavePasso,
 } from "@/lib/bling/ajustes-2026-10-21";
-import { chamarBling } from "@/lib/bling/cliente";
+import { chamarBling, listarTudo } from "@/lib/bling/cliente";
 import { DESCRICOES } from "@/lib/bling/descricoes-finais";
 import { invalidarCatalogoEmMemoria } from "@/lib/bling/produtos";
 import { arquivoTokens } from "@/lib/bling/tokens";
-import { ErroBling } from "@/lib/bling/tipos";
+import { ErroBling, type ProdutoBling } from "@/lib/bling/tipos";
 import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 
 export const dynamic = "force-dynamic";
@@ -203,6 +206,29 @@ async function responder(requisicao: Request, escrever: boolean) {
       else {
         const depois = await balancar(REVOADA_MINI.id, REVOADA_MINI.saldo);
         feitos.push({ ...plano, acao: "gravado", conferido: { saldo: depois }, bateu: depois === REVOADA_MINI.saldo });
+      }
+    }
+
+    // ── carranca: cria (sem estoque), não recria se já existir pelo nome ──
+    if (roda("carranca")) {
+      const todos = await listarTudo<ProdutoBling>("/produtos?criterio=2", { revalidar: 0 });
+      const existente = todos.find((p) => p.nome === CARRANCA.nome);
+      if (existente) feitos.push({ passo: "carranca", acao: "pular", motivo: `já existe (id ${existente.id})` });
+      else if (!aplicar) feitos.push({ passo: "carranca", acao: "criar", corpo: corpoCarranca(ID_CATEGORIA) });
+      else {
+        const criado = await chamarBling<{ data: { id: number } }>("/produtos", { metodo: "POST", corpo: corpoCarranca(ID_CATEGORIA) });
+        const d = await ler(criado.data.id);
+        const filhos = variacoesDe(d);
+        const saldos = [];
+        for (const f of filhos) saldos.push({ id: f.id, saldo: await saldo(f.id) });
+        feitos.push({
+          passo: "carranca",
+          acao: "criado",
+          id: criado.data.id,
+          conferido: { nome: d.nome, preco: d.preco, variacoes: filhos, saldos },
+          bateu: d.nome === CARRANCA.nome && filhos.length === 1 && Number(filhos[0].preco) === CARRANCA.preco && saldos.every((x) => !x.saldo),
+          lembrete: "anote o ID: a foto da Carranca entra no script de fotos por ele; rodar /api/bling/fiscal para o NCM",
+        });
       }
     }
 

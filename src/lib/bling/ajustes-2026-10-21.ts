@@ -50,6 +50,45 @@ export const REVOADA_MINI = { id: 16701490750, saldo: 2 };
 
 export const PUXADOR = { id: 16722270860, nome: "Puxador - Suporte para Coreira" };
 
+/**
+ * Ecobag Carranca Encantada: estampa "São Luís Ilha Encantada" (a foto que estava, por engano, na
+ * Serpente). Só existe Grande; sem estoque por ora (Alexandre, 21/10). R$ 55 = regra da ecobag Grande.
+ */
+export const CARRANCA = {
+  nome: "Ecobag Carranca Encantada",
+  preco: 55,
+  tamanho: "Grande",
+  descricao: [
+    "São Luís, Ilha Encantada: a carranca em azul sobre algodão cru, com o nome da Ilha ao lado. Bolsa de feira, de praia e de arraial.",
+    "",
+    "Material: algodão cru, estampa em silk, fechamento em velcro.",
+    "Medidas: Grande 40×35 cm, alça trançada de 58 cm.",
+    "Cuidados: lavável; não usar alvejante.",
+  ].join("\n"),
+};
+
+export function corpoCarranca(idCategoria: number): Obj {
+  const categoria = { id: idCategoria };
+  return {
+    nome: CARRANCA.nome,
+    preco: CARRANCA.preco,
+    tipo: "P",
+    situacao: "A",
+    formato: "V",
+    categoria,
+    descricaoCurta: CARRANCA.descricao,
+    variacoes: [{
+      nome: `${CARRANCA.nome} Tamanho:${CARRANCA.tamanho}`,
+      preco: CARRANCA.preco,
+      tipo: "P",
+      situacao: "A",
+      formato: "S",
+      categoria,
+      variacao: { nome: `Tamanho:${CARRANCA.tamanho}`, ordem: 1, produtoPai: { cloneInfo: true } },
+    }],
+  };
+}
+
 export function variacoesDoKraft() {
   return CADERNINHO_KRAFT.estampas.map((e, i) => ({ atributos: `Estampa:${e.nome}`, ordem: i + 1, saldo: e.saldo }));
 }
@@ -91,6 +130,7 @@ export const PASSOS = [
   { chave: "caderninho-kraft-saldo", alvo: CADERNINHO_KRAFT.id, oQue: "depois da conversão no painel: nome, preço, descrição e saldo de cada estampa" },
   { chave: "kambadinha", alvo: KAMBADINHA.id, oQue: "Chaveiro Kambadinha R$ 15 → 10 (pai e as 2 cores), saldo 10 → 15 em cada" },
   { chave: "revoada-mini", alvo: REVOADA_MINI.id, oQue: "Ecobag Revoada dos Guarás Mini: saldo 3 → 2" },
+  { chave: "carranca", alvo: null, oQue: "cria Ecobag Carranca Encantada, só Grande, R$ 55, sem estoque" },
   { chave: "puxador", alvo: PUXADOR.id, oQue: "renomeia Placa de Madeira - Parafuso e Puxador → Puxador - Suporte para Coreira" },
 ] as const;
 

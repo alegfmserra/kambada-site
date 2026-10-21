@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 
@@ -377,6 +378,8 @@ FOTOS[16722783308] = [F21, "Bloquinho de Kraft - Lendas (17,00).jpeg", "Cadernin
 /** Lado maior em pixels. O Mercado Livre recomenda 1200; o mínimo dele é 500. */
 const LADO = 1200;
 
+const versao = (caminho) => createHash("md5").update(readFileSync(caminho)).digest("hex").slice(0, 8);
+
 const isEntrypoint = process.argv[1] && process.argv[1].endsWith("preparar-fotos-produtos.mjs");
 if (isEntrypoint) {
   mkdirSync(DESTINO, { recursive: true });
@@ -387,7 +390,9 @@ if (isEntrypoint) {
       .resize(LADO, LADO, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 82, mozjpeg: true })
       .toFile(join(DESTINO, `${id}.jpg`));
-    medidas[id] = { largura: info.width, altura: info.height };
+    // v = impressão do arquivo: entra no endereço da foto (?v=) e muda quando a foto muda — sem isso, o
+    // navegador e o otimizador de imagens seguem mostrando a foto antiga por até um ano (21/10/2026).
+    medidas[id] = { largura: info.width, altura: info.height, v: versao(join(DESTINO, `${id}.jpg`)) };
     console.log(`${id}.jpg  ${info.width}×${info.height}  ${(info.size / 1024).toFixed(0)} KB`);
   }
 
@@ -400,7 +405,7 @@ if (isEntrypoint) {
       const info = await sharp(localizarArquivo(pasta, arquivos[n])).rotate()
         .resize(LADO, LADO, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82, mozjpeg: true })
         .toFile(join(DESTINO, "galeria", `${id}-${n + 1}.jpg`));
-      galeria[id].push({ n: n + 1, largura: info.width, altura: info.height });
+      galeria[id].push({ n: n + 1, largura: info.width, altura: info.height, v: versao(join(DESTINO, "galeria", `${id}-${n + 1}.jpg`)) });
     }
     console.log(`galeria ${id}: ${arquivos.length} fotos`);
   }
@@ -411,10 +416,10 @@ if (isEntrypoint) {
  * Fotos de produto disponíveis no site, por ID do Bling, com as medidas.
  * GERADO por scripts/preparar-fotos-produtos.mjs — não edite à mão.
  */
-export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number }> = ${JSON.stringify(medidas, null, 2)};
+export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number; v?: string }> = ${JSON.stringify(medidas, null, 2)};
 
 /** Fotos extras (galeria) por ID: /fotos/produtos/galeria/<id>-<n>.jpg */
-export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altura: number }[]> = ${JSON.stringify(galeria, null, 2)};
+export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altura: number; v?: string }[]> = ${JSON.stringify(galeria, null, 2)};
 `;
   writeFileSync("C:/dev/kambada-site/src/lib/fotosProdutos.ts", ts);
   console.log(`\n${Object.keys(medidas).length} fotos geradas.`);

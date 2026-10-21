@@ -280,11 +280,13 @@ describe("fotos das matracas novas (antes de terem foto por ID)", () => {
 
   it("o pai herda a foto e a galeria dos antigos", () => {
     const mini = produto("Matraca Kambada Mini", 99999999901);
-    expect(fotoDoProduto(mini)?.src).toBe("/fotos/produtos/16698777979.jpg");
-    const galeria = galeriaDoProduto(mini).map((f) => f.src);
+    // O endereço leva ?v=<impressão do arquivo> (fura o cache quando a foto muda) — compara sem ele.
+    const semVersao = (src?: string) => src?.replace(/\?v=\w+$/, "");
+    expect(semVersao(fotoDoProduto(mini)?.src)).toBe("/fotos/produtos/16698777979.jpg");
+    const galeria = galeriaDoProduto(mini).map((f) => semVersao(f.src));
     expect(galeria).toContain("/fotos/produtos/16698777669.jpg");
     expect(new Set(galeria).size).toBe(galeria.length);
-    expect(fotoDoItem(99999999902, mini.slug)?.src).toBe("/fotos/produtos/16698777979.jpg"); // carrinho
+    expect(semVersao(fotoDoItem(99999999902, mini.slug)?.src)).toBe("/fotos/produtos/16698777979.jpg"); // carrinho
   });
 
   it("a opção mostra a foto da estampa; com suporte, a do suporte quando existe", () => {
@@ -330,7 +332,7 @@ describe("fotos das matracas novas (antes de terem foto por ID)", () => {
     const play = { ...produto("Matraca Kambada Play", PLAY.id, [frente, lado]) };
     expect(fotoDaOpcao(play, lado)?.src).toMatch(/matraca-kambada-play--boi-de-lado\.jpg$/);
     expect(fotoDaOpcao(play, frente)).toBeNull();
-    expect(fotoDoProduto(play)?.src).toBe(`/fotos/produtos/${PLAY.id}.jpg`);
+    expect(fotoDoProduto(play)?.src).toMatch(new RegExp(`^/fotos/produtos/${PLAY.id}\\.jpg\\?v=\\w+$`));
   });
 });
 

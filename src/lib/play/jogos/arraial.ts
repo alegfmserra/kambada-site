@@ -10,6 +10,15 @@
  * Pontos: (100 + bônus de rapidez até 50) por acerto; a rapidez só conta na
  * fase do desafio (explorar e ler não contam contra). Juntou as 5 pistas
  * antes do desafio: +100. Máximo por partida: 6 × 150 + 100 = 1000.
+ *
+ * Bônus de rapidez só para quem ouviu os anfitriões até o fim (decisão de
+ * 21/10/2026). Quem decide é o servidor, por dois caminhos que só tiram pontos:
+ *   1. medida própria — entre um evento e o seguinte (início → pista → pista …
+ *      → desafio) tem de passar pelo menos o tempo de a conversa ser escrita na
+ *      tela (`leituraMinimaMs`). Mais rápido que isso = falas puladas, e o
+ *      estado assinado guarda a marca (`curta`) para o resto da partida;
+ *   2. aviso do cliente — `pulou: true` em qualquer resposta zera a rapidez
+ *      dali em diante (marca pegajosa). `pulou: false` não devolve nada.
  */
 
 import { assinar, idAleatorio, permutacaoSecreta, verificar } from "./seguranca";
@@ -20,6 +29,10 @@ const PONTOS_ACERTO = 100;
 const BONUS_RAPIDEZ = 50;
 const TEMPO_BONUS_MS = 20_000;
 const TEMPO_MINIMO_MS = 700;
+/** Velocidade da máquina de escrever das falas (Hud.tsx: 3 letras a cada 40 ms). */
+const MS_POR_LETRA = 40 / 3;
+/** Folga para rede e relógio: exige 80% do tempo de escrita, abaixo de qualquer leitura de verdade. */
+const FOLGA_LEITURA = 0.8;
 export const BONUS_PISTAS = 100;
 const VALIDADE_MS = 2 * 60 * 60 * 1000; // uma noite de arraial: 2 h
 
@@ -45,6 +58,8 @@ export type RespostaArraial = {
   prova?: string;
   acertos?: number;
   bonusPistas?: number;
+  /** No fim: true quando a rapidez valeu (nenhuma fala pulada). */
+  bonusRapidez?: boolean;
 };
 
 type Estado = {
@@ -53,9 +68,33 @@ type Estado = {
   missao: string;
   t0: number;
   pistas: NpcId[];
-  /** Só existe depois de "desafio". */
-  desafio?: { ordem: number[]; i: number; pontos: number; acertos: number; tq: number; bonus: number };
+  /** Hora do último evento que fechou uma conversa (início ou pista nova). Ausente = t0. */
+  tu?: number;
+  /** Alguma conversa terminou antes do tempo mínimo de leitura (falas puladas). */
+  curta?: boolean;
+  /** Só existe depois de "desafio". `semRapidez`: o bônus de rapidez não vale mais nesta partida. */
+  desafio?: {
+    ordem: number[];
+    i: number;
+    pontos: number;
+    acertos: number;
+    tq: number;
+    bonus: number;
+    semRapidez?: boolean;
+  };
 };
+
+/** Tempo mínimo para as falas aparecerem inteiras na tela sem pular nenhuma. */
+export function leituraMinimaMs(falas: string[]): number {
+  const letras = falas.reduce((n, f) => n + f.length, 0);
+  return Math.floor(letras * MS_POR_LETRA * FOLGA_LEITURA);
+}
+
+/** Fecha uma conversa no estado: confere o tempo desde o último evento. */
+function marcarLeitura(estado: Estado, falas: string[], agora: number): Pick<Estado, "tu" | "curta"> {
+  const desde = agora - (estado.tu ?? estado.t0);
+  return { tu: agora, curta: Boolean(estado.curta) || desde < leituraMinimaMs(falas) };
+}
 
 export type ProvaArraial = {
   v: 1;
@@ -110,11 +149,14 @@ export function iniciarMissao(agora = Date.now()): { estado: string; missao: Mis
 export function anotarPista(token: unknown, npc: unknown, agora = Date.now()): { estado: string; pistas: NpcId[] } | { erro: string } {
   const lido = lerEstado(token, agora);
   if ("erro" in lido) return lido;
-  const { estado } = lido;
+  const { estado, missao } = lido;
   if (!ORDEM_NPCS.includes(npc as NpcId)) return { erro: "Personagem desconhecido." };
   if (estado.desafio) return { erro: "O desafio já começou." };
-  const pistas = estado.pistas.includes(npc as NpcId) ? estado.pistas : [...estado.pistas, npc as NpcId];
-  return { estado: assinar({ ...estado, pistas }), pistas };
+  // Pista repetida (conversa relida) não mexe no estado nem no relógio de leitura.
+  if (estado.pistas.includes(npc as NpcId)) return { estado: assinar(estado), pistas: estado.pistas };
+  const pistas = [...estado.pistas, npc as NpcId];
+  const leitura = marcarLeitura(estado, missao.conversas[npc as NpcId].falas, agora);
+  return { estado: assinar({ ...estado, ...leitura, pistas }), pistas };
 }
 
 function publica(partida: string, missao: Missao, d: NonNullable<Estado["desafio"]>): PerguntaArraial {
@@ -137,17 +179,29 @@ export function iniciarDesafio(token: unknown, agora = Date.now()): { estado: st
     acertos: 0,
     tq: agora,
     bonus: estado.pistas.length >= ORDEM_NPCS.length ? BONUS_PISTAS : 0,
+    // O anfitrião fala de novo antes do desafio: essas falas também contam.
+    semRapidez: Boolean(marcarLeitura(estado, missao.falasDoDesafio, agora).curta),
   };
   return { estado: assinar({ ...estado, desafio }), pergunta: publica(estado.id, missao, desafio) };
 }
 
-export function pontosDaResposta(certa: boolean, tempoMs: number): number {
+export function pontosDaResposta(certa: boolean, tempoMs: number, comRapidez = true): number {
   if (!certa) return 0;
+  if (!comRapidez) return PONTOS_ACERTO;
   const t = Math.max(TEMPO_MINIMO_MS, tempoMs);
   return PONTOS_ACERTO + Math.round(BONUS_RAPIDEZ * Math.max(0, 1 - t / TEMPO_BONUS_MS));
 }
 
-export function responderDesafio(token: unknown, escolha: unknown, agora = Date.now()): RespostaArraial | { erro: string } {
+/**
+ * `pulou`: o cliente avisa que alguma fala foi pulada. Só `true` tem efeito
+ * (zera a rapidez desta resposta em diante); qualquer outro valor é ignorado.
+ */
+export function responderDesafio(
+  token: unknown,
+  escolha: unknown,
+  agora = Date.now(),
+  pulou: unknown = false,
+): RespostaArraial | { erro: string } {
   const lido = lerEstado(token, agora);
   if ("erro" in lido) return lido;
   const { estado, missao } = lido;
@@ -160,8 +214,9 @@ export function responderDesafio(token: unknown, escolha: unknown, agora = Date.
   const p = missao.perguntas[d.ordem[d.i]];
   const mostradas = permutacaoSecreta(estado.id, d.i, p.opcoes.length);
   const certa = mostradas[escolha] === 0;
-  const ganho = pontosDaResposta(certa, agora - d.tq);
-  const prox = { ...d, i: d.i + 1, pontos: d.pontos + ganho, acertos: d.acertos + (certa ? 1 : 0), tq: agora };
+  const semRapidez = Boolean(d.semRapidez) || pulou === true;
+  const ganho = pontosDaResposta(certa, agora - d.tq, !semRapidez);
+  const prox = { ...d, i: d.i + 1, pontos: d.pontos + ganho, acertos: d.acertos + (certa ? 1 : 0), tq: agora, semRapidez };
   const base = { certa, correta: mostradas.indexOf(0), pontosDaPergunta: ganho, vocesabia: p.vocesabia };
 
   if (prox.i >= prox.ordem.length) {
@@ -176,7 +231,14 @@ export function responderDesafio(token: unknown, escolha: unknown, agora = Date.
       pistas: estado.pistas.length,
       emitidaEm: agora,
     };
-    return { ...base, pontos, acertos: prox.acertos, bonusPistas: prox.bonus, prova: assinar(prova) };
+    return {
+      ...base,
+      pontos,
+      acertos: prox.acertos,
+      bonusPistas: prox.bonus,
+      bonusRapidez: !semRapidez,
+      prova: assinar(prova),
+    };
   }
   return { ...base, pontos: prox.pontos, proxima: publica(estado.id, missao, prox), estado: assinar({ ...estado, desafio: prox }) };
 }

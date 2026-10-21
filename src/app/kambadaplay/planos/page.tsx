@@ -134,9 +134,6 @@ export default function PlanosPage() {
             Garantir meu lugar de fundador
           </Link>
         </section>
-        <p className="mt-6 text-sm text-texto-tenue">
-          Cupons, oficinas e visita ao ateliê seguem os Termos do Kambada Play.
-        </p>
 
         {/* Personalizado: como funciona, sem pacote pronto */}
         <section className="mt-16 grid gap-8 rounded-2xl bg-kambada-amarelo p-6 text-kambada-grafite sm:p-10 md:grid-cols-[1.2fr_1fr] md:items-center">

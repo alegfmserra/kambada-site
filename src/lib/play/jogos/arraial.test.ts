@@ -4,6 +4,7 @@ import {
   BONUS_PISTAS,
   iniciarDesafio,
   iniciarMissao,
+  leituraMinimaMs,
   missoesAtivas,
   PERGUNTAS_DO_DESAFIO,
   pontosDaResposta,
@@ -11,7 +12,7 @@ import {
   type ProvaArraial,
 } from "./arraial";
 import { MISSOES, ORDEM_NPCS, type Missao } from "./missoesArraial";
-import { verificar } from "./seguranca";
+import { permutacaoSecreta, verificar } from "./seguranca";
 
 /** Joga uma partida inteira respondendo sempre a 1ª opção mostrada. */
 function jogar(comPistas: boolean) {
@@ -98,5 +99,117 @@ describe("arraial — gabarito fora do estado", () => {
     if ("erro" in d) throw new Error(d.erro);
     const carga = JSON.parse(Buffer.from(d.estado.split(".")[0], "base64url").toString("utf8"));
     expect(carga.desafio.opcoes).toBeUndefined();
+  });
+});
+
+/** Lê a carga (sem conferir) de um estado assinado. */
+function carga(estado: string) {
+  return JSON.parse(Buffer.from(estado.split(".")[0], "base64url").toString("utf8"));
+}
+
+/**
+ * Partida com relógio controlado: lê as 5 conversas (calmo = no tempo de
+ * leitura; senão, tudo de uma vez), abre o desafio e acerta tudo em 1 s.
+ * `pulou` é o que o cliente diz em cada resposta.
+ */
+function partidaCronometrada({ calmo, pulou }: { calmo: boolean; pulou: (i: number) => unknown }) {
+  const t0 = 1_800_000_000_000;
+  const inicio = iniciarMissao(t0);
+  const missao = MISSOES.find((m) => m.id === inicio.missao.id)!;
+  let estado = inicio.estado;
+  let t = t0;
+  for (const npc of ORDEM_NPCS) {
+    t += calmo ? leituraMinimaMs(missao.conversas[npc].falas) + 3000 : 100;
+    const r = anotarPista(estado, npc, t);
+    if ("erro" in r) throw new Error(r.erro);
+    estado = r.estado;
+  }
+  t += calmo ? leituraMinimaMs(missao.falasDoDesafio) + 3000 : 100;
+  const d = iniciarDesafio(estado, t);
+  if ("erro" in d) throw new Error(d.erro);
+  estado = d.estado;
+  const partida = carga(estado).id as string;
+  const ganhos: number[] = [];
+  let ultima;
+  for (let i = 0; i < PERGUNTAS_DO_DESAFIO; i++) {
+    t += 1000;
+    const certa = permutacaoSecreta(partida, i, 3).indexOf(0);
+    const r = responderDesafio(estado, certa, t, pulou(i));
+    if ("erro" in r) throw new Error(r.erro);
+    expect(r.certa).toBe(true);
+    ganhos.push(r.pontosDaPergunta);
+    ultima = r;
+    if (r.estado) estado = r.estado;
+  }
+  return { ultima: ultima!, ganhos };
+}
+
+describe("arraial — bônus de rapidez só para quem ouviu as falas", () => {
+  it("quem lê no tempo ganha a rapidez (até 1000)", () => {
+    const { ultima, ganhos } = partidaCronometrada({ calmo: true, pulou: () => false });
+    expect(ultima.bonusRapidez).toBe(true);
+    for (const g of ganhos) expect(g).toBeGreaterThan(100);
+    expect(ultima.pontos).toBe(ganhos.reduce((a, b) => a + b, 0) + BONUS_PISTAS);
+    expect(ultima.pontos).toBeLessThanOrEqual(1000);
+  });
+
+  it("cliente avisou que pulou: só 100 por acerto", () => {
+    const { ultima, ganhos } = partidaCronometrada({ calmo: true, pulou: () => true });
+    expect(ultima.bonusRapidez).toBe(false);
+    expect(ganhos).toEqual(Array(PERGUNTAS_DO_DESAFIO).fill(100));
+    expect(ultima.pontos).toBe(PERGUNTAS_DO_DESAFIO * 100 + BONUS_PISTAS);
+    expect(verificar<ProvaArraial>(ultima.prova)!.pontos).toBe(ultima.pontos);
+  });
+
+  it("o aviso de pulo é pegajoso: dizer 'não pulei' depois não devolve a rapidez", () => {
+    const { ultima, ganhos } = partidaCronometrada({ calmo: true, pulou: (i) => i === 0 });
+    expect(ultima.bonusRapidez).toBe(false);
+    expect(ganhos).toEqual(Array(PERGUNTAS_DO_DESAFIO).fill(100));
+  });
+
+  it("o servidor mede: conversas rápidas demais perdem a rapidez mesmo se o cliente negar", () => {
+    for (const pulou of [false, "false", 0, undefined]) {
+      const { ultima, ganhos } = partidaCronometrada({ calmo: false, pulou: () => pulou });
+      expect(ultima.bonusRapidez).toBe(false);
+      expect(ganhos).toEqual(Array(PERGUNTAS_DO_DESAFIO).fill(100));
+    }
+  });
+
+  it("pular as falas do anfitrião antes do desafio também conta", () => {
+    const t0 = 1_800_000_000_000;
+    const inicio = iniciarMissao(t0);
+    const missao = MISSOES.find((m) => m.id === inicio.missao.id)!;
+    let estado = inicio.estado;
+    let t = t0;
+    for (const npc of ORDEM_NPCS) {
+      t += leituraMinimaMs(missao.conversas[npc].falas) + 3000;
+      const r = anotarPista(estado, npc, t);
+      if ("erro" in r) throw new Error(r.erro);
+      estado = r.estado;
+    }
+    expect(carga(estado).curta).toBe(false);
+    const d = iniciarDesafio(estado, t + 50);
+    if ("erro" in d) throw new Error(d.erro);
+    expect(carga(d.estado).desafio.semRapidez).toBe(true);
+  });
+
+  it("reler uma conversa (pista repetida) não reinicia o relógio de leitura", () => {
+    const t0 = 1_800_000_000_000;
+    const { estado } = iniciarMissao(t0);
+    const a = anotarPista(estado, "noivos", t0 + 60_000);
+    if ("erro" in a) throw new Error(a.erro);
+    const b = anotarPista(a.estado, "noivos", t0 + 120_000);
+    if ("erro" in b) throw new Error(b.erro);
+    expect(carga(b.estado).tu).toBe(t0 + 60_000);
+  });
+
+  it("sem rapidez, acerto vale 100 cravado", () => {
+    expect(pontosDaResposta(true, 0, false)).toBe(100);
+    expect(pontosDaResposta(false, 0, false)).toBe(0);
+  });
+
+  it("tempo mínimo de leitura cresce com o texto", () => {
+    expect(leituraMinimaMs([])).toBe(0);
+    expect(leituraMinimaMs(["a".repeat(150)])).toBe(1600);
   });
 });

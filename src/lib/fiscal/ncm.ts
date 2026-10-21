@@ -50,7 +50,7 @@ export function ncmDoProduto(nomeBruto: string): RegraNcm | null {
       fonte: "NF 27 — Matraca Mini / Grande / Grande c/ Suporte (validado pelo Alexandre em 09/10/2026)",
     };
   }
-  if (/^kit ecologico|^kit anotacao|^bloco anotacao|caderninho/.test(n)) {
+  if (/^kit ecologico|^kit anotacao|^bloco (de )?anotacao|caderninho/.test(n)) {
     return { ncm: "48209000", fonte: "NF 27 — Bloco/Kit de Anotação Ecológico" };
   }
   if (/^bloquinho|^joguinhos|kambada goods|livrinho/.test(n)) {

@@ -104,6 +104,7 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
   "canetas-ecologicas": "papelaria",
   "lapis-plantavel": "papelaria",
   "bloco-anotacao-caderninho-ecologico": "papelaria",
+  "bloco-de-anotacao-caderninho-ecologico": "papelaria", // nome corrigido em 21/10/2026
   "bloquinho": "papelaria",
   "kit-ecologico-guaras": "papelaria",
   "kit-ecologico-bumba-meu-boi": "papelaria",
@@ -111,6 +112,7 @@ const CATEGORIA_POR_NOME_EXATO: Record<string, string> = {
   "kit-ecologico-ilha-do-amor": "papelaria",
   "kambada-goods": "papelaria",
   "joguinhos-divertido": "papelaria",
+  "joguinhos-divertidos": "papelaria", // nome corrigido em 21/10/2026
   "livro-trilingue": "papelaria",
   "livro-vermelho-historinha": "papelaria",
   // Brindes

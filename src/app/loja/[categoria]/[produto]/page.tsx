@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
 import FotoAtiva from "@/components/produto/FotoAtiva";
 import GuiaDeTamanhos from "@/components/produto/GuiaDeTamanhos";
@@ -83,7 +83,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PaginaProduto({ params }: Props) {
   const { categoria: catSlug, produto: prodSlug } = await params;
   const produto = await acharProduto(catSlug, prodSlug);
-  if (!produto) notFound();
+  if (!produto) {
+    // O endereço leva o ID do Bling no fim: se o nome mudou lá, o link antigo
+    // (WhatsApp, Instagram, Google) segue para a página nova em vez de dar 404.
+    const id = Number(prodSlug.match(/-(d{8,})$/)?.[1]);
+    const atual = id ? (await buscarCatalogo()).produtos.find((p) => p.idBling === id) : undefined;
+    if (atual) permanentRedirect(`/loja/${atual.categoria}/${atual.slug}`);
+    notFound();
+  }
 
   const categoria = categoriaPorSlug(catSlug);
   if (!categoria) notFound();

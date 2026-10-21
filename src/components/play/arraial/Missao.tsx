@@ -18,6 +18,14 @@ const BOTAO_CONTORNO =
 
 const nomeDe = (id?: NpcId) => npcs.find((n) => n.id === id)?.nome ?? "";
 
+/**
+ * Alguma fala desta partida foi pulada (clique/Enter antes de o texto terminar
+ * de aparecer)? Vai junto em cada resposta do desafio; o servidor zera o bônus
+ * de rapidez — e mede o tempo de leitura por conta própria, sem confiar nisto.
+ * Zera quando o desafio sai da tela (a partida acaba ali e outra começa).
+ */
+let pulouFalaNaPartida = false;
+
 type DialogoMissaoProps = {
   npc: Npc;
   missao: MissaoPublica;
@@ -66,6 +74,7 @@ export function DialogoMissao({ npc, missao, pistas, saindo = false, onPista, on
   const avancar = useCallback(() => {
     if (terminou) return;
     if (!textoCompleto) {
+      pulouFalaNaPartida = true;
       setTextoCompleto(true);
       return;
     }
@@ -190,7 +199,16 @@ export function DesafioArraial({
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
   const [fim, setFim] = useState<RespostaArraial | null>(null);
+  // Lido ao abrir: durante o desafio não há falas para pular.
+  const [pulou] = useState(() => pulouFalaNaPartida);
   const caixaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(
+    () => () => {
+      pulouFalaNaPartida = false;
+    },
+    [],
+  );
 
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
@@ -204,7 +222,7 @@ export function DesafioArraial({
     if (enviando || resultado) return;
     setEscolhida(i);
     setEnviando(true);
-    const r = await chamar<RespostaArraial>("/api/play/arraial", { acao: "responder", estado, escolha: i });
+    const r = await chamar<RespostaArraial>("/api/play/arraial", { acao: "responder", estado, escolha: i, pulou });
     setEnviando(false);
     if (!r.ok) {
       setErro(r.mensagem ?? "Algo deu errado. Recarregue o arraial.");
@@ -245,6 +263,10 @@ export function DesafioArraial({
               Acertou {fim.acertos} de {pergunta.total}
               {fim.bonusPistas ? ` · +${fim.bonusPistas} pelas 5 pistas` : ""}.{" "}
               {(fim.acertos ?? 0) >= pergunta.total - 1 ? "Éguas, tu sabe a história do boi!" : "Volta amanhã e tenta de novo!"}
+            </p>
+            <p className="mt-1.5 font-body text-xs text-kambada-cream/60">
+              Bônus de rapidez: só para quem ouviu os anfitriões até o fim
+              {fim.bonusRapidez === false ? " (desta vez ficou de fora: alguma fala foi pulada)." : "."}
             </p>
             {fim.prova ? (
               <div className="mt-5 text-left text-texto">

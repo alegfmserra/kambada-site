@@ -15,7 +15,7 @@ import { EMAILS, ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
  */
 
 export const metadata: Metadata = {
-  title: "Encomendas corporativas",
+  title: "Encomendas e personalizados",
   description:
     "Leve a Kambada para o seu evento: kits, placas e porta-chaves personalizados para empresas. Fale com a gente e monte sua encomenda.",
   alternates: { canonical: "/encomendas" },
@@ -44,9 +44,8 @@ export default function Encomendas() {
             <span className="destaque">seu evento</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-texto-suave">
-            Kits, placas e porta-chaves personalizados para empresas e
-            eventos. Arte, material e quantidade a gente define junto, no
-            WhatsApp.
+            Peças personalizadas para você, sua empresa ou seu evento. Arte,
+            material e quantidade a gente define junto, no WhatsApp.
           </p>
 
           <a
@@ -76,6 +75,32 @@ export default function Encomendas() {
             </a>{" "}
             com o evento, a peça e a quantidade.
           </p>
+        </div>
+      </section>
+
+      {/* Regra de personalização (Alexandre, 19/10/2026). */}
+      <section className="border-b border-borda">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
+            Como funciona a personalização
+          </h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+            <div className="rounded-2xl border border-borda bg-superficie p-6">
+              <h3 className="font-display text-lg font-semibold">A partir de 1 unidade</h3>
+              <p className="mt-2 leading-relaxed text-texto-suave">
+                Matracas (grande ou mini, com ou sem suporte) e placas de
+                madeira, pintadas à mão com nome ou frase.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-borda bg-superficie p-6">
+              <h3 className="font-display text-lg font-semibold">A partir de 20 unidades</h3>
+              <p className="mt-2 leading-relaxed text-texto-suave">
+                Ecobags, necessaires, kits de anotação, estampa própria e as
+                demais peças — para pessoa física ou empresa. Taxa de arte de
+                R$ 150, paga antes de começar.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
  *   { acao: "iniciar" }                       -> missão do mês + estado
  *   { acao: "pista", estado, npc }            -> anota a pista da conversa
  *   { acao: "desafio", estado }               -> 1ª pergunta do desafio
- *   { acao: "responder", estado, escolha }    -> resultado, próxima ou prova final
+ *   { acao: "responder", estado, escolha, pulou? } -> resultado, próxima ou prova final
+ *     (pulou: true = alguma fala foi pulada; o servidor zera o bônus de rapidez
+ *      e também mede sozinho o tempo mínimo de leitura — ver arraial.ts)
  * Fica atrás do login (porteiro em src/proxy.ts): é conteúdo de assinante.
  */
 export async function POST(requisicao: Request) {
@@ -27,7 +29,7 @@ export async function POST(requisicao: Request) {
         : corpo.acao === "desafio"
           ? iniciarDesafio(corpo.estado)
           : corpo.acao === "responder"
-            ? responderDesafio(corpo.estado, corpo.escolha)
+            ? responderDesafio(corpo.estado, corpo.escolha, Date.now(), corpo.pulou)
             : { erro: "Ação desconhecida." };
   if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
   return NextResponse.json({ ok: true, ...r });

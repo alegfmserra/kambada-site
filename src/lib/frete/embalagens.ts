@@ -125,9 +125,8 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
       if (/produto teste/.test(nome)) return E.lapis;
       if (/caneta/.test(nome)) return E.caneta;
       if (/bloco|bloquinho/.test(nome)) return E.bloquinho;
-      // Livro Vermelho entra no site (20/10/2026): PROVISÓRIO com a embalagem do kit de anotação
-      // (maior que o livro — o frete sai um pouco acima, nunca abaixo) até ter a medida real.
-      if (/^livro vermelho/.test(nome)) return E.kitAnotacao;
+      // Livro Vermelho: medidas parecidas com as de uma Ecobag Mini (Alexandre, 21/10/2026).
+      if (/^livro vermelho/.test(nome)) return E.ecobagPequena;
       // Livro Trilíngue, joguinhos e Kambada Goods: sem ficha de embalagem.
       return null;
     default:

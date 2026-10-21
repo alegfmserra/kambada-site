@@ -122,6 +122,11 @@ export async function GET(requisicao: Request) {
     });
   }
 
+  // Vendas pelo site desde a contagem física de 13/10 (não canceladas) — explicam diferenças na auditoria.
+  const vendasSite = registros
+    .filter((r) => r.criadoEm >= "2026-10-13" && !r.cancelamento?.concluidoEm && !r.estorno)
+    .flatMap((r) => r.itens.map((i) => ({ ref: r.ref, data: r.criadoEm, id: i.id, nome: i.nome, quantidade: i.quantidade })));
+
   const ativos = linhas.filter((l) => l.situacao === "ativo");
   const contaveis = ativos.filter((l) => l.tipoNoRelatorio !== "pai");
   return NextResponse.json({
@@ -143,5 +148,6 @@ export async function GET(requisicao: Request) {
     },
     linhas,
     cancelados: conferencia,
+    vendasSite,
   });
 }

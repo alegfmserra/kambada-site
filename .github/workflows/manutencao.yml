@@ -21,6 +21,8 @@ jobs:
           SEGREDO: ${{ secrets.MANUTENCAO_SECRET }}
         run: |
           if [ -z "$SEGREDO" ]; then echo "MANUTENCAO_SECRET não configurado no GitHub"; exit 1; fi
-          codigo=$(curl -sS -o resposta.json -w "%{http_code}" -H "Authorization: Bearer $SEGREDO" "$URL/api/manutencao")
+          # -L: a borda da Hostinger devolve de vez em quando um 307 para o mesmo endereço (22/10/2026);
+          # --max-time/--retry: um reimplante do site não pode travar a rodada por minutos (curl 28).
+          codigo=$(curl -sS -L --max-time 120 --retry 3 --retry-delay 20 --retry-all-errors -o resposta.json -w "%{http_code}" -H "Authorization: Bearer $SEGREDO" "$URL/api/manutencao")
           echo "HTTP $codigo"; cat resposta.json; echo
           test "$codigo" = "200"

@@ -41,7 +41,7 @@ function seguranca(play: boolean) {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      `connect-src 'self'${play ? " blob: data:" : ""} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://viacep.com.br`,
+      `connect-src 'self'${play ? " blob: data:" : ""} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://www.googleadservices.com https://viacep.com.br`,
       ...(play ? ["worker-src 'self' blob:"] : []),
       "frame-src https://td.doubleclick.net https://www.googletagmanager.com",
       "frame-ancestors 'none'",

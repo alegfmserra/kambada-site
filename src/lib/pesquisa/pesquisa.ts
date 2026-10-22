@@ -4,9 +4,11 @@ import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 
 /**
- * Pesquisa de satisfação do site (20/10/2026). Respostas anônimas: não
- * guardamos IP, e-mail nem conta — só o que a pessoa marcou, a página e o
- * tamanho da tela (para saber se o problema foi no celular).
+ * Pesquisa de satisfação do site (20/10/2026). Não guardamos IP. Desde 22/10
+ * a pessoa pode dizer o primeiro nome e a idade (opcionais, só para conhecer o
+ * público) e, se estiver com a conta do Kambada Play ligada, o e-mail da conta
+ * vai junto. Fora isso: o que marcou, a página e o tamanho da tela (para saber
+ * se o problema foi no celular).
  * Uma resposta por linha (JSONL) na pasta persistente `.kambada/`.
  */
 
@@ -43,6 +45,11 @@ export const ROTULOS: Record<string, string> = {
 
 export type Resposta = {
   em: string;
+  /** Só o primeiro nome, como a pessoa digitou. */
+  nome?: string;
+  idade?: number;
+  /** Só quando há conta do Kambada Play ligada na hora do envio. */
+  email?: string;
   nota?: number;
   funcionou?: (typeof OPCOES.funcionou)[number];
   problema?: string;
@@ -68,14 +75,20 @@ function umaDas<T extends readonly string[]>(v: unknown, lista: T): T[number] | 
 }
 
 /** Valida o que veio do navegador. Devolve null se não houver nenhuma resposta. */
-export function validarResposta(corpo: Record<string, unknown>, agora = new Date()): Resposta | null {
+export function validarResposta(corpo: Record<string, unknown>, agora = new Date(), emailDaConta?: string): Resposta | null {
   const nota = typeof corpo.nota === "number" && Number.isInteger(corpo.nota) && corpo.nota >= 1 && corpo.nota <= 5 ? corpo.nota : undefined;
   const curtiu = Array.isArray(corpo.curtiu)
     ? [...new Set(corpo.curtiu.map((c) => umaDas(c, OPCOES.curtiu)).filter((c) => c !== undefined))]
     : [];
   const largura = typeof corpo.largura === "number" && corpo.largura > 0 && corpo.largura < 10000 ? Math.round(corpo.largura) : undefined;
+  const idadeBruta = typeof corpo.idade === "string" ? Number(corpo.idade.trim()) : corpo.idade;
+  const idade = typeof idadeBruta === "number" && Number.isInteger(idadeBruta) && idadeBruta >= 1 && idadeBruta <= 110 ? idadeBruta : undefined;
   const r: Resposta = {
     em: agora.toISOString(),
+    // Primeiro nome só: corta no primeiro espaço.
+    nome: texto(corpo.nome, 40)?.split(/\s+/)[0],
+    idade,
+    email: emailDaConta || undefined,
     nota,
     funcionou: umaDas(corpo.funcionou, OPCOES.funcionou),
     problema: texto(corpo.problema, 500),
@@ -135,6 +148,19 @@ function contar<T extends string>(lista: (T | undefined)[]): Record<string, numb
   return c;
 }
 
+function idades(rs: Resposta[]) {
+  const ids = rs.map((r) => r.idade).filter((n): n is number => typeof n === "number");
+  const faixas: Record<string, number> = {};
+  for (const i of ids) {
+    const f = i < 13 ? "até 12" : i < 18 ? "13–17" : i < 30 ? "18–29" : i < 45 ? "30–44" : i < 60 ? "45–59" : "60+";
+    faixas[f] = (faixas[f] ?? 0) + 1;
+  }
+  return {
+    idadeMedia: ids.length ? Math.round((ids.reduce((a, b) => a + b, 0) / ids.length) * 10) / 10 : null,
+    idades: faixas,
+  };
+}
+
 export function resumir(rs: Resposta[]) {
   const notas = rs.map((r) => r.nota).filter((n): n is number => typeof n === "number");
   return {
@@ -145,11 +171,12 @@ export function resumir(rs: Resposta[]) {
     valorPlay: contar(rs.map((r) => r.valorPlay)),
     assinaria: contar(rs.map((r) => r.assinaria)),
     origem: contar(rs.map((r) => r.origem)),
+    ...idades(rs),
   };
 }
 
 const COLUNAS: (keyof Resposta)[] = [
-  "em", "nota", "funcionou", "problema", "curtiu", "sugestao", "valorPlay", "assinaria", "origem", "comentario", "pagina", "gatilho", "largura",
+  "em", "nome", "idade", "email", "nota", "funcionou", "problema", "curtiu", "sugestao", "valorPlay", "assinaria", "origem", "comentario", "pagina", "gatilho", "largura",
 ];
 
 export function respostasParaCsv(rs: Resposta[]): string {

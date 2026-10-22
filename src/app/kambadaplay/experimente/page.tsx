@@ -18,7 +18,6 @@ const VITRINE = [
   { titulo: "Arraial da Kambada", texto: "O São João em 3D: junte as 5 fitinhas.", img: "/kambadaplay/images/arraial/poster.webp" },
   { titulo: "Memória das estampas", texto: "Ache os pares das nossas estampas.", img: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp" },
   { titulo: "HQs do Kambadinha", texto: "A Hora dos Guarás e Na Batida do Tambor.", img: "/kambadaplay/hq/kambadinha-a-hora-dos-guaras/01.webp" },
-  { titulo: "Animação", texto: "A Kambadinha cai na roda do Tambor de Crioula.", img: "/kambadaplay/videos/kambadinha-na-batida-do-tambor.jpg" },
 ];
 
 /** Degustação do Kambada Play: o quiz fácil abre sem conta; o resto aparece trancado com o convite. */

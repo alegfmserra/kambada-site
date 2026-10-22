@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { gravarResposta, listarRespostas, respostasParaCsv, resumir, validarResposta } from "@/lib/pesquisa/pesquisa";
 import { segredoDeManutencao } from "@/lib/seguranca/segredo";
+import { contaDaRequisicao } from "@/lib/play/contas";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Pesquisa de satisfação.
- *   POST                                     → grava uma resposta (anônima)
+ *   POST                                     → grava uma resposta (com o e-mail da conta do Play, se houver login)
  *   GET  (Authorization: Bearer SENHA)       → resumo + respostas (JSON)
  *   GET  …&formato=csv                       → planilha
  * SENHA = REVALIDATE_SECRET (ver lib/seguranca/segredo.ts).
@@ -17,7 +18,8 @@ export async function POST(requisicao: Request) {
     return NextResponse.json({ ok: false, mensagem: "Recebemos sua resposta. Obrigado!" }, { status: 429 });
   }
   const corpo = await corpoJson(requisicao);
-  const resposta = corpo ? validarResposta(corpo) : null;
+  const conta = corpo ? await contaDaRequisicao(requisicao).catch(() => null) : null;
+  const resposta = corpo ? validarResposta(corpo, new Date(), conta?.email) : null;
   if (!resposta) return NextResponse.json({ ok: false, mensagem: "Marque ao menos uma resposta." }, { status: 400 });
   await gravarResposta(resposta);
   return NextResponse.json({ ok: true });

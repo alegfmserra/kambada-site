@@ -528,7 +528,7 @@ export default function PlayEntrada() {
       {/* Catálogo completo, no estilo prateleira (acompanha o tema do site) */}
       <div className="mx-auto max-w-6xl space-y-14 px-4 py-16 sm:px-6">
         <h2 className="font-display text-3xl font-extrabold text-texto">Tudo no Kambada Play</h2>
-        {FILEIRAS.map((fileira) => (
+        {FILEIRAS.filter((f) => f.itens.length > 0).map((fileira) => (
           <section key={fileira.id} aria-labelledby={`fileira-${fileira.id}`}>
             <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
               <h3 id={`fileira-${fileira.id}`} className="font-display text-xl font-bold text-texto">

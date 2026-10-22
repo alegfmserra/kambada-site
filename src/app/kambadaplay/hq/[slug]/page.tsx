@@ -61,12 +61,6 @@ export default async function HQPage({ params }: Props) {
 
         <div className="mt-12 flex flex-wrap gap-3">
           <Link
-            href="/kambadaplay/videos/kambadinha-na-batida-do-tambor"
-            className="rounded-full bg-kambada-amarelo px-8 py-3.5 font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-          >
-            Ver em animação
-          </Link>
-          <Link
             href="/kambadaplay"
             className="rounded-full border-2 border-borda px-8 py-3 font-bold text-texto transition-colors hover:border-kambada-amarelo"
           >

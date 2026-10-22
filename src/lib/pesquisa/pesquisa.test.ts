@@ -20,6 +20,19 @@ describe("pesquisa de satisfação", () => {
     expect(r?.pagina).toBe("/loja");
   });
 
+  it("guarda só o primeiro nome, idade válida e o e-mail da conta", () => {
+    const r = validarResposta({ nota: 5, nome: "  Maria José da Silva ", idade: "34" }, new Date(), "maria@exemplo.com")!;
+    expect(r.nome).toBe("Maria");
+    expect(r.idade).toBe(34);
+    expect(r.email).toBe("maria@exemplo.com");
+    expect(validarResposta({ nota: 5, idade: 300 })?.idade).toBeUndefined();
+    expect(validarResposta({ nota: 5 })?.email).toBeUndefined();
+    expect(validarResposta({ nome: "Ana", idade: 30 })).toBeNull();
+    const s = resumir([r, validarResposta({ nota: 4, idade: 16 })!]);
+    expect(s.idadeMedia).toBe(25);
+    expect(s.idades["13–17"]).toBe(1);
+  });
+
   it("recusa resposta vazia e nota fora de 1–5", () => {
     expect(validarResposta({})).toBeNull();
     expect(validarResposta({ nota: 9 })).toBeNull();

@@ -247,6 +247,8 @@ GALERIA[16701502913] = [PD, ["Chaveiro Kambadinha - Amarelo.jpeg"]];
 FOTOS[16701478191] = [PD, "necessaire_guaras_01.jpg", "Necessaire Guarás"];
 // Prévia JPEG tirada do RAW (.ARW) da câmera e girada para ficar em pé.
 FOTOS[16698808484] = [PD, "Camisa Bumba meu Boi Infantil - em pe.jpg", "Camisa Bumba Meu Boi Infantil"];
+// Camisa Babylook Bumba Boi (rosa, modelo com ecobag) — a única que faltava (Alexandre, 22/10/2026).
+FOTOS[16698808826] = ["07_Camisas_Estampadas/Camisa Babylook Bumba Boi", "camisa-babylook-bumba-boi_01.png", "Camisa Babylook Bumba Boi (rosa, modelo)"];
 
 // ── Matracas migradas (21/10/2026) e Chaveiro Kambadinha por cor: foto por VARIAÇÃO, para o Bling ──
 //    Variação com qualquer suporte → foto "com suporte" da estampa; sem suporte → "sem suporte" ou a única.

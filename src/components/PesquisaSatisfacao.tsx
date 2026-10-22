@@ -238,6 +238,8 @@ function Formulario({
   const [assinaria, setAssinaria] = useState("");
   const [origem, setOrigem] = useState("");
   const [comentario, setComentario] = useState("");
+  const [nome, setNome] = useState("");
+  const [idade, setIdade] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -250,6 +252,8 @@ function Formulario({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          nome: nome || undefined,
+          idade: idade || undefined,
           nota: nota || undefined,
           funcionou: funcionou || undefined,
           problema,
@@ -281,7 +285,7 @@ function Formulario({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 id="pesquisa-titulo" className="font-display text-xl font-bold">Como foi sua visita?</h2>
-          <p className="text-sm text-texto-suave">Anônima, 1 minuto. Responda só o que quiser.</p>
+          <p className="text-sm text-texto-suave">1 minuto. Responda só o que quiser.</p>
         </div>
         <button type="button" onClick={aoFechar} aria-label="Fechar pesquisa" className="rounded-full p-2 text-texto-suave hover:bg-superficie">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -400,7 +404,34 @@ function Formulario({
         <span className={rotulo}>Algo mais?</span>
         <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} maxLength={500} rows={2} className={campoTexto} />
       </label>
-      <p className="text-xs text-texto-tenue">Não coloque dados pessoais. Para falar com a gente, use o WhatsApp.</p>
+
+      <fieldset>
+        <legend className={rotulo}>Quem é você? <span className="font-normal text-texto-tenue">(opcional)</span></legend>
+        <p className="text-xs text-texto-tenue">Só para conhecer o nosso público e a idade média de quem visita. Não precisa de sobrenome.</p>
+        <div className="mt-2 grid grid-cols-[1fr_6rem] gap-2">
+          <input
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            maxLength={40}
+            autoComplete="given-name"
+            placeholder="Primeiro nome"
+            aria-label="Primeiro nome"
+            className={campoTexto + " !mt-0"}
+          />
+          <input
+            value={idade}
+            onChange={(e) => setIdade(e.target.value.replace(/\D/g, "").slice(0, 3))}
+            inputMode="numeric"
+            placeholder="Idade"
+            aria-label="Idade"
+            className={campoTexto + " !mt-0"}
+          />
+        </div>
+      </fieldset>
+      <p className="rounded-xl bg-superficie px-3 py-2 text-xs text-texto-suave">
+        Se você estiver com a sua conta do Kambada Play ligada, o e-mail dela vai junto com a resposta. Sem conta, nada além do que você preencher aqui.
+        Não coloque outros dados pessoais. Para falar com a gente, use o WhatsApp.
+      </p>
 
       {erro && <p role="alert" className="text-sm text-red-500">{erro}</p>}
 

@@ -37,11 +37,11 @@ function seguranca(play: boolean) {
       // Kambada Play (3D): os decodificadores WebAssembly dos modelos (Meshopt,
       // Draco) exigem 'wasm-unsafe-eval' (só WebAssembly; não libera eval de JS)
       // e o carregador de modelos lê texturas por blob:. Só vale em /kambadaplay.
-      `script-src 'self' 'unsafe-inline'${play ? " 'wasm-unsafe-eval'" : ""} https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net`,
+      `script-src 'self' 'unsafe-inline'${play ? " 'wasm-unsafe-eval'" : ""} https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net${play ? "" : " https://gc.zgo.at"}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      `connect-src 'self'${play ? " blob: data:" : ""} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://www.googleadservices.com https://viacep.com.br`,
+      `connect-src 'self'${play ? " blob: data:" : ""} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://www.googleadservices.com https://viacep.com.br${play ? "" : " https://somoskambada.goatcounter.com"}`,
       ...(play ? ["worker-src 'self' blob:"] : []),
       "frame-src https://td.doubleclick.net https://www.googletagmanager.com",
       "frame-ancestors 'none'",

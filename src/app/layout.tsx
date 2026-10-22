@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Poppins } from "next/font/google";
 import Analytics from "@/components/Analytics";
+import ContadorVisitas from "@/components/ContadorVisitas";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import Cabecalho from "@/components/Cabecalho";
 import AvisoAdicionado from "@/components/carrinho/AvisoAdicionado";
@@ -94,6 +95,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <PesquisaSatisfacao />
         </ProvedorCarrinho>
         <Analytics />
+        <ContadorVisitas />
       </body>
     </html>
   );

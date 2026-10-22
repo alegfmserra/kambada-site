@@ -20,7 +20,7 @@ const LINHAS: { dado: string; quando: string; paraQue: string; base: string }[] 
   { dado: "Endereço e CEP", quando: "No checkout", paraQue: "Calcular o frete, entregar a encomenda e preencher a nota", base: "Execução do contrato" },
   { dado: "Dados do pagamento (cartão, Pix)", quando: "Na página do Mercado Pago", paraQue: "Processar o pagamento. O site da Kambada não vê nem guarda número de cartão", base: "Tratados pelo Mercado Pago" },
   { dado: "Número do pedido e e-mail", quando: "Em “Acompanhar pedido”", paraQue: "Mostrar a situação do seu pedido só para você", base: "Execução do contrato" },
-  { dado: "Dados de navegação (páginas vistas, aparelho, origem do acesso)", quando: "Ao navegar", paraQue: "Entender o que funciona no site e medir anúncios (Google Analytics / Google Ads)", base: "Legítimo interesse" },
+  { dado: "Dados de navegação (páginas vistas, aparelho, origem do acesso)", quando: "Ao navegar", paraQue: "Entender o que funciona no site e medir anúncios (Google Analytics / Google Ads) e contar visitas (GoatCounter, sem cookies)", base: "Legítimo interesse" },
   { dado: "Preferência de tema e carrinho", quando: "Ao navegar", paraQue: "Guardar a sua escolha e as peças do carrinho no seu próprio navegador", base: "Não sai do seu aparelho" },
 ];
 
@@ -100,7 +100,8 @@ export default function PaginaPrivacidade() {
               </li>
               <li>
                 <strong>Hostinger</strong> (hospedagem do site e do e-mail) e <strong>Google</strong>{" "}
-                (Analytics/Ads): infraestrutura e medição.
+                (Analytics/Ads) e <strong>GoatCounter</strong> (contagem de visitas): infraestrutura e
+                medição.
               </li>
               <li>Autoridades, quando a lei exigir.</li>
             </ul>
@@ -121,7 +122,11 @@ export default function PaginaPrivacidade() {
                 Registro do pedido no site (nome, e-mail, peças, situação): enquanto durar a garantia e o
                 prazo acima; depois é apagado.
               </li>
-              <li>Dados de navegação: conforme a retenção do Google Analytics (até 14 meses).</li>
+              <li>
+                Dados de navegação: conforme a retenção do Google Analytics (até 14 meses). A contagem de
+                visitas do GoatCounter guarda só a página, o tipo de aparelho e a origem do acesso, sem
+                identificar você.
+              </li>
               <li>E-mails trocados com você: enquanto houver atendimento em aberto e pelo prazo legal.</li>
             </ul>
           </article>
@@ -165,7 +170,8 @@ export default function PaginaPrivacidade() {
             <p className="mt-3">
               Usamos cookies e armazenamento do navegador para: manter o seu carrinho e o tema escolhido
               (essenciais, não identificam você) e para medição de audiência e anúncios (Google Analytics
-              e Google Ads). Você pode apagar ou bloquear cookies nas configurações do navegador; o
+              e Google Ads). A contagem de visitas do GoatCounter não usa cookies e não roda nas
+              páginas do Kambada Play. Você pode apagar ou bloquear cookies nas configurações do navegador; o
               carrinho e o tema deixam de ser lembrados, mas a compra continua funcionando.
             </p>
           </article>

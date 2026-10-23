@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
+import { urlPublica } from "@/lib/seguranca/urlPublica";
 import {
   COOKIE_SESSAO,
   VALIDADE_SESSAO_S,
@@ -48,7 +49,7 @@ export async function GET(requisicao: Request) {
   const acao = url.searchParams.get("acao");
   if (acao === "descadastrar") {
     const ok = await descadastrar(url.searchParams.get("token"));
-    const destino = new URL(`/kambadaplay/entrar?aviso=${ok ? "descadastrado" : "link-invalido"}`, requisicao.url);
+    const destino = urlPublica(`/kambadaplay/entrar?aviso=${ok ? "descadastrado" : "link-invalido"}`, requisicao);
     return NextResponse.redirect(destino);
   }
   const sessao = sessaoDaRequisicao(requisicao);

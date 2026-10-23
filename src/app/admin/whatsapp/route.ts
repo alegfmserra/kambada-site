@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { COOKIE_ADMIN, sessaoValida } from "@/lib/admin/sessao";
 import { chamarBling } from "@/lib/bling/cliente";
+import { urlPublica } from "@/lib/seguranca/urlPublica";
 import { lerRegistro } from "@/lib/pedidos/registro";
 import { mensagemDoWhatsApp, telefoneParaWhatsApp } from "@/lib/pedidos/whatsapp";
 
@@ -16,12 +17,12 @@ export const dynamic = "force-dynamic";
 
 export async function GET(requisicao: Request) {
   if (!sessaoValida((await cookies()).get(COOKIE_ADMIN)?.value)) {
-    return NextResponse.redirect(new URL("/admin/pedidos", requisicao.url));
+    return NextResponse.redirect(urlPublica("/admin/pedidos", requisicao));
   }
   const p = new URL(requisicao.url).searchParams;
   const ref = p.get("ref") ?? "";
   const r = /^KMB-\d{8}-[0-9A-F]{6}$/.test(ref) ? await lerRegistro(ref) : null;
-  if (!r) return NextResponse.redirect(new URL("/admin/pedidos", requisicao.url));
+  if (!r) return NextResponse.redirect(urlPublica("/admin/pedidos", requisicao));
 
   try {
     const pedido = await chamarBling<{ data?: { contato?: { id?: number } } }>(`/pedidos/vendas/${r.bling.idPedido}`, { revalidar: 0 });

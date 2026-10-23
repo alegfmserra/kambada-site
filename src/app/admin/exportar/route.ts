@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { montarPlanilha, reunirDados } from "@/lib/admin/dados";
 import { COOKIE_ADMIN, sessaoValida } from "@/lib/admin/sessao";
+import { urlPublica } from "@/lib/seguranca/urlPublica";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -13,7 +14,7 @@ export const maxDuration = 60;
  */
 export async function GET(requisicao: Request) {
   if (!sessaoValida((await cookies()).get(COOKIE_ADMIN)?.value)) {
-    return NextResponse.redirect(new URL("/admin/dados", requisicao.url));
+    return NextResponse.redirect(urlPublica("/admin/dados", requisicao));
   }
   const planilha = await montarPlanilha(await reunirDados());
   const dia = new Date().toISOString().slice(0, 10);

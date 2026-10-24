@@ -64,6 +64,7 @@ export function resumoGeral(d: Dados) {
     valorPlay: pesquisa.valorPlay,
     origem: pesquisa.origem,
     curtiu: pesquisa.curtiu,
+    mit: pesquisa.mit,
     sugestoes,
     cupons: d.cupons.length,
     cuponsAtivos: d.cupons.filter((c) => c.ativo).length,
@@ -124,6 +125,35 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
   res.addRow(["Como conheceu a Kambada"]).font = { name: "Arial", size: 10, bold: true };
   for (const [k, v] of Object.entries(r.origem)) res.addRow([`  ${k}`, v]).font = { name: "Arial", size: 10 };
   res.addRow([]);
+  res.addRow(["Indicadores MIT / MaraInTech vindos da pesquisa (n = quem respondeu a pergunta)"]).font = { name: "Arial", size: 10, bold: true };
+  const m = r.mit;
+  const linhasMit: [string, unknown][] = [
+    ["F1.2 Confirmam a dor — n", m.F1_2_confirmaDor.n],
+    ["F1.2 Confirmam a dor — % (só 'Sim, falta')", m.F1_2_confirmaDor.pct ?? "—"],
+    ["F2.2 Conseguiram sem ajuda — n", m.F2_2_conseguiu.n],
+    ["F2.2 Conseguiram sem ajuda — % (autodeclarado)", m.F2_2_conseguiu.pctSemAjuda ?? "—"],
+    ["F2.3 NPS do Play — n", m.F2_3_nps.n],
+    ["F2.3 NPS do Play (promotores − detratores, %)", m.F2_3_nps.nps ?? "—"],
+    ["F2.5 Toparam participar de testes", m.F2_5_topaTeste.sim],
+    ["F3.2/F3.7 Responderam sobre cargo de direção", m.F3_2_F3_7_instituicoes.respondeuCargoDirecao],
+    ["F3.2/F3.7 Com cargo de direção", m.F3_2_F3_7_instituicoes.comCargoDirecao],
+    ["F3.2/F3.7 Instituições distintas citadas", m.F3_2_F3_7_instituicoes.distintas],
+    ["F3.2/F3.7 Gestores que deixaram contato", m.F3_2_F3_7_instituicoes.comContato],
+  ];
+  for (const [k, v] of linhasMit) res.addRow([`  ${k}`, v]).font = { name: "Arial", size: 10 };
+  const blocosMit: [string, Record<string, number>][] = [
+    ["F1.3 Frequência de busca (12 meses)", m.F1_3_frequencia.distribuicao],
+    ["F2.7/I7 Aprendeu algo novo", m.F2_7_I7_aprendeu.distribuicao],
+    ["I6 Tipo de instituição (quem dirige)", m.I6_tipoInstituicao],
+    ["F1.4 Pessoas atendidas pelas instituições", m.F1_4_alcanceInstituicoes],
+    ["F3.2 Interesse em piloto", m.F3_2_F3_7_instituicoes.interessePiloto],
+    ["F1.4 Perfil de quem respondeu", m.F1_4_perfil],
+  ];
+  for (const [titulo, dist] of blocosMit) {
+    res.addRow([`  ${titulo}`]).font = { name: "Arial", size: 10, italic: true };
+    for (const [k, v] of Object.entries(dist)) res.addRow([`    ${k}`, v]).font = { name: "Arial", size: 10 };
+  }
+  res.addRow([]);
   res.addRow(["Pagamentos de assinatura do Play: a cobrança ainda não foi ligada — não há pagamentos a listar."]).font = { name: "Arial", size: 9, italic: true };
 
   aba(
@@ -140,6 +170,20 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       { header: "Assinaria o Play?", key: "assinaria", width: 26 },
       { header: "Como conheceu", key: "origem", width: 14 },
       { header: "Comentário", key: "comentario", width: 40 },
+      { header: "Responde como", key: "perfil", width: 22 },
+      { header: "Cidade", key: "cidade", width: 20 },
+      { header: "Falta material? (F1.2)", key: "confirmaDor", width: 16 },
+      { header: "Frequência de busca 12m (F1.3)", key: "frequenciaBusca", width: 20 },
+      { header: "Conseguiu sem ajuda? (F2.2)", key: "conseguiu", width: 16 },
+      { header: "Recomendaria 0–10 (NPS, F2.3)", key: "recomendaria", width: 12 },
+      { header: "Aprendeu algo? (F2.7/I7)", key: "aprendeu", width: 14 },
+      { header: "Cargo de direção?", key: "cargoDirecao", width: 12 },
+      { header: "Tipo de instituição (I6)", key: "tipoInstituicao", width: 30 },
+      { header: "Instituição", key: "instituicao", width: 26 },
+      { header: "Pessoas atendidas (F1.4)", key: "alcance", width: 16 },
+      { header: "Interesse em piloto (F3.2)", key: "interessePiloto", width: 14 },
+      { header: "Topa teste (F2.5)", key: "topaTeste", width: 12 },
+      { header: "Contato deixado", key: "contato", width: 28 },
       { header: "Página", key: "pagina", width: 22 },
       { header: "Tela (px)", key: "largura", width: 9 },
     ],
@@ -154,6 +198,20 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       assinaria: rotulo(x.assinaria),
       origem: rotulo(x.origem),
       comentario: seguro(x.comentario),
+      perfil: rotulo(x.perfil),
+      cidade: seguro(x.cidade),
+      confirmaDor: rotulo(x.confirmaDor),
+      frequenciaBusca: rotulo(x.frequenciaBusca),
+      conseguiu: rotulo(x.conseguiu),
+      recomendaria: x.recomendaria ?? "",
+      aprendeu: rotulo(x.aprendeu),
+      cargoDirecao: rotulo(x.cargoDirecao),
+      tipoInstituicao: rotulo(x.tipoInstituicao),
+      instituicao: seguro(x.instituicao),
+      alcance: rotulo(x.alcance),
+      interessePiloto: rotulo(x.interessePiloto),
+      topaTeste: rotulo(x.topaTeste),
+      contato: seguro(x.contato),
       pagina: x.pagina ?? "",
       largura: x.largura ?? "",
     })),

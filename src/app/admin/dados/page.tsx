@@ -95,6 +95,35 @@ export default async function PaginaDados() {
         <Contagem titulo="O que mais curtiu no site" dados={r.curtiu} />
       </div>
 
+      <h2 className="mt-10 font-display text-xl font-bold">Indicadores MIT / MaraInTech (FAPEMA)</h2>
+      <p className="mt-1 text-sm text-texto-suave">Vêm do bloco “Ajude a validar o Kambada Play” da pesquisa. Cada número mostra o n (quem respondeu aquela pergunta).</p>
+      <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {(
+          [
+            ["F1.2 Falta material (n)", `${r.mit.F1_2_confirmaDor.pct ?? "—"}% (${r.mit.F1_2_confirmaDor.n})`],
+            ["F2.2 Sem ajuda (n)", `${r.mit.F2_2_conseguiu.pctSemAjuda ?? "—"}% (${r.mit.F2_2_conseguiu.n})`],
+            ["F2.3 NPS do Play (n)", `${r.mit.F2_3_nps.nps ?? "—"} (${r.mit.F2_3_nps.n})`],
+            ["F2.5 Topam testar", r.mit.F2_5_topaTeste.sim],
+            ["F3.2 Gestores (de quem respondeu)", `${r.mit.F3_2_F3_7_instituicoes.comCargoDirecao} (${r.mit.F3_2_F3_7_instituicoes.respondeuCargoDirecao})`],
+            ["F3.7 Instituições distintas", r.mit.F3_2_F3_7_instituicoes.distintas],
+            ["Gestores com contato", r.mit.F3_2_F3_7_instituicoes.comContato],
+          ] as [string, string | number][]
+        ).map(([k, v]) => (
+          <li key={k} className={CARTAO}>
+            <p className="text-xs text-texto-suave">{k}</p>
+            <p className="font-display text-2xl font-bold">{v}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <Contagem titulo="F1.2 Falta material sobre a cultura do Maranhão?" dados={r.mit.F1_2_confirmaDor.distribuicao} />
+        <Contagem titulo="F1.3 Frequência de busca (últimos 12 meses)" dados={r.mit.F1_3_frequencia.distribuicao} />
+        <Contagem titulo="F2.7 / I7 Aprendeu algo novo com o Play" dados={r.mit.F2_7_I7_aprendeu.distribuicao} />
+        <Contagem titulo="I6 Tipo de instituição (quem dirige)" dados={r.mit.I6_tipoInstituicao} />
+        <Contagem titulo="F3.2 Interesse em piloto" dados={r.mit.F3_2_F3_7_instituicoes.interessePiloto} />
+        <Contagem titulo="F1.4 Pessoas atendidas pelas instituições" dados={r.mit.F1_4_alcanceInstituicoes} />
+      </div>
+
       <div className={`${CARTAO} mt-3`}>
         <h3 className="font-display font-bold">Últimas sugestões de conteúdo, problemas e comentários</h3>
         {sugestoes.length === 0 ? (

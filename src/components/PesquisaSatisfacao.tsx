@@ -240,6 +240,20 @@ function Formulario({
   const [comentario, setComentario] = useState("");
   const [nome, setNome] = useState("");
   const [idade, setIdade] = useState("");
+  const [perfil, setPerfil] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [confirmaDor, setConfirmaDor] = useState("");
+  const [frequenciaBusca, setFrequenciaBusca] = useState("");
+  const [conseguiu, setConseguiu] = useState("");
+  const [recomendaria, setRecomendaria] = useState<number | null>(null);
+  const [aprendeu, setAprendeu] = useState("");
+  const [cargoDirecao, setCargoDirecao] = useState("");
+  const [tipoInstituicao, setTipoInstituicao] = useState("");
+  const [instituicao, setInstituicao] = useState("");
+  const [alcance, setAlcance] = useState("");
+  const [interessePiloto, setInteressePiloto] = useState("");
+  const [topaTeste, setTopaTeste] = useState("");
+  const [contato, setContato] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -263,6 +277,20 @@ function Formulario({
           assinaria: assinaria || undefined,
           origem: origem || undefined,
           comentario,
+          perfil: perfil || undefined,
+          cidade: cidade || undefined,
+          confirmaDor: confirmaDor || undefined,
+          frequenciaBusca: frequenciaBusca || undefined,
+          conseguiu: conseguiu || undefined,
+          recomendaria: recomendaria ?? undefined,
+          aprendeu: aprendeu || undefined,
+          cargoDirecao: cargoDirecao || undefined,
+          tipoInstituicao: cargoDirecao === "sim" ? tipoInstituicao || undefined : undefined,
+          instituicao: cargoDirecao === "sim" ? instituicao || undefined : undefined,
+          alcance: cargoDirecao === "sim" ? alcance || undefined : undefined,
+          interessePiloto: cargoDirecao === "sim" ? interessePiloto || undefined : undefined,
+          topaTeste: topaTeste || undefined,
+          contato: contato || undefined,
           pagina: caminho,
           gatilho,
           largura: window.innerWidth,
@@ -285,7 +313,7 @@ function Formulario({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 id="pesquisa-titulo" className="font-display text-xl font-bold">Como foi sua visita?</h2>
-          <p className="text-sm text-texto-suave">1 minuto. Responda só o que quiser.</p>
+          <p className="text-sm text-texto-suave">Uns 2 minutos. Responda só o que quiser.</p>
         </div>
         <button type="button" onClick={aoFechar} aria-label="Fechar pesquisa" className="rounded-full p-2 text-texto-suave hover:bg-superficie">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -396,7 +424,7 @@ function Formulario({
           nome="origem"
           valor={origem}
           aoMudar={setOrigem}
-          opcoes={[["instagram", "Instagram"], ["tiktok", "TikTok"], ["indicacao", "Indicação"], ["evento", "Evento/feira"], ["google", "Google"], ["outro", "Outro"]]}
+          opcoes={[["instagram", "Instagram"], ["tiktok", "TikTok"], ["indicacao", "Indicação"], ["evento", "Evento/feira"], ["google", "Google"], ["escola", "Escola/professor"], ["whatsapp", "WhatsApp"], ["outro", "Outro"]]}
         />
       </fieldset>
 
@@ -404,6 +432,161 @@ function Formulario({
         <span className={rotulo}>Algo mais?</span>
         <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} maxLength={500} rows={2} className={campoTexto} />
       </label>
+
+      <section className="space-y-5 rounded-2xl border border-borda p-4" aria-labelledby="pesquisa-play">
+        <div>
+          <h3 id="pesquisa-play" className="font-display text-base font-bold">Ajude a validar o Kambada Play</h3>
+          <p className="text-xs text-texto-tenue">
+            Projeto apoiado pela FAPEMA. Estas perguntas são para adultos (pais, professores, gestores). Se for criança, peça ajuda a um adulto. Tudo opcional.
+          </p>
+        </div>
+
+        <fieldset>
+          <legend className={rotulo}>Você responde como…</legend>
+          <Opcoes
+            nome="perfil"
+            valor={perfil}
+            aoMudar={setPerfil}
+            opcoes={[["responsavel", "Pai, mãe ou responsável"], ["educador", "Professor(a)/educador(a)"], ["gestor", "Gestor(a) de instituição"], ["adulto", "Adulto, para mim"], ["outro", "Outro"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Falta material bom sobre a cultura do Maranhão para crianças e jovens?</legend>
+          <p className="text-xs text-texto-tenue">Jogos, histórias, vídeos ou atividades que você consiga usar em casa ou na sala de aula.</p>
+          <Opcoes
+            nome="confirmaDor"
+            valor={confirmaDor}
+            aoMudar={setConfirmaDor}
+            opcoes={[["sim", "Sim, falta"], ["em-parte", "Em parte"], ["nao", "Não falta"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Nos últimos 12 meses, com que frequência você procurou esse tipo de material?</legend>
+          <Opcoes
+            nome="frequenciaBusca"
+            valor={frequenciaBusca}
+            aoMudar={setFrequenciaBusca}
+            opcoes={[["semanal", "Toda semana"], ["mensal", "Todo mês"], ["poucas-vezes", "Poucas vezes"], ["nunca", "Nunca procurei"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Conseguiu fazer o que veio fazer aqui, sem ajuda?</legend>
+          <Opcoes
+            nome="conseguiu"
+            valor={conseguiu}
+            aoMudar={setConseguiu}
+            opcoes={[["sim", "Sim"], ["com-dificuldade", "Com dificuldade"], ["nao", "Não consegui"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>De 0 a 10, quanto você recomendaria o Kambada Play a um amigo ou colega?</legend>
+          <div className="mt-2 flex flex-wrap gap-1" role="radiogroup" aria-label="Recomendação de 0 a 10">
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={recomendaria === n}
+                aria-label={`${n} de 10`}
+                onClick={() => setRecomendaria(recomendaria === n ? null : n)}
+                className={`h-9 w-9 rounded-full border text-sm font-bold ${
+                  recomendaria === n ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda text-texto-suave hover:border-kambada-amarelo-escuro"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-texto-tenue">0 = de jeito nenhum · 10 = com certeza. Deixe em branco se ainda não conhece o Play.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Depois de usar o Play, você aprendeu ou descobriu algo novo sobre a cultura do Maranhão?</legend>
+          <Opcoes
+            nome="aprendeu"
+            valor={aprendeu}
+            aoMudar={setAprendeu}
+            opcoes={[["sim", "Sim"], ["um-pouco", "Um pouco"], ["nao", "Não"], ["nao-usei", "Ainda não usei"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Você exerce cargo de direção ou gestão em alguma instituição que se interessaria pelo Kambada Play?</legend>
+          <p className="text-xs text-texto-tenue">Escola, secretaria, universidade, espaço cultural, ONG, empresa, fundo, incubadora…</p>
+          <Opcoes nome="cargoDirecao" valor={cargoDirecao} aoMudar={setCargoDirecao} opcoes={[["sim", "Sim"], ["nao", "Não"]]} />
+        </fieldset>
+
+        {cargoDirecao === "sim" && (
+          <div className="space-y-5 border-l-2 border-kambada-amarelo pl-3">
+            <fieldset>
+              <legend className={rotulo}>Que tipo de instituição?</legend>
+              <Opcoes
+                nome="tipoInstituicao"
+                valor={tipoInstituicao}
+                aoMudar={setTipoInstituicao}
+                opcoes={[
+                  ["escola-publica", "Escola pública / rede de ensino"],
+                  ["escola-privada", "Escola privada"],
+                  ["ies", "Universidade / instituto"],
+                  ["governo", "Governo"],
+                  ["espaco-cultural", "Espaço cultural"],
+                  ["ong", "ONG / associação"],
+                  ["empresa", "Empresa"],
+                  ["investidor", "Investidor / fundo"],
+                  ["inovacao", "Incubadora / hub"],
+                  ["outra", "Outra"],
+                ]}
+              />
+            </fieldset>
+            <label className="block">
+              <span className={rotulo}>Nome da instituição</span>
+              <input value={instituicao} onChange={(e) => setInstituicao(e.target.value)} maxLength={80} autoComplete="organization" className={campoTexto} />
+            </label>
+            <fieldset>
+              <legend className={rotulo}>Quantas crianças, alunos ou pessoas ela atende?</legend>
+              <Opcoes
+                nome="alcance"
+                valor={alcance}
+                aoMudar={setAlcance}
+                opcoes={[["ate-50", "Até 50"], ["51-200", "51 a 200"], ["201-1000", "201 a 1.000"], ["mais-1000", "Mais de 1.000"]]}
+              />
+            </fieldset>
+            <fieldset>
+              <legend className={rotulo}>Ela teria interesse em testar ou conhecer o Kambada Play?</legend>
+              <Opcoes
+                nome="interessePiloto"
+                valor={interessePiloto}
+                aoMudar={setInteressePiloto}
+                opcoes={[["sim", "Sim"], ["talvez", "Talvez"], ["nao", "Não"]]}
+              />
+            </fieldset>
+          </div>
+        )}
+
+        <fieldset>
+          <legend className={rotulo}>Topa participar de um teste ou de uma conversa rápida com a gente?</legend>
+          <Opcoes nome="topaTeste" valor={topaTeste} aoMudar={setTopaTeste} opcoes={[["sim", "Topo"], ["nao", "Agora não"]]} />
+        </fieldset>
+
+        {(topaTeste === "sim" || interessePiloto === "sim" || interessePiloto === "talvez") && (
+          <label className="block">
+            <span className={rotulo}>Onde podemos falar com você?</span>
+            <input
+              value={contato}
+              onChange={(e) => setContato(e.target.value)}
+              maxLength={100}
+              autoComplete="email"
+              placeholder="E-mail ou WhatsApp"
+              className={campoTexto}
+            />
+            <span className="mt-1 block text-xs text-texto-tenue">Usamos só para esse retorno. Ao preencher, você autoriza o contato.</span>
+          </label>
+        )}
+      </section>
 
       <fieldset>
         <legend className={rotulo}>Quem é você? <span className="font-normal text-texto-tenue">(opcional)</span></legend>
@@ -427,6 +610,15 @@ function Formulario({
             className={campoTexto + " !mt-0"}
           />
         </div>
+        <input
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+          maxLength={60}
+          autoComplete="address-level2"
+          placeholder="Cidade e estado (ex.: São Luís, MA)"
+          aria-label="Cidade e estado"
+          className={campoTexto}
+        />
       </fieldset>
       <p className="rounded-xl bg-superficie px-3 py-2 text-xs text-texto-suave">
         Se você estiver com a sua conta do Kambada Play ligada, o e-mail dela vai junto com a resposta. Sem conta, nada além do que você preencher aqui.

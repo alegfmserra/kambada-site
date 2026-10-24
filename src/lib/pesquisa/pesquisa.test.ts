@@ -33,6 +33,30 @@ describe("pesquisa de satisfação", () => {
     expect(s.idades["13–17"]).toBe(1);
   });
 
+  it("bloco MIT: valida opções, NPS 0–10 e só guarda dados da instituição de quem dirige uma", () => {
+    const gestor = validarResposta({
+      cargoDirecao: "sim", tipoInstituicao: "ies", instituicao: "UFMA", alcance: "mais-1000", interessePiloto: "sim",
+      topaTeste: "sim", contato: "ana@exemplo.com", confirmaDor: "sim", recomendaria: 10, frequenciaBusca: "mensal", conseguiu: "sim", aprendeu: "sim",
+    })!;
+    const naoGestor = validarResposta({ cargoDirecao: "nao", tipoInstituicao: "ies", instituicao: "X", interessePiloto: "sim", confirmaDor: "em-parte", recomendaria: "6" })!;
+    expect(gestor.tipoInstituicao).toBe("ies");
+    expect(naoGestor.tipoInstituicao).toBeUndefined();
+    expect(naoGestor.instituicao).toBeUndefined();
+    expect(naoGestor.interessePiloto).toBeUndefined();
+    expect(naoGestor.recomendaria).toBe(6);
+    expect(validarResposta({ recomendaria: 11 })).toBeNull();
+    expect(validarResposta({ recomendaria: 0 })?.recomendaria).toBe(0);
+    expect(validarResposta({ confirmaDor: "hackeado" })).toBeNull();
+
+    const extra = validarResposta({ recomendaria: 3, confirmaDor: "nao", cargoDirecao: "sim", tipoInstituicao: "ong", instituicao: "ufma " })!;
+    const m = resumir([gestor, naoGestor, extra]).mit;
+    expect(m.F1_2_confirmaDor).toMatchObject({ n: 3, sim: 1, pct: 33.3 });
+    expect(m.F2_3_nps).toMatchObject({ n: 3, promotores: 1, neutros: 0, detratores: 2, nps: -33 });
+    expect(m.F3_2_F3_7_instituicoes).toMatchObject({ respondeuCargoDirecao: 3, comCargoDirecao: 2, comContato: 1, distintas: 1 });
+    expect(m.I6_tipoInstituicao["Universidade / instituto / pesquisa"]).toBe(1);
+    expect(respostasParaCsv([gestor])).toContain("ana@exemplo.com");
+  });
+
   it("recusa resposta vazia e nota fora de 1–5", () => {
     expect(validarResposta({})).toBeNull();
     expect(validarResposta({ nota: 9 })).toBeNull();

@@ -21,6 +21,7 @@ const LINHAS: { dado: string; quando: string; paraQue: string; base: string }[] 
   { dado: "Dados do pagamento (cartão, Pix)", quando: "Na página do Mercado Pago", paraQue: "Processar o pagamento. O site da Kambada não vê nem guarda número de cartão", base: "Tratados pelo Mercado Pago" },
   { dado: "Número do pedido e e-mail", quando: "Em “Acompanhar pedido”", paraQue: "Mostrar a situação do seu pedido só para você", base: "Execução do contrato" },
   { dado: "Dados de navegação (páginas vistas, aparelho, origem do acesso)", quando: "Ao navegar", paraQue: "Entender o que funciona no site e medir anúncios (Google Analytics / Google Ads) e contar visitas (GoatCounter, sem cookies)", base: "Legítimo interesse" },
+  { dado: "Respostas da pesquisa do site (nota, opiniões, perfil de quem responde, primeiro nome, idade, cidade; e-mail ou WhatsApp só se você deixar)", quando: "Se você responder à pesquisa — é opcional, pergunta por pergunta", paraQue: "Melhorar o site e o Kambada Play e prestar contas, de forma agregada, ao programa de apoio que financia o projeto (FAPEMA/MaraInTech). Não pedimos dados de crianças: as perguntas são para adultos. Com a conta do Play ligada, o e-mail dela vai junto", base: "Consentimento" },
   { dado: "Preferência de tema e carrinho", quando: "Ao navegar", paraQue: "Guardar a sua escolha e as peças do carrinho no seu próprio navegador", base: "Não sai do seu aparelho" },
 ];
 

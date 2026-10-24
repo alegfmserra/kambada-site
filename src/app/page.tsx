@@ -64,6 +64,63 @@ export default function Home() {
         </div>
       </section>
 
+      {/* --- Kambada Play (Alexandre, 24/10/2026: estava escondido; home vira landing) --- */}
+      <section className="relative isolate overflow-hidden border-b border-borda text-kambada-branco">
+        <Image
+          src="/kambadaplay/images/arraial/poster.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="-z-10 object-cover"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-kambada-grafite via-kambada-grafite/85 to-kambada-grafite/40" />
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <p className="font-display text-sm font-semibold tracking-[0.2em] text-kambada-amarelo uppercase">
+            Novo · Kambada Play
+          </p>
+          <h2 className="mt-4 max-w-2xl font-display text-3xl leading-tight font-extrabold text-balance sm:text-5xl">
+            A cultura do Maranhão para <span className="text-kambada-amarelo">jogar, ler e viver</span>
+          </h2>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-kambada-branco/85">
+            O Kambada Play é o nosso cantinho digital: jogos do arraial em 3D, quiz e memória das
+            estampas, as HQs do Kambadinha e a história da matraca. Conta grátis até 31/12/2026.
+          </p>
+          <div className="mt-9 flex flex-wrap gap-4">
+            <Link
+              href="/kambadaplay"
+              className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro whitespace-nowrap"
+            >
+              Conhecer o Kambada Play
+            </Link>
+            <Link
+              href="/kambadaplay/experimente"
+              className="rounded-full border border-kambada-branco/60 px-7 py-3.5 font-display font-semibold text-kambada-branco transition-colors hover:border-kambada-amarelo hover:text-kambada-amarelo whitespace-nowrap"
+            >
+              Jogar o quiz sem cadastro
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* --- Encomendas (sobe para perto do topo) -------------------------- */}
+      <section className="border-b border-borda">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-4 py-12 sm:px-6">
+          <div className="max-w-2xl">
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">Encomendas e brindes personalizados</h2>
+            <p className="mt-2 leading-relaxed text-texto-suave">
+              Matracas e placas pintadas à mão com seu nome ou frase, a partir de 1 unidade. Itens
+              corporativos (bloquinhos, lápis ecológicos, ecobags…) a partir de 20.
+            </p>
+          </div>
+          <Link
+            href="/encomendas"
+            className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro whitespace-nowrap"
+          >
+            Fazer uma encomenda
+          </Link>
+        </div>
+      </section>
+
       {/* --- Categorias, agora com foto ----------------------------------- */}
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">

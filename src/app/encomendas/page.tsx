@@ -88,16 +88,28 @@ export default function Encomendas() {
             <div className="rounded-2xl border border-borda bg-superficie p-6">
               <h3 className="font-display text-lg font-semibold">A partir de 1 unidade</h3>
               <p className="mt-2 leading-relaxed text-texto-suave">
-                Matracas (grande ou mini, com ou sem suporte) e placas de
-                madeira, pintadas à mão com nome ou frase.
+                <strong className="text-texto">Só para peças pintadas à mão:</strong>{" "}
+                matracas (grande ou mini, com ou sem suporte) e placas de
+                madeira, com nome ou frase.
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-texto-suave">
+                Não vale para os itens corporativos — bloquinhos, lápis
+                ecológicos, ecobags, necessaires, kits e afins. Esses entram na
+                faixa de 20 unidades.
               </p>
             </div>
             <div className="rounded-2xl border border-borda bg-superficie p-6">
               <h3 className="font-display text-lg font-semibold">A partir de 20 unidades</h3>
               <p className="mt-2 leading-relaxed text-texto-suave">
-                Ecobags, necessaires, kits de anotação, estampa própria e as
-                demais peças — para pessoa física ou empresa. Taxa de arte de
-                R$ 150, paga antes de começar.
+                Bloquinhos, lápis ecológicos, ecobags, necessaires, kits de
+                anotação, estampa própria e as demais peças — para pessoa
+                física ou empresa. Abaixo disso a produção não se paga, por
+                isso não fazemos.
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-texto-suave">
+                Dependendo da arte, pode haver uma taxa de desenvolvimento
+                (R$ 150), paga antes de começar. É combinada com você no
+                orçamento — nada é cobrado sem acordo.
               </p>
             </div>
           </div>

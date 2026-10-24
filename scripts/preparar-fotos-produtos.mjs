@@ -313,6 +313,13 @@ FOTOS[16722498715] = [ABS_EST, "matraca-kambada-mini-dtf--cazumba-preto.jpg", "m
 FOTOS[16722498716] = [ABS_EST, "matraca-kambada-mini-dtf--miolo-de-boi-colorido.jpg", "matraca-kambada-mini-dtf Miolo de Boi Colorido"];
 FOTOS[16722498718] = [ABS_EST, "matraca-kambada-mini-dtf--miolo-de-boi-preto.jpg", "matraca-kambada-mini-dtf Miolo de Boi Preto"];
 FOTOS[16722500157] = [ABS_EST, "matraca-kambada-play--boi-de-lado.jpg", "Play Boi de Lado"];
+// ── Matraca Kambada Play: são DUAS figuras (Alexandre, 24/10/2026) ──
+// Boi de Lado (perfil, cabeça virada) já tinha foto; o Boi de Frente (cara de frente, listras) não tinha
+// nenhuma, e a vitrine mostrava sempre o perfil. Frente vira a principal (é a 1ª opção); as de perfil vão para a galeria.
+const PLAYF = "01_Matracas/Matracas Kambada Play";
+FOTOS[16698780234] = [PLAYF, "matracas-kambada-play_110_WhatsApp_Image_2026-09-02_at_21.19.39_(2).jpg", "Play Boi de Frente"];
+FOTOS[16698778218] = [PLAYF, "matracas-kambada-play_110_WhatsApp_Image_2026-09-02_at_21.19.39_(2).jpg", "Matraca Kambada Play — capa = Boi de Frente"];
+GALERIA[16698778218] = [PLAYF, ["matracas-kambada-play_104_IMG_2041.jpg", "matracas-kambada-play_107_IMG_2044.jpg", "matraca_kambada-play_com-chapeu-bordado_01.jpg", "will-2026-10-14_matraca-kambada-play-boi-de-lado.jpg", "will-2026-10-14_matraca-kambada-play-boi-de-lado-2.jpg", "matraca_kambada-play_chapeu-bordado-detalhe_01.jpg"]];
 FOTOS[16722497302] = [ABS_PD, "Chaveiro Kambadinha - Amarelo.jpeg", "Chaveiro Kambadinha Amarelo"];
 FOTOS[16722497303] = [ABS_PD, "Chaveiro Kambadinha - Preto.jpeg", "Chaveiro Kambadinha Preto"];
 FOTOS[16722498785] = [ABS_EST, "matraca-kambada-mini--bandeira-do-maranhao.jpg", "matraca-kambada-mini Bandeira do Maranhão · Com suporte"];

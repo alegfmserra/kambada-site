@@ -134,16 +134,16 @@ export default function PesquisaSatisfacao() {
         className="fixed bottom-4 left-4 right-20 z-50 max-w-sm rounded-2xl border border-borda bg-fundo p-4 shadow-xl shadow-black/25 sm:bottom-5 sm:left-5"
       >
         <p className="font-display font-semibold">Topa 1 minuto pra avaliar o site?</p>
-        <p className="mt-1 text-sm text-texto-suave">Sua opinião decide o que vem no site e no Kambada Play.</p>
+        <p className="mt-1 text-sm sm:text-base text-texto-suave">Sua opinião decide o que vem no site e no Kambada Play.</p>
         <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={() => setFase("aberta")}
-            className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm sm:text-base font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
           >
             Bora
           </button>
-          <button type="button" onClick={() => fechar(true)} className="rounded-full px-4 py-2 text-sm text-texto-suave hover:bg-superficie">
+          <button type="button" onClick={() => fechar(true)} className="rounded-full px-4 py-2 text-sm sm:text-base text-texto-suave hover:bg-superficie">
             Agora não
           </button>
         </div>
@@ -158,7 +158,7 @@ export default function PesquisaSatisfacao() {
         aria-modal="true"
         aria-labelledby="pesquisa-titulo"
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[92dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-3xl border border-borda bg-fundo p-5 shadow-2xl sm:rounded-3xl sm:p-6"
+        className="max-h-[94dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-3xl border border-borda bg-fundo p-6 shadow-2xl sm:rounded-3xl sm:p-10"
       >
         {fase === "enviada" ? (
           <div className="py-6 text-center">
@@ -205,7 +205,7 @@ function Opcoes({
       {opcoes.map(([v, rotulo]) => (
         <label
           key={v}
-          className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-kambada-amarelo ${
+          className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm sm:text-base has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-kambada-amarelo ${
             valor === v ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda hover:border-kambada-amarelo-escuro"
           }`}
         >
@@ -218,7 +218,7 @@ function Opcoes({
 }
 
 const campoTexto =
-  "mt-2 w-full rounded-xl border border-borda bg-superficie px-3 py-2 text-sm text-texto placeholder:text-texto-tenue focus:border-kambada-amarelo focus:outline-none";
+  "mt-2 w-full rounded-xl border border-borda bg-superficie px-3 py-2 text-sm sm:text-base text-texto placeholder:text-texto-tenue focus:border-kambada-amarelo focus:outline-none";
 
 function Formulario({
   caminho,
@@ -310,14 +310,14 @@ function Formulario({
     }
   }
 
-  const rotulo = "block font-semibold text-sm";
+  const rotulo = "block font-semibold text-sm sm:text-base";
 
   return (
     <form onSubmit={enviar} className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 id="pesquisa-titulo" className="font-display text-xl font-bold">Como foi sua visita?</h2>
-          <p className="text-sm text-texto-suave">Uns 2 minutos. Responda só o que quiser.</p>
+          <h2 id="pesquisa-titulo" className="font-display text-xl font-bold sm:text-3xl">Como foi sua visita?</h2>
+          <p className="text-sm sm:text-base text-texto-suave">Uns 2 minutos. Responda só o que quiser.</p>
         </div>
         <button type="button" onClick={aoFechar} aria-label="Fechar pesquisa" className="rounded-full p-2 text-texto-suave hover:bg-superficie">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -371,7 +371,7 @@ function Formulario({
             return (
               <label
                 key={v}
-                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-kambada-amarelo ${
+                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm sm:text-base has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-kambada-amarelo ${
                   marcado ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda hover:border-kambada-amarelo-escuro"
                 }`}
               >
@@ -402,7 +402,7 @@ function Formulario({
 
       <fieldset>
         <legend className={rotulo}>O Kambada Play tem valor pra você?</legend>
-        <p className="text-xs text-texto-tenue">Jogos, histórias e animações da cultura maranhense.</p>
+        <p className="text-xs sm:text-sm text-texto-tenue">Jogos, histórias e animações da cultura maranhense.</p>
         <Opcoes
           nome="valorPlay"
           valor={valorPlay}
@@ -413,7 +413,7 @@ function Formulario({
 
       <fieldset>
         <legend className={rotulo}>Assinaria para ter conteúdos exclusivos?</legend>
-        <p className="text-xs text-texto-tenue">Chegam aos poucos. Grátis até 31/12/2026.</p>
+        <p className="text-xs sm:text-sm text-texto-tenue">Chegam aos poucos. Grátis até 31/12/2026.</p>
         <Opcoes
           nome="assinaria"
           valor={assinaria}
@@ -440,7 +440,7 @@ function Formulario({
       <section className="space-y-5 rounded-2xl border border-borda p-4" aria-labelledby="pesquisa-play">
         <div>
           <h3 id="pesquisa-play" className="font-display text-base font-bold">Ajude a validar o Kambada Play</h3>
-          <p className="text-xs text-texto-tenue">
+          <p className="text-xs sm:text-sm text-texto-tenue">
             Projeto apoiado pela FAPEMA. Estas perguntas são para adultos (pais, professores, gestores). Se for criança, peça ajuda a um adulto. Tudo opcional.
           </p>
         </div>
@@ -457,7 +457,7 @@ function Formulario({
 
         <fieldset>
           <legend className={rotulo}>Falta material bom sobre a cultura do Maranhão para crianças e jovens?</legend>
-          <p className="text-xs text-texto-tenue">Jogos, histórias, vídeos ou atividades que você consiga usar em casa ou na sala de aula.</p>
+          <p className="text-xs sm:text-sm text-texto-tenue">Jogos, histórias, vídeos ou atividades que você consiga usar em casa ou na sala de aula.</p>
           <Opcoes
             nome="confirmaDor"
             valor={confirmaDor}
@@ -497,7 +497,7 @@ function Formulario({
                 aria-checked={recomendaria === n}
                 aria-label={`${n} de 10`}
                 onClick={() => setRecomendaria(recomendaria === n ? null : n)}
-                className={`h-9 w-9 rounded-full border text-sm font-bold ${
+                className={`h-9 w-9 rounded-full border text-sm sm:text-base font-bold ${
                   recomendaria === n ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda text-texto-suave hover:border-kambada-amarelo-escuro"
                 }`}
               >
@@ -505,7 +505,7 @@ function Formulario({
               </button>
             ))}
           </div>
-          <p className="mt-1 text-xs text-texto-tenue">0 = de jeito nenhum · 10 = com certeza. Deixe em branco se ainda não conhece o Play.</p>
+          <p className="mt-1 text-xs sm:text-sm text-texto-tenue">0 = de jeito nenhum · 10 = com certeza. Deixe em branco se ainda não conhece o Play.</p>
         </fieldset>
 
         <fieldset>
@@ -520,7 +520,7 @@ function Formulario({
 
         <fieldset>
           <legend className={rotulo}>Você exerce cargo de direção ou gestão em alguma instituição que se interessaria pelo Kambada Play?</legend>
-          <p className="text-xs text-texto-tenue">Escola, secretaria, universidade, espaço cultural, ONG, empresa, fundo, incubadora…</p>
+          <p className="text-xs sm:text-sm text-texto-tenue">Escola, secretaria, universidade, espaço cultural, ONG, empresa, fundo, incubadora…</p>
           <Opcoes nome="cargoDirecao" valor={cargoDirecao} aoMudar={setCargoDirecao} opcoes={[["sim", "Sim"], ["nao", "Não"]]} />
         </fieldset>
 
@@ -587,14 +587,14 @@ function Formulario({
               placeholder="E-mail ou WhatsApp"
               className={campoTexto}
             />
-            <span className="mt-1 block text-xs text-texto-tenue">Usamos só para esse retorno. Ao preencher, você autoriza o contato.</span>
+            <span className="mt-1 block text-xs sm:text-sm text-texto-tenue">Usamos só para esse retorno. Ao preencher, você autoriza o contato.</span>
           </label>
         )}
       </section>
 
       <fieldset>
         <legend className={rotulo}>Quem é você? <span className="font-normal text-texto-tenue">(opcional)</span></legend>
-        <p className="text-xs text-texto-tenue">Só para conhecer o nosso público e a idade média de quem visita. Não precisa de sobrenome.</p>
+        <p className="text-xs sm:text-sm text-texto-tenue">Só para conhecer o nosso público e a idade média de quem visita. Não precisa de sobrenome.</p>
         <div className="mt-2 grid grid-cols-[1fr_6rem] gap-2">
           <input
             value={nome}
@@ -624,12 +624,12 @@ function Formulario({
           className={campoTexto}
         />
       </fieldset>
-      <p className="rounded-xl bg-superficie px-3 py-2 text-xs text-texto-suave">
+      <p className="rounded-xl bg-superficie px-3 py-2 text-xs sm:text-sm text-texto-suave">
         Se você estiver com a sua conta do Kambada Play ligada, o e-mail dela vai junto com a resposta. Sem conta, nada além do que você preencher aqui.
         Não coloque outros dados pessoais. Para falar com a gente, use o WhatsApp.
       </p>
 
-      {erro && <p role="alert" className="text-sm text-red-500">{erro}</p>}
+      {erro && <p role="alert" className="text-sm sm:text-base text-red-500">{erro}</p>}
 
       <button
         type="submit"

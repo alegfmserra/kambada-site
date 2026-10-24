@@ -166,7 +166,7 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number; v
   "16698778218": {
     "largura": 900,
     "altura": 1200,
-    "v": "d6578c06"
+    "v": "83f67a21"
   },
   "16698775382": {
     "largura": 900,
@@ -607,6 +607,11 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number; v
     "largura": 900,
     "altura": 1200,
     "v": "70bd9285"
+  },
+  "16698780234": {
+    "largura": 900,
+    "altura": 1200,
+    "v": "83f67a21"
   },
   "16722497302": {
     "largura": 900,
@@ -1138,19 +1143,37 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "n": 1,
       "largura": 900,
       "altura": 1200,
-      "v": "0ae18ccc"
+      "v": "b683d174"
     },
     {
       "n": 2,
       "largura": 900,
       "altura": 1200,
-      "v": "7bf19744"
+      "v": "6f78e79b"
     },
     {
       "n": 3,
       "largura": 900,
       "altura": 1200,
-      "v": "c5ec0303"
+      "v": "d6578c06"
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200,
+      "v": "0ae18ccc"
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200,
+      "v": "7bf19744"
+    },
+    {
+      "n": 6,
+      "largura": 900,
+      "altura": 1200,
+      "v": "eb055c7d"
     }
   ],
   "16698776080": [

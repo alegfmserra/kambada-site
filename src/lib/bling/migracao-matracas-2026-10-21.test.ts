@@ -326,12 +326,12 @@ describe("fotos das matracas novas (antes de terem foto por ID)", () => {
     expect(fotoDaOpcao(grande, opcao(8, "Bandeira do Maranhão", "Topo Boi Preto"))?.src).toMatch(/bandeira-do-maranhao\.jpg$/);
   });
 
-  it("Play: Boi de Lado mostra a foto dele; Boi de Frente fica com a foto do produto", () => {
+  it("Play: cada figura (Frente e Lado) mostra a foto própria", () => {
     const frente: Opcao = { rotulo: "Boi de Frente", idBling: PLAY.variacao, preco: 220, quantidade: 3 };
     const lado: Opcao = { rotulo: "Boi de Lado", idBling: 99999999905, preco: 220, quantidade: 1 };
     const play = { ...produto("Matraca Kambada Play", PLAY.id, [frente, lado]) };
     expect(fotoDaOpcao(play, lado)?.src).toMatch(/matraca-kambada-play--boi-de-lado\.jpg$/);
-    expect(fotoDaOpcao(play, frente)).toBeNull();
+    expect(fotoDaOpcao(play, frente)?.src.startsWith(`/fotos/produtos/${PLAY.variacao}.jpg`)).toBe(true);
     expect(fotoDoProduto(play)?.src).toMatch(new RegExp(`^/fotos/produtos/${PLAY.id}\\.jpg\\?v=\\w+$`));
   });
 });

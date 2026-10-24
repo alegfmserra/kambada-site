@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { lerAtribuicao } from "@/lib/atribuicao/atribuicao";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 import { urlPublica } from "@/lib/seguranca/urlPublica";
 import {
@@ -73,7 +74,7 @@ export async function POST(requisicao: Request) {
       if (corpo.aceiteTermos !== true) {
         return NextResponse.json({ ok: false, mensagem: "É preciso aceitar os Termos e a Política de Privacidade." }, { status: 400 });
       }
-      const r = await cadastrar({ nome: corpo.nome, email: corpo.email, senha: corpo.senha, novidades: corpo.novidades });
+      const r = await cadastrar({ nome: corpo.nome, email: corpo.email, senha: corpo.senha, novidades: corpo.novidades, atribuicao: lerAtribuicao(corpo.origem) });
       if (!r.ok) return NextResponse.json({ ok: false, mensagem: r.mensagem }, { status: 400 });
       let confirmacao: { enviado: boolean; link: string } | null = null;
       try {

@@ -2,6 +2,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 import { access, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import type { Atribuicao } from "../atribuicao/atribuicao";
 import { arquivoTokens } from "../bling/tokens";
 import { assinar, idAleatorio, verificar } from "./jogos/seguranca";
 import { sessaoDaRequisicao, type Sessao } from "./acesso";
@@ -33,6 +34,8 @@ export type Conta = {
   ultimoAcessoEm?: string;
   /** Preenchido ao cancelar o recebimento (link do e-mail). */
   descadastradoEm?: string;
+  /** De onde veio o cadastro (utm/referência) — conversão por canal. */
+  atribuicao?: Atribuicao;
 };
 
 type Dados = { versao: 1; contas: Conta[] };
@@ -143,7 +146,7 @@ export type ResultadoCadastro =
   | { ok: false; motivo: "dados" | "email-em-uso"; mensagem: string };
 
 export function cadastrar(
-  entrada: { nome: unknown; email: unknown; senha: unknown; novidades: unknown },
+  entrada: { nome: unknown; email: unknown; senha: unknown; novidades: unknown; atribuicao?: Atribuicao },
   agora = new Date(),
 ): Promise<ResultadoCadastro> {
   return naFila(async () => {
@@ -165,6 +168,7 @@ export function cadastrar(
       novidadesEm: entrada.novidades === true ? agora.toISOString() : undefined,
       criadoEm: agora.toISOString(),
       ultimoAcessoEm: agora.toISOString(),
+      ...(entrada.atribuicao ? { atribuicao: entrada.atribuicao } : {}),
     };
     d.contas.push(conta);
     await gravar(d);

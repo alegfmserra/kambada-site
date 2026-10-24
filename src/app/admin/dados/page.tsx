@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import FormularioLogin from "@/components/admin/FormularioLogin";
 import MenuAdmin from "@/components/admin/MenuAdmin";
-import { reunirDados, resumoGeral } from "@/lib/admin/dados";
+import { conversaoPorOrigem, reunirDados, resumoGeral } from "@/lib/admin/dados";
 import { adminConfigurado, COOKIE_ADMIN, sessaoValida } from "@/lib/admin/sessao";
 import { formatarReais } from "@/lib/loja/dinheiro";
 
@@ -103,7 +103,6 @@ export default async function PaginaDados() {
             ["F1.2 Falta material (n)", `${r.mit.F1_2_confirmaDor.pct ?? "—"}% (${r.mit.F1_2_confirmaDor.n})`],
             ["F2.2 Sem ajuda (n)", `${r.mit.F2_2_conseguiu.pctSemAjuda ?? "—"}% (${r.mit.F2_2_conseguiu.n})`],
             ["F2.3 NPS do Play (n)", `${r.mit.F2_3_nps.nps ?? "—"} (${r.mit.F2_3_nps.n})`],
-            ["F2.5 Topam testar", r.mit.F2_5_topaTeste.sim],
             ["F3.2 Gestores (de quem respondeu)", `${r.mit.F3_2_F3_7_instituicoes.comCargoDirecao} (${r.mit.F3_2_F3_7_instituicoes.respondeuCargoDirecao})`],
             ["F3.7 Instituições distintas", r.mit.F3_2_F3_7_instituicoes.distintas],
             ["Gestores com contato", r.mit.F3_2_F3_7_instituicoes.comContato],
@@ -121,9 +120,20 @@ export default async function PaginaDados() {
         <Contagem titulo="F2.7 / I7 Aprendeu algo novo com o Play" dados={r.mit.F2_7_I7_aprendeu.distribuicao} />
         <Contagem titulo="I6 Tipo de instituição (quem dirige)" dados={r.mit.I6_tipoInstituicao} />
         <Contagem titulo="F3.2 Interesse em piloto" dados={r.mit.F3_2_F3_7_instituicoes.interessePiloto} />
-        <Contagem titulo="F1.4 Pessoas atendidas pelas instituições" dados={r.mit.F1_4_alcanceInstituicoes} />
       </div>
 
+      <h2 className="mt-10 font-display text-xl font-bold">Conversão por origem</h2>
+      <p className="mt-1 text-sm text-texto-suave">De onde vieram as contas do Play, os pedidos e as respostas da pesquisa (marcadores utm_* nos links ou o site de referência). Visitas por canal: Google Analytics 4 e GoatCounter.</p>
+      <div className={`${CARTAO} mt-3 overflow-x-auto`}>
+        <table className="w-full text-sm">
+          <thead className="text-left text-xs text-texto-suave">
+            <tr><th className="py-1">Origem</th><th>Contas Play</th><th>Pedidos</th><th>Receita</th><th>Pesquisas</th><th>Instituições interessadas</th></tr>
+          </thead>
+          <tbody>
+            {conversaoPorOrigem(d).map((l) => (<tr key={l.origem} className="border-t border-borda"><td className="py-1">{l.origem}</td><td>{l.contas}</td><td>{l.pedidos}</td><td>{formatarReais(l.receita)}</td><td>{l.respostas}</td><td>{l.instituicoesInteressadas}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
       <div className={`${CARTAO} mt-3`}>
         <h3 className="font-display font-bold">Últimas sugestões de conteúdo, problemas e comentários</h3>
         {sugestoes.length === 0 ? (

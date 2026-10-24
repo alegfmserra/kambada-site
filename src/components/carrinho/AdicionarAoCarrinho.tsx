@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
+import { evento } from "@/lib/analytics/eventos";
 import { MAXIMO_POR_ITEM } from "@/lib/carrinho/logica";
 import type { Opcao } from "@/lib/catalogo";
 import { formatarReais } from "@/lib/loja/dinheiro";
@@ -89,6 +90,11 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
       preco: opcao.preco,
       quantidade: Math.min(quantidade, teto),
       estoque: disponivelNaOpcao(opcao),
+    });
+    evento("add_to_cart", {
+      currency: "BRL",
+      value: opcao.preco * Math.min(quantidade, teto),
+      items: [{ item_id: String(opcao.idBling), item_name: nome, item_category: categoria, price: opcao.preco, quantity: Math.min(quantidade, teto) }],
     });
     setQuantidade(1);
     setAdicionado(true);

@@ -94,6 +94,7 @@ export function montarRegistro(
       taxa: taxa || undefined,
     },
     bling: { idPedido },
+    ...(retrato.atr ? { atribuicao: retrato.atr } : {}),
   };
 }
 

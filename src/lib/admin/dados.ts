@@ -11,6 +11,7 @@
  */
 
 import ExcelJS from "exceljs";
+import { rotuloDaOrigem } from "../atribuicao/atribuicao";
 import { listarCupons, type Cupom } from "../cupons/cupons";
 import { etapaDoPedido } from "../pedidos/cancelamento";
 import { listarRegistros, type RegistroPedido } from "../pedidos/registro";
@@ -74,6 +75,40 @@ export function resumoGeral(d: Dados) {
   };
 }
 
+export type LinhaOrigem = { origem: string; contas: number; contasConfirmadas: number; pedidos: number; receita: number; respostas: number; instituicoesInteressadas: number };
+
+/**
+ * Conversão por origem (fonte / meio / campanha): quantas contas do Play, pedidos
+ * (e receita) e respostas de pesquisa vieram de cada canal. As VISITAS por canal
+ * ficam no Google Analytics 4 / GoatCounter — aqui está o que o site mesmo grava.
+ * Quem entrou antes de 23/10/2026 aparece como "sem registro".
+ */
+export function conversaoPorOrigem(d: Dados): LinhaOrigem[] {
+  const mapa = new Map<string, LinhaOrigem>();
+  const linha = (a?: Parameters<typeof rotuloDaOrigem>[0]) => {
+    const k = rotuloDaOrigem(a);
+    let l = mapa.get(k);
+    if (!l) mapa.set(k, (l = { origem: k, contas: 0, contasConfirmadas: 0, pedidos: 0, receita: 0, respostas: 0, instituicoesInteressadas: 0 }));
+    return l;
+  };
+  for (const c of d.contas) {
+    const l = linha(c.atribuicao);
+    l.contas++;
+    if (c.confirmadoEm) l.contasConfirmadas++;
+  }
+  for (const p of d.pedidos.filter((x) => !cancelado(x))) {
+    const l = linha(p.atribuicao);
+    l.pedidos++;
+    l.receita = Math.round((l.receita + p.total) * 100) / 100;
+  }
+  for (const r of d.respostas) {
+    const l = linha(r.atribuicao);
+    l.respostas++;
+    if (r.cargoDirecao === "sim" && (r.interessePiloto === "sim" || r.interessePiloto === "talvez")) l.instituicoesInteressadas++;
+  }
+  return [...mapa.values()].sort((a, b) => b.pedidos + b.contas - (a.pedidos + a.contas) || a.origem.localeCompare(b.origem));
+}
+
 const PRETO = "FF201E1F";
 const AMARELO = "FFFFD72B";
 
@@ -134,7 +169,6 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
     ["F2.2 Conseguiram sem ajuda — % (autodeclarado)", m.F2_2_conseguiu.pctSemAjuda ?? "—"],
     ["F2.3 NPS do Play — n", m.F2_3_nps.n],
     ["F2.3 NPS do Play (promotores − detratores, %)", m.F2_3_nps.nps ?? "—"],
-    ["F2.5 Toparam participar de testes", m.F2_5_topaTeste.sim],
     ["F3.2/F3.7 Responderam sobre cargo de direção", m.F3_2_F3_7_instituicoes.respondeuCargoDirecao],
     ["F3.2/F3.7 Com cargo de direção", m.F3_2_F3_7_instituicoes.comCargoDirecao],
     ["F3.2/F3.7 Instituições distintas citadas", m.F3_2_F3_7_instituicoes.distintas],
@@ -145,9 +179,7 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
     ["F1.3 Frequência de busca (12 meses)", m.F1_3_frequencia.distribuicao],
     ["F2.7/I7 Aprendeu algo novo", m.F2_7_I7_aprendeu.distribuicao],
     ["I6 Tipo de instituição (quem dirige)", m.I6_tipoInstituicao],
-    ["F1.4 Pessoas atendidas pelas instituições", m.F1_4_alcanceInstituicoes],
     ["F3.2 Interesse em piloto", m.F3_2_F3_7_instituicoes.interessePiloto],
-    ["F1.4 Perfil de quem respondeu", m.F1_4_perfil],
   ];
   for (const [titulo, dist] of blocosMit) {
     res.addRow([`  ${titulo}`]).font = { name: "Arial", size: 10, italic: true };
@@ -170,8 +202,6 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       { header: "Assinaria o Play?", key: "assinaria", width: 26 },
       { header: "Como conheceu", key: "origem", width: 14 },
       { header: "Comentário", key: "comentario", width: 40 },
-      { header: "Responde como", key: "perfil", width: 22 },
-      { header: "Cidade", key: "cidade", width: 20 },
       { header: "Falta material? (F1.2)", key: "confirmaDor", width: 16 },
       { header: "Frequência de busca 12m (F1.3)", key: "frequenciaBusca", width: 20 },
       { header: "Conseguiu sem ajuda? (F2.2)", key: "conseguiu", width: 16 },
@@ -180,10 +210,9 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       { header: "Cargo de direção?", key: "cargoDirecao", width: 12 },
       { header: "Tipo de instituição (I6)", key: "tipoInstituicao", width: 30 },
       { header: "Instituição", key: "instituicao", width: 26 },
-      { header: "Pessoas atendidas (F1.4)", key: "alcance", width: 16 },
       { header: "Interesse em piloto (F3.2)", key: "interessePiloto", width: 14 },
-      { header: "Topa teste (F2.5)", key: "topaTeste", width: 12 },
       { header: "Contato deixado", key: "contato", width: 28 },
+      { header: "Origem da visita", key: "origemVisita", width: 30 },
       { header: "Página", key: "pagina", width: 22 },
       { header: "Tela (px)", key: "largura", width: 9 },
     ],
@@ -198,8 +227,6 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       assinaria: rotulo(x.assinaria),
       origem: rotulo(x.origem),
       comentario: seguro(x.comentario),
-      perfil: rotulo(x.perfil),
-      cidade: seguro(x.cidade),
       confirmaDor: rotulo(x.confirmaDor),
       frequenciaBusca: rotulo(x.frequenciaBusca),
       conseguiu: rotulo(x.conseguiu),
@@ -208,13 +235,27 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       cargoDirecao: rotulo(x.cargoDirecao),
       tipoInstituicao: rotulo(x.tipoInstituicao),
       instituicao: seguro(x.instituicao),
-      alcance: rotulo(x.alcance),
       interessePiloto: rotulo(x.interessePiloto),
-      topaTeste: rotulo(x.topaTeste),
       contato: seguro(x.contato),
+      origemVisita: rotuloDaOrigem(x.atribuicao),
       pagina: x.pagina ?? "",
       largura: x.largura ?? "",
     })),
+  );
+
+  aba(
+    wb,
+    "Origem e conversão",
+    [
+      { header: "Origem (fonte / meio / campanha)", key: "origem", width: 42 },
+      { header: "Contas criadas", key: "contas", width: 14 },
+      { header: "Contas confirmadas", key: "contasConfirmadas", width: 18 },
+      { header: "Pedidos pagos", key: "pedidos", width: 14 },
+      { header: "Receita (R$)", key: "receita", width: 14 },
+      { header: "Respostas da pesquisa", key: "respostas", width: 20 },
+      { header: "Instituições interessadas", key: "instituicoesInteressadas", width: 22 },
+    ],
+    conversaoPorOrigem(d) as unknown as Record<string, unknown>[],
   );
 
   aba(
@@ -229,6 +270,7 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       { header: "Descadastrou", key: "descadastro", width: 18 },
       { header: "Último acesso", key: "acesso", width: 18 },
       { header: "Pedidos no site", key: "pedidos", width: 14 },
+      { header: "Origem do cadastro", key: "origem", width: 30 },
     ],
     d.contas.map((c) => ({
       nome: seguro(c.nome),
@@ -239,6 +281,7 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       descadastro: data(c.descadastradoEm),
       acesso: data(c.ultimoAcessoEm),
       pedidos: d.pedidos.filter((p) => p.cliente.email.toLowerCase() === c.email).length,
+      origem: rotuloDaOrigem(c.atribuicao),
     })),
   );
 
@@ -260,6 +303,7 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       { header: "Etapa", key: "etapa", width: 34 },
       { header: "Rastreio", key: "rastreio", width: 18 },
       { header: "Nota fiscal (id Bling)", key: "nota", width: 18 },
+      { header: "Origem da venda", key: "origem", width: 30 },
     ],
     d.pedidos.map((p) => ({
       ref: p.ref,
@@ -276,6 +320,7 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
       etapa: etapaDoPedido(p),
       rastreio: p.envio?.codigo ?? "",
       nota: p.nfe?.idNota ?? "",
+      origem: rotuloDaOrigem(p.atribuicao),
     })),
   );
 

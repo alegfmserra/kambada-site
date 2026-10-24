@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { lerAtribuicao } from "@/lib/atribuicao/atribuicao";
 import { dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { buscarCatalogo, saldoAoVivo } from "@/lib/bling/produtos";
 import { indexarOpcoes, lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
@@ -142,6 +143,7 @@ export async function POST(requisicao: Request) {
       };
     }
 
+    const atribuicao = lerAtribuicao(corpo.origem);
     const retrato: RetratoPedido = {
       v: VERSAO_RETRATO,
       ref: novaReferencia(),
@@ -154,6 +156,7 @@ export async function POST(requisicao: Request) {
       frete: freteDoRetrato,
       cliente,
       ...(cupomDoRetrato ? { cupom: cupomDoRetrato } : {}),
+      ...(atribuicao ? { atr: atribuicao } : {}),
     };
 
     const preferencia = await criarPreferencia(retrato, urlDoSite(requisicao));

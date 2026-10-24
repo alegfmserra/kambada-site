@@ -1,6 +1,7 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { type Atribuicao, lerAtribuicao } from "../atribuicao/atribuicao";
 import { arquivoTokens } from "../bling/tokens";
 
 /**
@@ -17,18 +18,15 @@ export const OPCOES = {
   curtiu: ["loja", "cultura", "play", "sobre", "encomendas"],
   valorPlay: ["muito", "um-pouco", "nao-conheco", "nao"],
   assinaria: ["familia", "brincante", "talvez", "nao"],
-  origem: ["instagram", "tiktok", "indicacao", "evento", "google", "escola", "whatsapp", "outro"],
+  origem: ["instagram", "tiktok", "indicacao", "evento", "google", "outro"],
   // Bloco MIT / MaraInTech (FAPEMA, 23/10/2026): perguntas para adultos que alimentam os indicadores do programa.
-  perfil: ["responsavel", "educador", "gestor", "adulto", "outro"],
   confirmaDor: ["sim", "em-parte", "nao"],
   frequenciaBusca: ["semanal", "mensal", "poucas-vezes", "nunca"],
   conseguiu: ["sim", "com-dificuldade", "nao"],
   aprendeu: ["sim", "um-pouco", "nao", "nao-usei"],
   cargoDirecao: ["sim", "nao"],
   tipoInstituicao: ["escola-publica", "escola-privada", "ies", "governo", "espaco-cultural", "ong", "empresa", "investidor", "inovacao", "outra"],
-  alcance: ["ate-50", "51-200", "201-1000", "mais-1000"],
   interessePiloto: ["sim", "talvez", "nao"],
-  topaTeste: ["sim", "nao"],
 } as const;
 
 export const ROTULOS: Record<string, string> = {
@@ -51,13 +49,7 @@ export const ROTULOS: Record<string, string> = {
   indicacao: "Indicação",
   evento: "Evento / feira",
   google: "Google",
-  escola: "Escola / professor",
-  whatsapp: "WhatsApp",
   outro: "Outro",
-  responsavel: "Pai, mãe ou responsável",
-  educador: "Professor(a) / educador(a)",
-  gestor: "Gestor(a) de instituição",
-  adulto: "Adulto, para mim mesmo(a)",
   "em-parte": "Em parte",
   semanal: "Toda semana",
   mensal: "Todo mês",
@@ -75,10 +67,6 @@ export const ROTULOS: Record<string, string> = {
   investidor: "Investidor / fundo / apoiador",
   inovacao: "Incubadora / hub / ambiente de inovação",
   outra: "Outra",
-  "ate-50": "Até 50",
-  "51-200": "51 a 200",
-  "201-1000": "201 a 1.000",
-  "mais-1000": "Mais de 1.000",
 };
 
 export type Resposta = {
@@ -98,8 +86,6 @@ export type Resposta = {
   origem?: (typeof OPCOES.origem)[number];
   comentario?: string;
   // Bloco MIT / MaraInTech — ver docs em Kambada-Play/MIT-indicadores-pesquisa.md
-  perfil?: (typeof OPCOES.perfil)[number];
-  cidade?: string;
   confirmaDor?: (typeof OPCOES.confirmaDor)[number];
   frequenciaBusca?: (typeof OPCOES.frequenciaBusca)[number];
   conseguiu?: (typeof OPCOES.conseguiu)[number];
@@ -109,11 +95,11 @@ export type Resposta = {
   cargoDirecao?: (typeof OPCOES.cargoDirecao)[number];
   tipoInstituicao?: (typeof OPCOES.tipoInstituicao)[number];
   instituicao?: string;
-  alcance?: (typeof OPCOES.alcance)[number];
   interessePiloto?: (typeof OPCOES.interessePiloto)[number];
-  topaTeste?: (typeof OPCOES.topaTeste)[number];
   /** E-mail ou WhatsApp deixado de propósito, para a Kambada retornar. */
   contato?: string;
+  /** De onde veio quem respondeu (utm/referência). */
+  atribuicao?: Atribuicao;
   pagina?: string;
   gatilho?: string;
   largura?: number;
@@ -156,8 +142,6 @@ export function validarResposta(corpo: Record<string, unknown>, agora = new Date
     assinaria: umaDas(corpo.assinaria, OPCOES.assinaria),
     origem: umaDas(corpo.origem, OPCOES.origem),
     comentario: texto(corpo.comentario, 500),
-    perfil: umaDas(corpo.perfil, OPCOES.perfil),
-    cidade: texto(corpo.cidade, 60),
     confirmaDor: umaDas(corpo.confirmaDor, OPCOES.confirmaDor),
     frequenciaBusca: umaDas(corpo.frequenciaBusca, OPCOES.frequenciaBusca),
     conseguiu: umaDas(corpo.conseguiu, OPCOES.conseguiu),
@@ -167,17 +151,16 @@ export function validarResposta(corpo: Record<string, unknown>, agora = new Date
     // Detalhes da instituição só valem para quem declarou cargo de direção.
     tipoInstituicao: cargoDirecao === "sim" ? umaDas(corpo.tipoInstituicao, OPCOES.tipoInstituicao) : undefined,
     instituicao: cargoDirecao === "sim" ? texto(corpo.instituicao, 80) : undefined,
-    alcance: cargoDirecao === "sim" ? umaDas(corpo.alcance, OPCOES.alcance) : undefined,
     interessePiloto: cargoDirecao === "sim" ? umaDas(corpo.interessePiloto, OPCOES.interessePiloto) : undefined,
-    topaTeste: umaDas(corpo.topaTeste, OPCOES.topaTeste),
     contato: texto(corpo.contato, 100),
+    atribuicao: lerAtribuicao(corpo.origemVisita),
     pagina: texto(corpo.pagina, 200)?.replace(/[?#].*$/, ""),
     gatilho: texto(corpo.gatilho, 40),
     largura,
   };
   const temAlgo =
     r.nota || r.funcionou || r.problema || r.curtiu.length || r.sugestao || r.valorPlay || r.assinaria || r.origem || r.comentario ||
-    r.perfil || r.confirmaDor || r.frequenciaBusca || r.conseguiu || r.recomendaria !== undefined || r.aprendeu || r.cargoDirecao || r.topaTeste;
+    r.confirmaDor || r.frequenciaBusca || r.conseguiu || r.recomendaria !== undefined || r.aprendeu || r.cargoDirecao;
   return temAlgo ? r : null;
 }
 
@@ -256,9 +239,6 @@ export function indicadoresMit(rs: Resposta[]) {
     F1_2_confirmaDor: { n: dor.length, sim: dor.filter((r) => r.confirmaDor === "sim").length, pct: pct(dor.filter((r) => r.confirmaDor === "sim").length, dor.length), distribuicao: contar(dor.map((r) => r.confirmaDor)) },
     // F1.3 · frequência (janela: últimos 12 meses, como na pergunta)
     F1_3_frequencia: { n: com("frequenciaBusca").length, distribuicao: contar(rs.map((r) => r.frequenciaBusca)) },
-    // F1.4 · insumo de TAM/SAM/SOM: perfil, cidade, porte de quem dirige instituição
-    F1_4_perfil: contar(rs.map((r) => r.perfil)),
-    F1_4_alcanceInstituicoes: contar(gestores.map((r) => r.alcance)),
     // F2.2 · conclusão de tarefas (autodeclarada; o teste moderado com observação é à parte)
     F2_2_conseguiu: { n: cont.length, pctSemAjuda: pct(cont.filter((r) => r.conseguiu === "sim").length, cont.length), distribuicao: contar(cont.map((r) => r.conseguiu)) },
     // F2.3 · NPS do Play (0–10). CSAT do site é a "nota" 1–5 — não misturar.
@@ -269,8 +249,6 @@ export function indicadoresMit(rs: Resposta[]) {
       detratores,
       nps: rec.length ? Math.round(((promotores - detratores) / rec.length) * 100) : null,
     },
-    // F2.5 · quem topa participar de testes
-    F2_5_topaTeste: { n: com("topaTeste").length, sim: rs.filter((r) => r.topaTeste === "sim").length },
     // F2.7 e I7 · evidência de valor / aprendizado (ODS 4 e 11.4)
     F2_7_I7_aprendeu: { n: com("aprendeu").length, distribuicao: contar(rs.map((r) => r.aprendeu)) },
     // F3.2 e F3.7 · instituições com interesse em piloto/parceria
@@ -283,8 +261,6 @@ export function indicadoresMit(rs: Resposta[]) {
     },
     // I6 · por tipo de ator do ecossistema
     I6_tipoInstituicao: contar(gestores.map((r) => r.tipoInstituicao)),
-    // F3.5 · canais de aquisição (origem) — mesma pergunta já existente
-    F3_5_origem: contar(rs.map((r) => r.origem)),
   };
 }
 
@@ -305,7 +281,7 @@ export function resumir(rs: Resposta[]) {
 
 const COLUNAS: (keyof Resposta)[] = [
   "em", "nome", "idade", "email", "nota", "funcionou", "problema", "curtiu", "sugestao", "valorPlay", "assinaria", "origem", "comentario",
-  "perfil", "cidade", "confirmaDor", "frequenciaBusca", "conseguiu", "recomendaria", "aprendeu", "cargoDirecao", "tipoInstituicao", "instituicao", "alcance", "interessePiloto", "topaTeste", "contato",
+  "confirmaDor", "frequenciaBusca", "conseguiu", "recomendaria", "aprendeu", "cargoDirecao", "tipoInstituicao", "instituicao", "interessePiloto", "contato",
   "pagina", "gatilho", "largura",
 ];
 

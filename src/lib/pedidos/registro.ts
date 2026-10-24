@@ -16,6 +16,7 @@
 
 import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import type { Atribuicao } from "../atribuicao/atribuicao";
 import { arquivoTokens } from "../bling/tokens";
 
 export type Etapa = { feitoEm?: string; erro?: string; detalhe?: string };
@@ -32,6 +33,8 @@ export type RegistroPedido = {
   bling: { idPedido: number };
   /** Cupom usado — desconto em reais sobre as peças; parceiro/comissão para o relatório. */
   cupom?: { codigo: string; percentual: number; desconto: number; parceiro?: string; comissaoPercentual?: number };
+  /** De onde veio a venda (utm/referência) — medição de conversão por canal. */
+  atribuicao?: Atribuicao;
   estoque?: Etapa;
   email?: Etapa;
   /** Aviso "novo pedido pago" à caixa da loja. */

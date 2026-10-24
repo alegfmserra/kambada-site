@@ -35,7 +35,7 @@ describe("dados do site — painel e planilha", () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load((await montarPlanilha(dados)) as unknown as ArrayBuffer);
     expect(wb.worksheets.map((w) => w.name)).toEqual([
-      "Resumo", "Pesquisa de satisfação", "Contas", "Pedidos", "Cupons", "Play — partidas", "Play — prêmios",
+      "Resumo", "Pesquisa de satisfação", "Origem e conversão", "Contas", "Pedidos", "Cupons", "Play — partidas", "Play — prêmios",
     ]);
     const tudo = JSON.stringify(wb.worksheets.map((w) => w.getSheetValues()));
     expect(tudo).not.toContain("SEGREDO");

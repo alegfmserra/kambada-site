@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import EventoCompra from "@/components/checkout/EventoCompra";
 import EsvaziarCarrinho from "@/components/carrinho/EsvaziarCarrinho";
 import BlocoRetirada from "@/components/checkout/BlocoRetirada";
 import { processarPagamento, type ResultadoProcessamento } from "@/lib/checkout/processar";
+import { lerRegistro } from "@/lib/pedidos/registro";
 import { mercadoPagoConfigurado } from "@/lib/mercadopago/cliente";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -42,9 +44,12 @@ export default async function PaginaSucesso({ searchParams }: Props) {
   const aprovado = resultado?.ok === true;
   const ref = resultado && "ref" in resultado ? resultado.ref : undefined;
 
+  const total = aprovado && ref ? (await lerRegistro(ref).catch(() => null))?.total : undefined;
+
   return (
     <section>
       {aprovado && <EsvaziarCarrinho />}
+      {aprovado && ref && <EventoCompra pedido={ref} valor={total} />}
       <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-24">
         <p className="text-6xl" aria-hidden="true">
           🦀

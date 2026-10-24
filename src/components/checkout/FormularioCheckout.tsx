@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { lerOrigemSalva } from "@/components/Atribuicao";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
+import { evento } from "@/lib/analytics/eventos";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
 import { textoParcelas } from "@/lib/loja/parcelas";
@@ -67,6 +69,12 @@ function mascaraTelefone(v: string) {
 
 export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnline: boolean }) {
   const { itens, pronto, subtotal } = useCarrinho();
+  const iniciouCheckout = useRef(false);
+  useEffect(() => {
+    if (!pronto || iniciouCheckout.current || itens.length === 0) return;
+    iniciouCheckout.current = true;
+    evento("begin_checkout", { currency: "BRL", value: subtotal, items: itens.map((i) => ({ item_id: String(i.idBling), item_name: i.nome, price: i.preco, quantity: i.quantidade })) });
+  }, [pronto, itens, subtotal]);
   const [campos, setCampos] = useState<Campos>(VAZIO);
   const [erros, setErros] = useState<Partial<Record<keyof Campos, string>>>({});
   const [opcoes, setOpcoes] = useState<OpcaoFrete[] | null>(null);
@@ -163,7 +171,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
     fetch("/api/frete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cep: cepDigitos, itens: pedido, cupom: cupom?.codigo }),
+      body: JSON.stringify({ cep: cepDigitos, itens: pedido, cupom: cupom?.codigo, origem: lerOrigemSalva() }),
     })
       .then(async (r) => {
         const d = (await r.json()) as {

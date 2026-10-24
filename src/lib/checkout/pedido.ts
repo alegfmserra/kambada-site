@@ -13,6 +13,7 @@
  * atravessa intacto.
  */
 
+import type { Atribuicao } from "../atribuicao/atribuicao";
 import type { DadosCliente } from "./cliente";
 
 export const VERSAO_RETRATO = 1;
@@ -27,6 +28,8 @@ export type RetratoPedido = {
   cliente: DadosCliente;
   /** Cupom aplicado no checkout (desconto em centavos, já conferido no servidor). */
   cupom?: { codigo: string; percentual: number; descontoCentavos: number; parceiro?: string; comissaoPercentual?: number };
+  /** De onde veio a venda (utm/referência), só para medir conversão por canal. Sem dado pessoal. */
+  atr?: Atribuicao;
 };
 
 /** "KMB-20261008-7F3A9C" — legível no extrato do Mercado Pago e no Bling. */

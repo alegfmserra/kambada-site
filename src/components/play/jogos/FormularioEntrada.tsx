@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { evento } from "@/lib/analytics/eventos";
+import { lerOrigemSalva } from "@/components/Atribuicao";
 import { chamar } from "./jogador";
 
 type Aba = "entrar" | "criar" | "esqueci";
@@ -67,12 +69,14 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
       novidades,
       aceiteTermos: aceite,
       de,
+      origem: lerOrigemSalva(),
     });
     if (!r.ok) {
       setEnviando(false);
       setErro(r.mensagem ?? "Não deu para criar a conta.");
       return;
     }
+    evento("sign_up", { method: "email" });
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- navegação completa: o cookie novo precisa passar pelo porteiro
     const conta = de.startsWith("/conta") ? "/conta" : "/kambadaplay/conta";
     window.location.assign(`${conta}?bemvindo=1${r.emailEnviado ? "" : "&semEmail=1"}`);

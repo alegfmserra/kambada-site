@@ -103,6 +103,7 @@ export default async function PaginaDados() {
             ["F1.2 Falta material (n)", `${r.mit.F1_2_confirmaDor.pct ?? "—"}% (${r.mit.F1_2_confirmaDor.n})`],
             ["F2.2 Sem ajuda (n)", `${r.mit.F2_2_conseguiu.pctSemAjuda ?? "—"}% (${r.mit.F2_2_conseguiu.n})`],
             ["F2.3 NPS do Play (n)", `${r.mit.F2_3_nps.nps ?? "—"} (${r.mit.F2_3_nps.n})`],
+            ["F2.5 Topam testar", r.mit.F2_5_topaTeste.sim],
             ["F3.2 Gestores (de quem respondeu)", `${r.mit.F3_2_F3_7_instituicoes.comCargoDirecao} (${r.mit.F3_2_F3_7_instituicoes.respondeuCargoDirecao})`],
             ["F3.7 Instituições distintas", r.mit.F3_2_F3_7_instituicoes.distintas],
             ["Gestores com contato", r.mit.F3_2_F3_7_instituicoes.comContato],
@@ -120,6 +121,7 @@ export default async function PaginaDados() {
         <Contagem titulo="F2.7 / I7 Aprendeu algo novo com o Play" dados={r.mit.F2_7_I7_aprendeu.distribuicao} />
         <Contagem titulo="I6 Tipo de instituição (quem dirige)" dados={r.mit.I6_tipoInstituicao} />
         <Contagem titulo="F3.2 Interesse em piloto" dados={r.mit.F3_2_F3_7_instituicoes.interessePiloto} />
+        <Contagem titulo="F1.4 Pessoas atendidas pelas instituições" dados={r.mit.F1_4_alcanceInstituicoes} />
       </div>
 
       <h2 className="mt-10 font-display text-xl font-bold">Conversão por origem</h2>

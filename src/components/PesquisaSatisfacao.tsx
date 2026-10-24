@@ -242,6 +242,8 @@ function Formulario({
   const [comentario, setComentario] = useState("");
   const [nome, setNome] = useState("");
   const [idade, setIdade] = useState("");
+  const [perfil, setPerfil] = useState("");
+  const [cidade, setCidade] = useState("");
   const [confirmaDor, setConfirmaDor] = useState("");
   const [frequenciaBusca, setFrequenciaBusca] = useState("");
   const [conseguiu, setConseguiu] = useState("");
@@ -250,7 +252,9 @@ function Formulario({
   const [cargoDirecao, setCargoDirecao] = useState("");
   const [tipoInstituicao, setTipoInstituicao] = useState("");
   const [instituicao, setInstituicao] = useState("");
+  const [alcance, setAlcance] = useState("");
   const [interessePiloto, setInteressePiloto] = useState("");
+  const [topaTeste, setTopaTeste] = useState("");
   const [contato, setContato] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
@@ -275,6 +279,8 @@ function Formulario({
           assinaria: assinaria || undefined,
           origem: origem || undefined,
           comentario,
+          perfil: perfil || undefined,
+          cidade: cidade || undefined,
           confirmaDor: confirmaDor || undefined,
           frequenciaBusca: frequenciaBusca || undefined,
           conseguiu: conseguiu || undefined,
@@ -283,7 +289,9 @@ function Formulario({
           cargoDirecao: cargoDirecao || undefined,
           tipoInstituicao: cargoDirecao === "sim" ? tipoInstituicao || undefined : undefined,
           instituicao: cargoDirecao === "sim" ? instituicao || undefined : undefined,
+          alcance: cargoDirecao === "sim" ? alcance || undefined : undefined,
           interessePiloto: cargoDirecao === "sim" ? interessePiloto || undefined : undefined,
+          topaTeste: topaTeste || undefined,
           contato: contato || undefined,
           origemVisita: lerOrigemSalva(),
           pagina: caminho,
@@ -420,7 +428,7 @@ function Formulario({
           nome="origem"
           valor={origem}
           aoMudar={setOrigem}
-          opcoes={[["instagram", "Instagram"], ["tiktok", "TikTok"], ["indicacao", "Indicação"], ["evento", "Evento/feira"], ["google", "Google"], ["outro", "Outro"]]}
+          opcoes={[["instagram", "Instagram"], ["tiktok", "TikTok"], ["indicacao", "Indicação"], ["evento", "Evento/feira"], ["google", "Google"], ["escola", "Escola/professor"], ["whatsapp", "WhatsApp"], ["outro", "Outro"]]}
         />
       </fieldset>
 
@@ -436,6 +444,16 @@ function Formulario({
             Projeto apoiado pela FAPEMA. Estas perguntas são para adultos (pais, professores, gestores). Se for criança, peça ajuda a um adulto. Tudo opcional.
           </p>
         </div>
+
+        <fieldset>
+          <legend className={rotulo}>Você responde como…</legend>
+          <Opcoes
+            nome="perfil"
+            valor={perfil}
+            aoMudar={setPerfil}
+            opcoes={[["responsavel", "Pai, mãe ou responsável"], ["educador", "Professor(a)/educador(a)"], ["gestor", "Gestor(a) de instituição"], ["adulto", "Adulto, para mim"], ["outro", "Outro"]]}
+          />
+        </fieldset>
 
         <fieldset>
           <legend className={rotulo}>Falta material bom sobre a cultura do Maranhão para crianças e jovens?</legend>
@@ -533,6 +551,15 @@ function Formulario({
               <input value={instituicao} onChange={(e) => setInstituicao(e.target.value)} maxLength={80} autoComplete="organization" className={campoTexto} />
             </label>
             <fieldset>
+              <legend className={rotulo}>Quantas crianças, alunos ou pessoas ela atende?</legend>
+              <Opcoes
+                nome="alcance"
+                valor={alcance}
+                aoMudar={setAlcance}
+                opcoes={[["ate-50", "Até 50"], ["51-200", "51 a 200"], ["201-1000", "201 a 1.000"], ["mais-1000", "Mais de 1.000"]]}
+              />
+            </fieldset>
+            <fieldset>
               <legend className={rotulo}>Ela teria interesse em testar ou conhecer o Kambada Play?</legend>
               <Opcoes
                 nome="interessePiloto"
@@ -544,9 +571,14 @@ function Formulario({
           </div>
         )}
 
-        {cargoDirecao === "sim" && (interessePiloto === "sim" || interessePiloto === "talvez") && (
+        <fieldset>
+          <legend className={rotulo}>Topa participar de um teste ou de uma conversa rápida com a gente?</legend>
+          <Opcoes nome="topaTeste" valor={topaTeste} aoMudar={setTopaTeste} opcoes={[["sim", "Topo"], ["nao", "Agora não"]]} />
+        </fieldset>
+
+        {(topaTeste === "sim" || interessePiloto === "sim" || interessePiloto === "talvez") && (
           <label className="block">
-            <span className={rotulo}>Quer que a gente fale com você sobre isso?</span>
+            <span className={rotulo}>Onde podemos falar com você?</span>
             <input
               value={contato}
               onChange={(e) => setContato(e.target.value)}
@@ -582,6 +614,15 @@ function Formulario({
             className={campoTexto + " !mt-0"}
           />
         </div>
+        <input
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+          maxLength={60}
+          autoComplete="address-level2"
+          placeholder="Cidade e estado (ex.: São Luís, MA)"
+          aria-label="Cidade e estado"
+          className={campoTexto}
+        />
       </fieldset>
       <p className="rounded-xl bg-superficie px-3 py-2 text-xs text-texto-suave">
         Se você estiver com a sua conta do Kambada Play ligada, o e-mail dela vai junto com a resposta. Sem conta, nada além do que você preencher aqui.

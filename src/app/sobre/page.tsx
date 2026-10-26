@@ -33,23 +33,23 @@ const NUMEROS = [
 const EQUIPE: { nome: string; papel: string; foto?: string; selo?: string }[] = [
   {
     nome: "Wilsonira Batista",
-    papel: "Sócia-administradora · à frente da produção artesanal",
+    papel: "Sócia-Administradora · À Frente da Produção Artesanal",
     foto: "/equipe/wilsonira.webp",
-    selo: "Sócia-fundadora",
+    selo: "Sócia-Fundadora",
   },
   {
     nome: "Alexandre",
-    papel: "Estratégia e gestão",
+    papel: "Estratégia e Gestão",
     foto: "/equipe/alexandre.webp",
-    selo: "Sócio-fundador",
+    selo: "Sócio-Fundador",
   },
   {
     nome: "Wilzanira",
     papel: "Advogada e Artista Plástica.",
     foto: "/equipe/wilzanira.webp",
   },
-  { nome: "Elzanira", papel: "Artista plástica", foto: "/equipe/elzanira.webp" },
-  { nome: "Ricardo", papel: "Ilustrador e diretor de arte", foto: "/equipe/ricardo.webp" },
+  { nome: "Elzanira", papel: "Artista Plástica", foto: "/equipe/elzanira.webp" },
+  { nome: "Ricardo", papel: "Ilustrador e Diretor de Arte", foto: "/equipe/ricardo.webp" },
 ];
 
 export default function Sobre() {

@@ -130,22 +130,35 @@ export default async function PaginaProduto({ params }: Props) {
    * Dado estruturado para o Google. Vale a pena mesmo sem carrinho: é o que
    * faz a peça aparecer com preço e disponibilidade no resultado de busca.
    */
+  const descricaoDaPagina = `${produto.nome}, peça da Kambada, de São Luís do Maranhão.`;
   const dadosEstruturados = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: produto.nome,
     category: categoria.nome,
+    // O Google exige descrição; sem texto próprio do produto, cai na da página.
+    description: produto.descricao?.trim() || descricaoDaPagina,
     brand: { "@type": "Brand", name: SITE.nome },
     ...(foto ? { image: `${SITE.url}${foto.src}` } : {}),
     offers: {
       "@type": "Offer",
       price: produto.preco,
       priceCurrency: "BRL",
+      // "MadeToOrder" não existe na lista do Google (aviso do Search Console,
+      // 26/10): peça sob encomenda vai como BackOrder.
       availability: produto.sobEncomenda
-        ? "https://schema.org/MadeToOrder"
+        ? "https://schema.org/BackOrder"
         : estoque.disponivel
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
+      // Desistência em 7 dias (CDC art. 49), como em /trocas-e-devolucoes.
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "BR",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7,
+        merchantReturnLink: `${SITE.url}/trocas-e-devolucoes`,
+      },
     },
   };
 

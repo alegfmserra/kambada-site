@@ -45,7 +45,7 @@ const EQUIPE: { nome: string; papel: string; foto?: string; selo?: string }[] = 
   },
   {
     nome: "Wilzanira",
-    papel: "Advogada e artista · da pintura das matracas à produção dos lápis",
+    papel: "Advogada e Artista Plástica.",
     foto: "/equipe/wilzanira.webp",
   },
   { nome: "Elzanira", papel: "Artista plástica", foto: "/equipe/elzanira.webp" },

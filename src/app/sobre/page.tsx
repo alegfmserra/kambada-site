@@ -45,7 +45,7 @@ const EQUIPE: { nome: string; papel: string; foto?: string; selo?: string }[] = 
   },
   {
     nome: "Wilzanira",
-    papel: "Advogada e Artista Plástica.",
+    papel: "Advogada e Artista Plástica",
     foto: "/equipe/wilzanira.webp",
   },
   { nome: "Elzanira", papel: "Artista Plástica", foto: "/equipe/elzanira.webp" },

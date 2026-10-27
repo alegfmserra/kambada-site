@@ -450,7 +450,7 @@ export default function PlayEntrada() {
               <Revelar>
                 <Numero n="04" rotulo="Animação" />
                 <h2 className="mt-4 font-display text-4xl font-extrabold leading-tight sm:text-5xl">
-                  O caranguejinho <span className="text-kambada-amarelo">vai na batida.</span>
+                  O caranguejinho <span className="text-kambada-amarelo">vê o guará voar.</span>
                 </h2>
                 <p className="mt-5 max-w-md text-lg leading-relaxed text-kambada-branco/80">
                   {video.descricao}
@@ -462,27 +462,10 @@ export default function PlayEntrada() {
                 <Link href={`/kambadaplay/videos/${video.slug}`} className={`mt-8 ${BOTAO_AMARELO}`}>
                   Assistir com som
                 </Link>
-                <figure className="mt-10">
-                  <div className="flex gap-4">
-                    {[
-                      { src: "/kambadaplay/images/atelie/placa-coreira.webp", alt: "Placa pintada à mão da coreira do tambor de crioula, de saia vermelha e flores" },
-                      { src: "/kambadaplay/images/atelie/placa-coreiro.webp", alt: "Placa pintada à mão do coreiro do tambor de crioula, tocando o tambor de camisa vermelha" },
-                    ].map((p) => (
-                      <Image
-                        key={p.src}
-                        src={p.src}
-                        alt={p.alt}
-                        width={720}
-                        height={1080}
-                        sizes="9rem"
-                        className="h-auto w-32 rounded-md border-2 border-kambada-amarelo sm:w-36"
-                      />
-                    ))}
-                  </div>
-                  <figcaption className="mt-3 max-w-xs text-xs text-kambada-branco/60">
-                    Do ateliê: a coreira e o coreiro, placas pintadas à mão.
-                  </figcaption>
-                </figure>
+                <p className="mt-10 max-w-sm text-xs text-kambada-branco/60">
+                  História em quadrinhos de Alexandre Serra, arte de Ricardo Pontes. Vozes de Alexandre (Kambadinha)
+                  e Felipe (Guará). Animação feita com inteligência artificial a partir da arte original.
+                </p>
               </Revelar>
             </div>
           </Progresso>

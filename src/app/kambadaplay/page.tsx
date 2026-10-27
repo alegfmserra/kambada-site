@@ -463,8 +463,8 @@ export default function PlayEntrada() {
                   Assistir com som
                 </Link>
                 <p className="mt-10 max-w-sm text-xs text-kambada-branco/60">
-                  História em quadrinhos de Alexandre Serra, arte de Ricardo Pontes. Vozes de Alexandre (Kambadinha)
-                  e Felipe (Guará). Animação feita com inteligência artificial a partir da arte original.
+                  História em quadrinhos de Alexandre Serra, arte de Ricardo Pontes. Dublagem: Alexandre Serra
+                  (Kambadinha) e Filipe Serra (Guará).
                 </p>
               </Revelar>
             </div>

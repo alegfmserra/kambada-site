@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { anotarPista, iniciarDesafio, iniciarMissao, responderDesafio } from "@/lib/play/jogos/arraial";
+import { contaDaRequisicao } from "@/lib/play/contas";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
+import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 
 export const dynamic = "force-dynamic";
 
@@ -32,5 +34,9 @@ export async function POST(requisicao: Request) {
             ? responderDesafio(corpo.estado, corpo.escolha, Date.now(), corpo.pulou)
             : { erro: "Ação desconhecida." };
   if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+  if (corpo.acao === "iniciar" || (corpo.acao === "responder" && "prova" in r)) {
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    await registrarEventoPartida({ jogo: "arraial", tipo: corpo.acao === "iniciar" ? "inicio" : "fim", conta: conta?.id });
+  }
   return NextResponse.json({ ok: true, ...r });
 }

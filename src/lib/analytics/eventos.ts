@@ -10,6 +10,8 @@ type Gtag = (comando: "event", nome: string, parametros?: Record<string, unknown
 
 export function evento(nome: string, parametros: Record<string, unknown> = {}) {
   try {
+    // Play = público infantil: nenhum evento sai de lá.
+    if (window.location.pathname.startsWith("/kambadaplay")) return;
     const g = (window as unknown as { gtag?: Gtag }).gtag;
     if (typeof g === "function") g("event", nome, parametros);
   } catch {

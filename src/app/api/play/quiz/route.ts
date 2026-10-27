@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sessaoDaRequisicao } from "@/lib/play/acesso";
 import { contaDaSessao } from "@/lib/play/contas";
+import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { iniciarPartida, nivelDaPartida, responder } from "@/lib/play/jogos/quiz";
 
@@ -24,10 +25,13 @@ export async function POST(requisicao: Request) {
   if (!corpo) return NextResponse.json({ ok: false, mensagem: "Requisição inválida." }, { status: 400 });
   // Visitante = sem demonstração e sem conta válida (senha trocada derruba a sessão).
   const sessao = sessaoDaRequisicao(requisicao);
-  const visitante = !(sessao?.v === 1 || (await contaDaSessao(sessao)));
+  const contaLogada = await contaDaSessao(sessao);
+  const visitante = !(sessao?.v === 1 || contaLogada);
 
   if (corpo.acao === "iniciar") {
-    return NextResponse.json({ ok: true, ...iniciarPartida(visitante ? "facil" : corpo.nivel) });
+    const partida = iniciarPartida(visitante ? "facil" : corpo.nivel);
+    await registrarEventoPartida({ jogo: "quiz", tipo: "inicio", nivel: visitante ? "facil" : String(corpo.nivel ?? ""), conta: contaLogada?.id });
+    return NextResponse.json({ ok: true, ...partida });
   }
   if (corpo.acao === "responder") {
     if (visitante && nivelDaPartida(corpo.estado) !== "facil") {
@@ -35,6 +39,7 @@ export async function POST(requisicao: Request) {
     }
     const r = responder(corpo.estado, corpo.escolha);
     if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+    if ("prova" in r) await registrarEventoPartida({ jogo: "quiz", tipo: "fim", nivel: nivelDaPartida(corpo.estado) ?? undefined, conta: contaLogada?.id });
     if (visitante && "prova" in r) {
       const { prova: _semRanking, ...semProva } = r;
       void _semRanking;

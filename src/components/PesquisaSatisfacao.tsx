@@ -4,6 +4,7 @@ import { lerOrigemSalva } from "@/components/Atribuicao";
 import { evento } from "@/lib/analytics/eventos";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { precoSorteado } from "@/lib/pesquisa/precosTeste";
 
 /**
  * Pesquisa de satisfação (20/10/2026).
@@ -57,6 +58,8 @@ const CURTIU = [
   ["sobre", "Nossa história"],
   ["encomendas", "Encomendas"],
 ] as const;
+
+const formatoPreco = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
 const LEVARIA_HOJE = [
   ["frete", "Frete mais barato ou grátis"],
@@ -295,6 +298,8 @@ function Formulario({
   const [canalPreferido, setCanalPreferido] = useState("");
   const [achou, setAchou] = useState("");
   const [pecaDesejada, setPecaDesejada] = useState("");
+  const [precoTeste] = useState(() => precoSorteado());
+  const [aceitaPreco, setAceitaPreco] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -338,6 +343,8 @@ function Formulario({
           canalPreferido: canalPreferido || undefined,
           achou: achou || undefined,
           pecaDesejada: pecaDesejada || undefined,
+          precoTeste: aceitaPreco ? precoTeste : undefined,
+          aceitaPreco: aceitaPreco || undefined,
           origemVisita: lerOrigemSalva(),
           pagina: caminho,
           gatilho,
@@ -464,6 +471,17 @@ function Formulario({
           valor={assinaria}
           aoMudar={setAssinaria}
           opcoes={[["familia", "Sim, Família · R$ 9,90/mês"], ["brincante", "Sim, Brincante · R$ 19,90/mês"], ["talvez", "Talvez"], ["nao", "Não"]]}
+        />
+      </fieldset>
+
+      <fieldset>
+        <legend className={rotulo}>Se o Kambada Play custasse {formatoPreco(precoTeste)} por mês, você assinaria?</legend>
+        <p className="text-xs sm:text-sm text-texto-tenue">É só uma simulação para a gente acertar o valor. Hoje está grátis até 31/12/2026.</p>
+        <Opcoes
+          nome="aceitaPreco"
+          valor={aceitaPreco}
+          aoMudar={setAceitaPreco}
+          opcoes={[["sim", "Sim"], ["talvez", "Talvez"], ["nao", "Não"]]}
         />
       </fieldset>
 

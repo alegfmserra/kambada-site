@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filtrarPeriodo, respostasParaCsv, respostasParaCsvIctg, resumir, usouPlayDe, validarResposta } from "./pesquisa";
+import { filtrarPeriodo, respostasParaCsv, respostasParaCsvIctg, resumir, testeDePreco, usouPlayDe, validarResposta } from "./pesquisa";
 
 describe("pesquisa de satisfação", () => {
   it("aceita só opções conhecidas e corta texto longo", () => {
@@ -119,5 +119,24 @@ describe("pesquisa: loja, usuários do Play e exportação para o ICTG", () => {
     expect(filtrarPeriodo([a, b], null, "2026-10-24")).toEqual([a, b]);
     expect(filtrarPeriodo([a, b], "2026-10-25", null)).toEqual([]);
     expect(filtrarPeriodo([a, b])).toHaveLength(2);
+  });
+});
+
+describe("pesquisa: teste de preço", () => {
+  it("só aceita valor da lista com resposta válida, e conta por preço", () => {
+    const a = validarResposta({ nota: 5, precoTeste: 9.9, aceitaPreco: "sim" })!;
+    const b = validarResposta({ nota: 5, precoTeste: 9.9, aceitaPreco: "nao" })!;
+    const c = validarResposta({ nota: 5, precoTeste: 19.9, aceitaPreco: "talvez", gatilho: "quiz" })!;
+    const invalida = validarResposta({ nota: 5, precoTeste: 1, aceitaPreco: "sim" })!;
+    const semResposta = validarResposta({ nota: 5, precoTeste: 9.9 })!;
+    expect(invalida.precoTeste).toBeUndefined();
+    expect(semResposta.precoTeste).toBeUndefined();
+    const t = testeDePreco([a, b, c, invalida, semResposta]);
+    const p990 = t.find((l) => l.preco === 9.9)!;
+    expect(p990).toMatchObject({ n: 2, sim: 1, nao: 1, pctSim: 50, pctSimTalvez: 50 });
+    expect(t.find((l) => l.preco === 19.9)).toMatchObject({ n: 1, talvez: 1, pctSimTalvez: 100 });
+    expect(t.find((l) => l.preco === 6.9)).toMatchObject({ n: 0, pctSim: null });
+    expect(resumir([a, b, c]).testePrecoPlay.find((l) => l.preco === 19.9)?.n).toBe(1);
+    expect(validarResposta({ gatilho: "video", nota: 4 })!.usouPlay).toBe(true);
   });
 });

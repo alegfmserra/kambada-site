@@ -17,6 +17,7 @@ import { etapaDoPedido } from "../pedidos/cancelamento";
 import { listarRegistros, type RegistroPedido } from "../pedidos/registro";
 import { listarRespostas, resumir, ROTULOS, type Resposta } from "../pesquisa/pesquisa";
 import { listarContas, type Conta } from "../play/contas";
+import { listarEventosPartida, resumirPartidas, type EventoPartida } from "../play/jogos/partidas";
 import { dadosDoPlacar, type Pontuacao, type PremioEmitido } from "../play/jogos/placar";
 
 export type Dados = {
@@ -26,17 +27,19 @@ export type Dados = {
   cupons: Cupom[];
   pontuacoes: Pontuacao[];
   premios: PremioEmitido[];
+  partidas: EventoPartida[];
 };
 
 export async function reunirDados(): Promise<Dados> {
-  const [pedidos, contas, respostas, cupons, placar] = await Promise.all([
+  const [pedidos, contas, respostas, cupons, placar, partidas] = await Promise.all([
     listarRegistros(10000),
     listarContas(),
     listarRespostas(),
     listarCupons(),
     dadosDoPlacar(),
+    listarEventosPartida(),
   ]);
-  return { pedidos, contas, respostas, cupons, pontuacoes: placar.pontuacoes, premios: placar.premios };
+  return { pedidos, contas, respostas, cupons, pontuacoes: placar.pontuacoes, premios: placar.premios, partidas };
 }
 
 const rotulo = (v: string | undefined) => (v ? (ROTULOS[v] ?? v) : "");
@@ -65,6 +68,9 @@ export function resumoGeral(d: Dados) {
     valorPlay: pesquisa.valorPlay,
     origem: pesquisa.origem,
     curtiu: pesquisa.curtiu,
+    partidas: resumirPartidas(d.partidas),
+    testePreco: pesquisa.testePreco,
+    testePrecoPlay: pesquisa.testePrecoPlay,
     mit: pesquisa.mit,
     mitPlay: pesquisa.mitPlay,
     usuariosPlay: pesquisa.usuariosPlay,
@@ -203,6 +209,20 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
     ["F2.3 NPS do Play (%)", mp.F2_3_nps.nps ?? "—"],
   ];
   for (const [k, v] of linhasPlay) res.addRow([`  ${k}`, v]).font = { name: "Arial", size: 10 };
+  res.addRow([]);
+  res.addRow(["Partidas do Play: iniciadas × concluídas (F2.2) — registro do servidor, sem medição de terceiros"]).font = { name: "Arial", size: 10, bold: true };
+  const pt = r.partidas;
+  res.addRow(["  Iniciadas", pt.iniciadas]).font = { name: "Arial", size: 10 };
+  res.addRow(["  Concluídas", pt.concluidas]).font = { name: "Arial", size: 10 };
+  res.addRow(["  Taxa de conclusão (%)", pt.taxaConclusao ?? "—"]).font = { name: "Arial", size: 10 };
+  for (const [j, v] of Object.entries(pt.porJogo)) res.addRow([`  ${j}: iniciadas / concluídas / taxa %`, `${v.iniciadas} / ${v.concluidas} / ${v.taxa ?? "—"}`]).font = { name: "Arial", size: 10 };
+  res.addRow(["  Contas que iniciaram / concluíram ao menos uma", `${pt.contas.iniciaram} / ${pt.contas.concluiramAoMenosUma}`]).font = { name: "Arial", size: 10 };
+  res.addRow([]);
+  res.addRow(["Teste de preço da assinatura (cada pessoa vê um valor sorteado; n pequeno não prova nada)"]).font = { name: "Arial", size: 10, bold: true };
+  for (const [titulo, tp] of [["Todos", r.testePreco], ["Só quem usou o Play", r.testePrecoPlay]] as const) {
+    res.addRow([`  ${titulo}`]).font = { name: "Arial", size: 10, italic: true };
+    for (const l of tp) res.addRow([`    R$ ${l.preco.toFixed(2).replace(".", ",")} — n=${l.n}`, `sim ${l.sim} · talvez ${l.talvez} · não ${l.nao} · % sim ${l.pctSim ?? "—"} · % sim+talvez ${l.pctSimTalvez ?? "—"}`]).font = { name: "Arial", size: 10 };
+  }
   res.addRow([]);
   res.addRow(["Loja e compra (n = quem respondeu a pergunta)"]).font = { name: "Arial", size: 10, bold: true };
   const lj = r.loja;

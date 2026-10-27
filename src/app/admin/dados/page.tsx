@@ -147,6 +147,50 @@ export default async function PaginaDados() {
         <p className="w-full text-xs text-texto-suave">CSV sem nome, e-mail, contato nem instituição; com data, o marcador “usou o Play” e as respostas. Deixe as datas em branco para tudo.</p>
       </form>
 
+      <h2 className="mt-10 font-display text-xl font-bold">Partidas do Play (F2.2)</h2>
+      <p className="mt-1 text-sm text-texto-suave">Iniciadas × concluídas, contadas pelo servidor — sem medição de terceiros no Play. É a taxa de quem começou e chegou ao fim (não mede “sem ajuda”).</p>
+      <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {(
+          [
+            ["Iniciadas", r.partidas.iniciadas],
+            ["Concluídas", r.partidas.concluidas],
+            ["Taxa de conclusão", `${r.partidas.taxaConclusao ?? "—"}%`],
+            ["Contas que concluíram ≥ 1", `${r.partidas.contas.concluiramAoMenosUma} de ${r.partidas.contas.iniciaram}`],
+          ] as [string, string | number][]
+        ).map(([k, v]) => (
+          <li key={k} className={CARTAO}>
+            <p className="text-xs text-texto-suave">{k}</p>
+            <p className="font-display text-2xl font-bold">{v}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        {Object.entries(r.partidas.porJogo).map(([j, v]) => (
+          <div key={j} className={CARTAO}>
+            <h3 className="font-display font-bold capitalize">{j}</h3>
+            <p className="mt-1 text-sm">{v.iniciadas} iniciadas · {v.concluidas} concluídas · {v.taxa ?? "—"}%</p>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="mt-10 font-display text-xl font-bold">Teste de preço da assinatura (F3.4)</h2>
+      <p className="mt-1 text-sm text-texto-suave">Cada pessoa vê um valor sorteado (“Se custasse R$ X por mês, você assinaria?”). É intenção declarada; só vale como evidência com n suficiente em cada preço.</p>
+      <div className={`${CARTAO} mt-3 overflow-x-auto`}>
+        <table className="w-full text-sm">
+          <thead className="text-left text-xs text-texto-suave">
+            <tr><th className="py-1">Preço/mês</th><th>n</th><th>Sim</th><th>Talvez</th><th>Não</th><th>% sim</th><th>% sim+talvez</th><th>n (usou o Play)</th><th>% sim (usou o Play)</th></tr>
+          </thead>
+          <tbody>
+            {r.testePreco.map((l, i) => (
+              <tr key={l.preco} className="border-t border-borda">
+                <td className="py-1">{formatarReais(l.preco)}</td><td>{l.n}</td><td>{l.sim}</td><td>{l.talvez}</td><td>{l.nao}</td><td>{l.pctSim ?? "—"}</td><td>{l.pctSimTalvez ?? "—"}</td>
+                <td>{r.testePrecoPlay[i].n}</td><td>{r.testePrecoPlay[i].pctSim ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <h2 className="mt-10 font-display text-xl font-bold">Loja e compra</h2>
       <p className="mt-1 text-sm text-texto-suave">O que as pessoas dizem sobre achar, comprar e o que as faria levar uma peça.</p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">

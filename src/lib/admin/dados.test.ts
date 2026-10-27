@@ -21,6 +21,7 @@ const dados: Dados = {
   cupons: [],
   pontuacoes: [],
   premios: [],
+  partidas: [],
 };
 
 describe("dados do site — painel e planilha", () => {

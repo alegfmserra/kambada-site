@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import FaixaBeneficios from "@/components/FaixaBeneficios";
+import LinkPlayHome from "@/components/LinkPlayHome";
 import { ARTIGOS } from "@/lib/artigos";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { FOTOS } from "@/lib/fotos";
@@ -86,18 +87,20 @@ export default function Home() {
             estampas, as HQs do Kambadinha e a história da matraca. Conta grátis até 31/12/2026.
           </p>
           <div className="mt-9 flex flex-wrap gap-4">
-            <Link
+            <LinkPlayHome
               href="/kambadaplay"
+              destino="conhecer"
               className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro whitespace-nowrap"
             >
               Conhecer o Kambada Play
-            </Link>
-            <Link
+            </LinkPlayHome>
+            <LinkPlayHome
               href="/kambadaplay/experimente"
+              destino="quiz"
               className="rounded-full border border-kambada-branco/60 px-7 py-3.5 font-display font-semibold text-kambada-branco transition-colors hover:border-kambada-amarelo hover:text-kambada-amarelo whitespace-nowrap"
             >
               Jogar o quiz sem cadastro
-            </Link>
+            </LinkPlayHome>
           </div>
         </div>
       </section>

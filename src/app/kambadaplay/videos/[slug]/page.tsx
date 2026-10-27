@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { VideoComConvite } from "@/components/play/VideoComConvite";
 import { VIDEOS, arquivoDoVideo, capaDoVideo, videoPorSlug } from "@/content/play/videos";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -30,16 +31,7 @@ export default async function VideoPage({ params }: Props) {
         ← Kambada Play
       </Link>
       <div className="mt-5 overflow-hidden rounded-xl bg-kambada-preto">
-        <video
-          controls
-          playsInline
-          preload="metadata"
-          poster={capaDoVideo(v)}
-          className="aspect-video w-full"
-        >
-          <source src={arquivoDoVideo(v)} type="video/mp4" />
-          Seu navegador não toca este vídeo.
-        </video>
+        <VideoComConvite poster={capaDoVideo(v)} src={arquivoDoVideo(v)} />
       </div>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
         Animação · {v.duracao}

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { type Atribuicao, lerAtribuicao } from "../atribuicao/atribuicao";
 import { arquivoTokens } from "../bling/tokens";
+import { PRECOS_TESTE } from "./precosTeste";
 
 /**
  * Pesquisa de satisfação do site (20/10/2026). Não guardamos IP. Desde 22/10
@@ -36,10 +37,12 @@ export const OPCOES = {
   compraPara: ["para-mim", "presente", "para-evento", "revenda"],
   canalPreferido: ["site", "whatsapp", "instagram", "feira", "marketplace"],
   achou: ["achou-sim", "achou-pouco", "achou-nao"],
+  aceitaPreco: ["sim", "talvez", "nao"],
 } as const;
+export { PRECOS_TESTE };
 
 /** Gatilhos que só existem dentro do Kambada Play: quem respondeu por eles usou o Play. */
-export const GATILHOS_PLAY = ["quiz", "memoria", "arraial", "hq"];
+export const GATILHOS_PLAY = ["quiz", "memoria", "arraial", "hq", "video"];
 
 export const ROTULOS: Record<string, string> = {
   sim: "Sim",
@@ -151,6 +154,9 @@ export type Resposta = {
   canalPreferido?: (typeof OPCOES.canalPreferido)[number];
   achou?: (typeof OPCOES.achou)[number];
   pecaDesejada?: string;
+  /** Teste de preço: valor mostrado (sorteado no navegador) e a resposta a ele. */
+  precoTeste?: number;
+  aceitaPreco?: (typeof OPCOES.aceitaPreco)[number];
   /** Marcado pelo servidor: conta do Play ligada ou resposta dada de dentro do Play (jogo/HQ). */
   usouPlay?: boolean;
   /** E-mail ou WhatsApp deixado de propósito, para a Kambada retornar. */
@@ -222,6 +228,10 @@ export function validarResposta(corpo: Record<string, unknown>, agora = new Date
     canalPreferido: umaDas(corpo.canalPreferido, OPCOES.canalPreferido),
     achou: umaDas(corpo.achou, OPCOES.achou),
     pecaDesejada: texto(corpo.pecaDesejada, 200),
+    // Só vale o par completo e com valor da lista.
+    ...(((PRECOS_TESTE as readonly number[]).includes(Number(corpo.precoTeste)) && umaDas(corpo.aceitaPreco, OPCOES.aceitaPreco))
+      ? { precoTeste: Number(corpo.precoTeste), aceitaPreco: umaDas(corpo.aceitaPreco, OPCOES.aceitaPreco) }
+      : {}),
     usouPlay: Boolean(emailDaConta) || GATILHOS_PLAY.includes(texto(corpo.gatilho, 40) ?? ""),
     atribuicao: lerAtribuicao(corpo.origemVisita),
     pagina: texto(corpo.pagina, 200)?.replace(/[?#].*$/, ""),
@@ -231,7 +241,7 @@ export function validarResposta(corpo: Record<string, unknown>, agora = new Date
   const temAlgo =
     r.nota || r.funcionou || r.problema || r.curtiu.length || r.sugestao || r.valorPlay || r.assinaria || r.origem || r.comentario ||
     r.perfil || r.confirmaDor || r.frequenciaBusca || r.conseguiu || r.recomendaria !== undefined || r.aprendeu || r.cargoDirecao || r.topaTeste ||
-    r.comprou || r.levariaHoje?.length || r.compraPara || r.canalPreferido || r.achou || r.pecaDesejada;
+    r.comprou || r.levariaHoje?.length || r.compraPara || r.canalPreferido || r.achou || r.pecaDesejada || r.aceitaPreco;
   return temAlgo ? r : null;
 }
 
@@ -351,6 +361,23 @@ export function indicadoresMit(rs: Resposta[]) {
   };
 }
 
+/** Teste de preço: por valor sorteado, quantos disseram sim, talvez ou não. */
+export function testeDePreco(rs: Resposta[]) {
+  return PRECOS_TESTE.map((preco) => {
+    const doPreco = rs.filter((r) => r.precoTeste === preco && r.aceitaPreco);
+    const c = (v: string) => doPreco.filter((r) => r.aceitaPreco === v).length;
+    return {
+      preco,
+      n: doPreco.length,
+      sim: c("sim"),
+      talvez: c("talvez"),
+      nao: c("nao"),
+      pctSim: pct(c("sim"), doPreco.length),
+      pctSimTalvez: pct(c("sim") + c("talvez"), doPreco.length),
+    };
+  });
+}
+
 /** Loja e compra: n = quem respondeu cada pergunta. */
 export function indicadoresLoja(rs: Resposta[]) {
   const n = (k: keyof Resposta) => rs.filter((r) => r[k] !== undefined && r[k] !== "").length;
@@ -380,6 +407,8 @@ export function resumir(rs: Resposta[]) {
     usuariosPlay: rs.filter(usouPlayDe).length,
     mitPlay: indicadoresMit(rs.filter(usouPlayDe)),
     loja: indicadoresLoja(rs),
+    testePreco: testeDePreco(rs),
+    testePrecoPlay: testeDePreco(rs.filter(usouPlayDe)),
     periodo: rs.length ? { de: rs[0].em.slice(0, 10), ate: rs[rs.length - 1].em.slice(0, 10) } : null,
   };
 }
@@ -387,7 +416,7 @@ export function resumir(rs: Resposta[]) {
 const COLUNAS: (keyof Resposta)[] = [
   "em", "nome", "idade", "email", "nota", "funcionou", "problema", "curtiu", "sugestao", "valorPlay", "assinaria", "origem", "comentario",
   "perfil", "cidade", "confirmaDor", "frequenciaBusca", "conseguiu", "recomendaria", "aprendeu", "cargoDirecao", "tipoInstituicao", "instituicao", "alcance", "interessePiloto", "topaTeste", "contato",
-  "comprou", "levariaHoje", "compraPara", "canalPreferido", "achou", "pecaDesejada", "usouPlay",
+  "comprou", "levariaHoje", "compraPara", "canalPreferido", "achou", "pecaDesejada", "precoTeste", "aceitaPreco", "usouPlay",
   "pagina", "gatilho", "largura",
 ];
 

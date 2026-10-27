@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
+import { contaDaRequisicao } from "@/lib/play/contas";
 import { finalizarMemoria, iniciarMemoria } from "@/lib/play/jogos/memoria";
+import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +19,15 @@ export async function POST(requisicao: Request) {
   if (!corpo) return NextResponse.json({ ok: false, mensagem: "Requisição inválida." }, { status: 400 });
 
   if (corpo.acao === "iniciar") {
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    await registrarEventoPartida({ jogo: "memoria", tipo: "inicio", nivel: String(corpo.nivel ?? ""), conta: conta?.id });
     return NextResponse.json({ ok: true, ...iniciarMemoria(corpo.nivel) });
   }
   if (corpo.acao === "finalizar") {
     const r = finalizarMemoria(corpo.token, corpo.jogadas);
     if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    await registrarEventoPartida({ jogo: "memoria", tipo: "fim", conta: conta?.id });
     return NextResponse.json({ ok: true, ...r });
   }
   return NextResponse.json({ ok: false, mensagem: "Ação desconhecida." }, { status: 400 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { respostasParaCsv, resumir, validarResposta } from "./pesquisa";
+import { filtrarPeriodo, respostasParaCsv, respostasParaCsvIctg, resumir, usouPlayDe, validarResposta } from "./pesquisa";
 
 describe("pesquisa de satisfação", () => {
   it("aceita só opções conhecidas e corta texto longo", () => {
@@ -70,5 +70,54 @@ describe("pesquisa de satisfação", () => {
     const s = resumir([a, b]);
     expect(s.notaMedia).toBe(4.5);
     expect(s.assinaria["Sim — Família (R$ 9,90/mês)"]).toBe(1);
+  });
+});
+
+describe("pesquisa: loja, usuários do Play e exportação para o ICTG", () => {
+  it("valida as perguntas da loja e ignora opção inventada", () => {
+    const r = validarResposta({ achou: "achou-sim", comprou: "nunca-comprou", levariaHoje: ["frete", "fotos", "frete", "hack"], compraPara: "presente", canalPreferido: "whatsapp", pecaDesejada: "caneca" })!;
+    expect(r.levariaHoje).toEqual(["frete", "fotos"]);
+    expect(r.comprou).toBe("nunca-comprou");
+    expect(validarResposta({ levariaHoje: ["hack"], comprou: "x" })).toBeNull();
+    const s = resumir([r]);
+    expect(s.loja.levariaHoje.n).toBe(1);
+    expect(s.loja.levariaHoje.distribuicao["Frete mais barato ou grátis"]).toBe(1);
+  });
+
+  it("marca quem usou o Play (conta ligada ou gatilho de jogo/HQ) e separa os indicadores", () => {
+    const comConta = validarResposta({ nota: 5, recomendaria: 10 }, new Date(), "a@b.com")!;
+    const jogo = validarResposta({ nota: 4, recomendaria: 9, gatilho: "arraial" })!;
+    const hq = validarResposta({ nota: 4, gatilho: "hq" })!;
+    const loja = validarResposta({ nota: 3, recomendaria: 0, gatilho: "rodape" })!;
+    expect([comConta, jogo, hq, loja].map((r) => r.usouPlay)).toEqual([true, true, true, false]);
+    const s = resumir([comConta, jogo, hq, loja]);
+    expect(s.usuariosPlay).toBe(3);
+    expect(s.mit.F2_3_nps.n).toBe(3);
+    expect(s.mitPlay.F2_3_nps.n).toBe(2);
+    expect(s.mitPlay.F2_3_nps.nps).toBe(100);
+    // resposta antiga, sem o marcador
+    expect(usouPlayDe({ em: "2026-10-20T10:00:00Z", curtiu: [], gatilho: "quiz" })).toBe(true);
+    expect(usouPlayDe({ em: "2026-10-20T10:00:00Z", curtiu: [] })).toBe(false);
+  });
+
+  it("exportação do ICTG não leva nome, e-mail, contato nem instituição", () => {
+    const r = validarResposta({ nota: 5, nome: "Maria", idade: 30, cargoDirecao: "sim", instituicao: "Escola X", contato: "m@x.com", gatilho: "quiz" }, new Date(), "m@x.com")!;
+    const csv = respostasParaCsvIctg([r]);
+    const cab = csv.split("\r\n")[0];
+    for (const c of ["nome", "email", "contato", "instituicao"]) expect(cab.split(";")).not.toContain(c);
+    expect(cab).toContain("usouPlay");
+    expect(csv).not.toContain("Maria");
+    expect(csv).not.toContain("m@x.com");
+    expect(csv).not.toContain("Escola X");
+    expect(respostasParaCsv([r])).toContain("Maria");
+  });
+
+  it("filtra por período em dias inclusivos (fuso de São Luís)", () => {
+    const a = { em: "2026-10-20T12:00:00.000Z", curtiu: [] as never[] };
+    const b = { em: "2026-10-25T01:00:00.000Z", curtiu: [] as never[] }; // 24/10 22h em São Luís
+    expect(filtrarPeriodo([a, b], "2026-10-21", null)).toEqual([b]);
+    expect(filtrarPeriodo([a, b], null, "2026-10-24")).toEqual([a, b]);
+    expect(filtrarPeriodo([a, b], "2026-10-25", null)).toEqual([]);
+    expect(filtrarPeriodo([a, b])).toHaveLength(2);
   });
 });

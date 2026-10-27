@@ -58,6 +58,19 @@ const CURTIU = [
   ["encomendas", "Encomendas"],
 ] as const;
 
+const LEVARIA_HOJE = [
+  ["frete", "Frete mais barato ou grátis"],
+  ["parcelas", "Parcelar em mais vezes"],
+  ["fotos", "Mais fotos ou vídeo da peça"],
+  ["tamanho", "Saber melhor tamanho e caimento"],
+  ["estampas", "Mais estampas e modelos"],
+  ["prazo", "Prazo de entrega menor"],
+  ["avaliacoes", "Ver avaliações de quem comprou"],
+  ["preco", "Preço menor"],
+  ["cupom", "Cupom ou brinde"],
+  ["ja-compro", "Nada: eu já compraria"],
+] as const;
+
 export default function PesquisaSatisfacao() {
   const caminho = usePathname() ?? "/";
   const [fase, setFase] = useState<"oculta" | "convite" | "aberta" | "enviada">("oculta");
@@ -88,6 +101,26 @@ export default function PesquisaSatisfacao() {
       return () => clearTimeout(t);
     }
   }, [convidar]);
+
+  // Saiu do Arraial depois de jogar um tempo (27/10/2026): é o jogo principal e não pedia avaliação.
+  // Guarda a hora de entrada na sessão (a saída pode ser navegação completa, que reinicia o componente).
+  useEffect(() => {
+    const CHAVE_ARRAIAL = "kambada-arraial-ini";
+    try {
+      if (caminho.startsWith("/kambadaplay/arraial")) {
+        if (!sessionStorage.getItem(CHAVE_ARRAIAL)) sessionStorage.setItem(CHAVE_ARRAIAL, String(Date.now()));
+        return;
+      }
+      const ini = Number(sessionStorage.getItem(CHAVE_ARRAIAL));
+      if (!ini) return;
+      sessionStorage.removeItem(CHAVE_ARRAIAL);
+      if (Date.now() - ini < 90_000) return;
+      const t = setTimeout(() => convidar("arraial", false), 1500);
+      return () => clearTimeout(t);
+    } catch {
+      /* sem armazenamento: só não convida */
+    }
+  }, [caminho, convidar]);
 
   // Navegação: 3 páginas + 45 s; compra concluída: na hora.
   useEffect(() => {
@@ -256,6 +289,12 @@ function Formulario({
   const [interessePiloto, setInteressePiloto] = useState("");
   const [topaTeste, setTopaTeste] = useState("");
   const [contato, setContato] = useState("");
+  const [comprou, setComprou] = useState("");
+  const [levariaHoje, setLevariaHoje] = useState<string[]>([]);
+  const [compraPara, setCompraPara] = useState("");
+  const [canalPreferido, setCanalPreferido] = useState("");
+  const [achou, setAchou] = useState("");
+  const [pecaDesejada, setPecaDesejada] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -293,6 +332,12 @@ function Formulario({
           interessePiloto: cargoDirecao === "sim" ? interessePiloto || undefined : undefined,
           topaTeste: topaTeste || undefined,
           contato: contato || undefined,
+          comprou: comprou || undefined,
+          levariaHoje,
+          compraPara: compraPara || undefined,
+          canalPreferido: canalPreferido || undefined,
+          achou: achou || undefined,
+          pecaDesejada: pecaDesejada || undefined,
           origemVisita: lerOrigemSalva(),
           pagina: caminho,
           gatilho,
@@ -431,6 +476,90 @@ function Formulario({
           opcoes={[["instagram", "Instagram"], ["tiktok", "TikTok"], ["indicacao", "Indicação"], ["evento", "Evento/feira"], ["google", "Google"], ["escola", "Escola/professor"], ["whatsapp", "WhatsApp"], ["outro", "Outro"]]}
         />
       </fieldset>
+
+      <section className="space-y-5 rounded-2xl border border-borda p-4" aria-labelledby="pesquisa-loja">
+        <div>
+          <h3 id="pesquisa-loja" className="font-display text-base font-bold">Sobre a nossa loja</h3>
+          <p className="text-xs sm:text-sm text-texto-tenue">Ajuda a gente a deixar as peças e a compra do jeito que você gosta. Tudo opcional.</p>
+        </div>
+
+        <fieldset>
+          <legend className={rotulo}>Foi fácil achar o que você procurava?</legend>
+          <Opcoes
+            nome="achou"
+            valor={achou}
+            aoMudar={setAchou}
+            opcoes={[["achou-sim", "Sim, achei fácil"], ["achou-pouco", "Mais ou menos"], ["achou-nao", "Não achei"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Você já comprou da Kambada?</legend>
+          <Opcoes
+            nome="comprou"
+            valor={comprou}
+            aoMudar={setComprou}
+            opcoes={[["comprou-site", "Sim, pelo site"], ["comprou-outro", "Sim, em feira/WhatsApp/Instagram"], ["nunca-comprou", "Ainda não"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>O que faria você levar uma peça hoje?</legend>
+          <p className="text-xs sm:text-sm text-texto-tenue">Marque quantas quiser.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {LEVARIA_HOJE.map(([v, r]) => {
+              const marcado = levariaHoje.includes(v);
+              return (
+                <label
+                  key={v}
+                  className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm sm:text-base has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-kambada-amarelo ${
+                    marcado ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda hover:border-kambada-amarelo-escuro"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={marcado}
+                    onChange={() => setLevariaHoje((l) => (marcado ? l.filter((x) => x !== v) : [...l, v]))}
+                    className="sr-only"
+                  />
+                  {r}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Você compraria mais para…</legend>
+          <Opcoes
+            nome="compraPara"
+            valor={compraPara}
+            aoMudar={setCompraPara}
+            opcoes={[["para-mim", "Mim"], ["presente", "Presente"], ["para-evento", "Evento, grupo ou empresa"], ["revenda", "Revender"]]}
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend className={rotulo}>Onde você prefere comprar?</legend>
+          <Opcoes
+            nome="canalPreferido"
+            valor={canalPreferido}
+            aoMudar={setCanalPreferido}
+            opcoes={[["site", "No site"], ["whatsapp", "WhatsApp"], ["instagram", "Instagram"], ["feira", "Em feira ou evento"], ["marketplace", "Shopee / Mercado Livre"]]}
+          />
+        </fieldset>
+
+        <label className="block">
+          <span className={rotulo}>Que peça ou estampa você sente falta na loja?</span>
+          <input
+            value={pecaDesejada}
+            onChange={(e) => setPecaDesejada(e.target.value)}
+            maxLength={200}
+            placeholder="Ex.: camisa infantil do Cazumbá, caneca, boné…"
+            className={campoTexto}
+          />
+        </label>
+      </section>
 
       <label className="block">
         <span className={rotulo}>Algo mais?</span>

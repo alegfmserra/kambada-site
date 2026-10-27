@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PesquisaAoFim } from "@/components/play/hq/PesquisaAoFim";
 import { Revelar } from "@/components/play/hub/Revelar";
 import { HQS, hqPorSlug, paginaDaHQ } from "@/content/play/hq";
 
@@ -58,6 +59,7 @@ export default async function HQPage({ params }: Props) {
             </li>
           ))}
         </ol>
+        <PesquisaAoFim />
 
         <div className="mt-12 flex flex-wrap gap-3">
           <Link

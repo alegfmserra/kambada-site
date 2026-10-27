@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
-import { gravarResposta, listarRespostas, respostasParaCsv, resumir, validarResposta } from "@/lib/pesquisa/pesquisa";
+import { filtrarPeriodo, gravarResposta, listarRespostas, respostasParaCsv, respostasParaCsvIctg, resumir, validarResposta } from "@/lib/pesquisa/pesquisa";
 import { segredoDeManutencao } from "@/lib/seguranca/segredo";
 import { contaDaRequisicao } from "@/lib/play/contas";
 
@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
  *   POST                                     → grava uma resposta (com o e-mail da conta do Play, se houver login)
  *   GET  (Authorization: Bearer SENHA)       → resumo + respostas (JSON)
  *   GET  …&formato=csv                       → planilha
+ *   GET  …&formato=ictg                      → planilha anonimizada (sem nome/e-mail/contato/instituição)
+ *   Filtro de período em qualquer GET: &de=AAAA-MM-DD&ate=AAAA-MM-DD
  * SENHA = REVALIDATE_SECRET (ver lib/seguranca/segredo.ts).
  */
 export async function POST(requisicao: Request) {
@@ -30,7 +32,16 @@ export async function GET(requisicao: Request) {
   if (!segredoDeManutencao(requisicao)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
-  const respostas = await listarRespostas();
+  const data = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+  const respostas = filtrarPeriodo(await listarRespostas(), data(url.searchParams.get("de")), data(url.searchParams.get("ate")));
+  if (url.searchParams.get("formato") === "ictg") {
+    return new NextResponse(respostasParaCsvIctg(respostas), {
+      headers: {
+        "content-type": "text/csv; charset=utf-8",
+        "content-disposition": `attachment; filename="kambada-pesquisa-ictg-${new Date().toISOString().slice(0, 10)}.csv"`,
+      },
+    });
+  }
   if (url.searchParams.get("formato") === "csv") {
     return new NextResponse(respostasParaCsv(respostas), {
       headers: {

@@ -30,7 +30,16 @@ export const OPCOES = {
   alcance: ["ate-50", "51-200", "201-1000", "mais-1000"],
   interessePiloto: ["sim", "talvez", "nao"],
   topaTeste: ["sim", "nao"],
+  // Bloco da loja (27/10/2026): como as pessoas compram e o que as faria levar uma peça.
+  comprou: ["comprou-site", "comprou-outro", "nunca-comprou"],
+  levariaHoje: ["frete", "parcelas", "fotos", "tamanho", "estampas", "prazo", "avaliacoes", "preco", "cupom", "ja-compro"],
+  compraPara: ["para-mim", "presente", "para-evento", "revenda"],
+  canalPreferido: ["site", "whatsapp", "instagram", "feira", "marketplace"],
+  achou: ["achou-sim", "achou-pouco", "achou-nao"],
 } as const;
+
+/** Gatilhos que só existem dentro do Kambada Play: quem respondeu por eles usou o Play. */
+export const GATILHOS_PLAY = ["quiz", "memoria", "arraial", "hq"];
 
 export const ROTULOS: Record<string, string> = {
   sim: "Sim",
@@ -76,6 +85,29 @@ export const ROTULOS: Record<string, string> = {
   investidor: "Investidor / fundo / apoiador",
   inovacao: "Incubadora / hub / ambiente de inovação",
   outra: "Outra",
+  "comprou-site": "Já comprei pelo site",
+  "comprou-outro": "Já comprei (feira, WhatsApp, Instagram)",
+  "nunca-comprou": "Ainda não comprei",
+  frete: "Frete mais barato ou grátis",
+  parcelas: "Parcelar em mais vezes",
+  fotos: "Mais fotos ou vídeo da peça",
+  tamanho: "Saber melhor tamanho e caimento",
+  estampas: "Mais estampas e modelos",
+  prazo: "Prazo de entrega menor",
+  avaliacoes: "Ver avaliações de quem comprou",
+  preco: "Preço menor",
+  cupom: "Cupom ou brinde",
+  "ja-compro": "Nada: eu já compraria",
+  "para-mim": "Para mim",
+  presente: "Presente",
+  "para-evento": "Evento, grupo ou empresa",
+  revenda: "Revender",
+  site: "No site",
+  feira: "Em feira ou evento",
+  marketplace: "Shopee / Mercado Livre",
+  "achou-sim": "Sim, achei fácil",
+  "achou-pouco": "Mais ou menos",
+  "achou-nao": "Não achei",
   "ate-50": "Até 50",
   "51-200": "51 a 200",
   "201-1000": "201 a 1.000",
@@ -113,6 +145,14 @@ export type Resposta = {
   alcance?: (typeof OPCOES.alcance)[number];
   interessePiloto?: (typeof OPCOES.interessePiloto)[number];
   topaTeste?: (typeof OPCOES.topaTeste)[number];
+  comprou?: (typeof OPCOES.comprou)[number];
+  levariaHoje?: (typeof OPCOES.levariaHoje)[number][];
+  compraPara?: (typeof OPCOES.compraPara)[number];
+  canalPreferido?: (typeof OPCOES.canalPreferido)[number];
+  achou?: (typeof OPCOES.achou)[number];
+  pecaDesejada?: string;
+  /** Marcado pelo servidor: conta do Play ligada ou resposta dada de dentro do Play (jogo/HQ). */
+  usouPlay?: boolean;
   /** E-mail ou WhatsApp deixado de propósito, para a Kambada retornar. */
   contato?: string;
   /** De onde veio quem respondeu (utm/referência). */
@@ -174,6 +214,15 @@ export function validarResposta(corpo: Record<string, unknown>, agora = new Date
     interessePiloto: cargoDirecao === "sim" ? umaDas(corpo.interessePiloto, OPCOES.interessePiloto) : undefined,
     topaTeste: umaDas(corpo.topaTeste, OPCOES.topaTeste),
     contato: texto(corpo.contato, 100),
+    comprou: umaDas(corpo.comprou, OPCOES.comprou),
+    levariaHoje: Array.isArray(corpo.levariaHoje)
+      ? [...new Set(corpo.levariaHoje.map((c) => umaDas(c, OPCOES.levariaHoje)).filter((c) => c !== undefined))]
+      : [],
+    compraPara: umaDas(corpo.compraPara, OPCOES.compraPara),
+    canalPreferido: umaDas(corpo.canalPreferido, OPCOES.canalPreferido),
+    achou: umaDas(corpo.achou, OPCOES.achou),
+    pecaDesejada: texto(corpo.pecaDesejada, 200),
+    usouPlay: Boolean(emailDaConta) || GATILHOS_PLAY.includes(texto(corpo.gatilho, 40) ?? ""),
     atribuicao: lerAtribuicao(corpo.origemVisita),
     pagina: texto(corpo.pagina, 200)?.replace(/[?#].*$/, ""),
     gatilho: texto(corpo.gatilho, 40),
@@ -181,7 +230,8 @@ export function validarResposta(corpo: Record<string, unknown>, agora = new Date
   };
   const temAlgo =
     r.nota || r.funcionou || r.problema || r.curtiu.length || r.sugestao || r.valorPlay || r.assinaria || r.origem || r.comentario ||
-    r.perfil || r.confirmaDor || r.frequenciaBusca || r.conseguiu || r.recomendaria !== undefined || r.aprendeu || r.cargoDirecao || r.topaTeste;
+    r.perfil || r.confirmaDor || r.frequenciaBusca || r.conseguiu || r.recomendaria !== undefined || r.aprendeu || r.cargoDirecao || r.topaTeste ||
+    r.comprou || r.levariaHoje?.length || r.compraPara || r.canalPreferido || r.achou || r.pecaDesejada;
   return temAlgo ? r : null;
 }
 
@@ -239,6 +289,15 @@ function idades(rs: Resposta[]) {
   };
 }
 
+/** Respostas anteriores a 27/10 não têm o marcador: valem conta ligada ou gatilho de jogo. */
+export const usouPlayDe = (r: Resposta) => r.usouPlay ?? (Boolean(r.email) || GATILHOS_PLAY.includes(r.gatilho ?? ""));
+
+/** Filtra por período (datas AAAA-MM-DD, inclusivas, fuso de São Luís). Sem datas, devolve tudo. */
+export function filtrarPeriodo(rs: Resposta[], de?: string | null, ate?: string | null): Resposta[] {
+  const dia = (r: Resposta) => new Date(new Date(r.em).getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+  return rs.filter((r) => (!de || dia(r) >= de) && (!ate || dia(r) <= ate));
+}
+
 const pct = (parte: number, todo: number) => (todo ? Math.round((parte / todo) * 1000) / 10 : null);
 
 /**
@@ -292,6 +351,19 @@ export function indicadoresMit(rs: Resposta[]) {
   };
 }
 
+/** Loja e compra: n = quem respondeu cada pergunta. */
+export function indicadoresLoja(rs: Resposta[]) {
+  const n = (k: keyof Resposta) => rs.filter((r) => r[k] !== undefined && r[k] !== "").length;
+  return {
+    comprou: { n: n("comprou"), distribuicao: contar(rs.map((r) => r.comprou)) },
+    levariaHoje: { n: rs.filter((r) => r.levariaHoje?.length).length, distribuicao: contar(rs.flatMap((r) => r.levariaHoje ?? [])) },
+    compraPara: { n: n("compraPara"), distribuicao: contar(rs.map((r) => r.compraPara)) },
+    canalPreferido: { n: n("canalPreferido"), distribuicao: contar(rs.map((r) => r.canalPreferido)) },
+    achou: { n: n("achou"), distribuicao: contar(rs.map((r) => r.achou)) },
+    pecasDesejadas: rs.map((r) => r.pecaDesejada).filter((t): t is string => Boolean(t)),
+  };
+}
+
 export function resumir(rs: Resposta[]) {
   const notas = rs.map((r) => r.nota).filter((n): n is number => typeof n === "number");
   return {
@@ -304,21 +376,35 @@ export function resumir(rs: Resposta[]) {
     origem: contar(rs.map((r) => r.origem)),
     ...idades(rs),
     mit: indicadoresMit(rs),
+    // Mesmos indicadores só sobre quem usou o Play (conta ligada ou jogo/HQ) — o "entrevistado válido" do ICTG.
+    usuariosPlay: rs.filter(usouPlayDe).length,
+    mitPlay: indicadoresMit(rs.filter(usouPlayDe)),
+    loja: indicadoresLoja(rs),
+    periodo: rs.length ? { de: rs[0].em.slice(0, 10), ate: rs[rs.length - 1].em.slice(0, 10) } : null,
   };
 }
 
 const COLUNAS: (keyof Resposta)[] = [
   "em", "nome", "idade", "email", "nota", "funcionou", "problema", "curtiu", "sugestao", "valorPlay", "assinaria", "origem", "comentario",
   "perfil", "cidade", "confirmaDor", "frequenciaBusca", "conseguiu", "recomendaria", "aprendeu", "cargoDirecao", "tipoInstituicao", "instituicao", "alcance", "interessePiloto", "topaTeste", "contato",
+  "comprou", "levariaHoje", "compraPara", "canalPreferido", "achou", "pecaDesejada", "usouPlay",
   "pagina", "gatilho", "largura",
 ];
 
-export function respostasParaCsv(rs: Resposta[]): string {
+/** Campos que identificam pessoa ou instituição: ficam de fora da exportação para o ICTG. */
+const PESSOAIS: (keyof Resposta)[] = ["nome", "email", "contato", "instituicao"];
+
+/** CSV anonimizado (sem nome, e-mail, contato ou instituição), com data da resposta e marcador de quem usou o Play. */
+export function respostasParaCsvIctg(rs: Resposta[]): string {
+  return respostasParaCsv(rs.map((r) => ({ ...r, usouPlay: usouPlayDe(r) })), COLUNAS.filter((c) => !PESSOAIS.includes(c)));
+}
+
+export function respostasParaCsv(rs: Resposta[], colunas: (keyof Resposta)[] = COLUNAS): string {
   const cel = (v: unknown) => {
     const s = Array.isArray(v) ? v.map((x) => ROTULOS[x] ?? x).join(" | ") : v === undefined ? "" : String(ROTULOS[String(v)] ?? v);
     // Planilha não executa fórmula vinda de texto livre.
     const seguro = /^[=+\-@]/.test(s) ? `'${s}` : s;
     return `"${seguro.replace(/"/g, '""')}"`;
   };
-  return "﻿" + [COLUNAS.join(";"), ...rs.map((r) => COLUNAS.map((c) => cel(r[c])).join(";"))].join("\r\n");
+  return "﻿" + [colunas.join(";"), ...rs.map((r) => colunas.map((c) => cel(r[c])).join(";"))].join("\r\n");
 }

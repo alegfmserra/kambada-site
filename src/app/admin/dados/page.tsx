@@ -124,6 +124,45 @@ export default async function PaginaDados() {
         <Contagem titulo="F1.4 Pessoas atendidas pelas instituições" dados={r.mit.F1_4_alcanceInstituicoes} />
       </div>
 
+      <h2 className="mt-10 font-display text-xl font-bold">Só quem usou o Play ({r.usuariosPlay})</h2>
+      <p className="mt-1 text-sm text-texto-suave">Conta do Play ligada ou resposta dada de dentro de jogo/HQ. É o grupo que vale para NPS, “sem ajuda” e “falta material” no ICTG.</p>
+      <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {(
+          [
+            ["Falta material (n)", `${r.mitPlay.F1_2_confirmaDor.pct ?? "—"}% (${r.mitPlay.F1_2_confirmaDor.n})`],
+            ["Sem ajuda (n)", `${r.mitPlay.F2_2_conseguiu.pctSemAjuda ?? "—"}% (${r.mitPlay.F2_2_conseguiu.n})`],
+            ["NPS do Play (n)", `${r.mitPlay.F2_3_nps.nps ?? "—"} (${r.mitPlay.F2_3_nps.n})`],
+          ] as [string, string][]
+        ).map(([k, v]) => (
+          <li key={k} className={CARTAO}>
+            <p className="text-xs text-texto-suave">{k}</p>
+            <p className="font-display text-2xl font-bold">{v}</p>
+          </li>
+        ))}
+      </ul>
+      <form action="/admin/exportar-ictg" method="get" className={`${CARTAO} mt-3 flex flex-wrap items-end gap-3`}>
+        <label className="text-sm">De<input type="date" name="de" className="ml-2 rounded-lg border border-borda bg-fundo px-2 py-1" /></label>
+        <label className="text-sm">Até<input type="date" name="ate" className="ml-2 rounded-lg border border-borda bg-fundo px-2 py-1" /></label>
+        <button type="submit" className="rounded-full bg-kambada-amarelo px-5 py-2 text-sm font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro">Baixar para o ICTG (anonimizado)</button>
+        <p className="w-full text-xs text-texto-suave">CSV sem nome, e-mail, contato nem instituição; com data, o marcador “usou o Play” e as respostas. Deixe as datas em branco para tudo.</p>
+      </form>
+
+      <h2 className="mt-10 font-display text-xl font-bold">Loja e compra</h2>
+      <p className="mt-1 text-sm text-texto-suave">O que as pessoas dizem sobre achar, comprar e o que as faria levar uma peça.</p>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <Contagem titulo={`O que faria levar uma peça hoje (n=${r.loja.levariaHoje.n})`} dados={r.loja.levariaHoje.distribuicao} />
+        <Contagem titulo={`Já comprou? (n=${r.loja.comprou.n})`} dados={r.loja.comprou.distribuicao} />
+        <Contagem titulo={`Compraria para (n=${r.loja.compraPara.n})`} dados={r.loja.compraPara.distribuicao} />
+        <Contagem titulo={`Canal preferido (n=${r.loja.canalPreferido.n})`} dados={r.loja.canalPreferido.distribuicao} />
+        <Contagem titulo={`Achou fácil o que procurava? (n=${r.loja.achou.n})`} dados={r.loja.achou.distribuicao} />
+      </div>
+      {r.loja.pecasDesejadas.length > 0 && (
+        <div className={`${CARTAO} mt-3`}>
+          <h3 className="font-display font-bold">Peças que sentem falta</h3>
+          <ul className="mt-2 list-disc pl-5 text-sm">{r.loja.pecasDesejadas.map((t, i) => (<li key={i}>{t}</li>))}</ul>
+        </div>
+      )}
+
       <h2 className="mt-10 font-display text-xl font-bold">Conversão por origem</h2>
       <p className="mt-1 text-sm text-texto-suave">De onde vieram as contas do Play, os pedidos e as respostas da pesquisa (marcadores utm_* nos links ou o site de referência). Visitas por canal: Google Analytics 4 e GoatCounter.</p>
       <div className={`${CARTAO} mt-3 overflow-x-auto`}>

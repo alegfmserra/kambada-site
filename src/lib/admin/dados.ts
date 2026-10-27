@@ -66,6 +66,9 @@ export function resumoGeral(d: Dados) {
     origem: pesquisa.origem,
     curtiu: pesquisa.curtiu,
     mit: pesquisa.mit,
+    mitPlay: pesquisa.mitPlay,
+    usuariosPlay: pesquisa.usuariosPlay,
+    loja: pesquisa.loja,
     sugestoes,
     cupons: d.cupons.length,
     cuponsAtivos: d.cupons.filter((c) => c.ativo).length,
@@ -187,6 +190,36 @@ export async function montarPlanilha(d: Dados, agora = new Date()): Promise<Buff
   for (const [titulo, dist] of blocosMit) {
     res.addRow([`  ${titulo}`]).font = { name: "Arial", size: 10, italic: true };
     for (const [k, v] of Object.entries(dist)) res.addRow([`    ${k}`, v]).font = { name: "Arial", size: 10 };
+  }
+  res.addRow([]);
+  res.addRow([`Mesmos indicadores só sobre quem USOU o Play (conta ligada ou resposta dada de dentro de jogo/HQ) — ${r.usuariosPlay} resposta(s)`]).font = { name: "Arial", size: 10, bold: true };
+  const mp = r.mitPlay;
+  const linhasPlay: [string, unknown][] = [
+    ["F1.2 Confirmam a dor — n", mp.F1_2_confirmaDor.n],
+    ["F1.2 Confirmam a dor — %", mp.F1_2_confirmaDor.pct ?? "—"],
+    ["F2.2 Conseguiram sem ajuda — n", mp.F2_2_conseguiu.n],
+    ["F2.2 Conseguiram sem ajuda — % (autodeclarado)", mp.F2_2_conseguiu.pctSemAjuda ?? "—"],
+    ["F2.3 NPS do Play — n", mp.F2_3_nps.n],
+    ["F2.3 NPS do Play (%)", mp.F2_3_nps.nps ?? "—"],
+  ];
+  for (const [k, v] of linhasPlay) res.addRow([`  ${k}`, v]).font = { name: "Arial", size: 10 };
+  res.addRow([]);
+  res.addRow(["Loja e compra (n = quem respondeu a pergunta)"]).font = { name: "Arial", size: 10, bold: true };
+  const lj = r.loja;
+  const blocosLoja: [string, { n: number; distribuicao: Record<string, number> }][] = [
+    ["Já comprou?", lj.comprou],
+    ["O que faria levar uma peça hoje", lj.levariaHoje],
+    ["Compraria para", lj.compraPara],
+    ["Canal preferido para comprar", lj.canalPreferido],
+    ["Achou fácil o que procurava?", lj.achou],
+  ];
+  for (const [titulo, b] of blocosLoja) {
+    res.addRow([`  ${titulo} (n=${b.n})`]).font = { name: "Arial", size: 10, italic: true };
+    for (const [k, v] of Object.entries(b.distribuicao)) res.addRow([`    ${k}`, v]).font = { name: "Arial", size: 10 };
+  }
+  if (lj.pecasDesejadas.length) {
+    res.addRow(["  Peças que sentem falta"]).font = { name: "Arial", size: 10, italic: true };
+    for (const t of lj.pecasDesejadas) res.addRow([`    ${t}`]).font = { name: "Arial", size: 10 };
   }
   res.addRow([]);
   res.addRow(["Pagamentos de assinatura do Play: a cobrança ainda não foi ligada — não há pagamentos a listar."]).font = { name: "Arial", size: 9, italic: true };

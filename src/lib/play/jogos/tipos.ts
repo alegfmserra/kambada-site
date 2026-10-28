@@ -1,12 +1,13 @@
 /** Tipos compartilhados entre servidor e navegador (sem código de servidor). */
 
-export type JogoId = "quiz" | "memoria" | "arraial";
+export type JogoId = "quiz" | "memoria" | "arraial" | "quebra";
 
 /** Teto de pontos por partida (no nível difícil, com multiplicador). */
 export const JOGOS: Record<JogoId, { nome: string; maximo: number }> = {
   quiz: { nome: "Éguas! Quem é quem?", maximo: 3000 },
   memoria: { nome: "Memória das estampas", maximo: 2000 },
   arraial: { nome: "Arraial da Kambada", maximo: 1000 },
+  quebra: { nome: "Quebra-cabeça das estampas", maximo: 2000 },
 };
 
 // --- Níveis de dificuldade -------------------------------------------------
@@ -35,6 +36,13 @@ export const MEMORIA_NIVEL: Record<Nivel, { pares: number; multiplicador: number
   facil: { pares: 6, multiplicador: 1, embaralhaApos: null },
   medio: { pares: 8, multiplicador: 1.5, embaralhaApos: null },
   dificil: { pares: 12, multiplicador: 2, embaralhaApos: 3 },
+};
+
+/** Quebra-cabeça: colunas × linhas (peças quadradas) e multiplicador. 12, 20 e 40 peças. */
+export const QUEBRA_NIVEL: Record<Nivel, { colunas: number; linhas: number; multiplicador: number }> = {
+  facil: { colunas: 4, linhas: 3, multiplicador: 1 },
+  medio: { colunas: 5, linhas: 4, multiplicador: 1.5 },
+  dificil: { colunas: 8, linhas: 5, multiplicador: 2 },
 };
 
 // --- Avatares e placar ----------------------------------------------------

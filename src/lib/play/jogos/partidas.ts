@@ -16,7 +16,7 @@ import { arquivoTokens } from "../../bling/tokens";
  * começou e chegou ao fim.
  */
 
-export type JogoPartida = "quiz" | "memoria" | "arraial";
+export type JogoPartida = "quiz" | "memoria" | "arraial" | "palavra" | "quebra";
 export type EventoPartida = {
   em: string;
   jogo: JogoPartida;
@@ -72,7 +72,7 @@ export function filtrarPartidasPorPeriodo(es: EventoPartida[], de?: string | nul
 }
 
 export function resumirPartidas(es: EventoPartida[]) {
-  const jogos: JogoPartida[] = ["quiz", "memoria", "arraial"];
+  const jogos: JogoPartida[] = ["quiz", "memoria", "arraial", "palavra", "quebra"];
   const porJogo: Record<string, { iniciadas: number; concluidas: number; taxa: number | null }> = {};
   for (const j of jogos) {
     const iniciadas = es.filter((e) => e.jogo === j && e.tipo === "inicio").length;

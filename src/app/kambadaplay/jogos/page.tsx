@@ -29,6 +29,33 @@ const JOGOS = [
     ranking: true,
   },
   {
+    href: "/kambadaplay/jogos/palavra",
+    selo: "Todo dia",
+    titulo: "Palavra do dia maranhense",
+    texto: "5 letras, 6 tentativas e uma palavra do Maranhão por dia. Acertou? Aprenda o significado e compartilhe.",
+    imagem: "/kambadaplay/images/atelie/placa-coreira.webp",
+    acao: "Jogar a palavra do dia",
+    ranking: false,
+  },
+  {
+    href: "/kambadaplay/jogos/quebra",
+    selo: "Quebra-cabeça",
+    titulo: "Quebra-cabeça das estampas",
+    texto: "Monte as artes da Kambada em 12, 20 ou 40 peças. Menos trocas e mais rapidez, mais pontos.",
+    imagem: "/kambadaplay/jogos/memoria/camisa-alusiva-sao-luis.webp",
+    acao: "Montar uma arte",
+    ranking: true,
+  },
+  {
+    href: "/kambadaplay/jogos/matraca",
+    selo: "Criar",
+    titulo: "Monte sua matraca",
+    texto: "Escolha o tamanho, a estampa e o suporte e veja a sua matraca. Gostou? Peça pelo WhatsApp.",
+    imagem: "/fotos/matraca-play.webp",
+    acao: "Montar minha matraca",
+    ranking: false,
+  },
+  {
     href: "/kambadaplay/arraial",
     selo: "Aventura",
     titulo: "Arraial da Kambada",
@@ -51,7 +78,7 @@ export default function JogosPage() {
           Aprenda a cultura maranhense brincando e suba no ranking da semana.
         </p>
 
-        <ul className="mt-10 grid gap-6 md:grid-cols-3">
+        <ul className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {JOGOS.map((j) => (
             <li key={j.href}>
               <Link

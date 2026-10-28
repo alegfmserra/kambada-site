@@ -38,6 +38,7 @@ const ABAS: { id: JogoId | "geral"; rotulo: string }[] = [
   { id: "quiz", rotulo: JOGOS.quiz.nome },
   { id: "memoria", rotulo: JOGOS.memoria.nome },
   { id: "arraial", rotulo: JOGOS.arraial.nome },
+  { id: "quebra", rotulo: JOGOS.quebra.nome },
 ];
 
 const MEDALHAS = ["🥇", "🥈", "🥉"];

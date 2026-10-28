@@ -42,7 +42,7 @@ export const OPCOES = {
 export { PRECOS_TESTE };
 
 /** Gatilhos que só existem dentro do Kambada Play: quem respondeu por eles usou o Play. */
-export const GATILHOS_PLAY = ["quiz", "memoria", "arraial", "hq", "video"];
+export const GATILHOS_PLAY = ["quiz", "memoria", "arraial", "hq", "video", "quebra", "palavra", "matraca"];
 
 export const ROTULOS: Record<string, string> = {
   sim: "Sim",

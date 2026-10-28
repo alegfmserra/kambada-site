@@ -123,6 +123,7 @@ export function registrarEventos(
       total.diariasConcluidas.push(...r.ganho.diariasConcluidas);
       if (r.ganho.subiuPara) total.subiuPara = r.ganho.subiuPara;
       if (r.ganho.bonusSequencia) total.bonusSequencia = r.ganho.bonusSequencia;
+      if (r.ganho.amizade) total.amizade = r.ganho.amizade;
       if (r.ganho.itensNovos) total.itensNovos = [...(total.itensNovos ?? []), ...r.ganho.itensNovos];
     }
     d.perfis[contaId] = atual;

@@ -9,6 +9,7 @@ import {
   type Slot,
   type Visual,
 } from "./itens";
+import { AMIGOS, CONVERSAS_POR_CORACAO, coracoesDe, MAX_CORACOES } from "./amizades";
 import type { NpcId } from "./missoesArraial";
 
 /**
@@ -128,6 +129,8 @@ export type Perfil = {
   visual: Visual;
   /** Último dia em que o baú foi aberto. */
   bauDia: string;
+  /** Conversas novas com cada personagem (vira corações de amizade). */
+  amizade: Record<string, number>;
 };
 
 export function perfilNovo(): Perfil {
@@ -142,6 +145,7 @@ export function perfilNovo(): Perfil {
     inventario: [],
     visual: visualInicial(),
     bauDia: "",
+    amizade: {},
   };
 }
 
@@ -154,6 +158,7 @@ export function completar(p: Partial<Perfil>): Perfil {
     inventario: Array.isArray(p.inventario) ? p.inventario : [],
     visual: { ...novo.visual, ...(p.visual ?? {}) },
     bauDia: typeof p.bauDia === "string" ? p.bauDia : "",
+    amizade: p.amizade && typeof p.amizade === "object" ? p.amizade : {},
   };
 }
 
@@ -177,6 +182,19 @@ export type PerfilPublico = {
   colecao: ItemPublico[];
   /** O baú de hoje ainda não foi aberto. */
   bauPronto: boolean;
+  amigos: AmigoPublico[];
+};
+
+export type AmigoPublico = {
+  id: string;
+  nome: string;
+  coracoes: number;
+  conversas: number;
+  /** Conversas que faltam para o próximo coração (null com 5). */
+  faltam: number | null;
+  /** Só as histórias já abertas; `fechadas` conta as que ainda faltam. */
+  historias: { titulo: string; texto: string }[];
+  fechadas: number;
 };
 
 export type ItemPublico = {
@@ -196,6 +214,8 @@ export type Ganho = {
   bonusSequencia?: number;
   /** Nomes dos itens que passaram a valer neste evento (nível ou sequência). */
   itensNovos?: string[];
+  /** Nome do personagem que ganhou um coração de amizade neste evento. */
+  amizade?: string;
 };
 
 function diaAnterior(dia: string): string {
@@ -229,6 +249,20 @@ export function publico(p: Perfil, dia: string): PerfilPublico {
       return { id: i.id, nome: i.nome, slot: i.slot, ficha: i.ficha, tem, requisito: tem ? "" : textoDoRequisito(i.requisito) };
     }),
     bauPronto: p.bauDia !== dia,
+    amigos: AMIGOS.map((a) => {
+      const conversas = p.amizade[a.id] ?? 0;
+      const coracoes = coracoesDe(conversas);
+      const abertas = a.historias.filter((h) => coracoes >= h.coracoes);
+      return {
+        id: a.id,
+        nome: a.nome,
+        coracoes,
+        conversas,
+        faltam: coracoes < MAX_CORACOES ? CONVERSAS_POR_CORACAO[coracoes] - conversas : null,
+        historias: abertas.map((h) => ({ titulo: h.titulo, texto: h.texto })),
+        fechadas: a.historias.length - abertas.length,
+      };
+    }),
   };
 }
 
@@ -273,6 +307,11 @@ export function aplicarEvento(antes: Perfil, evento: Evento, dia: string): { per
   if (evento.tipo === "conversa") {
     p.conversas += 1;
     base = XP.pista;
+    const antesC = coracoesDe(p.amizade[evento.npc] ?? 0);
+    p.amizade[evento.npc] = (p.amizade[evento.npc] ?? 0) + 1;
+    if (coracoesDe(p.amizade[evento.npc]) > antesC) {
+      ganho.amizade = AMIGOS.find((a) => a.id === evento.npc)?.nome;
+    }
   } else if (evento.tipo === "acerto") {
     p.acertos += 1;
     base = XP.acerto;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { HISTORIAS_REVISADAS } from "@/lib/play/jogos/amizades";
 import { FICHAS_REVISADAS, SLOTS, type Slot } from "@/lib/play/jogos/itens";
 import type { ItemPublico, PerfilPublico } from "@/lib/play/jogos/perfil";
 import { chamar } from "@/components/play/jogos/jogador";
@@ -8,7 +9,8 @@ import { emitirPerfil } from "./perfilStore";
 
 const NOME_DO_SLOT: Record<Slot, string> = { chapeu: "Chapéu", camisa: "Camisa", fita: "Fita do chapéu" };
 
-type Aba = "vestir" | "colecao";
+type Aba = "vestir" | "colecao" | "amigos";
+const NOME_DA_ABA: Record<Aba, string> = { vestir: "Vestir", colecao: "Coleção", amigos: "Amigos" };
 
 /** Janela "Meu brincante": trocar o visual do personagem, ver a coleção com as fichas e abrir o baú do dia. */
 export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar: () => void }) {
@@ -54,7 +56,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
   const tens = perfil.colecao.filter((i) => i.tem).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center" onClick={aoFechar}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-3 pb-3 pt-16 sm:items-center" onClick={aoFechar}>
       <div
         role="dialog"
         aria-modal="true"
@@ -89,7 +91,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
         ) : null}
 
         <div role="tablist" aria-label="Seções" className="mt-3 flex gap-2 text-[12px] font-bold">
-          {(["vestir", "colecao"] as const).map((a) => (
+          {(["vestir", "colecao", "amigos"] as const).map((a) => (
             <button
               key={a}
               role="tab"
@@ -98,7 +100,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
               onClick={() => setAba(a)}
               className={`rounded-full px-3 py-1 ${aba === a ? "bg-kambada-gold text-kambada-ink" : "bg-kambada-cream/10"}`}
             >
-              {a === "vestir" ? "Vestir" : "Coleção"}
+              {NOME_DA_ABA[a]}
             </button>
           ))}
         </div>
@@ -117,6 +119,31 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
             ))}
             <p className="text-[11px] text-kambada-cream/60">Itens novos chegam com o nível, com dias seguidos e no baú do dia.</p>
           </div>
+        ) : aba === "amigos" ? (
+          <ul className="mt-3 space-y-2">
+            {perfil.amigos.map((a) => (
+              <li key={a.id} className="rounded-lg bg-kambada-cream/10 p-2 text-[12px]">
+                <p className="font-bold">
+                  {a.nome}{" "}
+                  <span aria-label={`${a.coracoes} de 5 corações`} className="text-kambada-gold">
+                    {"♥".repeat(a.coracoes)}
+                    <span className="text-kambada-cream/30">{"♥".repeat(5 - a.coracoes)}</span>
+                  </span>
+                </p>
+                <p className="text-kambada-cream/60">
+                  {a.faltam === null ? "Amizade completa!" : `Mais ${a.faltam} ${a.faltam === 1 ? "conversa" : "conversas"} para o próximo coração`}
+                </p>
+                {a.historias.map((h) => (
+                  <details key={h.titulo} className="mt-1">
+                    <summary className="cursor-pointer font-bold text-kambada-gold">{h.titulo}</summary>
+                    <p className="mt-0.5 text-kambada-cream/85">{h.texto}</p>
+                  </details>
+                ))}
+                {a.fechadas ? <p className="mt-1 text-kambada-cream/50">🔒 {a.fechadas === 1 ? "1 história" : `${a.fechadas} histórias`} para abrir</p> : null}
+              </li>
+            ))}
+            {!HISTORIAS_REVISADAS ? <li className="text-[11px] text-kambada-cream/60">Histórias em revisão com mestres e brincantes: algumas palavras ainda podem mudar.</li> : null}
+          </ul>
         ) : (
           <ul className="mt-3 space-y-2">
             {[...colecionaveis, ...perfil.colecao.filter((i) => i.slot)].map((i) => (

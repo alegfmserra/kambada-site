@@ -9,6 +9,7 @@ import { useMediaQuery } from "@/lib/play/mediaQuery";
 import { Scene } from "@/components/play/arraial/Scene";
 import { Joystick } from "@/components/play/arraial/Joystick";
 import { HudTopo, Dialogo, Celebracao } from "@/components/play/arraial/Hud";
+import { PerfilHud, emitirPerfil } from "@/components/play/arraial/PerfilHud";
 import { DesafioArraial, DialogoMissao } from "@/components/play/arraial/Missao";
 import { chamar } from "@/components/play/jogos/jogador";
 import type { MissaoPublica, PerguntaArraial } from "@/lib/play/jogos/arraial";
@@ -69,8 +70,9 @@ export default function ArraialApp() {
       track("arraial_fitinha", { npc, total: f.length + 1 });
       return [...f, npc];
     });
-    const r = await chamar<{ estado: string }>("/api/play/arraial", { acao: "pista", estado: estadoRef.current, npc });
+    const r = await chamar<{ estado: string } & Parameters<typeof emitirPerfil>[0]>("/api/play/arraial", { acao: "pista", estado: estadoRef.current, npc });
     if (r.ok) estadoRef.current = r.estado;
+    emitirPerfil(r);
   }, []);
 
   const abrirDesafio = useCallback(async () => {
@@ -293,6 +295,7 @@ export default function ArraialApp() {
       />
 
       <HudTopo fitinhas={fitinhas} />
+      <PerfilHud />
 
       {/* Mapa da festa: abaixo do título, alcançável por teclado (M) e toque */}
       <button

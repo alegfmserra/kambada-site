@@ -116,7 +116,7 @@ function embaralhar<T>(lista: T[]): T[] {
   return a;
 }
 
-/** Missões do mês (AAAA-MM no horário de São Luís). Sem missão revisada, usa a mais recente como prévia. */
+/** Missões do mês (AAAA-MM no horário de São Luís). Sem missão revisada, todas as do mês rodam como prévia. */
 export function missoesAtivas(agora = new Date(), lista: Missao[] = MISSOES): Missao[] {
   const mes = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza", year: "numeric", month: "2-digit" })
     .format(agora)
@@ -124,7 +124,8 @@ export function missoesAtivas(agora = new Date(), lista: Missao[] = MISSOES): Mi
   const doMes = lista.filter((m) => m.temporadas === "sempre" || m.temporadas.includes(mes));
   const revisadas = doMes.filter((m) => m.revisado);
   if (revisadas.length) return revisadas;
-  return doMes.length ? [doMes[doMes.length - 1]] : [lista[lista.length - 1]];
+  // Nenhuma revisada ainda: todas as do mês rodam como prévia (o jogador vê missões diferentes).
+  return doMes.length ? doMes : [lista[lista.length - 1]];
 }
 
 function lerEstado(token: unknown, agora: number): { estado: Estado; missao: Missao } | { erro: string } {

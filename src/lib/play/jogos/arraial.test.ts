@@ -53,7 +53,7 @@ describe("arraial — missões", () => {
     expect(JSON.stringify(missao)).not.toContain("perguntas");
   });
 
-  it("sem missão revisada, roda a mais recente como prévia", () => {
+  it("sem missão revisada, todas as do mês rodam como prévia", () => {
     const m = { ...MISSOES[0], revisado: false, temporadas: ["2026-11"] } as Missao;
     expect(missoesAtivas(new Date("2026-11-10T12:00:00Z"), [m])).toEqual([m]);
     const r = { ...m, id: "revisada", revisado: true };

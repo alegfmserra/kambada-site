@@ -10,6 +10,7 @@ import type { NpcId } from "@/lib/play/jogos/missoesArraial";
 import { prenderFoco } from "@/lib/play/focusTrap";
 import { track } from "@/lib/play/track";
 import { Typewriter } from "./Hud";
+import { emitirPerfil } from "./PerfilHud";
 
 const BOTAO_OURO =
   "toque-matraca rounded-full bg-kambada-gold px-5 py-2 font-body text-sm font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold";
@@ -222,8 +223,9 @@ export function DesafioArraial({
     if (enviando || resultado) return;
     setEscolhida(i);
     setEnviando(true);
-    const r = await chamar<RespostaArraial>("/api/play/arraial", { acao: "responder", estado, escolha: i, pulou });
+    const r = await chamar<RespostaArraial & Parameters<typeof emitirPerfil>[0]>("/api/play/arraial", { acao: "responder", estado, escolha: i, pulou });
     setEnviando(false);
+    emitirPerfil(r);
     if (!r.ok) {
       setErro(r.mensagem ?? "Algo deu errado. Recarregue o arraial.");
       return;

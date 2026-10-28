@@ -120,4 +120,73 @@ export const MISSOES: Missao[] = [
       { enunciado: "Em que dia o boi é batizado?", opcoes: ["23 de junho, véspera de São João", "30 de junho", "1º de janeiro"], vocesabia: "Depois do batizado, o boi pode brincar. No fim do ciclo vem a morte do boi." },
     ],
   },
+  // Missão de novembro (mês do Tambor de Crioula e da Consciência Negra). Roteiro e fontes a conferir com
+  // mestres e brincantes antes de `revisado: true` (ver PLAY_arraial-rpg_plano-de-melhoria_2026-10-28.md).
+  {
+    id: "o-tambor-que-chama",
+    titulo: "O tambor que chama",
+    temporadas: ["2026-11"],
+    revisado: false,
+    anfitriao: "brincante",
+    conversas: {
+      brincante: {
+        falas: [
+          "Ouviu esse batuque? É o tambor de crioula chamando a roda! Aqui no Maranhão é uma dança de roda de origem africana, feita por gente que carrega essa história na pele e no pé.",
+          "É festa, é devoção e é resistência: a roda se junta pra dançar, cantar e tocar, e o tambor é o coração dela.",
+          "Em 2007 o tambor de crioula do Maranhão foi reconhecido como patrimônio cultural imaterial do Brasil.",
+          "Quer entender como o som nasce? Vai ver Seu Chico, lá na fogueira. Tem segredo no fogo!",
+        ],
+        pista: "O tambor de crioula é uma dança de roda de origem africana, patrimônio cultural imaterial do Brasil desde 2007.",
+        proximo: "fogueira",
+      },
+      fogueira: {
+        falas: [
+          "Chega perto! Antes de tocar, o tambor vai pro fogo. O calor estica o couro e deixa o som firme e bonito.",
+          "A roda tem três tambores, cada um com um papel: o tambor grande, o meão e o crivador.",
+          "Mas tambor sozinho não faz festa. Quem rodopia no meio? Vai perguntar a Zé e Francisca, que adoram uma dança.",
+        ],
+        pista: "O tambor é aquecido no fogo para o couro ficar firme. A roda tem três tambores: grande, meão e crivador.",
+        proximo: "noivos",
+      },
+      noivos: {
+        falas: [
+          "Ai, que dança linda! As dançadeiras se chamam coreiras, de saia rodada e colorida, e giram sem parar no meio da roda.",
+          "E o convite pra próxima dançar é a punga: um toque de barriga, a umbigada! Quem recebe entra na roda.",
+          "Muita roda é feita em devoção a São Benedito. Mas pra ver essas coreiras em arte, vai na barraca da Kambada.",
+        ],
+        pista: "As dançadeiras são as coreiras, de saia rodada. A punga é o toque de barriga que convida a próxima. Muitas rodas são em devoção a São Benedito.",
+        proximo: "barraca",
+      },
+      barraca: {
+        falas: [
+          "Olha só! Aqui na barraca a coreira e o coreiro viraram placas pintadas à mão, cada traço feito aqui no ateliê, em São Luís.",
+          "A gente pinta a saia rodada, o tambor e a alegria da roda pra levar um pedacinho dessa cultura pra casa.",
+          "Quer fechar o assunto? Vai ver o Boi Estrela: ele tem uma lembrança importante de novembro.",
+        ],
+        pista: "Na Kambada, a coreira e o coreiro viram placas pintadas à mão, feitas no ateliê em São Luís.",
+        proximo: "boi",
+      },
+      boi: {
+        falas: [
+          "Muuu! Eu sou boi, mas sou primo de festa do tambor: o Maranhão é cheio de brincadeiras que vêm da mistura de povos.",
+          "E em 20 de novembro tem o Dia da Consciência Negra, quando a gente lembra a luta do povo negro e valoriza as culturas de matriz africana, como o tambor de crioula.",
+          "Agora volta lá na Dona Ritinha: ela te faz o desafio!",
+        ],
+        pista: "20 de novembro é o Dia da Consciência Negra: lembra a luta do povo negro e valoriza culturas de matriz africana, como o tambor de crioula.",
+      },
+    },
+    falasDoDesafio: ["Voltou! Então senta aqui e vamos ver se o tambor falou com você."],
+    perguntas: [
+      { enunciado: "De que origem vem o tambor de crioula?", opcoes: ["Africana", "Europeia", "Asiática"], vocesabia: "É uma expressão de matriz africana, mantida e recriada no Maranhão." },
+      { enunciado: "Como se chama o toque de barriga que convida outra dançarina?", opcoes: ["Punga", "Anarriê", "Alavantu"], vocesabia: "A punga é a umbigada: quem recebe entra na roda." },
+      { enunciado: "O que se faz com o tambor antes de tocar?", opcoes: ["Aquece no fogo", "Molha no rio", "Pinta de azul"], vocesabia: "O calor estica o couro e deixa o som firme." },
+      { enunciado: "Quantos tambores tem a roda tradicional?", opcoes: ["Três", "Um", "Dez"], vocesabia: "O tambor grande, o meão e o crivador, cada um com seu papel." },
+      { enunciado: "Como se chamam as dançarinas do tambor de crioula?", opcoes: ["Coreiras", "Vaqueiras", "Quadrilheiras"], vocesabia: "As coreiras dançam de saia rodada e colorida." },
+      { enunciado: "Como é a saia das coreiras?", opcoes: ["Rodada e colorida", "Reta e preta", "Curta e de couro"], vocesabia: "A saia rodada abre e gira junto com a dança." },
+      { enunciado: "Que dia é o Dia da Consciência Negra?", opcoes: ["20 de novembro", "13 de maio", "7 de setembro"], vocesabia: "Em 20 de novembro se lembra a luta do povo negro e a força da cultura de matriz africana." },
+      { enunciado: "Em 2007, o tambor de crioula do Maranhão foi reconhecido como...", opcoes: ["Patrimônio cultural imaterial do Brasil", "Monumento natural", "Time de futebol"], vocesabia: "O reconhecimento é do IPHAN, o órgão do patrimônio cultural do Brasil." },
+      { enunciado: "A quem muitas rodas de tambor de crioula são dedicadas?", opcoes: ["São Benedito", "São Pedro", "Santo Antônio"], vocesabia: "A devoção a São Benedito está presente em muitas rodas." },
+      { enunciado: "Na barraca da Kambada, a coreira vira...", opcoes: ["Placa pintada à mão", "Pulseira de miçanga", "Camisa de linho"], vocesabia: "As placas da coreira e do coreiro são pintadas à mão, no ateliê, em São Luís." },
+    ],
+  },
 ];

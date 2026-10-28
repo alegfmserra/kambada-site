@@ -9,6 +9,8 @@ import { acento } from "@/lib/play/cores";
 import { usePrefereMenosMovimento } from "@/lib/play/movimento";
 import { hashDeterministico } from "@/lib/play/hash";
 import { useQualidade } from "./Qualidade";
+import { opcoesDoVisual } from "@/lib/play/jogos/itens";
+import { usePerfilAtual } from "./perfilStore";
 import { ENTRADA, RAIO_ANDAVEL } from "./mundo/layout";
 
 export type Colisor = { x: number; z: number; r: number };
@@ -85,6 +87,16 @@ export function Player({
   const menosMovimento = usePrefereMenosMovimento();
   const nivel = useQualidade();
   const poeiraDesligada = menosMovimento || nivel === "baixa";
+
+  // O que o brincante escolheu vestir (sem conta, fica o visual de sempre).
+  const escolhido = usePerfilAtual()?.visual;
+  const chapeuId = escolhido?.chapeu;
+  const camisaId = escolhido?.camisa;
+  const fitaId = escolhido?.fita;
+  const visualDoJogador = useMemo(
+    () => (chapeuId && camisaId && fitaId ? opcoesDoVisual({ chapeu: chapeuId, camisa: camisaId, fita: fitaId }) : undefined),
+    [chapeuId, camisaId, fitaId],
+  );
 
   // Poeira do chão ao andar: ativa enquanto o personagem se move e some parado.
   const geoPoeira = useMemo(() => {
@@ -343,7 +355,7 @@ export function Player({
   return (
     <group ref={grupo} position={[ENTRADA[0], 0, ENTRADA[1]]}>
       <group ref={visual}>
-        <Personagem traje="jogador" variante={1} estadoRef={estadoBoneco} />
+        <Personagem traje="jogador" variante={1} estadoRef={estadoBoneco} visual={visualDoJogador} />
       </group>
       <points ref={poeira} geometry={geoPoeira} visible={false}>
         <pointsMaterial

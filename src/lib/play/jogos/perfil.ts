@@ -1,3 +1,14 @@
+import {
+  idsDisponiveis,
+  item,
+  ITENS,
+  sortearDoBau,
+  textoDoRequisito,
+  visualInicial,
+  visualValido,
+  type Slot,
+  type Visual,
+} from "./itens";
 import type { NpcId } from "./missoesArraial";
 
 /**
@@ -36,6 +47,9 @@ export const XP = {
   desafioConcluido: 100,
   diaria: 30,
 } as const;
+
+/** XP do baú quando a coleção do baú já está completa. */
+export const XP_BAU_REPETIDO = 20;
 
 /** Teto do que se ganha por ação num dia; diárias e bônus de sequência ficam de fora. */
 export const TETO_DIARIO_XP = 400;
@@ -108,6 +122,12 @@ export type Perfil = {
   xpDoDia: { dia: string; valor: number };
   diarias: { dia: string; progresso: Record<string, number>; feitas: string[] };
   sequencia: { ultimoDia: string; atual: number; melhor: number };
+  /** Itens que só vêm do baú do dia (os de nível e sequência são deduzidos). */
+  inventario: string[];
+  /** Item vestido em cada slot. */
+  visual: Visual;
+  /** Último dia em que o baú foi aberto. */
+  bauDia: string;
 };
 
 export function perfilNovo(): Perfil {
@@ -119,7 +139,26 @@ export function perfilNovo(): Perfil {
     xpDoDia: { dia: "", valor: 0 },
     diarias: { dia: "", progresso: {}, feitas: [] },
     sequencia: { ultimoDia: "", atual: 0, melhor: 0 },
+    inventario: [],
+    visual: visualInicial(),
+    bauDia: "",
   };
+}
+
+/** Perfil gravado antes da Fase 2 não tem os campos novos: completa com o padrão. */
+export function completar(p: Partial<Perfil>): Perfil {
+  const novo = perfilNovo();
+  return {
+    ...novo,
+    ...p,
+    inventario: Array.isArray(p.inventario) ? p.inventario : [],
+    visual: { ...novo.visual, ...(p.visual ?? {}) },
+    bauDia: typeof p.bauDia === "string" ? p.bauDia : "",
+  };
+}
+
+function contextoDe(p: Perfil) {
+  return { nivel: nivelDoXp(p.xp), sequenciaMelhor: p.sequencia.melhor, inventario: p.inventario };
 }
 
 export type PerfilPublico = {
@@ -134,6 +173,20 @@ export type PerfilPublico = {
   diarias: { id: string; texto: string; meta: number; progresso: number; feita: boolean }[];
   /** Hoje já bateu o teto de XP por ação. */
   tetoAtingido: boolean;
+  visual: Visual;
+  colecao: ItemPublico[];
+  /** O baú de hoje ainda não foi aberto. */
+  bauPronto: boolean;
+};
+
+export type ItemPublico = {
+  id: string;
+  nome: string;
+  slot?: Slot;
+  ficha: string;
+  tem: boolean;
+  /** O que falta para ganhar (vazio se já tem ou é inicial). */
+  requisito: string;
 };
 
 export type Ganho = {
@@ -141,6 +194,8 @@ export type Ganho = {
   subiuPara?: { nivel: number; titulo: string };
   diariasConcluidas: string[];
   bonusSequencia?: number;
+  /** Nomes dos itens que passaram a valer neste evento (nível ou sequência). */
+  itensNovos?: string[];
 };
 
 function diaAnterior(dia: string): string {
@@ -154,6 +209,7 @@ export function publico(p: Perfil, dia: string): PerfilPublico {
   const hoje = p.diarias.dia === dia ? p.diarias : { dia, progresso: {}, feitas: [] as string[] };
   // A sequência só vale se foi hoje ou ontem; senão, já quebrou.
   const viva = p.sequencia.ultimoDia === dia || p.sequencia.ultimoDia === diaAnterior(dia);
+  const disponiveis = new Set(idsDisponiveis(contextoDe(p)));
   return {
     xp: p.xp,
     nivel,
@@ -167,13 +223,46 @@ export function publico(p: Perfil, dia: string): PerfilPublico {
       return { id, texto: m.texto, meta: m.meta, progresso: Math.min(m.meta, hoje.progresso[id] ?? 0), feita: hoje.feitas.includes(id) };
     }),
     tetoAtingido: p.xpDoDia.dia === dia && p.xpDoDia.valor >= TETO_DIARIO_XP,
+    visual: visualValido(p.visual, contextoDe(p)),
+    colecao: ITENS.map((i) => {
+      const tem = disponiveis.has(i.id);
+      return { id: i.id, nome: i.nome, slot: i.slot, ficha: i.ficha, tem, requisito: tem ? "" : textoDoRequisito(i.requisito) };
+    }),
+    bauPronto: p.bauDia !== dia,
   };
+}
+
+/** Veste um item do slot, se a conta já o tem. */
+export function equipar(antes: Perfil, slot: unknown, id: unknown): { perfil: Perfil } | { erro: string } {
+  const i = typeof id === "string" ? item(id) : undefined;
+  if (!i || !i.slot || i.slot !== slot) return { erro: "Esse item não serve nesse lugar." };
+  if (!idsDisponiveis(contextoDe(antes)).includes(i.id)) return { erro: "Você ainda não ganhou esse item." };
+  return { perfil: { ...antes, visual: { ...antes.visual, [i.slot]: i.id } } };
+}
+
+/** Abre o baú do dia (uma vez por dia): um item que falta, ou 20 de XP quando a coleção do baú está completa. */
+export function abrirBau(
+  antes: Perfil,
+  contaId: string,
+  dia: string,
+): { perfil: Perfil; item?: { id: string; nome: string; ficha: string }; xp: number } | { erro: string } {
+  if (antes.bauDia === dia) return { erro: "O baú de hoje já foi aberto. Volte amanhã!" };
+  const p = completar(JSON.parse(JSON.stringify(antes)));
+  p.bauDia = dia;
+  const sorteado = sortearDoBau(contaId, dia, p.inventario);
+  if (sorteado) {
+    p.inventario.push(sorteado.id);
+    return { perfil: p, item: { id: sorteado.id, nome: sorteado.nome, ficha: sorteado.ficha }, xp: 0 };
+  }
+  p.xp += XP_BAU_REPETIDO;
+  return { perfil: p, xp: XP_BAU_REPETIDO };
 }
 
 /** Aplica um evento ao perfil (devolve um perfil novo e o que foi ganho). */
 export function aplicarEvento(antes: Perfil, evento: Evento, dia: string): { perfil: Perfil; ganho: Ganho } {
-  const p: Perfil = JSON.parse(JSON.stringify(antes));
+  const p: Perfil = completar(JSON.parse(JSON.stringify(antes)));
   const nivelAntes = nivelDoXp(p.xp);
+  const itensAntes = new Set(idsDisponiveis(contextoDe(p)));
   const ganho: Ganho = { xp: 0, diariasConcluidas: [] };
 
   if (p.xpDoDia.dia !== dia) p.xpDoDia = { dia, valor: 0 };
@@ -225,5 +314,7 @@ export function aplicarEvento(antes: Perfil, evento: Evento, dia: string): { per
 
   const nivelDepois = nivelDoXp(p.xp);
   if (nivelDepois > nivelAntes) ganho.subiuPara = { nivel: nivelDepois, titulo: tituloDoNivel(nivelDepois) };
+  const novos = idsDisponiveis(contextoDe(p)).filter((id) => !itensAntes.has(id));
+  if (novos.length) ganho.itensNovos = novos.map((id) => item(id)!.nome);
   return { perfil: p, ganho };
 }

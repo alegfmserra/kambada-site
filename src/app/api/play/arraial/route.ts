@@ -4,7 +4,7 @@ import { contaDaRequisicao } from "@/lib/play/contas";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 import type { Evento } from "@/lib/play/jogos/perfil";
-import { lerPerfil, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
+import { abrirBauDoDia, equiparItem, lerPerfil, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
 import type { NpcId } from "@/lib/play/jogos/missoesArraial";
 import { verificar } from "@/lib/play/jogos/seguranca";
 
@@ -18,6 +18,8 @@ export const dynamic = "force-dynamic";
  *   { acao: "desafio", estado }               -> 1ª pergunta do desafio
  *   { acao: "responder", estado, escolha, pulou? } -> resultado, próxima ou prova final (+XP)
  *   { acao: "perfil" }                        -> perfil da conta (null sem conta)
+ *   { acao: "equipar", slot, item }           -> veste um item que a conta já tem
+ *   { acao: "bau" }                           -> abre o baú do dia (1 por dia)
  *     (pulou: true = alguma fala foi pulada; o servidor zera o bônus de rapidez
  *      e também mede sozinho o tempo mínimo de leitura — ver arraial.ts)
  * Fica atrás do login (porteiro em src/proxy.ts): é conteúdo de assinante.
@@ -33,6 +35,18 @@ export async function POST(requisicao: Request) {
   if (corpo.acao === "perfil") {
     const conta = await contaDaRequisicao(requisicao).catch(() => null);
     return NextResponse.json({ ok: true, perfil: conta ? await lerPerfil(conta.id) : null });
+  }
+
+  if (corpo.acao === "equipar" || corpo.acao === "bau") {
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre na sua conta para guardar a coleção." }, { status: 401 });
+    try {
+      const r = corpo.acao === "equipar" ? await equiparItem(conta.id, corpo.slot, corpo.item) : await abrirBauDoDia(conta.id);
+      if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+      return NextResponse.json({ ok: true, ...r });
+    } catch {
+      return NextResponse.json({ ok: false, mensagem: "Não deu para guardar agora. Tente de novo." }, { status: 500 });
+    }
   }
 
   // Quantas pistas a partida já tinha: só pista NOVA rende XP (conversa relida não).

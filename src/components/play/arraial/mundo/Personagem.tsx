@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { useContorno } from "../Contorno";
 import { usePrefereMenosMovimento } from "@/lib/play/movimento";
 import { SombraBlob } from "../Personagens";
-import criarPersonagem, { animar, type ModoPersonagem, type Traje } from "./modelos/personagem";
+import criarPersonagem, { animar, type ModoPersonagem, type Traje, type VisualDoJogador } from "./modelos/personagem";
 import { descartar } from "./modelos/_compartilhado";
 
 export type EstadoPersonagem = { modo: ModoPersonagem; velocidade: number };
@@ -25,6 +25,8 @@ type PersonagemProps = {
   rotacaoY?: number;
   escala?: number;
   sombra?: boolean;
+  /** Só para o jogador: roupa e chapéu escolhidos. */
+  visual?: VisualDoJogador;
 };
 
 /**
@@ -44,12 +46,13 @@ export function Personagem({
   rotacaoY = 0,
   escala = 1,
   sombra = true,
+  visual,
 }: PersonagemProps) {
-  const raiz = useMemo(() => criarPersonagem({ traje, variante, corPele, altura }), [traje, variante, corPele, altura]);
+  const raiz = useMemo(() => criarPersonagem({ traje, variante, corPele, altura, visual }), [traje, variante, corPele, altura, visual]);
   const ref = useRef<THREE.Group>(null);
   const tempo = useRef(0);
   const menosMovimento = usePrefereMenosMovimento();
-  useContorno(ref);
+  useContorno(ref, raiz);
   useEffect(() => () => descartar(raiz), [raiz]);
 
   useFrame((_, delta) => {

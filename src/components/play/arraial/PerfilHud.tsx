@@ -3,43 +3,42 @@
 import { useEffect, useState } from "react";
 import type { Ganho, PerfilPublico } from "@/lib/play/jogos/perfil";
 import { chamar } from "@/components/play/jogos/jogador";
+import { Colecao } from "./Colecao";
+import { emitirPerfil, EVENTO_PERFIL, usePerfilAtual } from "./perfilStore";
 
-const EVENTO = "kambada:perfil";
-
-/** Avisa o HUD de que o servidor devolveu um perfil novo (e o que se ganhou). */
-export function emitirPerfil(r: { perfil?: PerfilPublico; ganho?: Ganho }) {
-  if (r.perfil) window.dispatchEvent(new CustomEvent(EVENTO, { detail: { perfil: r.perfil, ganho: r.ganho } }));
-}
+export { emitirPerfil };
 
 /**
- * Carreira de brincante no canto do arraial: nível, barra de XP e as 3
- * diárias. Sem conta (demonstração) não aparece nada.
+ * Carreira de brincante no canto do arraial: nível, barra de XP, as 3
+ * diárias e a janela "Meu brincante" (visual, coleção e baú do dia). Sem
+ * conta (demonstração) não aparece nada.
  */
 export function PerfilHud() {
-  const [perfil, setPerfil] = useState<PerfilPublico | null>(null);
+  const perfil = usePerfilAtual();
   const [aberto, setAberto] = useState(false);
+  const [colecao, setColecao] = useState(false);
   const [aviso, setAviso] = useState("");
 
   useEffect(() => {
     let vivo = true;
     chamar<{ perfil: PerfilPublico | null }>("/api/play/arraial", { acao: "perfil" }).then((r) => {
-      if (vivo && r.ok && r.perfil) setPerfil(r.perfil);
+      if (vivo && r.ok && r.perfil) emitirPerfil({ perfil: r.perfil });
     });
     function aoChegar(e: Event) {
-      const { perfil: novo, ganho } = (e as CustomEvent<{ perfil: PerfilPublico; ganho?: Ganho }>).detail;
-      setPerfil(novo);
-      if (ganho && ganho.xp > 0) {
-        const partes = [`+${ganho.xp} XP`];
+      const { ganho } = (e as CustomEvent<{ ganho?: Ganho }>).detail;
+      if (ganho && (ganho.xp > 0 || ganho.itensNovos?.length)) {
+        const partes = ganho.xp > 0 ? [`+${ganho.xp} XP`] : [];
         if (ganho.diariasConcluidas.length) partes.push(`missão do dia: ${ganho.diariasConcluidas.join(", ")}`);
         if (ganho.bonusSequencia) partes.push(`sequência! +${ganho.bonusSequencia}`);
         if (ganho.subiuPara) partes.push(`nível ${ganho.subiuPara.nivel}: ${ganho.subiuPara.titulo}!`);
+        if (ganho.itensNovos?.length) partes.push(`novo item: ${ganho.itensNovos.join(", ")}`);
         setAviso(partes.join(" · "));
       }
     }
-    window.addEventListener(EVENTO, aoChegar);
+    window.addEventListener(EVENTO_PERFIL, aoChegar);
     return () => {
       vivo = false;
-      window.removeEventListener(EVENTO, aoChegar);
+      window.removeEventListener(EVENTO_PERFIL, aoChegar);
     };
   }, []);
 
@@ -99,6 +98,15 @@ export function PerfilHud() {
           {perfil.tetoAtingido ? <p className="mt-1 text-kambada-cream/70">Você bateu o limite de XP de hoje; as missões do dia ainda rendem.</p> : null}
         </div>
       ) : null}
+
+      <button
+        type="button"
+        onClick={() => setColecao(true)}
+        className="mt-1 w-full rounded-xl bg-kambada-noite/80 px-3 py-1.5 text-left text-[12px] font-bold backdrop-blur-sm"
+      >
+        🎒 Meu brincante{perfil.bauPronto ? " · 🎁 baú do dia pronto!" : ""}
+      </button>
+      {colecao ? <Colecao perfil={perfil} aoFechar={() => setColecao(false)} /> : null}
 
       {aviso ? (
         <p role="status" className="mt-1 rounded-xl bg-kambada-gold px-3 py-1.5 text-[12px] font-bold text-kambada-ink shadow-xl">

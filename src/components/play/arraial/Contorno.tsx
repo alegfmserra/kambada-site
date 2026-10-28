@@ -42,7 +42,7 @@ function escalaPorEixo(geometria: THREE.BufferGeometry, espessura = ESPESSURA_CA
  * entra sem casca, o que vira ponto de atenção quando os GLBs autorais
  * (Seção 5.6 do PRD) trocarem a malha em runtime.
  */
-export function useContorno(alvo: React.RefObject<THREE.Object3D | null>) {
+export function useContorno(alvo: React.RefObject<THREE.Object3D | null>, recriar?: unknown) {
   useEffect(() => {
     const grupo = alvo.current;
     if (!grupo) return;
@@ -71,5 +71,6 @@ export function useContorno(alvo: React.RefObject<THREE.Object3D | null>) {
         (casca.material as THREE.Material).dispose();
       }
     };
-  }, [alvo]);
+    // `recriar`: quando o objeto dentro do grupo é trocado (o jogador muda de roupa), o contorno é refeito.
+  }, [alvo, recriar]);
 }

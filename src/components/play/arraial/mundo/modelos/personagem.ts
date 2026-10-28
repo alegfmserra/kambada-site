@@ -60,6 +60,16 @@ export type OpcoesPersonagem = {
   corPele?: string;
   /** Altura total em metros (padrão 1,5 m). */
   altura?: number;
+  /** Só para o "jogador": o que o brincante escolheu vestir. */
+  visual?: VisualDoJogador;
+};
+
+export type VisualDoJogador = {
+  /** [cor base, cor da listra] da camisa xadrez. */
+  camisa: [string, string];
+  chapeu: "palha" | "couro" | "fitas";
+  /** Cor da fita do chapéu. */
+  fita: string;
 };
 
 /** Paleta da spec de personagens (seção A.9 e B). */
@@ -279,19 +289,41 @@ function camisaXadrez(c: Corpo, base: string, listra: string): void {
   });
 }
 
-function chapeuPalha(c: Corpo, aba = 1): void {
+function chapeuPalha(c: Corpo, aba = 1, fitaCor: string = CORES.couro): void {
   const { H, cabeca, medidas: m } = c;
   const mat = materialToon(CORES.palha);
   cabeca.add(malha(geo(`aba-${H}-${aba}`, () => new THREE.CylinderGeometry(m.cabeca * 0.72 * aba, m.cabeca * 0.76 * aba, 0.012 * H, 20)), mat, { pos: [0, m.cabeca * 0.78, 0], nome: "aba-chapeu", semContorno: true }));
   cabeca.add(malha(geo(`copa-${H}`, () => new THREE.ConeGeometry(m.cabeca * 0.42, m.cabeca * 0.5, 16)), mat, { pos: [0, m.cabeca * 1.0, 0], nome: "copa-chapeu" }));
-  cabeca.add(malha(geo(`fita-chapeu-${H}`, () => new THREE.TorusGeometry(m.cabeca * 0.4, 0.008 * H, 6, 20)), materialToon(CORES.couro), { pos: [0, m.cabeca * 0.8, 0], rot: [Math.PI / 2, 0, 0], nome: "fita-chapeu", semContorno: true }));
+  cabeca.add(malha(geo(`fita-chapeu-${H}`, () => new THREE.TorusGeometry(m.cabeca * 0.4, 0.008 * H, 6, 20)), materialToon(fitaCor), { pos: [0, m.cabeca * 0.8, 0], rot: [Math.PI / 2, 0, 0], nome: "fita-chapeu", semContorno: true }));
 }
 
-function chapeuCouro(c: Corpo): void {
+/** Chapéu de palha com fitinhas coloridas caindo da aba (o chapéu de brincante). */
+function chapeuDeFitas(c: Corpo, fitaCor: string): void {
+  chapeuPalha(c, 1, fitaCor);
+  const { H, cabeca, medidas: m } = c;
+  const cores = [CORES.vermelho, CORES.amarelo, CORES.verde, CORES.azulClaro, fitaCor, CORES.vermelho, CORES.amarelo, CORES.verde];
+  cores.forEach((cor, i) => {
+    const ang = (i / cores.length) * Math.PI * 2;
+    const raio = m.cabeca * 0.74;
+    cabeca.add(
+      malha(geo(`fitinha-chapeu-${H}`, () => new THREE.BoxGeometry(0.02 * H, 0.1 * H, 0.004 * H)), materialToon(cor), {
+        pos: [Math.sin(ang) * raio, m.cabeca * 0.78 - 0.05 * H, Math.cos(ang) * raio],
+        rot: [0, ang, 0],
+        nome: "fitinha-chapeu",
+        semContorno: true,
+      })
+    );
+  });
+}
+
+function chapeuCouro(c: Corpo, fitaCor?: string): void {
   const { H, cabeca, medidas: m } = c;
   const mat = materialToon(CORES.couro);
   cabeca.add(malha(geo(`aba-couro-${H}`, () => new THREE.CylinderGeometry(m.cabeca * 0.64, m.cabeca * 0.7, 0.014 * H, 18)), mat, { pos: [0, m.cabeca * 0.8, 0], nome: "aba-chapeu", semContorno: true }));
   cabeca.add(malha(geo(`copa-couro-${H}`, () => new THREE.CylinderGeometry(m.cabeca * 0.36, m.cabeca * 0.42, m.cabeca * 0.4, 16)), mat, { pos: [0, m.cabeca * 1.0, 0], nome: "copa-chapeu" }));
+  if (fitaCor) {
+    cabeca.add(malha(geo(`fita-couro-${H}`, () => new THREE.TorusGeometry(m.cabeca * 0.39, 0.008 * H, 6, 20)), materialToon(fitaCor), { pos: [0, m.cabeca * 0.86, 0], rot: [Math.PI / 2, 0, 0], nome: "fita-chapeu", semContorno: true }));
+  }
 }
 
 function turbante(c: Corpo, cor: string, corDetalhe: string): void {
@@ -560,11 +592,15 @@ export default function criarPersonagem(op: OpcoesPersonagem): THREE.Group {
   raiz.userData.traje = op.traje;
 
   switch (op.traje) {
-    case "jogador":
-      camisaXadrez(c, ...TONS_XADREZ[0]);
-      chapeuPalha(c);
+    case "jogador": {
+      const vis = op.visual;
+      camisaXadrez(c, ...(vis?.camisa ?? TONS_XADREZ[0]));
+      if (vis?.chapeu === "couro") chapeuCouro(c, vis.fita);
+      else if (vis?.chapeu === "fitas") chapeuDeFitas(c, vis.fita);
+      else chapeuPalha(c, 1, vis?.fita);
       bandeirinhaDeMao(c);
       break;
+    }
     case "ze":
       paleto(c, CORES.couro, [CORES.couroClaro, CORES.vermelho, CORES.jeans]);
       chapeuPalha(c, 1.35);

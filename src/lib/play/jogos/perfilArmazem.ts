@@ -3,7 +3,18 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../../bling/tokens";
 import { hojeEmSaoLuis } from "../../cupons/cupons";
-import { aplicarEvento, perfilNovo, publico, type Evento, type Ganho, type Perfil, type PerfilPublico } from "./perfil";
+import {
+  abrirBau,
+  aplicarEvento,
+  completar,
+  equipar,
+  perfilNovo,
+  publico,
+  type Evento,
+  type Ganho,
+  type Perfil,
+  type PerfilPublico,
+} from "./perfil";
 
 /**
  * Armazenamento dos perfis do Arraial: um arquivo JSON na pasta persistente
@@ -63,7 +74,35 @@ async function gravar(d: Dados): Promise<void> {
 /** Perfil público da conta (sem gravar nada). */
 export async function lerPerfil(contaId: string, agora = new Date()): Promise<PerfilPublico> {
   const d = await ler();
-  return publico(d.perfis[contaId] ?? perfilNovo(), hojeEmSaoLuis(agora));
+  return publico(completar(d.perfis[contaId] ?? perfilNovo()), hojeEmSaoLuis(agora));
+}
+
+/** Troca o item vestido num slot. */
+export function equiparItem(contaId: string, slot: unknown, id: unknown, agora = new Date()): Promise<{ perfil: PerfilPublico } | { erro: string }> {
+  return naFila(async () => {
+    const d = await ler();
+    const r = equipar(completar(d.perfis[contaId] ?? perfilNovo()), slot, id);
+    if ("erro" in r) return r;
+    d.perfis[contaId] = r.perfil;
+    await gravar(d);
+    return { perfil: publico(r.perfil, hojeEmSaoLuis(agora)) };
+  });
+}
+
+/** Abre o baú do dia da conta. */
+export function abrirBauDoDia(
+  contaId: string,
+  agora = new Date(),
+): Promise<{ perfil: PerfilPublico; item?: { id: string; nome: string; ficha: string }; xp: number } | { erro: string }> {
+  return naFila(async () => {
+    const dia = hojeEmSaoLuis(agora);
+    const d = await ler();
+    const r = abrirBau(completar(d.perfis[contaId] ?? perfilNovo()), contaId, dia);
+    if ("erro" in r) return r;
+    d.perfis[contaId] = r.perfil;
+    await gravar(d);
+    return { perfil: publico(r.perfil, dia), item: r.item, xp: r.xp };
+  });
 }
 
 /** Aplica eventos em sequência e grava uma vez. */
@@ -75,7 +114,7 @@ export function registrarEventos(
   return naFila(async () => {
     const dia = hojeEmSaoLuis(agora);
     const d = await ler();
-    let atual = d.perfis[contaId] ?? perfilNovo();
+    let atual = completar(d.perfis[contaId] ?? perfilNovo());
     const total: Ganho = { xp: 0, diariasConcluidas: [] };
     for (const e of eventos) {
       const r = aplicarEvento(atual, e, dia);
@@ -84,6 +123,7 @@ export function registrarEventos(
       total.diariasConcluidas.push(...r.ganho.diariasConcluidas);
       if (r.ganho.subiuPara) total.subiuPara = r.ganho.subiuPara;
       if (r.ganho.bonusSequencia) total.bonusSequencia = r.ganho.bonusSequencia;
+      if (r.ganho.itensNovos) total.itensNovos = [...(total.itensNovos ?? []), ...r.ganho.itensNovos];
     }
     d.perfis[contaId] = atual;
     await gravar(d);

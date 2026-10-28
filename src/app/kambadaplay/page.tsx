@@ -70,6 +70,30 @@ const FILEIRAS: Fileira[] = [
         acao: "Jogar agora",
       },
       {
+        titulo: "Palavra do dia maranhense",
+        texto: "5 letras, 6 tentativas, uma palavra nova por dia.",
+        selo: "Todo dia",
+        href: "/kambadaplay/jogos/palavra",
+        imagem: "/kambadaplay/images/atelie/placa-coreira.webp",
+        acao: "Jogar agora",
+      },
+      {
+        titulo: "Quebra-cabeça das estampas",
+        texto: "Monte as artes da Kambada em 12, 20 ou 40 peças.",
+        selo: "Quebra-cabeça",
+        href: "/kambadaplay/jogos/quebra",
+        imagem: "/kambadaplay/jogos/memoria/camisa-alusiva-sao-luis.webp",
+        acao: "Jogar agora",
+      },
+      {
+        titulo: "Monte sua matraca",
+        texto: "Escolha tamanho, estampa e suporte e peça a sua.",
+        selo: "Criar",
+        href: "/kambadaplay/jogos/matraca",
+        imagem: "/fotos/matraca-play.webp",
+        acao: "Montar agora",
+      },
+      {
         titulo: "Ranking e cupons",
         texto: "Top 3 da semana ganha cupom: 10% para o 1º lugar, 5% para o 2º e o 3º.",
         selo: "Ranking",
@@ -329,6 +353,15 @@ export default function PlayEntrada() {
                 </Link>
                 <Link href="/kambadaplay/jogos/memoria" className={BOTAO_CONTORNO}>
                   Memória
+                </Link>
+                <Link href="/kambadaplay/jogos/palavra" className={BOTAO_CONTORNO}>
+                  Palavra do dia
+                </Link>
+                <Link href="/kambadaplay/jogos/quebra" className={BOTAO_CONTORNO}>
+                  Quebra-cabeça
+                </Link>
+                <Link href="/kambadaplay/jogos/matraca" className={BOTAO_CONTORNO}>
+                  Monte sua matraca
                 </Link>
               </div>
               <p className="mt-4 text-sm text-kambada-branco/70">

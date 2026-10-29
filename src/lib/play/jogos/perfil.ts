@@ -47,6 +47,9 @@ export const XP = {
   acerto: 15,
   desafioConcluido: 100,
   diaria: 30,
+  /** Mini-atividade: tudo certo / só tentou (uma vez por dia por atividade). */
+  miniPerfeita: 40,
+  miniTentada: 10,
 } as const;
 
 /** XP do baú quando a coleção do baú já está completa. */
@@ -63,7 +66,8 @@ export const BONUS_SEQUENCIA: Record<number, number> = { 3: 50, 7: 100, 14: 200 
 export type Evento =
   | { tipo: "conversa"; npc: NpcId }
   | { tipo: "acerto" }
-  | { tipo: "desafio"; acertos: number; pistasCompletas: boolean };
+  | { tipo: "desafio"; acertos: number; pistasCompletas: boolean }
+  | { tipo: "mini"; mini: string; perfeito: boolean };
 
 type ModeloDiaria = {
   id: string;
@@ -131,6 +135,8 @@ export type Perfil = {
   bauDia: string;
   /** Conversas novas com cada personagem (vira corações de amizade). */
   amizade: Record<string, number>;
+  /** Mini-atividades já feitas no dia (cada uma paga XP uma vez por dia). */
+  minis: { dia: string; feitas: string[] };
 };
 
 export function perfilNovo(): Perfil {
@@ -146,6 +152,7 @@ export function perfilNovo(): Perfil {
     visual: visualInicial(),
     bauDia: "",
     amizade: {},
+    minis: { dia: "", feitas: [] },
   };
 }
 
@@ -159,6 +166,7 @@ export function completar(p: Partial<Perfil>): Perfil {
     visual: { ...novo.visual, ...(p.visual ?? {}) },
     bauDia: typeof p.bauDia === "string" ? p.bauDia : "",
     amizade: p.amizade && typeof p.amizade === "object" ? p.amizade : {},
+    minis: p.minis && Array.isArray(p.minis.feitas) ? p.minis : { dia: "", feitas: [] },
   };
 }
 
@@ -183,6 +191,8 @@ export type PerfilPublico = {
   /** O baú de hoje ainda não foi aberto. */
   bauPronto: boolean;
   amigos: AmigoPublico[];
+  /** Mini-atividades que já pagaram XP hoje. */
+  minisHoje: string[];
 };
 
 export type AmigoPublico = {
@@ -249,6 +259,7 @@ export function publico(p: Perfil, dia: string): PerfilPublico {
       return { id: i.id, nome: i.nome, slot: i.slot, ficha: i.ficha, tem, requisito: tem ? "" : textoDoRequisito(i.requisito) };
     }),
     bauPronto: p.bauDia !== dia,
+    minisHoje: p.minis.dia === dia ? p.minis.feitas : [],
     amigos: AMIGOS.map((a) => {
       const conversas = p.amizade[a.id] ?? 0;
       const coracoes = coracoesDe(conversas);
@@ -315,6 +326,15 @@ export function aplicarEvento(antes: Perfil, evento: Evento, dia: string): { per
   } else if (evento.tipo === "acerto") {
     p.acertos += 1;
     base = XP.acerto;
+  } else if (evento.tipo === "mini") {
+    // Mini-atividade: XP próprio, uma vez por dia por atividade, fora do teto de ação.
+    if (p.minis.dia !== dia) p.minis = { dia, feitas: [] };
+    if (!p.minis.feitas.includes(evento.mini)) {
+      p.minis.feitas.push(evento.mini);
+      const xpMini = evento.perfeito ? XP.miniPerfeita : XP.miniTentada;
+      p.xp += xpMini;
+      ganho.xp += xpMini;
+    }
   } else {
     p.desafios += 1;
     base = XP.desafioConcluido;

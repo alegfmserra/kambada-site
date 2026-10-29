@@ -1,22 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MINIS, type MiniId } from "@/lib/play/jogos/minis";
+import { XP, type ItemPublico, type PerfilPublico } from "@/lib/play/jogos/perfil";
+import { MiniAtividade } from "./MiniAtividade";
 import { HISTORIAS_REVISADAS } from "@/lib/play/jogos/amizades";
 import { FICHAS_REVISADAS, SLOTS, type Slot } from "@/lib/play/jogos/itens";
-import type { ItemPublico, PerfilPublico } from "@/lib/play/jogos/perfil";
 import { chamar } from "@/components/play/jogos/jogador";
 import { emitirPerfil } from "./perfilStore";
 
 const NOME_DO_SLOT: Record<Slot, string> = { chapeu: "Chapéu", camisa: "Camisa", fita: "Fita do chapéu" };
 
-type Aba = "vestir" | "colecao" | "amigos";
-const NOME_DA_ABA: Record<Aba, string> = { vestir: "Vestir", colecao: "Coleção", amigos: "Amigos" };
+type Aba = "vestir" | "colecao" | "amigos" | "atividades";
+const NOME_DA_ABA: Record<Aba, string> = { vestir: "Vestir", colecao: "Coleção", amigos: "Amigos", atividades: "Atividades" };
 
 /** Janela "Meu brincante": trocar o visual do personagem, ver a coleção com as fichas e abrir o baú do dia. */
 export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar: () => void }) {
   const [aba, setAba] = useState<Aba>("vestir");
   const [msg, setMsg] = useState("");
   const [ocupado, setOcupado] = useState(false);
+  const [mini, setMini] = useState<MiniId | null>(null);
   const fechar = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -91,7 +94,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
         ) : null}
 
         <div role="tablist" aria-label="Seções" className="mt-3 flex gap-2 text-[12px] font-bold">
-          {(["vestir", "colecao", "amigos"] as const).map((a) => (
+          {(["vestir", "colecao", "amigos", "atividades"] as const).map((a) => (
             <button
               key={a}
               role="tab"
@@ -119,6 +122,21 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
             ))}
             <p className="text-[11px] text-kambada-cream/60">Itens novos chegam com o nível, com dias seguidos e no baú do dia.</p>
           </div>
+        ) : aba === "atividades" ? (
+          <ul className="mt-3 space-y-2">
+            {MINIS.map((m) => (
+              <li key={m.id} className="rounded-lg bg-kambada-cream/10 p-2 text-[12px]">
+                <p className="font-bold">
+                  {m.nome} {perfil.minisHoje.includes(m.id) ? "✓ XP de hoje ganho" : `· até +${XP.miniPerfeita} XP hoje`}
+                </p>
+                <p className="text-kambada-cream/70">{m.instrucao}</p>
+                <button type="button" onClick={() => setMini(m.id)} className="mt-1.5 rounded-full bg-kambada-gold px-4 py-1.5 font-bold text-kambada-ink">
+                  Jogar
+                </button>
+              </li>
+            ))}
+            <li className="text-[11px] text-kambada-cream/60">Cada atividade paga XP uma vez por dia; jogar de novo é só pela brincadeira.</li>
+          </ul>
         ) : aba === "amigos" ? (
           <ul className="mt-3 space-y-2">
             {perfil.amigos.map((a) => (
@@ -160,6 +178,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
           </ul>
         )}
       </div>
+      {mini ? <MiniAtividade mini={mini} aoFechar={() => setMini(null)} /> : null}
     </div>
   );
 }

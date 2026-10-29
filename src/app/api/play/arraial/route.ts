@@ -6,6 +6,7 @@ import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 import type { Evento } from "@/lib/play/jogos/perfil";
 import { abrirBauDoDia, equiparItem, lerPerfil, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
 import type { NpcId } from "@/lib/play/jogos/missoesArraial";
+import { concluirMini, iniciarMini } from "@/lib/play/jogos/minis";
 import { verificar } from "@/lib/play/jogos/seguranca";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,8 @@ export const dynamic = "force-dynamic";
  *   { acao: "perfil" }                        -> perfil da conta (null sem conta)
  *   { acao: "equipar", slot, item }           -> veste um item que a conta já tem
  *   { acao: "bau" }                           -> abre o baú do dia (1 por dia)
+ *   { acao: "mini-iniciar", mini }            -> sequência da mini-atividade (fogueira | quadrilha)
+ *   { acao: "mini-fim", estado, resposta }     -> confere o que o jogador tocou (+XP 1x/dia por atividade)
  *     (pulou: true = alguma fala foi pulada; o servidor zera o bônus de rapidez
  *      e também mede sozinho o tempo mínimo de leitura — ver arraial.ts)
  * Fica atrás do login (porteiro em src/proxy.ts): é conteúdo de assinante.
@@ -47,6 +50,26 @@ export async function POST(requisicao: Request) {
     } catch {
       return NextResponse.json({ ok: false, mensagem: "Não deu para guardar agora. Tente de novo." }, { status: 500 });
     }
+  }
+
+  if (corpo.acao === "mini-iniciar") {
+    const r = iniciarMini(corpo.mini);
+    if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+    return NextResponse.json({ ok: true, ...r });
+  }
+  if (corpo.acao === "mini-fim") {
+    const r = concluirMini(corpo.estado, corpo.resposta);
+    if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    if (conta) {
+      try {
+        const { perfil, ganho } = await registrarEventos(conta.id, [{ tipo: "mini", mini: r.mini, perfeito: r.perfeito }]);
+        return NextResponse.json({ ok: true, ...r, perfil, ganho });
+      } catch {
+        /* a carreira nunca pode derrubar a atividade */
+      }
+    }
+    return NextResponse.json({ ok: true, ...r });
   }
 
   // Quantas pistas a partida já tinha: só pista NOVA rende XP (conversa relida não).

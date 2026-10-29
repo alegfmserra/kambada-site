@@ -12,6 +12,7 @@ import {
   sessaoValida,
   valorDoCookie,
 } from "@/lib/admin/sessao";
+import { moderarAvaliacao } from "@/lib/avaliacoes/avaliacoes";
 import { processarPagamento } from "@/lib/checkout/processar";
 import { urlPublica } from "@/lib/checkout/posVenda";
 import { FORMATO_RASTREIO, normalizarRastreio, TRANSPORTADORAS } from "@/lib/email/posVenda";
@@ -346,4 +347,14 @@ export async function excluirCupom(formulario: FormData): Promise<void> {
   const codigo = normalizarCodigo(String(formulario.get("codigo") ?? ""));
   await salvarCupons((await listarCupons()).filter((x) => x.codigo !== codigo));
   revalidatePath("/admin/cupons");
+}
+
+/** Aprovar ou recusar uma avaliação de peça; a página da peça se refaz na hora. */
+export async function moderarAvaliacaoDoPainel(formulario: FormData): Promise<void> {
+  if (!sessaoValida((await cookies()).get(COOKIE_ADMIN)?.value)) redirect("/admin/avaliacoes");
+  const decisao = String(formulario.get("decisao") ?? "");
+  if (decisao !== "aprovada" && decisao !== "recusada") return;
+  await moderarAvaliacao(String(formulario.get("id") ?? ""), decisao);
+  revalidatePath("/admin/avaliacoes");
+  revalidatePath("/loja/[categoria]/[produto]", "page");
 }

@@ -260,11 +260,48 @@ ${retencao ? `<p style="margin:0 0 8px">${e(retencao)}</p>` : ""}
   };
 }
 
-/** Ao cliente: pedido entregue ou retirado — agradece e convida para a pesquisa. */
-export function mensagemConcluido(r: RegistroPedido, tipo: "entregue" | "retirado", urlDoSite: string): Mensagem {
+/**
+ * Ao cliente: pedido entregue ou retirado — agradece e convida para avaliar.
+ * `linkAvaliacao` (convite assinado para avaliar as peças) vira o botão
+ * principal; a pesquisa do site fica como link secundário.
+ */
+export function mensagemConcluido(
+  r: RegistroPedido,
+  tipo: "entregue" | "retirado",
+  urlDoSite: string,
+  linkAvaliacao?: string,
+): Mensagem {
   const e = escaparHtml;
   const pesquisa = `${urlDoSite}/?avaliar=1`;
   const abertura = tipo === "retirado" ? "Obrigado por buscar seu pedido no ateliê!" : "Seu pedido chegou!";
+  if (linkAvaliacao) {
+    return {
+      assunto: tipo === "retirado" ? `Obrigado, ${primeiroNome(r)}! Pedido ${r.ref} retirado 💛` : `Seu pedido ${r.ref} chegou! 🎉`,
+      texto: [
+        `Olá, ${primeiroNome(r)}!`,
+        "",
+        `${abertura} Pedido ${r.ref}.`,
+        "Que nota você dá para as suas peças? Leva um minuto e ajuda quem ainda está em dúvida:",
+        linkAvaliacao,
+        "",
+        `E se quiser contar como foi comprar no site: ${pesquisa}`,
+        "",
+        "Se algo não saiu como esperado, é só responder este e-mail.",
+        "Bora vestir o Maranhão!",
+        "Kambada — São Luís, MA",
+      ].join("\n"),
+      html: (cid) =>
+        moldura(
+          `<p style="margin:0 0 12px">Olá, ${e(primeiroNome(r))}!</p>
+<p style="margin:0 0 16px;font-size:20px;font-weight:bold">${e(abertura)} ${tipo === "retirado" ? "💛" : "🎉"}</p>
+<p style="margin:0 0 16px">Pedido <strong>${e(r.ref)}</strong>. Que nota você dá para as suas peças? Leva um minuto e ajuda quem ainda está em dúvida.</p>
+${botao(linkAvaliacao, "Avaliar minhas peças")}
+<p style="margin:0 0 16px;font-size:14px">E se quiser contar como foi comprar no site: <a href="${e(pesquisa)}">responder a pesquisa</a>.</p>
+<p style="margin:0">Se algo não saiu como esperado, é só responder este e-mail. Bora vestir o Maranhão!</p>`,
+          cid,
+        ),
+    };
+  }
   return {
     assunto: tipo === "retirado" ? `Obrigado, ${primeiroNome(r)}! Pedido ${r.ref} retirado 💛` : `Seu pedido ${r.ref} chegou! 🎉`,
     texto: [

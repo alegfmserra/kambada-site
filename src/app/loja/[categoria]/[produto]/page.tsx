@@ -6,6 +6,8 @@ import FotoAtiva from "@/components/produto/FotoAtiva";
 import { fotosDosSuportes } from "@/lib/fotosSuportes";
 import GuiaDeTamanhos from "@/components/produto/GuiaDeTamanhos";
 import SeloNotaDoSite from "@/components/loja/SeloNotaDoSite";
+import AvaliacoesDaPeca from "@/components/avaliacoes/AvaliacoesDaPeca";
+import { avaliacoesDoProduto, chaveDoProduto, listarAvaliacoes } from "@/lib/avaliacoes/avaliacoes";
 import { ProvedorOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
 import { tabelaDeMedidas } from "@/lib/loja/medidas";
 import { buscarCatalogo } from "@/lib/bling/produtos";
@@ -117,6 +119,7 @@ export default async function PaginaProduto({ params }: Props) {
   const primeiraComFoto = (produto.opcoes ?? []).find((o) => o.quantidade > 0 && fotosPorOpcao[o.idBling]);
   const fotoInicial = primeiraComFoto ? fotosPorOpcao[primeiraComFoto.idBling] : foto;
   const medidas = tabelaDeMedidas(produto);
+  const avaliacoes = avaliacoesDoProduto(await listarAvaliacoes(), chaveDoProduto(produto));
 
   /**
    * Opções que podem ir para o carrinho: precisam de ID no Bling e de
@@ -161,6 +164,20 @@ export default async function PaginaProduto({ params }: Props) {
         merchantReturnLink: `${SITE.url}/trocas-e-devolucoes`,
       },
     },
+    // Só avaliação de peça, de compra verificada, aprovada e autorizada —
+    // a nota do SITE (selo) nunca entra aqui.
+    ...(avaliacoes.media !== null
+      ? {
+          aggregateRating: { "@type": "AggregateRating", ratingValue: avaliacoes.media, reviewCount: avaliacoes.lista.length, bestRating: 5, worstRating: 1 },
+          review: avaliacoes.lista.slice(0, 5).map((a) => ({
+            "@type": "Review",
+            author: { "@type": "Person", name: a.nome },
+            datePublished: a.em.slice(0, 10),
+            reviewRating: { "@type": "Rating", ratingValue: a.nota, bestRating: 5, worstRating: 1 },
+            ...(a.texto ? { reviewBody: a.texto } : {}),
+          })),
+        }
+      : {}),
   };
 
   return (
@@ -226,7 +243,17 @@ export default async function PaginaProduto({ params }: Props) {
               >
                 {estoque.texto}
               </p>
-              <SeloNotaDoSite className="mt-3" />
+              {avaliacoes.media !== null ? (
+                <a href="#avaliacoes" className="mt-3 inline-flex w-fit items-center gap-2 text-sm text-texto-suave hover:underline">
+                  <span aria-hidden="true" className="text-kambada-amarelo-escuro">★</span>
+                  <span>
+                    <strong className="font-display text-texto">{avaliacoes.media.toFixed(1).replace(".", ",")}</strong> de 5 ·{" "}
+                    {avaliacoes.lista.length} {avaliacoes.lista.length === 1 ? "avaliação" : "avaliações"} de quem comprou
+                  </span>
+                </a>
+              ) : (
+                <SeloNotaDoSite className="mt-3" />
+              )}
 
               {opcoesCompraveis.length > 0 && estoque.disponivel && (
                 <>
@@ -349,6 +376,8 @@ export default async function PaginaProduto({ params }: Props) {
           </ProvedorOpcaoAtiva>
         </div>
       </section>
+
+      <AvaliacoesDaPeca media={avaliacoes.media} lista={avaliacoes.lista} />
 
       <section>
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">

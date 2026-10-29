@@ -31,6 +31,8 @@ import { avaliarCancelamento, etapaDoPedido } from "@/lib/pedidos/cancelamento";
 import { rotuloProblema } from "@/lib/pedidos/posVendaLoja";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { indexarOpcoes } from "@/lib/carrinho/validar";
+import { linkDeAvaliacao } from "@/lib/avaliacoes/avaliacoes";
+import { urlPublica } from "@/lib/checkout/posVenda";
 
 export const metadata: Metadata = {
   title: "Pedidos do site",
@@ -121,6 +123,12 @@ function AcoesDoPedido({ r }: { r: RegistroPedido }) {
             {r.conclusao.bling?.erro ? " · Bling não atualizou" : ""}
           </span>
           <button type="submit" className="text-xs underline">desfazer</button>
+          {!r.cancelamento && (
+            // Mesmo convite do e-mail "chegou": dá para reenviar pelo WhatsApp.
+            <a href={linkDeAvaliacao(urlPublica(), r.ref)} target="_blank" rel="noopener noreferrer" className="text-xs underline">
+              link de avaliação
+            </a>
+          )}
         </form>
       ) : (
         <form action={marcarConclusao}>

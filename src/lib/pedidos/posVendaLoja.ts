@@ -11,6 +11,7 @@
  * devolução, com o Glauco.
  */
 
+import { linkDeAvaliacao } from "../avaliacoes/avaliacoes";
 import { chamarBling } from "../bling/cliente";
 import { urlPublica } from "../checkout/posVenda";
 import { CID_LOGO, emailConfigurado, emailDaLoja, enviarEmail } from "../email/enviar";
@@ -107,8 +108,10 @@ export async function avisarProntoParaRetirada(ref: string): Promise<RegistroPed
 export async function concluirPedido(ref: string, tipo: "entregue" | "retirado"): Promise<RegistroPedido | null> {
   const r = await exigir(ref);
   const bling = r.conclusao?.bling?.feitoEm ? r.conclusao.bling : await mudarSituacaoNoBling(r.bling.idPedido, situacoesBling().atendido);
-  // "Chegou!" com convite à pesquisa — uma vez só, mesmo se marcar de novo.
-  const email = r.conclusao?.email?.feitoEm ? r.conclusao.email : await enviar(r.cliente.email, mensagemConcluido(r, tipo, urlPublica()));
+  // "Chegou!" com convite para avaliar as peças — uma vez só, mesmo se marcar de novo.
+  const email = r.conclusao?.email?.feitoEm
+    ? r.conclusao.email
+    : await enviar(r.cliente.email, mensagemConcluido(r, tipo, urlPublica(), linkDeAvaliacao(urlPublica(), r.ref)));
   return atualizarRegistro(ref, { conclusao: { tipo, em: r.conclusao?.em ?? agoraIso(), bling, email } });
 }
 

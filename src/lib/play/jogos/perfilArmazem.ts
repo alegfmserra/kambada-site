@@ -17,7 +17,7 @@ import {
 } from "./perfil";
 import type { MiniId } from "./minis";
 import type { PersonagemId } from "./missoesArraial";
-import { concluirPasso, concluirProva, falarCom, type Dialogo, type Retorno } from "./recados";
+import { concluirAchado, concluirPasso, concluirProva, falarCom, type Dialogo, type Retorno } from "./recados";
 
 /**
  * Armazenamento dos perfis do Arraial: um arquivo JSON na pasta persistente
@@ -184,6 +184,20 @@ export function fecharRecado(
     const saida = fecharEm(d, contaId, p, r, dia);
     await gravar(d);
     return saida;
+  });
+}
+
+/** Objeto do mapa encontrado: avança o passo "achar" do recado, se for o atual. */
+export function acharObjeto(contaId: string, objeto: string, agora = new Date()): Promise<(ResultadoRecado & { achou: string }) | null> {
+  return naFila(async () => {
+    const dia = hojeEmSaoLuis(agora);
+    const d = await ler();
+    const p = completar(d.perfis[contaId] ?? perfilNovo());
+    const r = concluirAchado(p.recados, objeto, dia);
+    if (!r) return null;
+    const saida = fecharEm(d, contaId, p, r, dia);
+    await gravar(d);
+    return { ...saida, achou: r.nome };
   });
 }
 

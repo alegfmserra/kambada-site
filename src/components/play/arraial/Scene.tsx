@@ -15,7 +15,7 @@ import { extras, npcs, textos } from "@/content/play/arraial";
 import { acento, ceuArraial, luzArraial } from "@/lib/play/cores";
 import { Ceu } from "./Cenario";
 import { FogueiraViva } from "./mundo/FogueiraViva";
-import { Noivos, Brincante, Boi, Marcador } from "./Personagens";
+import { Noivos, Brincante, Boi, Marcador, ObjetoBrilhante } from "./Personagens";
 import { Personagem } from "./mundo/Personagem";
 import { Quadrilha, TrioForro, TamborDeCrioula, Aquecedor, Passeantes } from "./Figurantes";
 import { Player, type Colisor } from "./Player";
@@ -37,6 +37,7 @@ import {
   BARRACAS,
   CAPELA,
   CORETO,
+  OBJETOS_ACHAVEIS,
   PONTOS_NPC,
   PONTO_PESCARIA,
   colisoresDoLayout,
@@ -131,6 +132,10 @@ type SceneProps = {
   onClicarLugar?: (id: string) => void;
   /** Personagens com um recado (missão) esperando: ganham um "!" verde. */
   recadoNpcs?: string[];
+  /** Objetos para achar agora (ids de OBJETOS_ACHAVEIS): brilham no chão. */
+  objetos?: string[];
+  /** Chamado uma vez quando o jogador chega perto de um objeto procurado. */
+  onAchar?: (id: string) => void;
 };
 
 /**
@@ -172,6 +177,8 @@ export function Scene({
   fitinhas,
   seloPescaria,
   recadoNpcs = [],
+  objetos = [],
+  onAchar,
   celebrando,
   onWebglFalha,
   onPrimeiroMovimento,
@@ -249,6 +256,14 @@ export function Scene({
     };
   }, []);
 
+  const objetosRef = useRef<string[]>([]);
+  const onAcharRef = useRef<((id: string) => void) | undefined>(undefined);
+  const achando = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    objetosRef.current = objetos;
+    onAcharRef.current = onAchar;
+    for (const id of [...achando.current]) if (!objetos.includes(id)) achando.current.delete(id);
+  }, [objetos, onAchar]);
   const aoMover = useCallback(
     (pos: THREE.Vector3) => {
       let maisPerto: string | null = null;
@@ -264,6 +279,15 @@ export function Scene({
       if (maisPerto !== ultimoPerto.current) {
         ultimoPerto.current = maisPerto;
         onPertoChange(maisPerto);
+      }
+
+      // Objetos procurados: chegou perto, achou (uma chamada por objeto até ele sair da lista).
+      for (const id of objetosRef.current) {
+        const o = OBJETOS_ACHAVEIS[id];
+        if (o && !achando.current.has(id) && Math.hypot(pos.x - o.x, pos.z - o.z) < 1.6) {
+          achando.current.add(id);
+          onAcharRef.current?.(id);
+        }
       }
 
       let maisPertoMinigame: string | null = null;
@@ -483,6 +507,7 @@ export function Scene({
               />
             );
           })}
+          {objetos.map((id) => (OBJETOS_ACHAVEIS[id] ? <ObjetoBrilhante key={id} posicao={[OBJETOS_ACHAVEIS[id].x, 0, OBJETOS_ACHAVEIS[id].z]} /> : null))}
           {[...npcs, ...extras].map((npc) => {
             const p = PONTOS[npc.id];
             return <Marcador key={`recado-${npc.id}`} posicao={[p.x + 0.45, p.alturaMarcador, p.z]} visivel={recadoNpcs.includes(npc.id)} cor="#5BD68A" />;

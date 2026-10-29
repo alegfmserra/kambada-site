@@ -10,7 +10,8 @@ import { permutacaoSecreta } from "./seguranca";
  *  - "falar":     conversa, anota uma informação no diário e passa ao próximo;
  *  - "responder": o personagem pergunta algo que a informação colhida responde;
  *  - "prova":     mini-atividade (precisa sair perfeita) para convencer alguém;
- *  - "entregar":  dar uma lembrança do baú do dia (não é gasta).
+ *  - "entregar":  dar uma lembrança do baú do dia (não é gasta);
+ *  - "achar":     encontrar um objeto brilhando no mapa (só uma dica de lugar).
  * `semSeta`: o personagem desse passo NÃO ganha o "!" na cena; só a dica do diário.
  *
  * Todo texto aqui é novo e `revisado: false` (revisão cultural com mestres e
@@ -21,7 +22,7 @@ export const RECADOS_REVISADOS = false;
 
 export type Passo = {
   npc: PersonagemId;
-  tipo: "falar" | "responder" | "prova" | "entregar";
+  tipo: "falar" | "responder" | "prova" | "entregar" | "achar";
   falas: string[];
   /** Linha do diário enquanto este for o passo atual. */
   dica: string;
@@ -40,6 +41,8 @@ export type Passo = {
   mini?: MiniId;
   /** "entregar". */
   semItem?: string[];
+  /** "achar": id do objeto no mapa (ver OBJETOS_ACHAVEIS no layout da cena). */
+  objeto?: string;
 };
 
 export type Categoria = "povo" | "semanal";
@@ -106,11 +109,11 @@ export const RECADOS: Recado[] = [
     titulo: "A fita da Ritinha",
     categoria: "povo",
     xp: 70,
-    resumo: "Dona Ritinha perdeu a fita do chapéu e ninguém avisou onde está.",
+    resumo: "Dona Ritinha perdeu a fita do chapéu: ache no mapa.",
     passos: [
       { npc: "brincante", tipo: "falar", dica: "Dona Ritinha perdeu a fita do chapéu. O Boi Estrela vê tudo da festa.", falas: ["Ai, perdi a fita do meu chapéu de brincante! Era a mais bonita.", "Tenho certeza que o Boi Estrela viu. Ele enxerga tudo da festa lá do curral."] },
-      { npc: "boi", tipo: "falar", dica: "Pergunte ao Boi Estrela se viu a fita.", info: "O Boi viu a fita voar na direção de quem cuida do fogo.", falas: ["Muuu! A fita da Ritinha? Vi sim! O vento levou ela pro lado de quem cuida do fogo.", "Procura por lá. Mas eu não digo o nome, quero ver se tu adivinha!"] },
-      { npc: "fogueira", tipo: "falar", semSeta: true, dica: "Quem cuida do fogo da praça? Ninguém vai te apontar: procure por conta própria.", info: "Seu Chico guardou a fita para a Ritinha.", falas: ["A fita? Caiu aqui do lado da fogueira e eu guardei pra ela! Achei que ia aparecer alguém procurando.", "Leva pra Dona Ritinha, e diz que é de Seu Chico, com carinho."] },
+      { npc: "boi", tipo: "falar", dica: "Pergunte ao Boi Estrela se viu a fita.", info: "O Boi viu a fita voar na direção da fogueira.", falas: ["Muuu! A fita da Ritinha? Vi sim! O vento levou ela pro lado da fogueira.", "Procura no chão da praça, que fita brilha quando alguém chega perto!"] },
+      { npc: "brincante", tipo: "achar", objeto: "fita-da-ritinha", info: "Você achou a fita perdida.", dica: "O vento levou a fita para o lado da fogueira. Procure no chão da praça: um brilho azul aparece quando você chega perto.", falas: [] },
       { npc: "brincante", tipo: "falar", dica: "Devolva a fita à Dona Ritinha.", falas: ["Minha fita! Que alegria! Obrigada, meu filho, tu é brincante de verdade.", "Uma coisa eu digo: quem procura e devolve, o boi abençoa."] },
     ],
   },
@@ -124,6 +127,18 @@ export const RECADOS: Recado[] = [
       { npc: "catirina", tipo: "falar", dica: "Mãe Catirina quer saber como se assa milho. Pergunte a Seu Chico.", falas: ["Ai, meu filho, esse desejo de grávida me atormenta! Agora deu foi vontade de milho assado.", "Vai perguntar ao Seu Chico como é que se assa direitinho, e volta aqui me contar!"] },
       { npc: "fogueira", tipo: "falar", dica: "Pergunte a Seu Chico como se assa o milho.", info: "O milho se assa na brasa da fogueira, com a palha.", falas: ["Milho assado? Ah, isso eu sei! Põe na brasa da fogueira, com a palha, e vai virando devagar.", "A palha guarda o doce do milho. Diz pra ela, e que me traga um pedaço!"] },
       { npc: "catirina", tipo: "responder", dica: "Volte à Catirina e conte como se assa o milho.", exigeInfos: 1, semInfo: ["Já falou com Seu Chico? Eu só penso em milho! Vai lá e volta."], falas: ["E aí, o que Seu Chico disse? Fala logo, que o desejo não espera!"], pergunta: { enunciado: "Como se assa o milho, segundo Seu Chico?", opcoes: ["Na brasa da fogueira, com a palha", "Dentro de uma geladeira", "Numa panela de água fria"] }, acerto: ["Na brasa, com a palha! Vou lá agora mesmo. Obrigada, meu filho, tu é um anjo!"], erro: ["Hum, não foi isso que Seu Chico falou. Volta lá e pergunta de novo!"] },
+    ],
+  },
+  {
+    id: "o-buque-da-francisca",
+    titulo: "O buquê da Francisca",
+    categoria: "povo",
+    xp: 65,
+    resumo: "A Francisca perdeu o buquê perto da capela: ache no mapa.",
+    passos: [
+      { npc: "noivos", tipo: "falar", dica: "Francisca perdeu o buquê. Procure perto da capela.", falas: ["Ai, meu buquê sumiu! Eu estava ali perto da capela, tirando foto, e de repente cadê?", "Tu que anda por aí, dá uma olhada no chão perto da capela? Quando chegar perto, ele brilha."] },
+      { npc: "noivos", tipo: "achar", objeto: "buque-da-francisca", info: "Você achou o buquê.", dica: "Procure o buquê da Francisca no chão perto da capela: um brilho azul aparece quando você chega perto.", falas: [] },
+      { npc: "noivos", tipo: "falar", dica: "Devolva o buquê à Francisca.", falas: ["Meu buquê! Que alegria! Agora o casamento pode seguir. Obrigada, meu bem!"] },
     ],
   },
   // ------------------------------------------------------------- semanais
@@ -239,7 +254,7 @@ export type Dialogo = {
   categoria: Categoria;
   passo: number;
   /** "avisar" = só fala (falta informação ou item): não avança. */
-  tipo: "falar" | "responder" | "prova" | "entregar" | "avisar";
+  tipo: "falar" | "responder" | "prova" | "entregar" | "achar" | "avisar";
   falas: string[];
   nova: boolean;
   pergunta?: { enunciado: string; opcoes: string[] };
@@ -254,7 +269,7 @@ function alvosDe(estado: EstadoRecados, npc: PersonagemId, dia: string): Alvo[] 
   const alvos: Alvo[] = [];
   for (const [id, a] of Object.entries(estado.ativas)) {
     const r = recado(id);
-    if (r && a.periodo === periodoDe(r, dia) && r.passos[a.passo]?.npc === npc) alvos.push({ r, passo: a.passo, andamento: a });
+    if (r && a.periodo === periodoDe(r, dia) && r.passos[a.passo]?.npc === npc && r.passos[a.passo]?.tipo !== "achar") alvos.push({ r, passo: a.passo, andamento: a });
   }
   for (const r of recadosDoDia(dia)) {
     if (estado.ativas[r.id] || estado.feitas[r.id] === periodoDe(r, dia)) continue;
@@ -355,6 +370,20 @@ export function concluirProva(antes: EstadoRecados, recadoId: string, mini: Mini
   return { estado, falas: [], avancou: true, concluida: concluida ? { titulo: concluida.titulo, xp: concluida.xp } : undefined };
 }
 
+/** Objeto do mapa encontrado: avança o passo "achar" correspondente. */
+export function concluirAchado(antes: EstadoRecados, objeto: string, dia: string): (Retorno & { nome: string }) | null {
+  for (const [id, a] of Object.entries(antes.ativas)) {
+    const r = recado(id);
+    if (!r || a.periodo !== periodoDe(r, dia)) continue;
+    const p = r.passos[a.passo];
+    if (p?.tipo !== "achar" || p.objeto !== objeto) continue;
+    const estado: EstadoRecados = JSON.parse(JSON.stringify(antes));
+    const { concluida } = avancar(estado, { r, passo: a.passo, andamento: a }, dia);
+    return { estado, falas: [], avancou: true, concluida: concluida ? { titulo: concluida.titulo, xp: concluida.xp } : undefined, nome: p.info ?? "Você achou o que procurava." };
+  }
+  return null;
+}
+
 // --- Visão pública (diário e marcadores) -----------------------------------------
 
 export type DiarioRecados = {
@@ -362,6 +391,8 @@ export type DiarioRecados = {
   disponiveis: { id: string; titulo: string; categoria: Categoria; xp: number; resumo: string; onde: string }[];
   /** Personagens que ganham "!" por causa de um recado (nunca os passos sem seta). */
   marcados: PersonagemId[];
+  /** Objetos para achar no mapa agora (ganham brilho na cena). */
+  objetos: string[];
   feitasNoPeriodo: number;
 };
 
@@ -369,12 +400,14 @@ export function diarioDe(estado: EstadoRecados, dia: string): DiarioRecados {
   const hoje = recadosDoDia(dia);
   const ativas: DiarioRecados["ativas"] = [];
   const marcados = new Set<PersonagemId>();
+  const objetos: string[] = [];
   for (const [id, a] of Object.entries(estado.ativas)) {
     const r = recado(id);
     if (!r || a.periodo !== periodoDe(r, dia)) continue;
     const p = r.passos[a.passo];
     ativas.push({ id, titulo: r.titulo, categoria: r.categoria, passo: a.passo + 1, total: r.passos.length, dica: p.dica, infos: a.infos, xp: r.xp, periodo: PERIODO_NOME[r.categoria] });
-    if (!p.semSeta) marcados.add(p.npc);
+    if (p.tipo === "achar" && p.objeto) objetos.push(p.objeto);
+    else if (!p.semSeta) marcados.add(p.npc);
   }
   const disponiveis: DiarioRecados["disponiveis"] = [];
   for (const r of hoje) {
@@ -382,5 +415,5 @@ export function diarioDe(estado: EstadoRecados, dia: string): DiarioRecados {
     disponiveis.push({ id: r.id, titulo: r.titulo, categoria: r.categoria, xp: r.xp, resumo: r.resumo, onde: NOME_DO_NPC[r.passos[0].npc] });
     marcados.add(r.passos[0].npc);
   }
-  return { ativas, disponiveis, marcados: [...marcados], feitasNoPeriodo: hoje.filter((r) => estado.feitas[r.id] === periodoDe(r, dia)).length };
+  return { ativas, disponiveis, marcados: [...marcados], objetos, feitasNoPeriodo: hoje.filter((r) => estado.feitas[r.id] === periodoDe(r, dia)).length };
 }

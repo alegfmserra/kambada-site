@@ -4,7 +4,7 @@ import { contaDaRequisicao } from "@/lib/play/contas";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 import type { Evento } from "@/lib/play/jogos/perfil";
-import { abrirBauDoDia, equiparItem, falarComPersonagem, fecharRecado, lerPerfil, provaDoRecado, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
+import { abrirBauDoDia, acharObjeto, equiparItem, falarComPersonagem, fecharRecado, lerPerfil, provaDoRecado, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
 import type { NpcId } from "@/lib/play/jogos/missoesArraial";
 import { ORDEM_PERSONAGENS } from "@/lib/play/jogos/missoesArraial";
 import { concluirMini, iniciarMini } from "@/lib/play/jogos/minis";
@@ -24,6 +24,7 @@ export const dynamic = "force-dynamic";
  *   { acao: "bau" }                           -> abre o baú do dia (1 por dia)
  *   { acao: "recado-falar", npc }             -> conversa de recado que o personagem tem para a conta (ou null)
  *   { acao: "recado-fim", npc, recado, resposta? } -> fecha o passo (falar/responder/entregar)
+ *   { acao: "recado-achei", objeto }          -> objeto do mapa encontrado (avança o passo "achar")
  *   { acao: "mini-iniciar", mini }            -> sequência da mini-atividade (fogueira | quadrilha)
  *   { acao: "mini-fim", estado, resposta }     -> confere o que o jogador tocou (+XP 1x/dia por atividade)
  *     (pulou: true = alguma fala foi pulada; o servidor zera o bônus de rapidez
@@ -66,6 +67,16 @@ export async function POST(requisicao: Request) {
       return NextResponse.json({ ok: true, ...r });
     } catch {
       return NextResponse.json({ ok: true, dialogo: null });
+    }
+  }
+  if (corpo.acao === "recado-achei") {
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    if (!conta || typeof corpo.objeto !== "string") return NextResponse.json({ ok: true, achou: null });
+    try {
+      const r = await acharObjeto(conta.id, corpo.objeto);
+      return NextResponse.json(r ? { ok: true, ...r } : { ok: true, achou: null });
+    } catch {
+      return NextResponse.json({ ok: true, achou: null });
     }
   }
   if (corpo.acao === "mini-iniciar") {

@@ -250,6 +250,12 @@ export const PONTOS_NPC: Record<
   amo: { x: 5.9 * EXPANSAO, z: -1.2 * EXPANSAO, alturaMarcador: 2.6 },
 };
 
+/** Objetos para achar no mapa (passos "achar" dos recados): só aparecem enquanto a missão pede. */
+export const OBJETOS_ACHAVEIS: Record<string, { x: number; z: number; nome: string }> = {
+  "fita-da-ritinha": { x: 1.0, z: 4.6, nome: "a fita da Ritinha" },
+  "buque-da-francisca": { x: 2.8, z: -9.2, nome: "o buquê da Francisca" },
+};
+
 /** Ponto do minigame de pescaria: na frente da barraca da pescaria. */
 export const PONTO_PESCARIA = (() => {
   const b = BARRACAS.find((x) => x.id === "pescaria")!;

@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { ORDEM_PERSONAGENS } from "./missoesArraial";
 import { aplicarEvento, completar, perfilNovo, publico } from "./perfil";
-import { concluirPasso, concluirProva, diarioDe, falarCom, POVO, recado, RECADOS, recadosDoDia, recadosNovo, SEMANAIS, semanaDe } from "./recados";
+import { concluirAchado, concluirPasso, concluirProva, diarioDe, falarCom, POVO, recado, RECADOS, recadosDoDia, recadosNovo, SEMANAIS, semanaDe } from "./recados";
 
 const DIA = "2026-11-03";
 const CONTA = "conta-1";
 
 function dia(i: number) {
   return new Date(Date.parse("2026-11-01T00:00:00Z") + i * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** Estado em que só este recado está em jogo (os outros do dia já foram feitos). */
+function estadoSo(id: string, d: string) {
+  const e = recadosNovo();
+  for (const o of recadosDoDia(d)) if (o.id !== id) e.feitas[o.id] = o.categoria === "povo" ? `d${d}` : `s${semanaDe(d)}`;
+  return e;
 }
 
 /** Primeiro dia a partir de DIA em que o recado está no rodízio. */
@@ -24,7 +31,7 @@ describe("Recados — banco", () => {
       for (const p of r.passos) {
         expect(ORDEM_PERSONAGENS).toContain(p.npc);
         expect(p.dica.length).toBeGreaterThan(10);
-        expect(p.falas.length).toBeGreaterThan(0);
+        if (p.tipo !== "achar") expect(p.falas.length).toBeGreaterThan(0);
         if (p.tipo === "responder") {
           expect(new Set(p.pergunta!.opcoes).size).toBe(3);
           expect(p.acerto?.length).toBeGreaterThan(0);
@@ -61,7 +68,7 @@ describe("Recados — banco", () => {
 describe("Recados — jogada", () => {
   it("recado do Zé: barraca dá a informação, o Zé confere e paga o XP uma vez", () => {
     const d = diaDoRecado("recado-do-ze");
-    let e = recadosNovo();
+    let e = estadoSo("recado-do-ze", d);
 
     const oferta = falarCom(e, "noivos", d, CONTA, false);
     expect(oferta?.recado).toBe("recado-do-ze");
@@ -95,7 +102,7 @@ describe("Recados — jogada", () => {
 
   it("não deixa fechar o passo de outro personagem nem pular etapa", () => {
     const d = diaDoRecado("recado-do-ze");
-    const e = recadosNovo();
+    const e = estadoSo("recado-do-ze", d);
     const a = concluirPasso(e, "noivos", "recado-do-ze", undefined, d, CONTA, false);
     if ("erro" in a) throw new Error(a.erro);
     // Passo 2 (Zé responde) ainda não chegou; passo 1 só vale na barraca.
@@ -116,7 +123,7 @@ describe("Recados — jogada", () => {
 
   it("prova: só a mini perfeita certa avança, e fecha o recado se for o último passo", () => {
     const d = diaDoRecado("fogo-no-ritmo");
-    let e = recadosNovo();
+    let e = estadoSo("fogo-no-ritmo", d);
     const a = concluirPasso(e, "fogueira", "fogo-no-ritmo", undefined, d, CONTA, false);
     if ("erro" in a) throw new Error(a.erro);
     e = a.estado;
@@ -133,6 +140,30 @@ describe("Recados — jogada", () => {
     e.ativas[r.id] = { passo: 2, infos: ["x"], periodo: `s${semanaDe(DIA)}` };
     expect(falarCom(e, "noivos", DIA, CONTA, false)?.tipo).toBe("avisar");
     expect(falarCom(e, "noivos", DIA, CONTA, true)?.tipo).toBe("entregar");
+  });
+
+  it("achar: o objeto certo avança o passo e fecha o recado; objeto errado não faz nada", () => {
+    const d = diaDoRecado("o-buque-da-francisca");
+    let e = estadoSo("o-buque-da-francisca", d);
+    const a = concluirPasso(e, "noivos", "o-buque-da-francisca", undefined, d, CONTA, false);
+    if ("erro" in a) throw new Error(a.erro);
+    e = a.estado;
+    // O passo "achar" não vira conversa nem marcador: vira objeto brilhando.
+    expect(falarCom(e, "noivos", d, CONTA, false)?.recado).not.toBe("o-buque-da-francisca");
+    expect(diarioDe(e, d).objetos).toEqual(["buque-da-francisca"]);
+    expect(concluirAchado(e, "fita-da-ritinha", d)).toBeNull();
+    const achou = concluirAchado(e, "buque-da-francisca", d);
+    expect(achou?.avancou).toBe(true);
+    expect(diarioDe(achou!.estado, d).objetos).toEqual([]);
+    // Agora a Francisca agradece e fecha o recado.
+    const fim = concluirPasso(achou!.estado, "noivos", "o-buque-da-francisca", undefined, d, CONTA, false);
+    if ("erro" in fim) throw new Error(fim.erro);
+    expect(fim.concluida?.xp).toBe(65);
+  });
+
+  it("todo passo achar aponta para um objeto que existe no mapa", async () => {
+    const { OBJETOS_ACHAVEIS } = await import("../../../components/play/arraial/mundo/layout");
+    for (const r of RECADOS) for (const p of r.passos) if (p.tipo === "achar") expect(OBJETOS_ACHAVEIS[p.objeto!]).toBeTruthy();
   });
 
   it("recado concluído paga XP por fora do teto e avisa o título", () => {

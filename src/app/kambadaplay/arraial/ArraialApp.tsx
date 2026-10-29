@@ -47,6 +47,7 @@ export default function ArraialApp() {
       });
   }, []);
   const recadoNpcs = usePerfilAtual()?.recados.marcados;
+  const objetosAchaveis = usePerfilAtual()?.recados.objetos;
   const fecharRecado = useCallback(() => setRecado(null), []);
   const [fitinhas, setFitinhas] = useState<string[]>([]);
   const [celebrar, setCelebrar] = useState(false);
@@ -64,6 +65,14 @@ export default function ArraialApp() {
     const id = window.setTimeout(() => setAvisoMissao(""), 6000);
     return () => window.clearTimeout(id);
   }, [avisoMissao]);
+  const aoAchar = useCallback((id: string) => {
+    chamar<{ achou: string | null } & Parameters<typeof emitirPerfil>[0]>("/api/play/arraial", { acao: "recado-achei", objeto: id }).then((r) => {
+      if (r.ok && r.achou) {
+        emitirPerfil(r);
+        setAvisoMissao(`${r.achou} Volte para continuar a missão.`);
+      }
+    });
+  }, []);
   const iniciarMissao = useCallback(() => {
     // Promessa: o estado só muda quando a resposta chega (nada síncrono no efeito).
     return chamar<{ estado: string; missao: MissaoPublica }>("/api/play/arraial", { acao: "iniciar" }).then((r) => {
@@ -312,6 +321,8 @@ export default function ArraialApp() {
         onPertoMinigameChange={setPertoMinigameId}
         fitinhas={fitinhas}
         recadoNpcs={recadoNpcs}
+        objetos={objetosAchaveis}
+        onAchar={aoAchar}
         seloPescaria={seloPescaria}
         celebrando={celebrar}
         onWebglFalha={aoFalharWebgl}

@@ -181,6 +181,30 @@ export function Boi({ posicao, celebrando = false }: BoiProps) {
   );
 }
 
+/** Objeto que brilha no chão (passo "achar" de um recado): gira e flutua devagar. */
+export function ObjetoBrilhante({ posicao }: { posicao: [number, number, number] }) {
+  const menosMovimento = usePrefereMenosMovimento();
+  const ref = useRef<THREE.Group>(null);
+  const tempoRef = useRef(0);
+  useFrame((_, delta) => {
+    tempoRef.current += delta;
+    if (!ref.current) return;
+    const t = tempoRef.current;
+    ref.current.position.y = posicao[1] + 0.45 + (menosMovimento ? 0 : Math.sin(t * 2.4) * 0.1);
+    ref.current.rotation.y = menosMovimento ? 0 : t * 1.2;
+  });
+  const cor = "#6EC9FF";
+  return (
+    <group ref={ref} position={[posicao[0], posicao[1] + 0.45, posicao[2]]}>
+      <mesh>
+        <octahedronGeometry args={[0.2, 0]} />
+        <meshBasicMaterial color={cor} />
+      </mesh>
+      <pointLight color={cor} intensity={2.2} distance={4} />
+    </group>
+  );
+}
+
 type MarcadorProps = {
   posicao: [number, number, number];
   visivel: boolean;

@@ -13,6 +13,7 @@ import {
   descadastrar,
   gerarHash,
   lerTokenDeEmail,
+  precisaLembreteDeConfirmacao,
   listarContas,
   nomeValido,
   normalizarEmail,
@@ -143,5 +144,17 @@ describe("troca de senha derruba as sessões antigas", () => {
     expect(await contaDaSessao(null)).toBeNull();
     const [c] = (await listarContas()).filter((x) => x.email === "sessao@exemplo.com");
     expect(await contaDaSessao(lerSessao(criarSessaoDeConta(c.id, "0000000000000000")))).toBeNull();
+  });
+
+  it("lembrete de confirmação: uma vez, entre 24 h e 7 dias, só para quem não confirmou", () => {
+    const agora = new Date("2026-10-29T12:00:00Z");
+    const conta = (horas: number, extra: object = {}) =>
+      ({ id: "x", nome: "A", email: "a@b.com", senhaHash: "", novidades: false, criadoEm: new Date(agora.getTime() - horas * 3_600_000).toISOString(), ...extra });
+    expect(precisaLembreteDeConfirmacao(conta(23), agora)).toBe(false);
+    expect(precisaLembreteDeConfirmacao(conta(25), agora)).toBe(true);
+    expect(precisaLembreteDeConfirmacao(conta(24 * 8), agora)).toBe(false);
+    expect(precisaLembreteDeConfirmacao(conta(30, { confirmadoEm: "x" }), agora)).toBe(false);
+    expect(precisaLembreteDeConfirmacao(conta(30, { lembreteConfirmacaoEm: "x" }), agora)).toBe(false);
+    expect(precisaLembreteDeConfirmacao(conta(30, { descadastradoEm: "x" }), agora)).toBe(false);
   });
 });

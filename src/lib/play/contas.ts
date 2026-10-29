@@ -34,6 +34,8 @@ export type Conta = {
   ultimoAcessoEm?: string;
   /** Preenchido ao cancelar o recebimento (link do e-mail). */
   descadastradoEm?: string;
+  /** Lembrete automático de confirmação já enviado (só um por conta). */
+  lembreteConfirmacaoEm?: string;
   /** De onde veio o cadastro (utm/referência) — conversão por canal. */
   atribuicao?: Atribuicao;
 };
@@ -347,6 +349,33 @@ export function descadastrar(token: unknown, agora = new Date()): Promise<boolea
 
 export async function listarContas(): Promise<Conta[]> {
   return (await ler()).contas;
+}
+
+// ---------------------------------------------------------------------------
+// Lembrete de confirmação (29/10/2026: só 8 de 21 contas tinham confirmado)
+// ---------------------------------------------------------------------------
+
+const HORA_MS = 60 * 60 * 1000;
+
+/**
+ * Conta que ganha UM lembrete: não confirmada, não descadastrada, sem lembrete
+ * anterior, criada entre 24 h e 7 dias atrás. Conta mais velha não recebe
+ * e-mail do nada — quem quiser usa o "reenviar" da Minha conta.
+ */
+export function precisaLembreteDeConfirmacao(c: Conta, agora = new Date()): boolean {
+  if (c.confirmadoEm || c.descadastradoEm || c.lembreteConfirmacaoEm) return false;
+  const idade = agora.getTime() - new Date(c.criadoEm).getTime();
+  return idade >= 24 * HORA_MS && idade <= 7 * 24 * HORA_MS;
+}
+
+export function marcarLembreteDeConfirmacao(id: string, agora = new Date()): Promise<void> {
+  return naFila(async () => {
+    const d = await ler();
+    const c = d.contas.find((x) => x.id === id);
+    if (!c) return;
+    c.lembreteConfirmacaoEm = agora.toISOString();
+    await gravar(d);
+  });
 }
 
 /** Onde as contas estão de fato (para o diagnóstico da rota de exportação). */

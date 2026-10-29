@@ -7,6 +7,7 @@ import { MAXIMO_POR_ITEM } from "@/lib/carrinho/logica";
 import type { Opcao } from "@/lib/catalogo";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { useOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
+import { ANCORA_GUIA_DE_TAMANHOS } from "@/components/produto/GuiaDeTamanhos";
 import {
   acharOpcao,
   eixoMudaPreco,
@@ -28,9 +29,11 @@ type Props = {
   opcoes: Opcao[];
   /** Feita por encomenda: o saldo não limita a compra. */
   sobEncomenda?: boolean;
+  /** A página tem guia de tamanhos: mostra "Qual meu tamanho?" junto da escolha. */
+  temGuiaDeTamanhos?: boolean;
 };
 
-export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sobEncomenda = false }: Props) {
+export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sobEncomenda = false, temGuiaDeTamanhos = false }: Props) {
   const { adicionar, itens } = useCarrinho();
   const fotoAtiva = useOpcaoAtiva();
   const idGrupo = useId();
@@ -100,6 +103,17 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
     setAdicionado(true);
   }
 
+  // Pesquisa de 29/10: "saber melhor tamanho e caimento" — a tabela existia,
+  // mas ficava abaixo do botão de comprar.
+  const linkMedidas = temGuiaDeTamanhos ? (
+    <a
+      href={`#${ANCORA_GUIA_DE_TAMANHOS}`}
+      className="mt-3 inline-block text-sm font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
+    >
+      📏 Qual meu tamanho? Ver as medidas
+    </a>
+  ) : null;
+
   return (
     <div className="mt-8">
       {eixos &&
@@ -146,6 +160,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                   );
                 })}
               </div>
+              {eixo.chave === "tamanho" && linkMedidas}
             </fieldset>
           );
         })}
@@ -191,6 +206,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
               );
             })}
           </div>
+          {ehTamanho && linkMedidas}
         </fieldset>
       )}
 

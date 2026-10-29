@@ -391,6 +391,20 @@ export function indicadoresLoja(rs: Resposta[]) {
   };
 }
 
+/** Mínimo de notas para o selo público aparecer: com 3 notas, "5,0" não diz nada. */
+export const MINIMO_NOTAS_SELO = 10;
+
+/**
+ * Nota pública do site (selo da loja): média com uma casa e quantas notas.
+ * É a nota do SITE na pesquisa de satisfação, não avaliação de peça — por
+ * isso não vai para o dado estruturado do produto (o Google pune isso).
+ */
+export function notaDoSite(rs: Resposta[]): { media: number; notas: number } | null {
+  const notas = rs.map((r) => r.nota).filter((n): n is number => typeof n === "number");
+  if (notas.length < MINIMO_NOTAS_SELO) return null;
+  return { media: Math.round((notas.reduce((a, b) => a + b, 0) / notas.length) * 10) / 10, notas: notas.length };
+}
+
 export function resumir(rs: Resposta[]) {
   const notas = rs.map((r) => r.nota).filter((n): n is number => typeof n === "number");
   return {

@@ -30,6 +30,21 @@ export async function register() {
   }, 3 * 60 * 1000).unref();
   setInterval(rodar, 6 * 60 * 60 * 1000).unref();
 
+  // Lembrete de confirmação de e-mail: a cada hora, um único e-mail para quem
+  // se cadastrou há mais de 24 h e não confirmou. Só um processo por hora.
+  const { enviarLembretesDeConfirmacao } = await import("./lib/play/lembreteConfirmacao");
+  const reserva = await import("./lib/manutencao/reserva");
+  setInterval(async () => {
+    try {
+      if (!reserva.pastaDeDadosPresente()) return;
+      if (!(await reserva.reservar(`lembrete-confirmacao-${Math.floor(Date.now() / 3_600_000)}`))) return;
+      const r = await enviarLembretesDeConfirmacao();
+      if (r.enviados || r.erros.length) console.log(`[lembrete-confirmacao] ${r.enviados} enviado(s)${r.erros.length ? `, erros: ${r.erros.join("; ")}` : ""}`);
+    } catch (e) {
+      console.error("[lembrete-confirmacao] falhou:", e instanceof Error ? e.message : e);
+    }
+  }, 60 * 60 * 1000).unref();
+
   // Etiquetas do Melhor Envio: a cada hora, postado → rastreio ao cliente;
   // entregue → pedido concluído + pesquisa. Só um processo por hora (reserva).
   const { acompanharEtiquetas } = await import("./lib/frete/etiqueta");

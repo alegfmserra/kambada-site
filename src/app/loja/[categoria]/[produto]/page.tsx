@@ -5,6 +5,7 @@ import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
 import FotoAtiva from "@/components/produto/FotoAtiva";
 import { fotosDosSuportes } from "@/lib/fotosSuportes";
 import GuiaDeTamanhos from "@/components/produto/GuiaDeTamanhos";
+import SeloNotaDoSite from "@/components/loja/SeloNotaDoSite";
 import { ProvedorOpcaoAtiva } from "@/components/produto/OpcaoAtiva";
 import { tabelaDeMedidas } from "@/lib/loja/medidas";
 import { buscarCatalogo } from "@/lib/bling/produtos";
@@ -225,6 +226,7 @@ export default async function PaginaProduto({ params }: Props) {
               >
                 {estoque.texto}
               </p>
+              <SeloNotaDoSite className="mt-3" />
 
               {opcoesCompraveis.length > 0 && estoque.disponivel && (
                 <>
@@ -234,6 +236,7 @@ export default async function PaginaProduto({ params }: Props) {
                     nome={produto.nome}
                     opcoes={opcoesCompraveis}
                     sobEncomenda={produto.sobEncomenda}
+                    temGuiaDeTamanhos={Boolean(medidas)}
                   />
                   {medidas && <GuiaDeTamanhos tabela={medidas} />}
                   <p className="mt-2 text-sm text-texto-suave">

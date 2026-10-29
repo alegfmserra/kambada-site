@@ -33,18 +33,26 @@ function rodapePadrao(base: string, conta: Conta): string {
   return `Você recebe este e-mail porque criou uma conta no Kambada Play (somoskambada.com.br). Para não receber novidades, <a href="${linkDescadastro(base, conta)}" style="color:#5e6266">clique aqui</a>. Somos Kambada LTDA · São Luís – MA.`;
 }
 
-export async function enviarConfirmacao(base: string, conta: Conta): Promise<{ enviado: boolean; link: string }> {
+/** `lembrete`: o reenvio automático 24 h depois do cadastro (assunto e abertura próprios). */
+export async function enviarConfirmacao(
+  base: string,
+  conta: Conta,
+  lembrete = false,
+): Promise<{ enviado: boolean; link: string }> {
   const link = `${base}/kambadaplay/confirmar?token=${encodeURIComponent(tokenDeEmail("confirmar", conta.id))}`;
   if (!emailConfigurado()) return { enviado: false, link };
+  const abertura = lembrete
+    ? "Seu cadastro na Kambada ficou pela metade: falta confirmar o e-mail"
+    : "Falta um passo para o seu cadastro no Kambada Play: confirme seu e-mail";
   await enviarEmail({
     remetente: "Kambada Play",
     descadastro: linkDescadastro(base, conta),
     para: conta.email,
-    assunto: "Confirme seu e-mail no Kambada Play",
-    texto: `Éguas, ${conta.nome}! Falta um passo: confirme seu e-mail abrindo este endereço (vale 48 horas):\n\n${link}\n\nSe você não criou esta conta, ignore esta mensagem.`,
+    assunto: lembrete ? "Falta só confirmar seu e-mail na Kambada" : "Confirme seu e-mail no Kambada Play",
+    texto: `Éguas, ${conta.nome}! ${abertura}. Abra este endereço (vale 48 horas):\n\n${link}\n\nSe você não criou esta conta, ignore esta mensagem.`,
     html: moldura(
       `Éguas, ${conta.nome}!`,
-      `<p>Falta um passo para o seu cadastro no Kambada Play: confirme seu e-mail. O link vale por 48 horas.</p>${botao("Confirmar meu e-mail", link)}<p style="font-size:13px;color:#5e6266">Se você não criou esta conta, é só ignorar esta mensagem.</p>`,
+      `<p>${abertura}. O link vale por 48 horas.</p>${botao("Confirmar meu e-mail", link)}<p style="font-size:13px;color:#5e6266">Se você não criou esta conta, é só ignorar esta mensagem.</p>`,
       rodapePadrao(base, conta),
     ),
   });

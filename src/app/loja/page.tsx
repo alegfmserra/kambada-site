@@ -5,6 +5,7 @@ import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import FaixaBeneficios from "@/components/FaixaBeneficios";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
+import SeloNotaDoSite from "@/components/loja/SeloNotaDoSite";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -43,6 +44,7 @@ export default async function Loja() {
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-texto-suave">
             O Boi, o reggae e a Ilha em cada peça.
           </p>
+          <SeloNotaDoSite className="mt-4" />
           <div className="mt-10">
             <AvisoDemonstracao />
           </div>

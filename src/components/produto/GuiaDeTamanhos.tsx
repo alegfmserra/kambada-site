@@ -1,9 +1,12 @@
 import type { TabelaDeMedidas } from "@/lib/loja/medidas";
 
+/** Âncora do link "Qual meu tamanho?" que fica junto da escolha de tamanho. */
+export const ANCORA_GUIA_DE_TAMANHOS = "guia-de-tamanhos";
+
 /** Tabela de medidas da peça, aberta por padrão: menos troca, menos reclamação. */
 export default function GuiaDeTamanhos({ tabela }: { tabela: TabelaDeMedidas }) {
   return (
-    <details open className="mt-6 rounded-2xl border border-borda bg-superficie p-4">
+    <details open id={ANCORA_GUIA_DE_TAMANHOS} className="mt-6 scroll-mt-24 rounded-2xl border border-borda bg-superficie p-4">
       <summary className="cursor-pointer font-display text-sm font-semibold uppercase text-texto-tenue">
         Guia de tamanhos · {tabela.titulo}
       </summary>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filtrarPeriodo, respostasParaCsv, respostasParaCsvIctg, resumir, testeDePreco, usouPlayDe, validarResposta } from "./pesquisa";
+import { filtrarPeriodo, notaDoSite, respostasParaCsv, respostasParaCsvIctg, resumir, testeDePreco, usouPlayDe, validarResposta } from "./pesquisa";
 
 describe("pesquisa de satisfação", () => {
   it("aceita só opções conhecidas e corta texto longo", () => {
@@ -138,5 +138,11 @@ describe("pesquisa: teste de preço", () => {
     expect(t.find((l) => l.preco === 6.9)).toMatchObject({ n: 0, pctSim: null });
     expect(resumir([a, b, c]).testePrecoPlay.find((l) => l.preco === 19.9)?.n).toBe(1);
     expect(validarResposta({ gatilho: "video", nota: 4 })!.usouPlay).toBe(true);
+  });
+
+  it("selo da nota do site só aparece com 10 notas ou mais", () => {
+    const r = (nota: number) => validarResposta({ nota })!;
+    expect(notaDoSite(Array.from({ length: 9 }, () => r(5)))).toBeNull();
+    expect(notaDoSite([...Array.from({ length: 9 }, () => r(5)), r(4), validarResposta({ comentario: "sem nota" })!])).toEqual({ media: 4.9, notas: 10 });
   });
 });

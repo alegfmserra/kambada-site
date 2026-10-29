@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { assinar } from "./seguranca";
 import { avaliar, BANCO, iniciarDoDia, normalizar, numeroDaEdicao, palavraDoDia, palpitar, TAMANHO, TENTATIVAS } from "./palavra";
 
+describe("Palavra do dia — antes do lançamento", () => {
+  it("a palavra muda todo dia mesmo antes do dia 1 (pré-visualização), e a edição mostrada fica em 1", () => {
+    const dias = ["2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31"];
+    const palavras = dias.map((d) => palavraDoDia(d)?.palavra);
+    for (let i = 1; i < palavras.length; i++) expect(palavras[i]).not.toBe(palavras[i - 1]);
+    expect(numeroDaEdicao("2026-10-29")).toBe(1);
+  });
+});
+
 describe("Palavra do dia — banco", () => {
   it("toda palavra tem 5 letras, significado e exemplo, e nenhuma se repete", () => {
     const vistas = new Set<string>();

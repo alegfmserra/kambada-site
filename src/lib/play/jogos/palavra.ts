@@ -84,10 +84,14 @@ const DIA_MS = 24 * 60 * 60 * 1000;
 /** Dia 1 do jogo (AAAA-MM-DD, São Luís). */
 export const DIA_UM = "2026-11-01";
 
-/** Número da edição ("Palavra do dia #N"). */
+/** Dias desde o dia 1 do jogo, mais 1 (negativo ou zero antes do lançamento). */
+function indiceDoDia(dia: string): number {
+  return Math.floor((Date.parse(`${dia}T00:00:00Z`) - Date.parse(`${DIA_UM}T00:00:00Z`)) / DIA_MS) + 1;
+}
+
+/** Número da edição ("Palavra do dia #N"); antes do lançamento fica em 1 só na tela. */
 export function numeroDaEdicao(dia: string): number {
-  // Antes do lançamento (pré-visualização) a edição fica em 1 e a palavra não gira.
-  return Math.max(1, Math.floor((Date.parse(`${dia}T00:00:00Z`) - Date.parse(`${DIA_UM}T00:00:00Z`)) / DIA_MS) + 1);
+  return Math.max(1, indiceDoDia(dia));
 }
 
 /** Palavra do dia: percorre a lista na ordem, sem repetir até acabar. */
@@ -98,7 +102,8 @@ export function palavraDoDia(dia: string, lista: Palavra[] = palavrasAtivas()): 
   if (rodizio.length === 0) return null;
   // Dia de palavra fixa não gasta uma vez do rodízio: o contador só anda nos dias comuns.
   const fixasAntes = lista.filter((p) => p.dia && p.dia >= DIA_UM && p.dia < dia).length;
-  const n = numeroDaEdicao(dia) - fixasAntes;
+  // Antes do lançamento o índice anda para trás (dias de pré-visualização), para a palavra girar todo dia.
+  const n = indiceDoDia(dia) - fixasAntes;
   return rodizio[((n - 1) % rodizio.length + rodizio.length) % rodizio.length];
 }
 

@@ -54,8 +54,41 @@ describe("navegação", () => {
 });
 
 describe("artigos do blog", () => {
-  it("tem três artigos publicados", () => {
-    expect(ARTIGOS).toHaveLength(3);
+  it("tem sete artigos publicados, o mais novo primeiro", () => {
+    expect(ARTIGOS).toHaveLength(7);
+    const datas = ARTIGOS.map((a) => a.data);
+    expect([...datas].sort().reverse()).toEqual(datas);
+  });
+
+  it("toda foto de artigo tem texto alternativo, crédito e fonte", () => {
+    for (const artigo of ARTIGOS) {
+      const fotos = [
+        ...(artigo.capa ? [artigo.capa] : []),
+        ...artigo.blocos.flatMap((b) => (b.tipo === "imagem" ? [b.imagem] : [])),
+      ];
+      for (const foto of fotos) {
+        expect(foto.alt.length).toBeGreaterThan(20);
+        expect(foto.credito.length).toBeGreaterThan(2);
+        expect(foto.fonte).toMatch(/^https:\/\//);
+      }
+    }
+  });
+
+  it("links internos dos artigos apontam para artigos que existem", () => {
+    for (const artigo of ARTIGOS) {
+      for (const bloco of artigo.blocos) {
+        if (bloco.tipo !== "links") continue;
+        for (const link of bloco.itens.filter((l) => l.href.startsWith("/cultura/"))) {
+          expect(artigoPorSlug(link.href.replace("/cultura/", ""))).toBeDefined();
+        }
+      }
+    }
+  });
+
+  it("título para o Google cabe no resultado de busca", () => {
+    for (const artigo of ARTIGOS) {
+      expect((artigo.tituloSeo ?? artigo.titulo).length).toBeLessThanOrEqual(60);
+    }
   });
 
   it("cada artigo tem slug único, título, resumo e conteúdo", () => {

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ARTIGOS, dataPorExtenso } from "@/lib/artigos";
 
 export const metadata: Metadata = {
   title: "Explore a cultura maranhense",
   description:
-    "Histórias, tradições e o Maranhão do jeito Kambada: do reggae ao Bumba Meu Boi, do Guaraná Jesus às matracas.",
+    "Histórias, tradições e o Maranhão do jeito Kambada: Tambor de Crioula, capoeira, Bumba Meu Boi, reggae e o que fazer em São Luís.",
   alternates: { canonical: "/cultura" },
 };
 
@@ -32,6 +33,16 @@ export default function Cultura() {
                 key={artigo.slug}
                 className="flex flex-col rounded-2xl border border-borda bg-superficie p-7 transition-colors hover:border-kambada-amarelo-escuro"
               >
+                {artigo.capa && (
+                  <Image
+                    src={artigo.capa.src}
+                    alt=""
+                    width={artigo.capa.largura}
+                    height={artigo.capa.altura}
+                    sizes="(min-width: 768px) 360px, 100vw"
+                    className="-mx-7 -mt-7 mb-6 aspect-[3/2] w-[calc(100%+3.5rem)] max-w-none rounded-t-2xl object-cover"
+                  />
+                )}
                 <p className="font-display text-xs font-semibold tracking-wide text-texto-tenue uppercase">
                   {artigo.categoria} · {artigo.tempoLeitura}
                 </p>

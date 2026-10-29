@@ -244,6 +244,10 @@ export const PONTOS_NPC: Record<
   boi: { x: 4.6 * EXPANSAO, z: -5.4 * EXPANSAO, alturaMarcador: 2.6 },
   brincante: { x: -4.4 * EXPANSAO, z: 1.6 * EXPANSAO, alturaMarcador: 2.4 },
   barraca: { x: -1.7 * EXPANSAO, z: 5.0 * EXPANSAO - 0.4, alturaMarcador: 3.4 },
+  // Personagens do auto do boi (só em recados).
+  "pai-francisco": { x: -2.8 * EXPANSAO, z: -6.2 * EXPANSAO, alturaMarcador: 2.5 },
+  catirina: { x: 2.8 * EXPANSAO, z: -4.2 * EXPANSAO, alturaMarcador: 2.5 },
+  amo: { x: 5.9 * EXPANSAO, z: -1.2 * EXPANSAO, alturaMarcador: 2.6 },
 };
 
 /** Ponto do minigame de pescaria: na frente da barraca da pescaria. */

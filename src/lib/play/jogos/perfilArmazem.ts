@@ -16,7 +16,7 @@ import {
   type PerfilPublico,
 } from "./perfil";
 import type { MiniId } from "./minis";
-import type { NpcId } from "./missoesArraial";
+import type { PersonagemId } from "./missoesArraial";
 import { concluirPasso, concluirProva, falarCom, type Dialogo, type Retorno } from "./recados";
 
 /**
@@ -147,7 +147,7 @@ export type ResultadoRecado = {
 };
 
 /** O que o personagem tem para dizer a esta conta (sem gravar nada). */
-export async function falarComPersonagem(contaId: string, npc: NpcId, agora = new Date()): Promise<Dialogo | null> {
+export async function falarComPersonagem(contaId: string, npc: PersonagemId, agora = new Date()): Promise<Dialogo | null> {
   const d = await ler();
   const p = completar(d.perfis[contaId] ?? perfilNovo());
   return falarCom(p.recados, npc, hojeEmSaoLuis(agora), contaId, p.inventario.length > 0);
@@ -169,7 +169,7 @@ function fecharEm(d: Dados, contaId: string, p: Perfil, r: Retorno, dia: string)
 
 export function fecharRecado(
   contaId: string,
-  npc: NpcId,
+  npc: PersonagemId,
   recadoId: string,
   resposta: unknown,
   agora = new Date(),

@@ -6,7 +6,7 @@ import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 import type { Evento } from "@/lib/play/jogos/perfil";
 import { abrirBauDoDia, equiparItem, falarComPersonagem, fecharRecado, lerPerfil, provaDoRecado, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
 import type { NpcId } from "@/lib/play/jogos/missoesArraial";
-import { ORDEM_NPCS } from "@/lib/play/jogos/missoesArraial";
+import { ORDEM_PERSONAGENS } from "@/lib/play/jogos/missoesArraial";
 import { concluirMini, iniciarMini } from "@/lib/play/jogos/minis";
 import { verificar } from "@/lib/play/jogos/seguranca";
 
@@ -57,7 +57,7 @@ export async function POST(requisicao: Request) {
 
   if (corpo.acao === "recado-falar" || corpo.acao === "recado-fim") {
     const conta = await contaDaRequisicao(requisicao).catch(() => null);
-    const npc = ORDEM_NPCS.find((n) => n === corpo.npc);
+    const npc = ORDEM_PERSONAGENS.find((n) => n === corpo.npc);
     if (!conta || !npc) return NextResponse.json({ ok: true, dialogo: null });
     try {
       if (corpo.acao === "recado-falar") return NextResponse.json({ ok: true, dialogo: await falarComPersonagem(conta.id, npc) });

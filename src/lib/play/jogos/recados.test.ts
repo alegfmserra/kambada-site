@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ORDEM_NPCS } from "./missoesArraial";
+import { ORDEM_PERSONAGENS } from "./missoesArraial";
 import { aplicarEvento, completar, perfilNovo, publico } from "./perfil";
 import { concluirPasso, concluirProva, diarioDe, falarCom, POVO, recado, RECADOS, recadosDoDia, recadosNovo, SEMANAIS, semanaDe } from "./recados";
 
@@ -22,7 +22,7 @@ describe("Recados — banco", () => {
     for (const r of RECADOS) {
       expect(r.passos.length).toBeGreaterThanOrEqual(2);
       for (const p of r.passos) {
-        expect(ORDEM_NPCS).toContain(p.npc);
+        expect(ORDEM_PERSONAGENS).toContain(p.npc);
         expect(p.dica.length).toBeGreaterThan(10);
         expect(p.falas.length).toBeGreaterThan(0);
         if (p.tipo === "responder") {

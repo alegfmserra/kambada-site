@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { lugares, npcs, textos, type Lugar, type Npc } from "@/content/play/arraial";
+import { extras, lugares, npcs, textos, type Falante, type Lugar, type Npc } from "@/content/play/arraial";
 import { textosPescaria } from "@/content/play/pescaria";
 import { track } from "@/lib/play/track";
 import { useMediaQuery } from "@/lib/play/mediaQuery";
@@ -31,15 +31,16 @@ export default function ArraialApp() {
   const [pertoId, setPertoId] = useState<string | null>(null);
   const [dialogo, setDialogo] = useState<Npc | null>(null);
   // Recado (missão entre personagens) que o personagem tem para a conta; tem prioridade sobre a conversa da missão do mês.
-  const [recado, setRecado] = useState<{ npc: Npc; dialogo: DialogoDeRecado } | null>(null);
+  const [recado, setRecado] = useState<{ npc: Falante; dialogo: DialogoDeRecado } | null>(null);
   const consultando = useRef(false);
-  const abrirConversa = useCallback((npc: Npc) => {
+  const abrirConversa = useCallback((npc: Falante) => {
     if (consultando.current) return;
     consultando.current = true;
     chamar<{ dialogo: DialogoDeRecado | null }>("/api/play/arraial", { acao: "recado-falar", npc: npc.id })
       .then((r) => {
         if (r.ok && r.dialogo) setRecado({ npc, dialogo: r.dialogo });
-        else setDialogo(npc);
+        else if ("quiz" in npc) setDialogo(npc as Npc);
+        else setRecado({ npc, dialogo: { recado: "", titulo: npc.nome, categoria: "povo", passo: 0, tipo: "avisar", falas: npc.falas, nova: false } });
       })
       .finally(() => {
         consultando.current = false;
@@ -206,7 +207,7 @@ export default function ArraialApp() {
       )
         return;
       if (pertoId) {
-        const npc = npcs.find((n) => n.id === pertoId);
+        const npc = [...npcs, ...extras].find((n) => n.id === pertoId);
         if (npc) abrirConversa(npc);
         return;
       }
@@ -229,7 +230,7 @@ export default function ArraialApp() {
     lugarAberto,
   ]);
 
-  const npcPerto = pertoId ? npcs.find((n) => n.id === pertoId) : null;
+  const npcPerto = pertoId ? [...npcs, ...extras].find((n) => n.id === pertoId) : null;
 
   const ganhouFitinha = () => {
     if (!dialogo) return;

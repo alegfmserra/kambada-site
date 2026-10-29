@@ -1,5 +1,5 @@
 import type { MiniId } from "./minis";
-import type { NpcId } from "./missoesArraial";
+import type { PersonagemId } from "./missoesArraial";
 import { permutacaoSecreta } from "./seguranca";
 
 /**
@@ -20,7 +20,7 @@ import { permutacaoSecreta } from "./seguranca";
 export const RECADOS_REVISADOS = false;
 
 export type Passo = {
-  npc: NpcId;
+  npc: PersonagemId;
   tipo: "falar" | "responder" | "prova" | "entregar";
   falas: string[];
   /** Linha do diário enquanto este for o passo atual. */
@@ -114,19 +114,31 @@ export const RECADOS: Recado[] = [
       { npc: "brincante", tipo: "falar", dica: "Devolva a fita à Dona Ritinha.", falas: ["Minha fita! Que alegria! Obrigada, meu filho, tu é brincante de verdade.", "Uma coisa eu digo: quem procura e devolve, o boi abençoa."] },
     ],
   },
+  {
+    id: "o-desejo-da-catirina",
+    titulo: "O desejo da Catirina",
+    categoria: "povo",
+    xp: 55,
+    resumo: "A Mãe Catirina quer milho assado e pede a ajuda de Seu Chico.",
+    passos: [
+      { npc: "catirina", tipo: "falar", dica: "Mãe Catirina quer saber como se assa milho. Pergunte a Seu Chico.", falas: ["Ai, meu filho, esse desejo de grávida me atormenta! Agora deu foi vontade de milho assado.", "Vai perguntar ao Seu Chico como é que se assa direitinho, e volta aqui me contar!"] },
+      { npc: "fogueira", tipo: "falar", dica: "Pergunte a Seu Chico como se assa o milho.", info: "O milho se assa na brasa da fogueira, com a palha.", falas: ["Milho assado? Ah, isso eu sei! Põe na brasa da fogueira, com a palha, e vai virando devagar.", "A palha guarda o doce do milho. Diz pra ela, e que me traga um pedaço!"] },
+      { npc: "catirina", tipo: "responder", dica: "Volte à Catirina e conte como se assa o milho.", exigeInfos: 1, semInfo: ["Já falou com Seu Chico? Eu só penso em milho! Vai lá e volta."], falas: ["E aí, o que Seu Chico disse? Fala logo, que o desejo não espera!"], pergunta: { enunciado: "Como se assa o milho, segundo Seu Chico?", opcoes: ["Na brasa da fogueira, com a palha", "Dentro de uma geladeira", "Numa panela de água fria"] }, acerto: ["Na brasa, com a palha! Vou lá agora mesmo. Obrigada, meu filho, tu é um anjo!"], erro: ["Hum, não foi isso que Seu Chico falou. Volta lá e pergunta de novo!"] },
+    ],
+  },
   // ------------------------------------------------------------- semanais
   {
     id: "o-batizado-do-boi",
     titulo: "O batizado do boi",
     categoria: "semanal",
     xp: 150,
-    resumo: "Descubra em que noite o boi é batizado, passando por três personagens.",
+    resumo: "Descubra em que noite o boi é batizado, passando pelo Amo e por Seu Chico.",
     passos: [
-      { npc: "brincante", tipo: "falar", dica: "Dona Ritinha quer saber em que noite o boi é batizado. Comece ouvindo o Boi Estrela.", falas: ["Meu filho, tenho uma pergunta que me vem todo ano: em que noite o nosso boi é batizado?", "Eu sei, mas quero ver se tu aprende. Vai ouvir o Boi Estrela e depois me responde."] },
-      { npc: "boi", tipo: "falar", dica: "Ouça o Boi Estrela sobre o batizado.", info: "O Boi diz que Seu Chico, que acende o fogo da noite, sabe o dia do batizado.", falas: ["Muuu! O batizado é a noite mais bonita do meu ano. Mas quem sabe contar o dia direitinho é Seu Chico, que acende o fogo daquela noite.", "Fala com ele, mas ele só ensina quem sabe acompanhar o ritmo."] },
+      { npc: "brincante", tipo: "falar", dica: "Dona Ritinha quer saber em que noite o boi é batizado. Comece ouvindo o Amo.", falas: ["Meu filho, tenho uma pergunta que me vem todo ano: em que noite o nosso boi é batizado?", "Eu sei, mas quero ver se tu aprende. Vai ouvir o Boi Estrela e depois me responde."] },
+      { npc: "amo", tipo: "falar", dica: "Ouça o Amo sobre o batizado do boi.", info: "O Amo diz que Seu Chico, que acende o fogo da noite, sabe o dia do batizado.", falas: ["Ah, o batizado do boi! É a noite mais bonita do meu terreiro. Mas quem sabe contar o dia direitinho é Seu Chico, que acende o fogo daquela noite.", "Fala com ele, mas ele só ensina quem sabe acompanhar o ritmo."] },
       { npc: "fogueira", tipo: "prova", mini: "fogueira", dica: "Seu Chico só conta a data se você acender a fogueira no ritmo, sem errar.", falas: ["O boi te mandou aqui? Então mostra que acompanha o ritmo.", "Se acertar, eu te conto o dia do batizado."] },
       { npc: "fogueira", tipo: "falar", dica: "Acendeu no ritmo! Fale de novo com Seu Chico para ouvir a data.", info: "Em muitos grupos, o boi é batizado na noite de 23 de junho, véspera de São João.", falas: ["Acendeu no ritmo! Então escuta: em muitos grupos, o boi é batizado na noite de 23 de junho, véspera de São João.", "Agora vai contar pra Dona Ritinha."] },
-      { npc: "brincante", tipo: "responder", dica: "Volte à Dona Ritinha e responda em que noite o boi é batizado.", exigeInfos: 2, semInfo: ["Já ouviu o Boi e Seu Chico? Eu quero a resposta completinha!"], falas: ["Então, meu filho, em que noite se batiza o boi?"], pergunta: { enunciado: "Em que noite o boi é batizado, em muitos grupos?", opcoes: ["Na noite de 23 de junho, véspera de São João", "Na noite de Natal", "No dia 7 de setembro"] }, acerto: ["Isso mesmo! Tu aprendeu. Agora o boi vai ser batizado com tua bênção também."], erro: ["Hum, não foi isso que Seu Chico contou. Volta lá e ouve de novo!"] },
+      { npc: "brincante", tipo: "responder", dica: "Volte à Dona Ritinha e responda em que noite o boi é batizado.", exigeInfos: 2, semInfo: ["Já ouviu o Amo e Seu Chico? Eu quero a resposta completinha!"], falas: ["Então, meu filho, em que noite se batiza o boi?"], pergunta: { enunciado: "Em que noite o boi é batizado, em muitos grupos?", opcoes: ["Na noite de 23 de junho, véspera de São João", "Na noite de Natal", "No dia 7 de setembro"] }, acerto: ["Isso mesmo! Tu aprendeu. Agora o boi vai ser batizado com tua bênção também."], erro: ["Hum, não foi isso que Seu Chico contou. Volta lá e ouve de novo!"] },
     ],
   },
   {
@@ -140,6 +152,19 @@ export const RECADOS: Recado[] = [
       { npc: "brincante", tipo: "falar", semSeta: true, dica: "Quem toca matraca desde menina? Procure por conta própria (sem seta).", info: "Dona Ritinha viu o Zé passar com algo de madeira na mão.", falas: ["Matraca sumida? Eu não peguei! Mas vi o Zé passar com algo de madeira na mão, todo faceiro.", "Pergunta pra ele."] },
       { npc: "noivos", tipo: "entregar", semSeta: true, dica: "O Zé pega uma lembrança do baú do dia em troca. Abra o baú em Meu brincante e volte.", falas: ["Eu? Peguei emprestada! A Francisca queria mostrar pra todo mundo... Mas já devolvi.", "Olha, antes de eu falar com a barraca, quero deixar uma lembrança. Tu tem algum item do baú do dia pra me emprestar? Eu devolvo depois, juro."], acerto: ["Que lembrança bonita! Agora vou lá na barraca confessar tudo. Tu é gente boa, hein?"], semItem: ["Tu ainda não abriu o baú do dia. Abre lá em Meu brincante e volta aqui!"] },
       { npc: "barraca", tipo: "falar", dica: "Volte à Barraca da Kambada para contar que a matraca voltou.", falas: ["A matraca voltou! O Zé veio todo envergonhado devolver. Obrigado de coração!", "Foi a melhor semana de vendas só de alegria!"] },
+    ],
+  },
+  {
+    id: "o-perdao-do-pai-francisco",
+    titulo: "O perdão do Pai Francisco",
+    categoria: "semanal",
+    xp: 160,
+    resumo: "Pai Francisco está escondido e quer saber se o Amo ainda está furioso.",
+    passos: [
+      { npc: "pai-francisco", tipo: "falar", dica: "Pai Francisco quer saber do Amo se ainda está furioso. Vá falar com o Amo.", falas: ["Psiu! Fala baixo... sou eu, o Pai Francisco. Tô escondido por causa do boi, tu sabe.", "Eu só fiz o que a Catirina pediu, mas o Amo deve tá uma fera. Vai ver com ele o que é preciso pra me perdoar, por favor!"] },
+      { npc: "amo", tipo: "falar", dica: "Pergunte ao Amo o que ele exige para perdoar o Pai Francisco.", info: "O Amo só perdoa se o boi voltar a dançar.", falas: ["Pai Francisco te mandou aqui? Hum... eu fiquei fera quando deram falta do meu boi!", "Mas boi bonito não morre pra sempre. Se o boi voltar a dançar, a festa recomeça e eu perdoo."], escolhas: [{ texto: "Pedir com respeito", resposta: "Gosto de quem pede com respeito. Pode levar a resposta." }, { texto: "Pedir com a toada", resposta: "Hahaha, na toada? Então vai com a minha bênção." }] },
+      { npc: "catirina", tipo: "falar", dica: "Conte à Mãe Catirina o que o Amo disse.", info: "A Catirina assume que o desejo foi dela e quer chamar o pajé.", falas: ["O Amo quer o boi dançando de novo? Então eu assumo: o desejo foi meu, a culpa não é só do meu marido.", "Vou chamar o pajé e os curadores pra fazer o boi levantar. Diz pro Pai Francisco que pode sair do esconderijo!"] },
+      { npc: "pai-francisco", tipo: "responder", dica: "Volte ao Pai Francisco e conte o que o Amo exige.", exigeInfos: 2, semInfo: ["Ainda falta saber o que o Amo disse e o que a Catirina fará. Vai lá e volta!"], falas: ["Voltou! E aí? O que o Amo exige pra me perdoar?"], pergunta: { enunciado: "O que o Amo exige para perdoar o Pai Francisco?", opcoes: ["Que o boi volte a dançar", "Que Pai Francisco pague uma fortuna", "Que Pai Francisco vá embora do Maranhão"] }, acerto: ["Que o boi volte a dançar! Então a Catirina cuida disso. Obrigado, amigo. Salvou minha pele!"], erro: ["Hum, não foi isso que o Amo falou. Volta lá e escuta direitinho!"] },
     ],
   },
   {
@@ -197,7 +222,10 @@ export type EstadoRecados = { ativas: Record<string, Andamento>; feitas: Record<
 
 export const recadosNovo = (): EstadoRecados => ({ ativas: {}, feitas: {} });
 
-export const NOME_DO_NPC: Record<NpcId, string> = {
+export const NOME_DO_NPC: Record<PersonagemId, string> = {
+  "pai-francisco": "Pai Francisco",
+  catirina: "Mãe Catirina",
+  amo: "O Amo",
   noivos: "Zé e Francisca",
   boi: "Boi Estrela",
   fogueira: "Seu Chico da Fogueira",
@@ -222,7 +250,7 @@ export type Dialogo = {
 type Alvo = { r: Recado; passo: number; andamento: Andamento | null };
 
 /** O que o personagem tem para este jogador agora: passos ativos primeiro, depois ofertas. */
-function alvosDe(estado: EstadoRecados, npc: NpcId, dia: string): Alvo[] {
+function alvosDe(estado: EstadoRecados, npc: PersonagemId, dia: string): Alvo[] {
   const alvos: Alvo[] = [];
   for (const [id, a] of Object.entries(estado.ativas)) {
     const r = recado(id);
@@ -252,7 +280,7 @@ function montar(alvo: Alvo, contaId: string, temItemDoBau: boolean): Dialogo {
   return { ...base, tipo: p.tipo, falas: p.falas, escolhas: p.escolhas?.map((e) => e.texto), mini: p.mini };
 }
 
-export function falarCom(estado: EstadoRecados, npc: NpcId, dia: string, contaId: string, temItemDoBau: boolean): Dialogo | null {
+export function falarCom(estado: EstadoRecados, npc: PersonagemId, dia: string, contaId: string, temItemDoBau: boolean): Dialogo | null {
   const alvo = alvosDe(estado, npc, dia)[0];
   return alvo ? montar(alvo, contaId, temItemDoBau) : null;
 }
@@ -282,7 +310,7 @@ export type Retorno = {
 /** Fecha a conversa de um passo (falar, responder ou entregar). */
 export function concluirPasso(
   antes: EstadoRecados,
-  npc: NpcId,
+  npc: PersonagemId,
   recadoId: string,
   resposta: unknown,
   dia: string,
@@ -333,14 +361,14 @@ export type DiarioRecados = {
   ativas: { id: string; titulo: string; categoria: Categoria; passo: number; total: number; dica: string; infos: string[]; xp: number; periodo: string }[];
   disponiveis: { id: string; titulo: string; categoria: Categoria; xp: number; resumo: string; onde: string }[];
   /** Personagens que ganham "!" por causa de um recado (nunca os passos sem seta). */
-  marcados: NpcId[];
+  marcados: PersonagemId[];
   feitasNoPeriodo: number;
 };
 
 export function diarioDe(estado: EstadoRecados, dia: string): DiarioRecados {
   const hoje = recadosDoDia(dia);
   const ativas: DiarioRecados["ativas"] = [];
-  const marcados = new Set<NpcId>();
+  const marcados = new Set<PersonagemId>();
   for (const [id, a] of Object.entries(estado.ativas)) {
     const r = recado(id);
     if (!r || a.periodo !== periodoDe(r, dia)) continue;

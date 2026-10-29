@@ -51,7 +51,10 @@ export type Traje =
   | "triangulo"
   | "coreira"
   | "tocador-tambor"
-  | "aquecedor";
+  | "aquecedor"
+  | "pai-francisco"
+  | "catirina"
+  | "amo";
 
 export type OpcoesPersonagem = {
   traje: Traje;
@@ -559,6 +562,7 @@ export default function criarPersonagem(op: OpcoesPersonagem): THREE.Group {
     case "francisca":
     case "quadrilheira":
     case "coreira":
+    case "catirina":
     case "ritinha":
       corPernas = pele;
       corPes = op.traje === "francisca" ? CORES.branco : CORES.couro;
@@ -660,6 +664,24 @@ export default function criarPersonagem(op: OpcoesPersonagem): THREE.Group {
       camisaXadrez(c, ...TONS_XADREZ[2]);
       chapeuPalha(c);
       triangulo(c);
+      break;
+    case "pai-francisco":
+      camisa(c, CORES.vermelho);
+      colete(c, CORES.couro, CORES.vermelho);
+      chapeuCouro(c);
+      bigode(c);
+      break;
+    case "catirina":
+      camisa(c, CORES.amarelo);
+      vestido(c, CORES.verde, CORES.vermelho, 0.32 * H);
+      turbante(c, CORES.vermelho, CORES.amarelo);
+      tranca(c, CORES.couro);
+      break;
+    case "amo":
+      camisa(c, CORES.branco);
+      colete(c, CORES.vermelho);
+      chapeuDeFitas(c, CORES.amarelo);
+      bigode(c);
       break;
     case "coreira":
       camisa(c, v % 2 ? CORES.branco : TONS_VESTIDO[(v + 2) % TONS_VESTIDO.length]);

@@ -15,6 +15,11 @@ export type NpcId = "noivos" | "boi" | "fogueira" | "brincante" | "barraca";
 
 export const ORDEM_NPCS: NpcId[] = ["noivos", "boi", "fogueira", "brincante", "barraca"];
 
+/** Personagens do auto do boi que só falam em recados (não entram na missão do mês nem nas fitinhas). */
+export type ExtraId = "pai-francisco" | "catirina" | "amo";
+export type PersonagemId = NpcId | ExtraId;
+export const ORDEM_PERSONAGENS: PersonagemId[] = [...ORDEM_NPCS, "pai-francisco", "catirina", "amo"];
+
 export type Conversa = {
   falas: string[];
   /** O que vai para o caderninho quando a conversa termina. */

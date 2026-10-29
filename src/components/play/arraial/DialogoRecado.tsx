@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Npc } from "@/content/play/arraial";
+import type { Falante } from "@/content/play/arraial";
 import { chamar } from "@/components/play/jogos/jogador";
 import type { Ganho, PerfilPublico } from "@/lib/play/jogos/perfil";
 import type { Dialogo } from "@/lib/play/jogos/recados";
@@ -26,7 +26,7 @@ const OPCAO = "w-full rounded-xl border-2 border-kambada-cream/40 px-4 py-2 text
  * (confirmar, escolher, responder, provar ou entregar). Quem decide se o passo
  * avança é o servidor; aqui só se mostra e se envia o que o jogador escolheu.
  */
-export function DialogoRecado({ npc, dialogo, saindo = false, aoFechar }: { npc: Npc; dialogo: Dialogo; saindo?: boolean; aoFechar: () => void }) {
+export function DialogoRecado({ npc, dialogo, saindo = false, aoFechar }: { npc: Falante; dialogo: Dialogo; saindo?: boolean; aoFechar: () => void }) {
   const [falas, setFalas] = useState<string[]>(dialogo.falas);
   const [etapa, setEtapa] = useState(0);
   const [textoCompleto, setTextoCompleto] = useState(false);
@@ -111,7 +111,7 @@ export function DialogoRecado({ npc, dialogo, saindo = false, aoFechar }: { npc:
             {npc.nome}
           </p>
           <p className="font-body text-[11px] font-semibold uppercase tracking-wider text-kambada-cream/60">
-            {dialogo.categoria === "semanal" ? "Missão da semana" : "Missão"}: {dialogo.titulo}
+            {dialogo.recado ? `${dialogo.categoria === "semanal" ? "Missão da semana" : "Missão"}: ${dialogo.titulo}` : "Conversa"}
           </p>
         </div>
 

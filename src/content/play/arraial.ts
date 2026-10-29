@@ -17,6 +17,16 @@ export type Npc = {
   cta?: { label: string; href: string };
 };
 
+/** Personagem que só conversa (sem quiz): usado pelos personagens do auto do boi. */
+export type Falante = Pick<Npc, "id" | "nome" | "cor" | "falas">;
+
+/** Pai Francisco, Catirina e o Amo: falam em recados (missões entre personagens); sem recado, só uma fala. */
+export const extras: Falante[] = [
+  { id: "pai-francisco", nome: "Pai Francisco", cor: "#C9803A", falas: ["Psiu! Fala baixo... eu sou o Pai Francisco, vaqueiro da fazenda. Ando meio escondido por causa de um boi.", "Se aparecer alguém querendo ajudar, me procura de novo!"] },
+  { id: "catirina", nome: "Mãe Catirina", cor: "#E07BA8", falas: ["Ai, meu filho, com esse desejo de grávida ninguém me segura!", "Volta mais tarde que eu posso precisar de uma mãozinha."] },
+  { id: "amo", nome: "O Amo", cor: "#B5483A", falas: ["Eu sou o Amo, quem puxa a toada e comanda a brincadeira. O boi só dança quando eu apito.", "Se tiver um recado pra mim, eu escuto!"] },
+];
+
 export const npcs: Npc[] = [
   {
     id: "noivos",

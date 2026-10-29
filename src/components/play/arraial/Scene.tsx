@@ -11,7 +11,7 @@ import {
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Stars, PerformanceMonitor, AdaptiveDpr } from "@react-three/drei";
 import * as THREE from "three";
-import { npcs, textos } from "@/content/play/arraial";
+import { extras, npcs, textos } from "@/content/play/arraial";
 import { acento, ceuArraial, luzArraial } from "@/lib/play/cores";
 import { Ceu } from "./Cenario";
 import { FogueiraViva } from "./mundo/FogueiraViva";
@@ -58,6 +58,7 @@ export const PONTOS_MINIGAME: Record<
 
 const COLISORES: Colisor[] = [
   ...colisoresDoLayout(),
+  ...extras.map((n) => ({ x: PONTOS[n.id].x, z: PONTOS[n.id].z, r: 0.7 })),
   ...npcs.map((n) => ({
     x: PONTOS[n.id].x,
     z: PONTOS[n.id].z,
@@ -252,7 +253,7 @@ export function Scene({
     (pos: THREE.Vector3) => {
       let maisPerto: string | null = null;
       let menorDist = RAIO_CONVERSA;
-      for (const npc of npcs) {
+      for (const npc of [...npcs, ...extras]) {
         const p = PONTOS[npc.id];
         const d = Math.hypot(pos.x - p.x, pos.z - p.z);
         if (d < menorDist) {
@@ -460,6 +461,10 @@ export function Scene({
               <Brincante
                 posicao={[PONTOS.brincante.x, 0, PONTOS.brincante.z]}
               />
+              {extras.map((e) => {
+                const p = PONTOS[e.id];
+                return <Personagem key={e.id} traje={e.id as "amo" | "catirina" | "pai-francisco"} variante={1} posicao={[p.x, 0, p.z]} rotacaoY={Math.atan2(-p.x, -p.z)} fase={0.3} />;
+              })}
               <Quadrilha />
               <TrioForro />
               <TamborDeCrioula />
@@ -478,7 +483,7 @@ export function Scene({
               />
             );
           })}
-          {npcs.map((npc) => {
+          {[...npcs, ...extras].map((npc) => {
             const p = PONTOS[npc.id];
             return <Marcador key={`recado-${npc.id}`} posicao={[p.x + 0.45, p.alturaMarcador, p.z]} visivel={recadoNpcs.includes(npc.id)} cor="#5BD68A" />;
           })}

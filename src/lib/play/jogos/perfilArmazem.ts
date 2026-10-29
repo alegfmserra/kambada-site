@@ -15,6 +15,9 @@ import {
   type Perfil,
   type PerfilPublico,
 } from "./perfil";
+import type { MiniId } from "./minis";
+import type { NpcId } from "./missoesArraial";
+import { concluirPasso, concluirProva, falarCom, type Dialogo, type Retorno } from "./recados";
 
 /**
  * Armazenamento dos perfis do Arraial: um arquivo JSON na pasta persistente
@@ -129,5 +132,77 @@ export function registrarEventos(
     d.perfis[contaId] = atual;
     await gravar(d);
     return { perfil: publico(atual, dia), ganho: total };
+  });
+}
+
+// --- Recados (missões entre personagens) ---------------------------------------
+
+export type ResultadoRecado = {
+  falas: string[];
+  certa?: boolean;
+  avancou: boolean;
+  concluida?: { titulo: string; xp: number };
+  perfil: PerfilPublico;
+  ganho?: Ganho;
+};
+
+/** O que o personagem tem para dizer a esta conta (sem gravar nada). */
+export async function falarComPersonagem(contaId: string, npc: NpcId, agora = new Date()): Promise<Dialogo | null> {
+  const d = await ler();
+  const p = completar(d.perfis[contaId] ?? perfilNovo());
+  return falarCom(p.recados, npc, hojeEmSaoLuis(agora), contaId, p.inventario.length > 0);
+}
+
+/** Guarda o novo estado dos recados e paga o XP se o recado terminou. */
+function fecharEm(d: Dados, contaId: string, p: Perfil, r: Retorno, dia: string): ResultadoRecado {
+  p.recados = r.estado;
+  let ganho: Ganho | undefined;
+  let atual = p;
+  if (r.concluida) {
+    const ev = aplicarEvento(atual, { tipo: "recado", titulo: r.concluida.titulo, xp: r.concluida.xp }, dia);
+    atual = ev.perfil;
+    ganho = ev.ganho;
+  }
+  d.perfis[contaId] = atual;
+  return { falas: r.falas, certa: r.certa, avancou: r.avancou, concluida: r.concluida, perfil: publico(atual, dia), ganho };
+}
+
+export function fecharRecado(
+  contaId: string,
+  npc: NpcId,
+  recadoId: string,
+  resposta: unknown,
+  agora = new Date(),
+): Promise<ResultadoRecado | { erro: string }> {
+  return naFila(async () => {
+    const dia = hojeEmSaoLuis(agora);
+    const d = await ler();
+    const p = completar(d.perfis[contaId] ?? perfilNovo());
+    const r = concluirPasso(p.recados, npc, recadoId, resposta, dia, contaId, p.inventario.length > 0);
+    if ("erro" in r) return r;
+    if (!r.avancou) return { falas: r.falas, certa: r.certa, avancou: false, perfil: publico(p, dia) };
+    const saida = fecharEm(d, contaId, p, r, dia);
+    await gravar(d);
+    return saida;
+  });
+}
+
+/** Mini-atividade perfeita: avança o passo "prova" do recado, se for o atual. */
+export function provaDoRecado(
+  contaId: string,
+  recadoId: string,
+  mini: MiniId,
+  perfeito: boolean,
+  agora = new Date(),
+): Promise<ResultadoRecado | null> {
+  return naFila(async () => {
+    const dia = hojeEmSaoLuis(agora);
+    const d = await ler();
+    const p = completar(d.perfis[contaId] ?? perfilNovo());
+    const r = concluirProva(p.recados, recadoId, mini, perfeito, dia);
+    if (!r) return null;
+    const saida = fecharEm(d, contaId, p, r, dia);
+    await gravar(d);
+    return saida;
   });
 }

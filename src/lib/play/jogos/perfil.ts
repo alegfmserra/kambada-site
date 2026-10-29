@@ -11,6 +11,7 @@ import {
 } from "./itens";
 import { AMIGOS, CONVERSAS_POR_CORACAO, coracoesDe, MAX_CORACOES } from "./amizades";
 import type { NpcId } from "./missoesArraial";
+import { diarioDe, recadosNovo, type DiarioRecados, type EstadoRecados } from "./recados";
 
 /**
  * Carreira de brincante do Arraial (somente servidor, lógica pura).
@@ -67,7 +68,8 @@ export type Evento =
   | { tipo: "conversa"; npc: NpcId }
   | { tipo: "acerto" }
   | { tipo: "desafio"; acertos: number; pistasCompletas: boolean }
-  | { tipo: "mini"; mini: string; perfeito: boolean };
+  | { tipo: "mini"; mini: string; perfeito: boolean }
+  | { tipo: "recado"; titulo: string; xp: number };
 
 type ModeloDiaria = {
   id: string;
@@ -137,6 +139,8 @@ export type Perfil = {
   amizade: Record<string, number>;
   /** Mini-atividades já feitas no dia (cada uma paga XP uma vez por dia). */
   minis: { dia: string; feitas: string[] };
+  /** Recados (missões entre personagens): andamento e o que já foi feito no período. */
+  recados: EstadoRecados;
 };
 
 export function perfilNovo(): Perfil {
@@ -153,6 +157,7 @@ export function perfilNovo(): Perfil {
     bauDia: "",
     amizade: {},
     minis: { dia: "", feitas: [] },
+    recados: recadosNovo(),
   };
 }
 
@@ -167,6 +172,7 @@ export function completar(p: Partial<Perfil>): Perfil {
     bauDia: typeof p.bauDia === "string" ? p.bauDia : "",
     amizade: p.amizade && typeof p.amizade === "object" ? p.amizade : {},
     minis: p.minis && Array.isArray(p.minis.feitas) ? p.minis : { dia: "", feitas: [] },
+    recados: p.recados && p.recados.ativas && p.recados.feitas ? p.recados : recadosNovo(),
   };
 }
 
@@ -193,6 +199,7 @@ export type PerfilPublico = {
   amigos: AmigoPublico[];
   /** Mini-atividades que já pagaram XP hoje. */
   minisHoje: string[];
+  recados: DiarioRecados;
 };
 
 export type AmigoPublico = {
@@ -226,6 +233,8 @@ export type Ganho = {
   itensNovos?: string[];
   /** Nome do personagem que ganhou um coração de amizade neste evento. */
   amizade?: string;
+  /** Título do recado concluído neste evento. */
+  recado?: string;
 };
 
 function diaAnterior(dia: string): string {
@@ -260,6 +269,7 @@ export function publico(p: Perfil, dia: string): PerfilPublico {
     }),
     bauPronto: p.bauDia !== dia,
     minisHoje: p.minis.dia === dia ? p.minis.feitas : [],
+    recados: diarioDe(p.recados, dia),
     amigos: AMIGOS.map((a) => {
       const conversas = p.amizade[a.id] ?? 0;
       const coracoes = coracoesDe(conversas);
@@ -326,6 +336,11 @@ export function aplicarEvento(antes: Perfil, evento: Evento, dia: string): { per
   } else if (evento.tipo === "acerto") {
     p.acertos += 1;
     base = XP.acerto;
+  } else if (evento.tipo === "recado") {
+    // Recado concluído: XP próprio, fora do teto de ação (já limitado a 1x por período).
+    p.xp += evento.xp;
+    ganho.xp += evento.xp;
+    ganho.recado = evento.titulo;
   } else if (evento.tipo === "mini") {
     // Mini-atividade: XP próprio, uma vez por dia por atividade, fora do teto de ação.
     if (p.minis.dia !== dia) p.minis = { dia, feitas: [] };

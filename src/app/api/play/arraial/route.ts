@@ -4,8 +4,9 @@ import { contaDaRequisicao } from "@/lib/play/contas";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { registrarEventoPartida } from "@/lib/play/jogos/partidas";
 import type { Evento } from "@/lib/play/jogos/perfil";
-import { abrirBauDoDia, equiparItem, lerPerfil, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
+import { abrirBauDoDia, equiparItem, falarComPersonagem, fecharRecado, lerPerfil, provaDoRecado, registrarEventos } from "@/lib/play/jogos/perfilArmazem";
 import type { NpcId } from "@/lib/play/jogos/missoesArraial";
+import { ORDEM_NPCS } from "@/lib/play/jogos/missoesArraial";
 import { concluirMini, iniciarMini } from "@/lib/play/jogos/minis";
 import { verificar } from "@/lib/play/jogos/seguranca";
 
@@ -21,6 +22,8 @@ export const dynamic = "force-dynamic";
  *   { acao: "perfil" }                        -> perfil da conta (null sem conta)
  *   { acao: "equipar", slot, item }           -> veste um item que a conta já tem
  *   { acao: "bau" }                           -> abre o baú do dia (1 por dia)
+ *   { acao: "recado-falar", npc }             -> conversa de recado que o personagem tem para a conta (ou null)
+ *   { acao: "recado-fim", npc, recado, resposta? } -> fecha o passo (falar/responder/entregar)
  *   { acao: "mini-iniciar", mini }            -> sequência da mini-atividade (fogueira | quadrilha)
  *   { acao: "mini-fim", estado, resposta }     -> confere o que o jogador tocou (+XP 1x/dia por atividade)
  *     (pulou: true = alguma fala foi pulada; o servidor zera o bônus de rapidez
@@ -52,6 +55,19 @@ export async function POST(requisicao: Request) {
     }
   }
 
+  if (corpo.acao === "recado-falar" || corpo.acao === "recado-fim") {
+    const conta = await contaDaRequisicao(requisicao).catch(() => null);
+    const npc = ORDEM_NPCS.find((n) => n === corpo.npc);
+    if (!conta || !npc) return NextResponse.json({ ok: true, dialogo: null });
+    try {
+      if (corpo.acao === "recado-falar") return NextResponse.json({ ok: true, dialogo: await falarComPersonagem(conta.id, npc) });
+      const r = typeof corpo.recado === "string" ? await fecharRecado(conta.id, npc, corpo.recado, corpo.resposta) : { erro: "Recado inválido." };
+      if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
+      return NextResponse.json({ ok: true, ...r });
+    } catch {
+      return NextResponse.json({ ok: true, dialogo: null });
+    }
+  }
   if (corpo.acao === "mini-iniciar") {
     const r = iniciarMini(corpo.mini);
     if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });
@@ -64,6 +80,12 @@ export async function POST(requisicao: Request) {
     if (conta) {
       try {
         const { perfil, ganho } = await registrarEventos(conta.id, [{ tipo: "mini", mini: r.mini, perfeito: r.perfeito }]);
+        // Prova de um recado: a mini perfeita avança o passo e pode fechar o recado.
+        const recado = typeof corpo.recado === "string" ? await provaDoRecado(conta.id, corpo.recado, r.mini, r.perfeito).catch(() => null) : null;
+        if (recado) {
+          const ganhoTotal = { ...ganho, xp: ganho.xp + (recado.ganho?.xp ?? 0), recado: recado.ganho?.recado, subiuPara: recado.ganho?.subiuPara ?? ganho.subiuPara };
+          return NextResponse.json({ ok: true, ...r, perfil: recado.perfil, ganho: ganhoTotal, recadoAvancou: true, recadoConcluido: recado.concluida });
+        }
         return NextResponse.json({ ok: true, ...r, perfil, ganho });
       } catch {
         /* a carreira nunca pode derrubar a atividade */

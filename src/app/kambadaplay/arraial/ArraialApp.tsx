@@ -10,6 +10,9 @@ import { Scene } from "@/components/play/arraial/Scene";
 import { Joystick } from "@/components/play/arraial/Joystick";
 import { HudTopo, Dialogo, Celebracao } from "@/components/play/arraial/Hud";
 import { PerfilHud, emitirPerfil } from "@/components/play/arraial/PerfilHud";
+import { DialogoRecado } from "@/components/play/arraial/DialogoRecado";
+import { usePerfilAtual } from "@/components/play/arraial/perfilStore";
+import type { Dialogo as DialogoDeRecado } from "@/lib/play/jogos/recados";
 import { DesafioArraial, DialogoMissao } from "@/components/play/arraial/Missao";
 import { chamar } from "@/components/play/jogos/jogador";
 import type { MissaoPublica, PerguntaArraial } from "@/lib/play/jogos/arraial";
@@ -27,6 +30,23 @@ export default function ArraialApp() {
 
   const [pertoId, setPertoId] = useState<string | null>(null);
   const [dialogo, setDialogo] = useState<Npc | null>(null);
+  // Recado (missão entre personagens) que o personagem tem para a conta; tem prioridade sobre a conversa da missão do mês.
+  const [recado, setRecado] = useState<{ npc: Npc; dialogo: DialogoDeRecado } | null>(null);
+  const consultando = useRef(false);
+  const abrirConversa = useCallback((npc: Npc) => {
+    if (consultando.current) return;
+    consultando.current = true;
+    chamar<{ dialogo: DialogoDeRecado | null }>("/api/play/arraial", { acao: "recado-falar", npc: npc.id })
+      .then((r) => {
+        if (r.ok && r.dialogo) setRecado({ npc, dialogo: r.dialogo });
+        else setDialogo(npc);
+      })
+      .finally(() => {
+        consultando.current = false;
+      });
+  }, []);
+  const recadoNpcs = usePerfilAtual()?.recados.marcados;
+  const fecharRecado = useCallback(() => setRecado(null), []);
   const [fitinhas, setFitinhas] = useState<string[]>([]);
   const [celebrar, setCelebrar] = useState(false);
   const [celebrado, setCelebrado] = useState(false);
@@ -150,12 +170,13 @@ export default function ArraialApp() {
   useEffect(() => {
     travadoRef.current =
       dialogo !== null ||
+      recado !== null ||
       desafio !== null ||
       celebrar ||
       pescariaAberta ||
       mapaAberto ||
       lugarAberto !== null;
-  }, [dialogo, desafio, celebrar, pescariaAberta, mapaAberto, lugarAberto]);
+  }, [dialogo, recado, desafio, celebrar, pescariaAberta, mapaAberto, lugarAberto]);
 
   useEffect(() => {
     track("arraial_open");
@@ -177,6 +198,7 @@ export default function ArraialApp() {
       if (
         e.key.toLowerCase() !== "e" ||
         dialogo ||
+        recado ||
         celebrar ||
         pescariaAberta ||
         mapaAberto ||
@@ -185,7 +207,7 @@ export default function ArraialApp() {
         return;
       if (pertoId) {
         const npc = npcs.find((n) => n.id === pertoId);
-        if (npc) setDialogo(npc);
+        if (npc) abrirConversa(npc);
         return;
       }
       if (pertoMinigameId === "pescaria") {
@@ -196,6 +218,8 @@ export default function ArraialApp() {
     window.addEventListener("keydown", aoTeclar);
     return () => window.removeEventListener("keydown", aoTeclar);
   }, [
+    abrirConversa,
+    recado,
     pertoId,
     pertoMinigameId,
     dialogo,
@@ -286,6 +310,7 @@ export default function ArraialApp() {
         onPertoChange={aoMudarPerto}
         onPertoMinigameChange={setPertoMinigameId}
         fitinhas={fitinhas}
+        recadoNpcs={recadoNpcs}
         seloPescaria={seloPescaria}
         celebrando={celebrar}
         onWebglFalha={aoFalharWebgl}
@@ -382,7 +407,7 @@ export default function ArraialApp() {
         !lugarAberto && (
           <div className="absolute inset-x-0 bottom-52 z-20 flex justify-center sm:bottom-24">
             <button
-              onClick={() => setDialogo(npcPerto)}
+              onClick={() => abrirConversa(npcPerto)}
               aria-label={`${textos.falar} com ${npcPerto.nome}${touch ? "" : ". Atalho: tecla E"}`}
               className="pulso toque-matraca pointer-events-auto rounded-full border-2 border-kambada-cream bg-kambada-gold px-8 py-3 font-body text-base font-bold text-kambada-ink shadow-xl transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
             >
@@ -441,6 +466,7 @@ export default function ArraialApp() {
           </p>
         </div>
       )}
+      {recado && <DialogoRecado npc={recado.npc} dialogo={recado.dialogo} aoFechar={fecharRecado} />}
       {dialogoSaida.valor && missao && (
         <DialogoMissao
           npc={dialogoSaida.valor}

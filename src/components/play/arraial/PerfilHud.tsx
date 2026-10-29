@@ -26,11 +26,12 @@ export function PerfilHud() {
     });
     function aoChegar(e: Event) {
       const { ganho } = (e as CustomEvent<{ ganho?: Ganho }>).detail;
-      if (ganho && (ganho.xp > 0 || ganho.itensNovos?.length || ganho.amizade)) {
+      if (ganho && (ganho.xp > 0 || ganho.itensNovos?.length || ganho.amizade || ganho.recado)) {
         const partes = ganho.xp > 0 ? [`+${ganho.xp} XP`] : [];
         if (ganho.diariasConcluidas.length) partes.push(`missão do dia: ${ganho.diariasConcluidas.join(", ")}`);
         if (ganho.bonusSequencia) partes.push(`sequência! +${ganho.bonusSequencia}`);
         if (ganho.subiuPara) partes.push(`nível ${ganho.subiuPara.nivel}: ${ganho.subiuPara.titulo}!`);
+        if (ganho.recado) partes.push(`missão concluída: ${ganho.recado}`);
         if (ganho.amizade) partes.push(`❤ ${ganho.amizade} gostou de você! Veja a história nova em Meu brincante`);
         if (ganho.itensNovos?.length) partes.push(`novo item: ${ganho.itensNovos.join(", ")}`);
         setAviso(partes.join(" · "));

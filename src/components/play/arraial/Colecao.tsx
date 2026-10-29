@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MINIS, type MiniId } from "@/lib/play/jogos/minis";
+import { RECADOS_REVISADOS } from "@/lib/play/jogos/recados";
 import { XP, type ItemPublico, type PerfilPublico } from "@/lib/play/jogos/perfil";
 import { MiniAtividade } from "./MiniAtividade";
 import { HISTORIAS_REVISADAS } from "@/lib/play/jogos/amizades";
@@ -11,12 +12,12 @@ import { emitirPerfil } from "./perfilStore";
 
 const NOME_DO_SLOT: Record<Slot, string> = { chapeu: "Chapéu", camisa: "Camisa", fita: "Fita do chapéu" };
 
-type Aba = "vestir" | "colecao" | "amigos" | "atividades";
-const NOME_DA_ABA: Record<Aba, string> = { vestir: "Vestir", colecao: "Coleção", amigos: "Amigos", atividades: "Atividades" };
+type Aba = "missoes" | "vestir" | "colecao" | "amigos" | "atividades";
+const NOME_DA_ABA: Record<Aba, string> = { missoes: "Missões", vestir: "Vestir", colecao: "Coleção", amigos: "Amigos", atividades: "Atividades" };
 
 /** Janela "Meu brincante": trocar o visual do personagem, ver a coleção com as fichas e abrir o baú do dia. */
 export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar: () => void }) {
-  const [aba, setAba] = useState<Aba>("vestir");
+  const [aba, setAba] = useState<Aba>(perfil.recados.ativas.length ? "missoes" : "vestir");
   const [msg, setMsg] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [mini, setMini] = useState<MiniId | null>(null);
@@ -59,7 +60,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
   const tens = perfil.colecao.filter((i) => i.tem).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-3 pb-3 pt-16 sm:items-center" onClick={aoFechar}>
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 px-3 pb-3 pt-16 sm:items-center" onClick={aoFechar}>
       <div
         role="dialog"
         aria-modal="true"
@@ -93,8 +94,8 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
           </p>
         ) : null}
 
-        <div role="tablist" aria-label="Seções" className="mt-3 flex gap-2 text-[12px] font-bold">
-          {(["vestir", "colecao", "amigos", "atividades"] as const).map((a) => (
+        <div role="tablist" aria-label="Seções" className="mt-3 flex flex-wrap gap-2 text-[12px] font-bold">
+          {(["missoes", "vestir", "colecao", "amigos", "atividades"] as const).map((a) => (
             <button
               key={a}
               role="tab"
@@ -108,7 +109,46 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
           ))}
         </div>
 
-        {aba === "vestir" ? (
+        {aba === "missoes" ? (
+          <div className="mt-3 space-y-3 text-[12px]">
+            <section>
+              <h3 className="font-bold text-kambada-gold">Em andamento</h3>
+              {perfil.recados.ativas.length === 0 ? <p className="mt-1 text-kambada-cream/60">Nenhuma ainda. Fale com os personagens que têm um ! verde.</p> : null}
+              <ul className="mt-1 space-y-2">
+                {perfil.recados.ativas.map((m) => (
+                  <li key={m.id} className="rounded-lg bg-kambada-cream/10 p-2">
+                    <p className="font-bold">
+                      {m.titulo} <span className="font-normal text-kambada-cream/60">· passo {m.passo}/{m.total} · {m.categoria === "semanal" ? "da semana" : "do dia"} · +{m.xp} XP</span>
+                    </p>
+                    <p className="mt-0.5">👉 {m.dica}</p>
+                    {m.infos.length ? (
+                      <ul className="mt-1 list-disc pl-4 text-kambada-cream/75">
+                        {m.infos.map((i) => (
+                          <li key={i}>{i}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section>
+              <h3 className="font-bold text-kambada-gold">Para começar</h3>
+              {perfil.recados.disponiveis.length === 0 ? <p className="mt-1 text-kambada-cream/60">Você já fez todas por agora. Volte amanhã (do dia) ou na segunda (da semana)!</p> : null}
+              <ul className="mt-1 space-y-2">
+                {perfil.recados.disponiveis.map((m) => (
+                  <li key={m.id} className="rounded-lg bg-kambada-cream/5 p-2">
+                    <p className="font-bold">
+                      {m.titulo} <span className="font-normal text-kambada-cream/60">· {m.categoria === "semanal" ? "da semana" : "do dia"} · +{m.xp} XP</span>
+                    </p>
+                    <p className="text-kambada-cream/75">{m.resumo} Comece com: {m.onde}.</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <p className="text-[11px] text-kambada-cream/60">Algumas missões têm passos sem seta: só a dica do diário mostra o caminho. {!RECADOS_REVISADOS ? "Falas em revisão com mestres e brincantes." : ""}</p>
+          </div>
+        ) : aba === "vestir" ? (
           <div className="mt-3 space-y-3">
             {SLOTS.map((slot) => (
               <fieldset key={slot}>

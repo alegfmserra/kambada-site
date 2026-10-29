@@ -128,6 +128,8 @@ type SceneProps = {
   } | null>;
   /** Clique/toque num objeto da praça (capela, coreto, barraca): id do lugar. */
   onClicarLugar?: (id: string) => void;
+  /** Personagens com um recado (missão) esperando: ganham um "!" verde. */
+  recadoNpcs?: string[];
 };
 
 /**
@@ -168,6 +170,7 @@ export function Scene({
   onPertoMinigameChange,
   fitinhas,
   seloPescaria,
+  recadoNpcs = [],
   celebrando,
   onWebglFalha,
   onPrimeiroMovimento,
@@ -474,6 +477,10 @@ export function Scene({
                 visivel={!fitinhas.includes(npc.id)}
               />
             );
+          })}
+          {npcs.map((npc) => {
+            const p = PONTOS[npc.id];
+            return <Marcador key={`recado-${npc.id}`} posicao={[p.x + 0.45, p.alturaMarcador, p.z]} visivel={recadoNpcs.includes(npc.id)} cor="#5BD68A" />;
           })}
           <Marcador
             posicao={[

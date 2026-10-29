@@ -7,12 +7,12 @@ import type { MiniId, ResultadoMini } from "@/lib/play/jogos/minis";
 import { emitirPerfil } from "./perfilStore";
 
 type Partida = { estado: string; nome: string; instrucao: string; simbolos: string[]; sequencia: number[] };
-type Fim = ResultadoMini & { perfil?: PerfilPublico; ganho?: Ganho };
+type Fim = ResultadoMini & { perfil?: PerfilPublico; ganho?: Ganho; recadoConcluido?: { titulo: string; xp: number }; recadoAvancou?: boolean };
 
 const MS_POR_PASSO = 800;
 
 /** Uma mini-atividade de repetir a sequência: o servidor sorteia, o jogador vê, repete, e o servidor confere. */
-export function MiniAtividade({ mini, aoFechar }: { mini: MiniId; aoFechar: () => void }) {
+export function MiniAtividade({ mini, recado, aoFechar }: { mini: MiniId; recado?: string; aoFechar: () => void }) {
   const [partida, setPartida] = useState<Partida | null>(null);
   const [erro, setErro] = useState("");
   const [passo, setPasso] = useState(-1); // símbolo aceso agora; -1 = nenhum
@@ -71,7 +71,7 @@ export function MiniAtividade({ mini, aoFechar }: { mini: MiniId; aoFechar: () =
     const nova = [...resposta, n];
     setResposta(nova);
     if (nova.length < partida.sequencia.length) return;
-    const r = await chamar<Fim>("/api/play/arraial", { acao: "mini-fim", estado: partida.estado, resposta: nova });
+    const r = await chamar<Fim>("/api/play/arraial", { acao: "mini-fim", estado: partida.estado, resposta: nova, recado });
     if (!r.ok) {
       setErro(r.mensagem ?? "Não deu para conferir agora.");
       return;
@@ -82,7 +82,7 @@ export function MiniAtividade({ mini, aoFechar }: { mini: MiniId; aoFechar: () =
 
   const nomes = partida?.simbolos ?? [];
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-3 pb-3 pt-16 sm:items-center" onClick={aoFechar}>
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-3 pb-3 pt-16 sm:items-center" onClick={aoFechar}>
       <div
         role="dialog"
         aria-modal="true"
@@ -124,6 +124,7 @@ export function MiniAtividade({ mini, aoFechar }: { mini: MiniId; aoFechar: () =
                   {fim.perfeito ? "Perfeito! " : `${fim.acertos} de ${fim.total} certos. `}
                   {fim.ganho?.xp ? `+${fim.ganho.xp} XP` : fim.perfil ? "XP de hoje desta atividade já foi ganho." : ""}
                 </p>
+                {fim.recadoConcluido ? <p className="mt-1 font-bold text-kambada-gold">Missão concluída: {fim.recadoConcluido.titulo}!</p> : fim.recadoAvancou ? <p className="mt-1 font-bold text-kambada-gold">A missão avançou. Fale de novo com o personagem.</p> : null}
                 {!fim.perfeito ? <p className="mt-1 text-kambada-cream/80">Era: {fim.gabarito.map((s) => nomes[s]).join(" → ")}</p> : null}
                 <button type="button" onClick={() => setRodada((r) => r + 1)} className="mt-2 rounded-full bg-kambada-gold px-4 py-1.5 text-[12px] font-bold text-kambada-ink">
                   Jogar de novo

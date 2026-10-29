@@ -37,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const artigos: MetadataRoute.Sitemap = ARTIGOS.map((artigo) => ({
     url: new URL(`/cultura/${artigo.slug}`, SITE.url).toString(),
-    lastModified: new Date(artigo.data),
+    lastModified: new Date(artigo.atualizado ?? artigo.data),
     changeFrequency: "yearly",
     priority: 0.6,
   }));

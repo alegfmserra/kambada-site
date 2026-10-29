@@ -32,9 +32,7 @@ export async function generateMetadata({
   const artigo = artigoPorSlug(slug);
   if (!artigo) return { title: "Artigo não encontrado" };
 
-  const imagem = artigo.capa
-    ? { url: artigo.capa.src, width: artigo.capa.largura, height: artigo.capa.altura, alt: artigo.capa.alt }
-    : { url: "/opengraph-image.png", width: 1200, height: 630, alt: "Kambada" };
+  const imagem = { url: artigo.capa.src, width: artigo.capa.largura, height: artigo.capa.altura, alt: artigo.capa.alt };
 
   return {
     title: artigo.tituloSeo ?? artigo.titulo,
@@ -46,6 +44,7 @@ export async function generateMetadata({
       title: artigo.titulo,
       description: artigo.resumo,
       publishedTime: artigo.data,
+      modifiedTime: artigo.atualizado ?? artigo.data,
       section: artigo.categoria,
       images: [imagem],
     },
@@ -123,11 +122,12 @@ export default async function Artigo({ params }: Props) {
       headline: artigo.titulo,
       description: artigo.resumo,
       datePublished: artigo.data,
-      dateModified: artigo.data,
+      dateModified: artigo.atualizado ?? artigo.data,
       articleSection: artigo.categoria,
       inLanguage: "pt-BR",
-      keywords: artigo.palavrasChave?.join(", "),
-      image: new URL(artigo.capa?.src ?? "/opengraph-image.png", SITE.url).toString(),
+      keywords: artigo.palavrasChave.join(", "),
+      image: new URL(artigo.capa.src, SITE.url).toString(),
+      citation: artigo.fontes.map((f) => f.href),
       mainEntityOfPage: url,
       author: { "@type": "Organization", name: SITE.nomeCompleto, url: SITE.url },
       publisher: {
@@ -144,6 +144,15 @@ export default async function Artigo({ params }: Props) {
         { "@type": "ListItem", position: 2, name: "Cultura", item: new URL("/cultura", SITE.url).toString() },
         { "@type": "ListItem", position: 3, name: artigo.titulo, item: url },
       ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: artigo.perguntas.map((p) => ({
+        "@type": "Question",
+        name: p.pergunta,
+        acceptedAnswer: { "@type": "Answer", text: p.resposta },
+      })),
     },
   ];
 
@@ -172,8 +181,14 @@ export default async function Artigo({ params }: Props) {
           </p>
           <p className="mt-6 text-sm text-texto-tenue">
             <time dateTime={artigo.data}>{dataPorExtenso(artigo.data)}</time>
+            {artigo.atualizado && (
+              <>
+                {" · atualizado em "}
+                <time dateTime={artigo.atualizado}>{dataPorExtenso(artigo.atualizado)}</time>
+              </>
+            )}
           </p>
-          {artigo.capa && <Figura imagem={artigo.capa} prioridade />}
+          <Figura imagem={artigo.capa} prioridade />
         </div>
       </header>
 
@@ -236,6 +251,35 @@ export default async function Artigo({ params }: Props) {
             </p>
           );
         })}
+
+        <section className="mt-14">
+          <h2 className="font-display text-2xl font-bold">Perguntas frequentes</h2>
+          <div className="mt-5 divide-y divide-borda rounded-2xl border border-borda">
+            {artigo.perguntas.map((p) => (
+              <details key={p.pergunta} className="group px-6 py-4">
+                <summary className="cursor-pointer list-none font-display text-lg font-semibold marker:hidden">
+                  <span className="mr-2 text-kambada-amarelo-escuro group-open:hidden">+</span>
+                  <span className="mr-2 hidden text-kambada-amarelo-escuro group-open:inline">−</span>
+                  {p.pergunta}
+                </summary>
+                <p className="mt-3 leading-relaxed text-texto-suave">{p.resposta}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <nav aria-label="Fontes" className="mt-10 text-sm text-texto-tenue">
+          <h2 className="font-display text-base font-bold text-texto-suave">Fontes consultadas</h2>
+          <ul className="mt-3 space-y-2">
+            {artigo.fontes.map((f) => (
+              <li key={f.href}>
+                <a href={f.href} target="_blank" rel="noopener noreferrer" className="underline hover:text-kambada-amarelo-escuro">
+                  {f.texto}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         <div className="mt-16 grid gap-5 md:grid-cols-2">
           <div className="flex flex-col rounded-3xl bg-kambada-amarelo px-7 py-9 text-kambada-grafite">

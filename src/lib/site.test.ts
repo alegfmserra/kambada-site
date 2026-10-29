@@ -62,15 +62,24 @@ describe("artigos do blog", () => {
 
   it("toda foto de artigo tem texto alternativo, crédito e fonte", () => {
     for (const artigo of ARTIGOS) {
-      const fotos = [
-        ...(artigo.capa ? [artigo.capa] : []),
-        ...artigo.blocos.flatMap((b) => (b.tipo === "imagem" ? [b.imagem] : [])),
-      ];
+      const fotos = [artigo.capa, ...artigo.blocos.flatMap((b) => (b.tipo === "imagem" ? [b.imagem] : []))];
       for (const foto of fotos) {
         expect(foto.alt.length).toBeGreaterThan(20);
         expect(foto.credito.length).toBeGreaterThan(2);
         expect(foto.fonte).toMatch(/^https:\/\//);
       }
+      // A capa não se repete no corpo do mesmo artigo.
+      expect(fotos.slice(1).map((f) => f.src)).not.toContain(artigo.capa.src);
+    }
+  });
+
+  it("todo artigo segue o padrão: perguntas, fontes, leia também e palavras-chave", () => {
+    for (const artigo of ARTIGOS) {
+      expect(artigo.perguntas.length).toBeGreaterThanOrEqual(3);
+      expect(artigo.fontes.length).toBeGreaterThanOrEqual(2);
+      expect(artigo.fontes.every((f) => f.href.startsWith("https://"))).toBe(true);
+      expect(artigo.palavrasChave.length).toBeGreaterThanOrEqual(5);
+      expect(artigo.blocos.some((b) => b.tipo === "links" && b.titulo === "Leia também")).toBe(true);
     }
   });
 

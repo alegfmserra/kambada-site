@@ -1,3 +1,4 @@
+import { MINIS, type MiniId } from "./minisDados";
 import { assinar, idAleatorio, verificar } from "./seguranca";
 
 /**
@@ -11,26 +12,7 @@ import { assinar, idAleatorio, verificar } from "./seguranca";
 
 export const MINIS_REVISADAS = false;
 
-export type MiniId = "fogueira" | "quadrilha";
-
-type Modelo = { id: MiniId; nome: string; instrucao: string; simbolos: string[]; tamanho: number };
-
-export const MINIS: Modelo[] = [
-  {
-    id: "fogueira",
-    nome: "Acenda a fogueira",
-    instrucao: "Seu Chico bate o ritmo para acender o fogo. Olhe a sequência de toques e repita na mesma ordem.",
-    simbolos: ["Toque curto", "Toque longo"],
-    tamanho: 6,
-  },
-  {
-    id: "quadrilha",
-    nome: "Marque a quadrilha",
-    instrucao: "O marcador grita os passos da quadrilha. Guarde a ordem e repita os comandos.",
-    simbolos: ["Anarriê!", "Alavantu!", "Balancê!", "Caminho da roça!", "Olha a chuva!"],
-    tamanho: 6,
-  },
-];
+export { MINIS, XP_MINI_PERFEITA, type MiniId } from "./minisDados";
 
 const VALIDADE_MS = 10 * 60 * 1000;
 /** Tempo mínimo plausível por toque (abaixo disso o servidor não dá XP de "perfeito"). */

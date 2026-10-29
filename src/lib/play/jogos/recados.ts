@@ -18,7 +18,7 @@ import { permutacaoSecreta } from "./seguranca";
  * brincantes; ver `RECADOS_REVISADOS`).
  */
 
-export const RECADOS_REVISADOS = false;
+export { RECADOS_REVISADOS } from "./revisoes";
 
 export type Passo = {
   npc: PersonagemId;

@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { chamar } from "@/components/play/jogos/jogador";
 import type { Ganho, PerfilPublico } from "@/lib/play/jogos/perfil";
-import type { MiniId, ResultadoMini } from "@/lib/play/jogos/minis";
+import type { ResultadoMini } from "@/lib/play/jogos/minis";
+import type { MiniId } from "@/lib/play/jogos/minisDados";
 import { emitirPerfil } from "./perfilStore";
 
 type Partida = { estado: string; nome: string; instrucao: string; simbolos: string[]; sequencia: number[] };

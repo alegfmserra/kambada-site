@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MINIS, type MiniId } from "@/lib/play/jogos/minis";
-import { RECADOS_REVISADOS } from "@/lib/play/jogos/recados";
-import { XP, type ItemPublico, type PerfilPublico } from "@/lib/play/jogos/perfil";
+import { MINIS, XP_MINI_PERFEITA, type MiniId } from "@/lib/play/jogos/minisDados";
+import { RECADOS_REVISADOS } from "@/lib/play/jogos/revisoes";
+import type { ItemPublico, PerfilPublico } from "@/lib/play/jogos/perfil";
 import { MiniAtividade } from "./MiniAtividade";
 import { HISTORIAS_REVISADAS } from "@/lib/play/jogos/amizades";
 import { FICHAS_REVISADAS, SLOTS, type Slot } from "@/lib/play/jogos/itens";
@@ -167,7 +167,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
             {MINIS.map((m) => (
               <li key={m.id} className="rounded-lg bg-kambada-cream/10 p-2 text-[12px]">
                 <p className="font-bold">
-                  {m.nome} {perfil.minisHoje.includes(m.id) ? "✓ XP de hoje ganho" : `· até +${XP.miniPerfeita} XP hoje`}
+                  {m.nome} {perfil.minisHoje.includes(m.id) ? "✓ XP de hoje ganho" : `· até +${XP_MINI_PERFEITA} XP hoje`}
                 </p>
                 <p className="text-kambada-cream/70">{m.instrucao}</p>
                 <button type="button" onClick={() => setMini(m.id)} className="mt-1.5 rounded-full bg-kambada-gold px-4 py-1.5 font-bold text-kambada-ink">

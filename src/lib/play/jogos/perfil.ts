@@ -11,6 +11,7 @@ import {
 } from "./itens";
 import { AMIGOS, CONVERSAS_POR_CORACAO, coracoesDe, MAX_CORACOES } from "./amizades";
 import type { NpcId } from "./missoesArraial";
+import { XP_MINI_PERFEITA } from "./minisDados";
 import { diarioDe, recadosNovo, type DiarioRecados, type EstadoRecados } from "./recados";
 
 /**
@@ -49,7 +50,7 @@ export const XP = {
   desafioConcluido: 100,
   diaria: 30,
   /** Mini-atividade: tudo certo / só tentou (uma vez por dia por atividade). */
-  miniPerfeita: 40,
+  miniPerfeita: XP_MINI_PERFEITA,
   miniTentada: 10,
 } as const;
 

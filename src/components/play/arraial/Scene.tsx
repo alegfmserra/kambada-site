@@ -311,7 +311,7 @@ export function Scene({
   return (
     <div
       role="img"
-      aria-label="Clareira de floresta com um arraial junino em 3D: fogueira ao centro, capela ao fundo, coreto com trio de forró, barracas de comida e brincadeiras, e cinco personagens para conversar"
+      aria-label="Clareira de floresta com um arraial junino em 3D: fogueira ao centro, capela ao fundo, coreto com trio de forró, barracas de comida e brincadeiras, e oito personagens para conversar"
       className="h-full w-full"
     >
       {/* Alternativa textual pra quem usa leitor de tela: descreve a cena e os pontos de conversa,

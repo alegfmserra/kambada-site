@@ -298,7 +298,7 @@ export default function ArraialApp() {
           você encontraria por lá, prontos pra conversar:
         </p>
         <ul className="relative font-body text-sm text-kambada-cream/85">
-          {npcs.map((npc) => (
+          {[...npcs, ...extras].map((npc) => (
             <li key={npc.id}>{npc.nome}</li>
           ))}
         </ul>

@@ -8,7 +8,7 @@ import {
   destinoSeguro,
 } from "@/lib/play/acesso";
 import { autenticarPorUsuario, marcaDaSenha } from "@/lib/play/contas";
-import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
+import { contarErro, corpoJson, errosEsgotados, ipDaRequisicao } from "@/lib/play/jogos/limite";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +17,14 @@ export const dynamic = "force-dynamic";
  * Duas portas, nesta ordem:
  *  1. conta por USUÁRIO + senha (30/10/2026; ex.: contas de demonstração para escolas);
  *  2. login único de demonstração antigo (desligado em produção, ver acesso.ts).
- * Limite: 8 tentativas por IP a cada 10 minutos.
+ * Limite: 10 tentativas ERRADAS por IP a cada 10 minutos (entrar certo não conta:
+ * uma turma inteira pode entrar pelo mesmo Wi-Fi).
  */
+const JANELA = 10 * 60 * 1000;
+
 export async function POST(requisicao: Request) {
-  if (!dentroDoLimite(ipDaRequisicao(requisicao), "play-entrar", 8, 10 * 60 * 1000)) {
+  const ip = ipDaRequisicao(requisicao);
+  if (errosEsgotados(ip, "play-entrar", 10, JANELA)) {
     return NextResponse.json(
       { ok: false, mensagem: "Muitas tentativas. Espere alguns minutos e tente de novo." },
       { status: 429 },
@@ -49,6 +53,7 @@ export async function POST(requisicao: Request) {
     return resposta;
   }
 
+  contarErro(ip, "play-entrar", JANELA);
   return NextResponse.json(
     {
       ok: false,

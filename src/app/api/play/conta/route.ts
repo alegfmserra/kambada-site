@@ -24,7 +24,7 @@ import {
   redefinirSenha,
 } from "@/lib/play/contas";
 import { enviarConfirmacao, enviarRedefinicao } from "@/lib/play/emails";
-import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
+import { contarErro, corpoJson, dentroDoLimite, errosEsgotados, ipDaRequisicao } from "@/lib/play/jogos/limite";
 
 export const dynamic = "force-dynamic";
 
@@ -96,11 +96,15 @@ export async function POST(requisicao: Request) {
     }
 
     case "entrar": {
-      if (!dentroDoLimite(ip, "conta-entrar", 10, DEZ_MIN)) {
+      // Só tentativa ERRADA conta (30/10/2026): famílias e turmas no mesmo Wi-Fi não se bloqueiam.
+      if (errosEsgotados(ip, "conta-entrar", 10, DEZ_MIN)) {
         return NextResponse.json({ ok: false, mensagem: "Muitas tentativas. Espere alguns minutos." }, { status: 429 });
       }
       const conta = await autenticar(corpo.email, corpo.senha);
-      if (!conta) return NextResponse.json({ ok: false, mensagem: "E-mail ou senha incorretos." }, { status: 401 });
+      if (!conta) {
+        contarErro(ip, "conta-entrar", DEZ_MIN);
+        return NextResponse.json({ ok: false, mensagem: "E-mail ou senha incorretos." }, { status: 401 });
+      }
       return comCookie(NextResponse.json({ ok: true, conta: publica(conta), destino: destinoSeguro(corpo.de) }), conta);
     }
 

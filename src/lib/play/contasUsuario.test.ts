@@ -9,13 +9,18 @@ vi.mock("./contasDemo", async () => {
   const { randomBytes, scryptSync } = await import("node:crypto");
   const sal = randomBytes(16).toString("hex");
   const senhaHash = `scrypt$${sal}$${scryptSync("senha-de-teste-1", sal, 32).toString("hex")}`;
+  const CONTAS_DEMO = [
+    { usuario: "escola1", apelido: "Escola Um", senhaHash },
+    { usuario: "escola2", apelido: "Escola Dois", senhaHash },
+  ];
+  const contasDemoLigadas = () => process.env.PLAY_CONTAS_DEMO !== "0";
   return {
-    CONTAS_DEMO: [
-      { usuario: "escola1", apelido: "Escola Um", senhaHash },
-      { usuario: "escola2", apelido: "Escola Dois", senhaHash },
-    ],
-    contasDemoLigadas: () => process.env.PLAY_CONTAS_DEMO !== "0",
+    CONTAS_DEMO,
+    contasDemoLigadas,
+    demoAtiva: (u: string | undefined) => contasDemoLigadas() && CONTAS_DEMO.some((d) => d.usuario === u),
     idDaContaDemo: (u: string) => `demo-${u}`,
+    // usado pelo teste da conta demo antiga
+    senhaHashDeTeste: senhaHash,
   };
 });
 
@@ -93,5 +98,27 @@ describe("entrada por usuário (sem e-mail)", () => {
     } finally {
       delete process.env.PLAY_CONTAS_DEMO;
     }
+  });
+
+  it("conta demo que saiu da lista (ex.: as antigas) não entra mais", async () => {
+    const { readFile, writeFile } = await import("node:fs/promises");
+    const { senhaHashDeTeste } = (await import("./contasDemo")) as unknown as { senhaHashDeTeste: string };
+    const arquivo = process.env.PLAY_CONTAS_ARQUIVO!;
+    const d = JSON.parse(await readFile(arquivo, "utf8"));
+    const antiga = {
+      id: "demo-antiga1",
+      nome: "Antiga Um",
+      email: emailInterno("antiga1"),
+      senhaHash: senhaHashDeTeste,
+      novidades: false,
+      criadoEm: new Date().toISOString(),
+      usuario: "antiga1",
+      demo: true,
+    };
+    d.contas.push(antiga);
+    await writeFile(arquivo, JSON.stringify(d), "utf8");
+    expect(await autenticarPorUsuario("antiga1", "senha-de-teste-1")).toBeNull();
+    const sessao = { v: 2 as const, exp: Math.floor(Date.now() / 1000) + 60, conta: antiga.id, s: marcaDaSenha(antiga) };
+    expect(await contaDaSessao(sessao)).toBeNull();
   });
 });

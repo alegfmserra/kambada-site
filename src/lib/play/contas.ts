@@ -6,7 +6,7 @@ import type { Atribuicao } from "../atribuicao/atribuicao";
 import { arquivoTokens } from "../bling/tokens";
 import { assinar, idAleatorio, verificar } from "./jogos/seguranca";
 import { sessaoDaRequisicao, type Sessao } from "./acesso";
-import { CONTAS_DEMO, contasDemoLigadas, idDaContaDemo } from "./contasDemo";
+import { CONTAS_DEMO, contasDemoLigadas, demoAtiva, idDaContaDemo } from "./contasDemo";
 
 /**
  * Contas do Kambada Play (somente servidor).
@@ -255,7 +255,7 @@ export function autenticarPorUsuario(usuarioBruto: unknown, senha: unknown, agor
     if (!usuario || typeof senha !== "string" || senha.length > 100) return null;
     const d = await ler();
     const criouDemo = garantirContasDemo(d, agora);
-    const conta = d.contas.find((c) => c.usuario === usuario && (!c.demo || contasDemoLigadas()));
+    const conta = d.contas.find((c) => c.usuario === usuario && (!c.demo || demoAtiva(c.usuario)));
     // Mesmo tempo de resposta com ou sem o usuário (não revela quem existe).
     const ok = conta ? senhaConfere(senha, conta.senhaHash) : (senhaConfere(senha, HASH_FALSO), false);
     if (!conta || !ok) {
@@ -332,7 +332,7 @@ export function marcaDaSenha(c: Pick<Conta, "senhaHash">): string {
 export async function contaDaSessao(sessao: Sessao | null): Promise<Conta | null> {
   if (!sessao || sessao.v !== 2) return null;
   const c = await buscarPorId(sessao.conta);
-  if (!c || (c.demo && !contasDemoLigadas())) return null;
+  if (!c || (c.demo && !demoAtiva(c.usuario))) return null;
   const a = Buffer.from(sessao.s);
   const b = Buffer.from(marcaDaSenha(c));
   return a.length === b.length && timingSafeEqual(a, b) ? c : null;

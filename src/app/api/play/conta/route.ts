@@ -107,6 +107,7 @@ export async function POST(requisicao: Request) {
     case "reenviar-confirmacao": {
       const conta = await contaDaRequisicao(requisicao);
       if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
+      if (conta.usuario) return NextResponse.json({ ok: false, mensagem: "Esta conta entra por usuário e não tem e-mail." }, { status: 400 });
       if (!dentroDoLimite(ip, "conta-reenviar", 3, DEZ_MIN)) {
         return NextResponse.json({ ok: false, mensagem: "Já reenviamos há pouco. Confira a caixa de spam." }, { status: 429 });
       }

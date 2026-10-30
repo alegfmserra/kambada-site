@@ -4,7 +4,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { chamar } from "./jogador";
 
-type Conta = { id: string; nome: string; email: string; novidades: boolean; confirmadoEm?: string; criadoEm: string };
+type Conta = {
+  id: string;
+  nome: string;
+  email: string;
+  novidades: boolean;
+  confirmadoEm?: string;
+  criadoEm: string;
+  /** Conta sem e-mail (entra por usuário); `demo` = conta de demonstração. */
+  usuario?: string;
+  demo?: boolean;
+};
 
 export function MinhaConta({
   bemvindo,
@@ -114,17 +124,32 @@ export function MinhaConta({
           <dt className="text-texto-suave">Nome</dt>
           <dd className="font-semibold text-texto">{conta.nome}</dd>
         </div>
-        <div className="flex justify-between gap-4 py-1">
-          <dt className="text-texto-suave">E-mail</dt>
-          <dd className="font-semibold text-texto">{conta.email}</dd>
-        </div>
-        <div className="flex justify-between gap-4 py-1">
-          <dt className="text-texto-suave">Status</dt>
-          <dd className="font-semibold text-texto">{conta.confirmadoEm ? "E-mail confirmado" : "E-mail ainda não confirmado"}</dd>
-        </div>
+        {conta.usuario ? (
+          <>
+            <div className="flex justify-between gap-4 py-1">
+              <dt className="text-texto-suave">Usuário</dt>
+              <dd className="font-semibold text-texto">{conta.usuario}</dd>
+            </div>
+            <div className="flex justify-between gap-4 py-1">
+              <dt className="text-texto-suave">Status</dt>
+              <dd className="font-semibold text-texto">{conta.demo ? "Conta de demonstração" : "Conta sem e-mail"}</dd>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex justify-between gap-4 py-1">
+              <dt className="text-texto-suave">E-mail</dt>
+              <dd className="font-semibold text-texto">{conta.email}</dd>
+            </div>
+            <div className="flex justify-between gap-4 py-1">
+              <dt className="text-texto-suave">Status</dt>
+              <dd className="font-semibold text-texto">{conta.confirmadoEm ? "E-mail confirmado" : "E-mail ainda não confirmado"}</dd>
+            </div>
+          </>
+        )}
       </dl>
 
-      {!conta.confirmadoEm ? (
+      {!conta.confirmadoEm && !conta.usuario ? (
         <div className="rounded-xl border-2 border-dashed border-borda p-4 text-sm text-texto-suave">
           Sem confirmação, seus pontos entram no ranking, mas o cupom e as novidades não chegam.{" "}
           <button

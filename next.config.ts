@@ -133,6 +133,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Service worker do app do Play: o navegador e o CDN sempre buscam a
+        // versão nova (um SW guardado por um ano prenderia todo mundo na velha).
+        source: "/kambadaplay-sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, max-age=0, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+      {
         // Rotas de API nunca podem ser cacheadas: webhook, diagnóstico e
         // callback do OAuth precisam refletir o estado do instante. Uma
         // resposta guardada por 60 segundos aqui esconde a realidade e

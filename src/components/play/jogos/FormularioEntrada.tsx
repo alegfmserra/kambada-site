@@ -15,8 +15,8 @@ const BOTAO =
 
 /**
  * Entrada do Kambada Play: entrar com e-mail e senha, criar conta ou pedir
- * nova senha. O login de demonstração (sem "@") continua passando pelo mesmo
- * campo, para as apresentações.
+ * nova senha. Sem "@" no campo, a entrada é por USUÁRIO (contas sem e-mail,
+ * como as de demonstração para escolas, 30/10/2026) ou pelo login único antigo.
  */
 export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: string; modo?: string }) {
   const [aba, setAba] = useState<Aba>(modo === "criar" ? "criar" : "entrar");
@@ -41,8 +41,8 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
     e.preventDefault();
     setErro("");
     setEnviando(true);
-    const demonstracao = !email.includes("@");
-    const r = demonstracao
+    const porUsuario = !email.includes("@");
+    const r = porUsuario
       ? await chamar<{ destino: string }>("/api/play/entrar", { usuario: email, senha, de })
       : await chamar<{ destino: string }>("/api/play/conta", { acao: "entrar", email, senha, de });
     if (!r.ok) {
@@ -135,7 +135,7 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
         <form onSubmit={entrar} className="mt-5 space-y-4">
           <div>
             <label htmlFor="email" className="text-sm font-semibold text-texto-suave">
-              E-mail
+              E-mail ou usuário
             </label>
             <input
               id="email"
@@ -145,6 +145,8 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
               autoComplete="username"
               autoCapitalize="none"
               inputMode="email"
+              autoCorrect="off"
+              spellCheck={false}
               required
               className={CAMPO}
             />

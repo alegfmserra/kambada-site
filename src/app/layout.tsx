@@ -35,6 +35,8 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
+  // Manifesto da loja (rota em app/manifest.webmanifest); o layout do Play troca pelo do app.
+  manifest: "/manifest.webmanifest",
   title: {
     default: "Moda Maranhense: Tradição e Identidade Cultural | Somos Kambada",
     template: "%s | Somos Kambada",

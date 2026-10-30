@@ -6,6 +6,7 @@ import type { Atribuicao } from "../atribuicao/atribuicao";
 import { arquivoTokens } from "../bling/tokens";
 import { assinar, idAleatorio, verificar } from "./jogos/seguranca";
 import { sessaoDaRequisicao, type Sessao } from "./acesso";
+import { CONTAS_DEMO, contasDemoLigadas, idDaContaDemo } from "./contasDemo";
 
 /**
  * Contas do Kambada Play (somente servidor).
@@ -38,6 +39,14 @@ export type Conta = {
   lembreteConfirmacaoEm?: string;
   /** De onde veio o cadastro (utm/referência) — conversão por canal. */
   atribuicao?: Atribuicao;
+  /**
+   * Conta que entra por USUÁRIO + senha, sem e-mail (30/10/2026). O campo
+   * `email` dela é interno (`<usuario>@usuario.kambadaplay.invalid`, domínio
+   * que não existe): só mantém o formato do arquivo e nunca é mostrado.
+   */
+  usuario?: string;
+  /** Conta de demonstração (ver contasDemo.ts): fora da base de marketing e dos e-mails. */
+  demo?: boolean;
 };
 
 type Dados = { versao: 1; contas: Conta[] };
@@ -134,9 +143,19 @@ export function senhaConfere(senha: string, guardado: string): boolean {
 }
 
 /** Versão sem a senha, para devolver ao navegador. */
-export type ContaPublica = Pick<Conta, "id" | "nome" | "email" | "novidades" | "confirmadoEm" | "criadoEm">;
+export type ContaPublica = Pick<Conta, "id" | "nome" | "email" | "novidades" | "confirmadoEm" | "criadoEm" | "usuario" | "demo">;
 export function publica(c: Conta): ContaPublica {
-  return { id: c.id, nome: c.nome, email: c.email, novidades: c.novidades, confirmadoEm: c.confirmadoEm, criadoEm: c.criadoEm };
+  return {
+    id: c.id,
+    nome: c.nome,
+    // Conta por usuário: o e-mail interno nunca sai do servidor.
+    email: c.usuario ? "" : c.email,
+    novidades: c.novidades,
+    confirmadoEm: c.confirmadoEm,
+    criadoEm: c.criadoEm,
+    usuario: c.usuario,
+    demo: c.demo,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -183,7 +202,8 @@ export function autenticar(emailBruto: unknown, senha: unknown, agora = new Date
     const email = normalizarEmail(emailBruto);
     if (!email || typeof senha !== "string" || senha.length > 100) return null;
     const d = await ler();
-    const conta = d.contas.find((c) => c.email === email);
+    // Conta por usuário não entra pelo e-mail interno.
+    const conta = d.contas.find((c) => c.email === email && !c.usuario);
     // Sempre calcula um hash, para o tempo de resposta não revelar se o e-mail existe.
     const ok = conta ? senhaConfere(senha, conta.senhaHash) : (senhaConfere(senha, HASH_FALSO), false);
     if (!conta || !ok) return null;
@@ -193,6 +213,60 @@ export function autenticar(emailBruto: unknown, senha: unknown, agora = new Date
   });
 }
 const HASH_FALSO = gerarHash("senha-que-nao-existe");
+
+// ---------------------------------------------------------------------------
+// Entrada por usuário, sem e-mail (30/10/2026)
+// ---------------------------------------------------------------------------
+
+/** Usuário: 3 a 30 caracteres, letras minúsculas sem acento, números, ponto, hífen ou sublinhado. */
+export function normalizarUsuario(bruto: unknown): string | null {
+  if (typeof bruto !== "string") return null;
+  const u = bruto.trim().toLowerCase();
+  return /^[a-z0-9][a-z0-9._-]{2,29}$/.test(u) ? u : null;
+}
+
+/** E-mail interno de uma conta por usuário: domínio `.invalid` (reservado, nunca entrega). */
+export const emailInterno = (usuario: string) => `${usuario}@usuario.kambadaplay.invalid`;
+
+/** Cria as contas de demonstração que ainda não existem no arquivo. Devolve true se mudou algo. */
+function garantirContasDemo(d: Dados, agora: Date): boolean {
+  if (!contasDemoLigadas()) return false;
+  let mudou = false;
+  for (const demo of CONTAS_DEMO) {
+    if (d.contas.some((c) => c.usuario === demo.usuario || c.id === idDaContaDemo(demo.usuario))) continue;
+    d.contas.push({
+      id: idDaContaDemo(demo.usuario),
+      nome: demo.apelido,
+      email: emailInterno(demo.usuario),
+      senhaHash: demo.senhaHash,
+      novidades: false,
+      criadoEm: agora.toISOString(),
+      usuario: demo.usuario,
+      demo: true,
+    });
+    mudou = true;
+  }
+  return mudou;
+}
+
+export function autenticarPorUsuario(usuarioBruto: unknown, senha: unknown, agora = new Date()): Promise<Conta | null> {
+  return naFila(async () => {
+    const usuario = normalizarUsuario(usuarioBruto);
+    if (!usuario || typeof senha !== "string" || senha.length > 100) return null;
+    const d = await ler();
+    const criouDemo = garantirContasDemo(d, agora);
+    const conta = d.contas.find((c) => c.usuario === usuario && (!c.demo || contasDemoLigadas()));
+    // Mesmo tempo de resposta com ou sem o usuário (não revela quem existe).
+    const ok = conta ? senhaConfere(senha, conta.senhaHash) : (senhaConfere(senha, HASH_FALSO), false);
+    if (!conta || !ok) {
+      if (criouDemo) await gravar(d);
+      return null;
+    }
+    conta.ultimoAcessoEm = agora.toISOString();
+    await gravar(d);
+    return conta;
+  });
+}
 
 export async function buscarPorId(id: string): Promise<Conta | null> {
   const d = await ler();
@@ -258,7 +332,7 @@ export function marcaDaSenha(c: Pick<Conta, "senhaHash">): string {
 export async function contaDaSessao(sessao: Sessao | null): Promise<Conta | null> {
   if (!sessao || sessao.v !== 2) return null;
   const c = await buscarPorId(sessao.conta);
-  if (!c) return null;
+  if (!c || (c.demo && !contasDemoLigadas())) return null;
   const a = Buffer.from(sessao.s);
   const b = Buffer.from(marcaDaSenha(c));
   return a.length === b.length && timingSafeEqual(a, b) ? c : null;
@@ -347,8 +421,9 @@ export function descadastrar(token: unknown, agora = new Date()): Promise<boolea
 // Base para o marketing (rota protegida)
 // ---------------------------------------------------------------------------
 
+/** Contas de verdade: as de demonstração ficam de fora (não são gente, não recebem e-mail). */
 export async function listarContas(): Promise<Conta[]> {
-  return (await ler()).contas;
+  return (await ler()).contas.filter((c) => !c.demo);
 }
 
 // ---------------------------------------------------------------------------
@@ -363,7 +438,7 @@ const HORA_MS = 60 * 60 * 1000;
  * e-mail do nada — quem quiser usa o "reenviar" da Minha conta.
  */
 export function precisaLembreteDeConfirmacao(c: Conta, agora = new Date()): boolean {
-  if (c.confirmadoEm || c.descadastradoEm || c.lembreteConfirmacaoEm) return false;
+  if (c.confirmadoEm || c.descadastradoEm || c.lembreteConfirmacaoEm || c.usuario || c.demo) return false;
   const idade = agora.getTime() - new Date(c.criadoEm).getTime();
   return idade >= 24 * HORA_MS && idade <= 7 * 24 * HORA_MS;
 }

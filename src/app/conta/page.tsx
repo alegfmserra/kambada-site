@@ -67,12 +67,21 @@ export default async function ContaPage({
                 <dd className="font-semibold">{conta.nome}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-texto-suave">E-mail</dt>
-                <dd className="break-all font-semibold">{conta.email}</dd>
+                <dt className="text-texto-suave">{conta.usuario ? "Usuário" : "E-mail"}</dt>
+                {/* Conta por usuário: o e-mail interno nunca aparece. */}
+                <dd className="break-all font-semibold">{conta.usuario ?? conta.email}</dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-texto-suave">Situação</dt>
-                <dd className="font-semibold">{conta.confirmadoEm ? "E-mail confirmado" : "E-mail não confirmado"}</dd>
+                <dd className="font-semibold">
+                  {conta.usuario
+                    ? conta.demo
+                      ? "Conta de demonstração"
+                      : "Conta sem e-mail"
+                    : conta.confirmadoEm
+                      ? "E-mail confirmado"
+                      : "E-mail não confirmado"}
+                </dd>
               </div>
             </dl>
             <AcoesDaConta confirmado={Boolean(conta.confirmadoEm)} novidades={conta.novidades} />

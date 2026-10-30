@@ -114,6 +114,9 @@ export const ROTAS_PUBLICAS = [
   "/kambadaplay/planos",
   // Degustação sem cadastro: só o quiz no nível fácil, sem ranking (a API confere o nível e corta a prova).
   "/kambadaplay/experimente",
+  // App instalável (30/10/2026): "Como instalar" vai para as famílias por WhatsApp/QR code; "Sem internet" é a tela do service worker.
+  "/kambadaplay/instalar",
+  "/kambadaplay/offline",
   "/api/play/quiz",
   "/api/play/entrar",
   "/api/play/sair",

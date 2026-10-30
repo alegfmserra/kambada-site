@@ -23,7 +23,8 @@ export async function POST(requisicao: Request) {
   const conta = corpo ? await contaDaRequisicao(requisicao).catch(() => null) : null;
   const resposta = corpo ? validarResposta(corpo, new Date(), conta?.email) : null;
   if (!resposta) return NextResponse.json({ ok: false, mensagem: "Marque ao menos uma resposta." }, { status: 400 });
-  await gravarResposta(resposta);
+  // Conta de demonstração (apresentação a escolas) não entra na pesquisa: os números vão para a FAPEMA.
+  if (!conta?.demo) await gravarResposta(resposta);
   return NextResponse.json({ ok: true });
 }
 

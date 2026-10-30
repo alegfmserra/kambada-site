@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { GuardarHQs } from "@/components/play/app/GuardarHQs";
 import { PesquisaAoFim } from "@/components/play/hq/PesquisaAoFim";
 import { Revelar } from "@/components/play/hub/Revelar";
 import { HQS, hqPorSlug, paginaDaHQ } from "@/content/play/hq";
@@ -49,6 +50,8 @@ export default async function HQPage({ params }: Props) {
                   width={1094}
                   height={1547}
                   priority={n === 1}
+                  // Arquivo direto (sem o otimizador): é o mesmo endereço que o app guarda para ler sem internet.
+                  unoptimized
                   sizes="(min-width: 672px) 42rem, 92vw"
                   className="h-auto w-full rounded-lg border-4 border-kambada-grafite bg-kambada-branco shadow-[8px_8px_0_0_#ffcc29]"
                 />
@@ -60,6 +63,10 @@ export default async function HQPage({ params }: Props) {
           ))}
         </ol>
         <PesquisaAoFim />
+
+        <div className="mt-10">
+          <GuardarHQs />
+        </div>
 
         <div className="mt-12 flex flex-wrap gap-3">
           <Link

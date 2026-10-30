@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { ApoioFapema } from "@/components/play/ApoioFapema";
+import { InstalarApp } from "@/components/play/app/InstalarApp";
+import { RegistrarApp } from "@/components/play/app/RegistrarApp";
 import { SairDoPlay } from "@/components/play/jogos/SairDoPlay";
 import "./play.css";
 
@@ -9,7 +11,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   description:
     "O Kambada Play é a plataforma de cultura maranhense da Kambada: jogos, histórias e a festa do Bumba Meu Boi para viver em casa.",
+  // App instalável só do Play (30/10/2026): este manifesto substitui o da loja nas páginas do Play.
+  manifest: "/kambadaplay/manifest.json",
+  appleWebApp: { capable: true, title: "Kambada Play", statusBarStyle: "black" },
+  icons: { apple: "/kambadaplay/icones/apple-touch-icon.png" },
 };
+
+export const viewport: Viewport = { themeColor: "#201E1F" };
 
 /**
  * Raiz das páginas do Kambada Play (jogo do arraial, conto do boi e vitrine da
@@ -22,8 +30,10 @@ export default async function PlayLayout({ children }: { children: React.ReactNo
   await connection();
   return (
     <div className="play-root">
+      <RegistrarApp />
       {children}
-      <div className="bg-kambada-preto px-4 py-3 text-center">
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 bg-kambada-preto px-4 py-3 text-center">
+        <InstalarApp compacto />
         <SairDoPlay />
       </div>
       <ApoioFapema />

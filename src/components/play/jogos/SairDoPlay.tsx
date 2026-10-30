@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { falarComSW } from "../app/pwa";
 import { chamar } from "./jogador";
 
 /** Apaga o cookie de acesso e volta para a tela de entrada. */
@@ -14,6 +15,8 @@ export function SairDoPlay() {
       type="button"
       onClick={async () => {
         await chamar("/api/play/sair", {});
+        // App instalado: apaga as páginas guardadas para ler sem internet (podem ter o nome no cabeçalho).
+        await falarComSW({ tipo: "limpar-paginas" }, 5000).catch(() => null);
         // Navegação completa de propósito: o cookie acabou de ser apagado e o porteiro precisa rodar de novo.
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.assign("/kambadaplay/entrar");

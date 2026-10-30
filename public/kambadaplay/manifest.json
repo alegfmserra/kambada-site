@@ -1,0 +1,20 @@
+{
+  "id": "/kambadaplay",
+  "name": "Kambada Play",
+  "short_name": "Kambada Play",
+  "description": "Jogos, HQs e animações sobre a cultura do Maranhão, da Kambada.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/kambadaplay",
+  "scope": "/kambadaplay",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#201E1F",
+  "theme_color": "#201E1F",
+  "categories": ["education", "games", "kids"],
+  "icons": [
+    { "src": "/kambadaplay/icones/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/kambadaplay/icones/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/kambadaplay/icones/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

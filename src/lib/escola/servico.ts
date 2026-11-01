@@ -1,0 +1,645 @@
+import { randomInt } from "node:crypto";
+import { idAleatorio } from "../play/jogos/seguranca";
+import { alterar, lerDados, restaurar, type Aluno, type Dados, type Membro, type Registro, type Turma } from "./dados";
+import { TRILHAS, habilidades, publica, questaoPorId, trilhaPorId, trilhasDaEtapa, type Questao, type Trilha } from "./desafios";
+import { gerarHash, marca, senhaConfere, senhaInicial } from "./senha";
+import type { SessaoEscola } from "./sessao";
+import {
+  AVATARES,
+  DISCIPLINAS,
+  PONTOS,
+  type AlunoPublico,
+  type Disciplina,
+  type EscolaPublica,
+  type Etapa,
+  type Papel,
+  type QuestaoPublica,
+  type Resultado,
+  type TrilhaPublica,
+} from "./tipos";
+
+/**
+ * Regras do portal da escola (somente servidor). As telas e a API só falam
+ * com este arquivo; o armazenamento (hoje JSON) fica em `dados.ts`.
+ *
+ * Quem pode o quê:
+ *  - aluno: joga as trilhas da etapa da turma e vê o ranking;
+ *  - professor: cadastra apelidos nas SUAS turmas, imprime cartões e vê o relatório delas;
+ *  - coordenação: cadastra professores e turmas, vê todas as turmas e o relatório geral.
+ */
+
+export class ErroEscola extends Error {
+  constructor(mensagem: string, readonly status = 400) {
+    super(mensagem);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Quem está na sessão
+// ---------------------------------------------------------------------------
+
+export function marcaDoAluno(a: Aluno): string {
+  return marca(`${a.id}|${a.figuras.join("-")}`);
+}
+export function marcaDoMembro(m: Membro): string {
+  return marca(m.senhaHash);
+}
+
+export type Quem =
+  | { papel: "aluno"; aluno: Aluno; turma: Turma }
+  | { papel: "professor" | "coordenacao"; membro: Membro };
+
+export async function quemEsta(s: SessaoEscola | null): Promise<Quem | null> {
+  if (!s) return null;
+  const d = await lerDados();
+  if (s.p === "aluno") {
+    const aluno = d.alunos.find((a) => a.id === s.id);
+    const turma = aluno && d.turmas.find((t) => t.id === aluno.turmaId);
+    if (!aluno || !turma || marcaDoAluno(aluno) !== s.m) return null;
+    return { papel: "aluno", aluno, turma };
+  }
+  const membro = d.membros.find((m) => m.id === s.id);
+  if (!membro || membro.papel !== s.p || marcaDoMembro(membro) !== s.m) return null;
+  return { papel: membro.papel, membro };
+}
+
+export async function escolaPublica(): Promise<EscolaPublica & { demo: boolean }> {
+  const d = await lerDados();
+  return { ...d.escola, demo: d.demo };
+}
+
+// ---------------------------------------------------------------------------
+// Entrada
+// ---------------------------------------------------------------------------
+
+const publicoAluno = (a: Aluno): AlunoPublico => ({ id: a.id, apelido: a.apelido, avatar: a.avatar });
+
+export async function turmaPorCodigo(codigo: unknown): Promise<{ turma: string; alunos: AlunoPublico[] } | null> {
+  if (typeof codigo !== "string" || !/^\d{4}$/.test(codigo.trim())) return null;
+  const d = await lerDados();
+  const turma = d.turmas.find((t) => t.codigo === codigo.trim());
+  if (!turma) return null;
+  const alunos = d.alunos
+    .filter((a) => a.turmaId === turma.id)
+    .sort((x, y) => x.apelido.localeCompare(y.apelido, "pt-BR"))
+    .map(publicoAluno);
+  return { turma: turma.nome, alunos };
+}
+
+export async function entrarAluno(codigo: unknown, alunoId: unknown, figuras: unknown): Promise<Aluno | null> {
+  if (typeof codigo !== "string" || typeof alunoId !== "string" || !Array.isArray(figuras) || figuras.length !== 3) return null;
+  const d = await lerDados();
+  const turma = d.turmas.find((t) => t.codigo === codigo.trim());
+  const aluno = turma && d.alunos.find((a) => a.id === alunoId && a.turmaId === turma.id);
+  if (!aluno) return null;
+  return aluno.figuras.every((f, i) => f === figuras[i]) ? aluno : null;
+}
+
+export async function entrarMembro(usuario: unknown, senha: unknown): Promise<Membro | null> {
+  if (typeof usuario !== "string" || typeof senha !== "string" || usuario.length > 60 || senha.length > 100) return null;
+  const d = await lerDados();
+  const m = d.membros.find((x) => x.usuario === usuario.trim().toLowerCase());
+  // Sem usuário, compara mesmo assim: o tempo não revela se o usuário existe.
+  const ok = senhaConfere(senha, m?.senhaHash ?? "scrypt$00$00");
+  return m && ok ? m : null;
+}
+
+// ---------------------------------------------------------------------------
+// Desafios (partida)
+// ---------------------------------------------------------------------------
+
+function embaralhar<T>(lista: T[]): T[] {
+  const a = [...lista];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function questaoPublica(q: Questao, ordem: number[], t: Trilha): QuestaoPublica {
+  return { cena: q.cena, enunciado: q.enunciado, opcoes: ordem.map((i) => q.opcoes[i]), disciplina: t.disciplina, habilidade: q.habilidade };
+}
+
+export type EstadoPartida = { partida: string; trilha: TrilhaPublica; indice: number; total: number; tentativa: 1 | 2; questao: QuestaoPublica; pontos: number };
+
+export function trilhasDoAluno(turma: Turma): TrilhaPublica[] {
+  return trilhasDaEtapa(turma.etapa).map(publica);
+}
+
+export async function iniciarPartida(aluno: Aluno, turma: Turma, trilhaId: unknown): Promise<EstadoPartida> {
+  const trilha = trilhaPorId(trilhaId);
+  if (!trilha || trilha.etapa !== turma.etapa) throw new ErroEscola("Esse desafio não é da sua turma.", 404);
+  return alterar((d) => {
+    let p = d.partidas.find((x) => x.alunoId === aluno.id && x.trilhaId === trilha.id && !x.fim);
+    if (!p) {
+      const questoes = embaralhar(trilha.questoes.map((q) => q.id));
+      p = {
+        id: idAleatorio(),
+        alunoId: aluno.id,
+        trilhaId: trilha.id,
+        questoes,
+        ordens: questoes.map((id) => embaralhar(trilha.questoes.find((q) => q.id === id)!.opcoes.map((_, i) => i))),
+        atual: 0,
+        tentativa: 1,
+        primeiroErro: null,
+        pontos: 0,
+        inicio: new Date().toISOString(),
+      };
+      d.partidas.push(p);
+    }
+    const q = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
+    return { partida: p.id, trilha: publica(trilha), indice: p.atual, total: p.questoes.length, tentativa: p.tentativa, questao: questaoPublica(q, p.ordens[p.atual], trilha), pontos: p.pontos };
+  });
+}
+
+export type Resposta = {
+  certo: boolean;
+  /** Só quando a questão fecha. */
+  resultado?: Resultado;
+  pontosGanhos?: number;
+  /** Primeiro erro: a dica e a opção que sai da tela. */
+  dica?: string;
+  descartada?: number;
+  /** Questão fechada: explicação e a opção certa (na ordem da tela). */
+  explica?: string;
+  correta?: number;
+  proxima?: EstadoPartida;
+  fim?: { pontos: number; primeira: number; segunda: number; reforco: number };
+};
+
+export async function responder(aluno: Aluno, partidaId: unknown, escolha: unknown): Promise<Resposta> {
+  if (typeof partidaId !== "string" || typeof escolha !== "number" || !Number.isInteger(escolha)) throw new ErroEscola("Resposta inválida.");
+  return alterar((d) => {
+    const p = d.partidas.find((x) => x.id === partidaId && x.alunoId === aluno.id && !x.fim);
+    if (!p) throw new ErroEscola("Esse desafio já terminou. Comece de novo.", 404);
+    const trilha = trilhaPorId(p.trilhaId)!;
+    const q = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
+    const ordem = p.ordens[p.atual];
+    if (escolha < 0 || escolha >= ordem.length) throw new ErroEscola("Resposta inválida.");
+    const original = ordem[escolha];
+
+    if (original !== q.correta && p.tentativa === 1) {
+      p.tentativa = 2;
+      p.primeiroErro = original;
+      return { certo: false, dica: q.dica, descartada: escolha };
+    }
+    // A opção do primeiro erro já saiu da tela: repeti-la não conta.
+    if (original === p.primeiroErro) throw new ErroEscola("Essa opção já foi tentada.");
+
+    const resultado: Resultado = original === q.correta ? (p.tentativa === 1 ? "primeira" : "segunda") : "reforco";
+    const reg: Registro = {
+      alunoId: aluno.id,
+      turmaId: aluno.turmaId,
+      trilhaId: trilha.id,
+      questaoId: q.id,
+      disciplina: trilha.disciplina,
+      habilidade: q.habilidade,
+      resultado,
+      errou: resultado === "primeira" ? null : p.primeiroErro,
+      pontos: PONTOS[resultado],
+      em: new Date().toISOString(),
+    };
+    d.registros.push(reg);
+    p.pontos += reg.pontos;
+    const resposta: Resposta = { certo: resultado !== "reforco", resultado, pontosGanhos: reg.pontos, explica: q.explica, correta: ordem.indexOf(q.correta) };
+
+    p.atual += 1;
+    p.tentativa = 1;
+    p.primeiroErro = null;
+    if (p.atual >= p.questoes.length) {
+      p.fim = new Date().toISOString();
+      const desta = d.registros.filter((r) => r.alunoId === aluno.id && r.trilhaId === trilha.id && r.em >= p.inicio);
+      resposta.fim = {
+        pontos: p.pontos,
+        primeira: desta.filter((r) => r.resultado === "primeira").length,
+        segunda: desta.filter((r) => r.resultado === "segunda").length,
+        reforco: desta.filter((r) => r.resultado === "reforco").length,
+      };
+    } else {
+      const nq = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
+      resposta.proxima = { partida: p.id, trilha: publica(trilha), indice: p.atual, total: p.questoes.length, tentativa: 1, questao: questaoPublica(nq, p.ordens[p.atual], trilha), pontos: p.pontos };
+    }
+    return resposta;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Ranking
+// ---------------------------------------------------------------------------
+
+/**
+ * Pontos do aluno = a MELHOR pontuação em cada questão (refazer a trilha para
+ * melhorar vale; repetir o que já acertou não soma de novo).
+ */
+function pontosPorAluno(registros: Registro[]): Map<string, number> {
+  const melhor = new Map<string, number>();
+  for (const r of registros) {
+    const k = `${r.alunoId}|${r.questaoId}`;
+    melhor.set(k, Math.max(melhor.get(k) ?? 0, r.pontos));
+  }
+  const total = new Map<string, number>();
+  for (const [k, v] of melhor) {
+    const id = k.split("|")[0];
+    total.set(id, (total.get(id) ?? 0) + v);
+  }
+  return total;
+}
+
+export type LinhaRanking = { id: string; nome: string; avatar?: string; pontos: number; detalhe?: string };
+
+export async function ranking(turmaId?: string): Promise<{ turmas: LinhaRanking[]; alunos: LinhaRanking[] }> {
+  const d = await lerDados();
+  const pts = pontosPorAluno(d.registros);
+  const turmas = d.turmas
+    .map((t) => {
+      const membros = d.alunos.filter((a) => a.turmaId === t.id);
+      const soma = membros.reduce((s, a) => s + (pts.get(a.id) ?? 0), 0);
+      const media = membros.length ? Math.round(soma / membros.length) : 0;
+      return { id: t.id, nome: t.nome, pontos: soma, detalhe: `${media} por aluno` };
+    })
+    .sort((a, b) => b.pontos - a.pontos);
+  const alunos = d.alunos
+    .filter((a) => !turmaId || a.turmaId === turmaId)
+    .map((a) => ({ id: a.id, nome: a.apelido, avatar: a.avatar, pontos: pts.get(a.id) ?? 0, detalhe: d.turmas.find((t) => t.id === a.turmaId)?.nome }))
+    .sort((a, b) => b.pontos - a.pontos)
+    .slice(0, 20);
+  return { turmas, alunos };
+}
+
+export async function pontosDoAluno(alunoId: string): Promise<{ pontos: number; porTrilha: Record<string, { feitas: number; primeira: number }> }> {
+  const d = await lerDados();
+  const meus = d.registros.filter((r) => r.alunoId === alunoId);
+  const porTrilha: Record<string, { feitas: number; primeira: number }> = {};
+  const vistas = new Map<string, Resultado>();
+  for (const r of meus) vistas.set(r.questaoId, r.resultado); // o último resultado de cada questão
+  for (const [qid, res] of vistas) {
+    const tid = questaoPorId(qid)?.trilha.id;
+    if (!tid) continue;
+    porTrilha[tid] ??= { feitas: 0, primeira: 0 };
+    porTrilha[tid].feitas += 1;
+    if (res === "primeira") porTrilha[tid].primeira += 1;
+  }
+  return { pontos: pontosPorAluno(meus).get(alunoId) ?? 0, porTrilha };
+}
+
+// ---------------------------------------------------------------------------
+// Relatório por habilidade
+// ---------------------------------------------------------------------------
+
+/** domina = ✓ verde · quase = ↻ amarelo · reforco = ✗ vermelho · nada = ainda não jogou. */
+export type Status = "domina" | "quase" | "reforco" | "nada";
+export type Celula = { status: Status; primeira: number; segunda: number; reforco: number };
+
+/** Olha as últimas 6 respostas da habilidade: o relatório mostra onde o aluno está AGORA. */
+export function celula(regs: Registro[]): Celula {
+  const ult = regs.slice(-6);
+  const c = {
+    primeira: ult.filter((r) => r.resultado === "primeira").length,
+    segunda: ult.filter((r) => r.resultado === "segunda").length,
+    reforco: ult.filter((r) => r.resultado === "reforco").length,
+  };
+  if (!ult.length) return { status: "nada", ...c };
+  const nota = (c.primeira + c.segunda * 0.5) / ult.length;
+  return { status: nota >= 0.75 ? "domina" : nota >= 0.45 ? "quase" : "reforco", ...c };
+}
+
+export type ErroComum = { questao: string; habilidade: string; escolha: string; diagnostico: string; quantos: number; apelidos: string[] };
+
+export type RelatorioTurma = {
+  turma: { id: string; nome: string; etapa: Etapa; codigo: string };
+  disciplina: Disciplina;
+  habilidades: string[];
+  linhas: { aluno: AlunoPublico; celulas: Record<string, Celula> }[];
+  resumo: { habilidade: string; domina: number; quase: number; reforco: number; nada: number }[];
+  erros: ErroComum[];
+  participacao: { ativos7d: number; total: number; respostas7d: number };
+};
+
+export function disciplinasDaEtapa(etapa: Etapa): Disciplina[] {
+  return DISCIPLINAS.filter((x) => TRILHAS.some((t) => t.etapa === etapa && t.disciplina === x));
+}
+
+function montarRelatorio(d: Dados, turma: Turma, disciplina: Disciplina): RelatorioTurma {
+  const habs = habilidades(disciplina, turma.etapa);
+  const alunos = d.alunos.filter((a) => a.turmaId === turma.id).sort((x, y) => x.apelido.localeCompare(y.apelido, "pt-BR"));
+  const regs = d.registros.filter((r) => r.turmaId === turma.id && r.disciplina === disciplina);
+  const linhas = alunos.map((a) => {
+    const meus = regs.filter((r) => r.alunoId === a.id);
+    return { aluno: publicoAluno(a), celulas: Object.fromEntries(habs.map((h) => [h, celula(meus.filter((r) => r.habilidade === h))])) };
+  });
+  const resumo = habs.map((h) => {
+    const cont = { domina: 0, quase: 0, reforco: 0, nada: 0 };
+    for (const l of linhas) cont[l.celulas[h].status] += 1;
+    return { habilidade: h, ...cont };
+  });
+
+  // Erros mais comuns: questão + opção errada escolhida no primeiro erro.
+  const grupos = new Map<string, { qid: string; opc: number; ids: Set<string> }>();
+  for (const r of regs) {
+    if (r.errou === null) continue;
+    const k = `${r.questaoId}|${r.errou}`;
+    const g = grupos.get(k) ?? { qid: r.questaoId, opc: r.errou, ids: new Set<string>() };
+    g.ids.add(r.alunoId);
+    grupos.set(k, g);
+  }
+  const erros = [...grupos.values()]
+    .sort((a, b) => b.ids.size - a.ids.size)
+    .slice(0, 5)
+    .map((g) => {
+      const q = questaoPorId(g.qid)!.questao;
+      return {
+        questao: q.enunciado,
+        habilidade: q.habilidade,
+        escolha: q.opcoes[g.opc],
+        diagnostico: q.diagnostico?.[g.opc] ?? "Escolha errada.",
+        quantos: g.ids.size,
+        apelidos: [...g.ids].map((id) => d.alunos.find((a) => a.id === id)?.apelido ?? "?").sort(),
+      };
+    });
+
+  const semana = Date.now() - 7 * 86400000;
+  const todasDaTurma = d.registros.filter((r) => r.turmaId === turma.id && Date.parse(r.em) > semana);
+  return {
+    turma: { id: turma.id, nome: turma.nome, etapa: turma.etapa, codigo: turma.codigo },
+    disciplina,
+    habilidades: habs,
+    linhas,
+    resumo,
+    erros,
+    participacao: { ativos7d: new Set(todasDaTurma.map((r) => r.alunoId)).size, total: alunos.length, respostas7d: todasDaTurma.length },
+  };
+}
+
+function podeVerTurma(m: Membro, t: Turma): boolean {
+  return m.papel === "coordenacao" || t.professorIds.includes(m.id);
+}
+
+export async function relatorioTurma(m: Membro, turmaId: string, disciplina?: string): Promise<RelatorioTurma> {
+  const d = await lerDados();
+  const t = d.turmas.find((x) => x.id === turmaId);
+  if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
+  const possiveis = disciplinasDaEtapa(t.etapa);
+  const disc = possiveis.find((x) => x === disciplina) ?? possiveis[0];
+  return montarRelatorio(d, t, disc);
+}
+
+export type ResumoTurma = {
+  id: string;
+  nome: string;
+  etapa: Etapa;
+  codigo: string;
+  alunos: number;
+  professores: string[];
+  ativos7d: number;
+  porDisciplina: { disciplina: Disciplina; domina: number; quase: number; reforco: number; nada: number }[];
+};
+
+export async function resumoDasTurmas(m: Membro): Promise<ResumoTurma[]> {
+  const d = await lerDados();
+  return d.turmas
+    .filter((t) => podeVerTurma(m, t))
+    .map((t) => {
+      const porDisciplina = disciplinasDaEtapa(t.etapa).map((disc) => {
+        const rel = montarRelatorio(d, t, disc);
+        const cont = { domina: 0, quase: 0, reforco: 0, nada: 0 };
+        for (const r of rel.resumo) {
+          cont.domina += r.domina;
+          cont.quase += r.quase;
+          cont.reforco += r.reforco;
+          cont.nada += r.nada;
+        }
+        return { disciplina: disc, ...cont };
+      });
+      const semana = Date.now() - 7 * 86400000;
+      return {
+        id: t.id,
+        nome: t.nome,
+        etapa: t.etapa,
+        codigo: t.codigo,
+        alunos: d.alunos.filter((a) => a.turmaId === t.id).length,
+        professores: t.professorIds.map((id) => d.membros.find((x) => x.id === id)?.nome ?? "?"),
+        ativos7d: new Set(d.registros.filter((r) => r.turmaId === t.id && Date.parse(r.em) > semana).map((r) => r.alunoId)).size,
+        porDisciplina,
+      };
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Gestão (professor e coordenação)
+// ---------------------------------------------------------------------------
+
+export type AlunoComFiguras = AlunoPublico & { figuras: number[] };
+
+export async function alunosDaTurma(m: Membro, turmaId: string): Promise<{ turma: Turma; alunos: AlunoComFiguras[] }> {
+  const d = await lerDados();
+  const t = d.turmas.find((x) => x.id === turmaId);
+  if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
+  const alunos = d.alunos
+    .filter((a) => a.turmaId === t.id)
+    .sort((x, y) => x.apelido.localeCompare(y.apelido, "pt-BR"))
+    .map((a) => ({ ...publicoAluno(a), figuras: a.figuras }));
+  return { turma: t, alunos };
+}
+
+/** Apelido: 3 a 20 letras, números, _ ou -; sem espaço (não é lugar de nome completo). */
+export function apelidoValido(bruto: unknown): string | null {
+  if (typeof bruto !== "string") return null;
+  const a = bruto.trim();
+  if (!/^[\p{L}\p{N}_-]{3,20}$/u.test(a)) return null;
+  return a;
+}
+
+const figurasNovas = () => [randomInt(9), randomInt(9), randomInt(9)];
+
+export async function criarAluno(m: Membro, turmaId: string, apelidoBruto: unknown): Promise<AlunoComFiguras> {
+  const apelido = apelidoValido(apelidoBruto);
+  if (!apelido) throw new ErroEscola("Apelido com 3 a 20 letras ou números, sem espaço. Nada de nome completo.");
+  return alterar((d) => {
+    const t = d.turmas.find((x) => x.id === turmaId);
+    if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
+    const daTurma = d.alunos.filter((a) => a.turmaId === t.id);
+    if (daTurma.some((a) => a.apelido.toLowerCase() === apelido.toLowerCase())) throw new ErroEscola("Já existe esse apelido na turma.");
+    if (daTurma.length >= 60) throw new ErroEscola("Limite de 60 alunos por turma.");
+    const a: Aluno = { id: `a-${idAleatorio(6)}`, turmaId: t.id, apelido, avatar: AVATARES[randomInt(AVATARES.length)], figuras: figurasNovas(), criadoEm: new Date().toISOString() };
+    d.alunos.push(a);
+    return { ...publicoAluno(a), figuras: a.figuras };
+  });
+}
+
+function alunoGerenciavel(d: Dados, m: Membro, alunoId: unknown): Aluno {
+  const a = d.alunos.find((x) => x.id === alunoId);
+  const t = a && d.turmas.find((x) => x.id === a.turmaId);
+  if (!a || !t || !podeVerTurma(m, t)) throw new ErroEscola("Aluno não encontrado.", 404);
+  return a;
+}
+
+/** Nova senha de figuras: a antiga deixa de valer e a sessão do aluno cai. */
+export async function novasFiguras(m: Membro, alunoId: unknown): Promise<AlunoComFiguras> {
+  return alterar((d) => {
+    const a = alunoGerenciavel(d, m, alunoId);
+    a.figuras = figurasNovas();
+    return { ...publicoAluno(a), figuras: a.figuras };
+  });
+}
+
+export async function removerAluno(m: Membro, alunoId: unknown): Promise<void> {
+  await alterar((d) => {
+    const a = alunoGerenciavel(d, m, alunoId);
+    d.alunos = d.alunos.filter((x) => x.id !== a.id);
+    // Os dados são da escola: saiu o aluno, saem as respostas dele.
+    d.registros = d.registros.filter((r) => r.alunoId !== a.id);
+    d.partidas = d.partidas.filter((p) => p.alunoId !== a.id);
+  });
+}
+
+function soCoordenacao(m: Membro) {
+  if (m.papel !== "coordenacao") throw new ErroEscola("Só a coordenação faz isso.", 403);
+}
+
+export type MembroPublico = { id: string; nome: string; usuario: string; papel: Papel; disciplinas: Disciplina[]; turmas: string[] };
+
+export async function equipe(m: Membro): Promise<{ membros: MembroPublico[]; turmas: { id: string; nome: string; etapa: Etapa; codigo: string; professorIds: string[] }[] }> {
+  soCoordenacao(m);
+  const d = await lerDados();
+  return {
+    membros: d.membros.map((x) => ({
+      id: x.id,
+      nome: x.nome,
+      usuario: x.usuario,
+      papel: x.papel,
+      disciplinas: x.disciplinas,
+      turmas: d.turmas.filter((t) => t.professorIds.includes(x.id)).map((t) => t.nome),
+    })),
+    turmas: d.turmas.map((t) => ({ id: t.id, nome: t.nome, etapa: t.etapa, codigo: t.codigo, professorIds: t.professorIds })),
+  };
+}
+
+function usuarioValido(bruto: unknown): string | null {
+  if (typeof bruto !== "string") return null;
+  const u = bruto.trim().toLowerCase();
+  return /^[a-z0-9._-]{3,30}$/.test(u) ? u : null;
+}
+
+export async function criarProfessor(m: Membro, nome: unknown, usuario: unknown, disciplinas: unknown, turmaIds: unknown): Promise<{ usuario: string; senha: string }> {
+  soCoordenacao(m);
+  const n = typeof nome === "string" ? nome.replace(/\s+/g, " ").trim() : "";
+  if (n.length < 2 || n.length > 60) throw new ErroEscola("Nome do professor com 2 a 60 letras.");
+  const u = usuarioValido(usuario);
+  if (!u) throw new ErroEscola("Usuário com 3 a 30 letras minúsculas, números, ponto ou traço (ex.: prof.ana).");
+  const discs = Array.isArray(disciplinas) ? DISCIPLINAS.filter((x) => disciplinas.includes(x)) : [];
+  const turmas = Array.isArray(turmaIds) ? turmaIds.filter((x): x is string => typeof x === "string") : [];
+  const senha = senhaInicial();
+  const senhaHash = gerarHash(senha);
+  await alterar((d) => {
+    if (d.membros.some((x) => x.usuario === u)) throw new ErroEscola("Esse usuário já existe.");
+    if (d.membros.length >= 200) throw new ErroEscola("Limite de 200 pessoas na equipe.");
+    const id = `m-${idAleatorio(6)}`;
+    d.membros.push({ id, papel: "professor", nome: n, usuario: u, senhaHash, disciplinas: discs, criadoEm: new Date().toISOString() });
+    for (const t of d.turmas) if (turmas.includes(t.id) && !t.professorIds.includes(id)) t.professorIds.push(id);
+  });
+  return { usuario: u, senha };
+}
+
+export async function vincular(m: Membro, professorId: unknown, turmaId: unknown, ligado: unknown): Promise<void> {
+  soCoordenacao(m);
+  await alterar((d) => {
+    const p = d.membros.find((x) => x.id === professorId && x.papel === "professor");
+    const t = d.turmas.find((x) => x.id === turmaId);
+    if (!p || !t) throw new ErroEscola("Professor ou turma não encontrado.", 404);
+    t.professorIds = t.professorIds.filter((x) => x !== p.id);
+    if (ligado === true) t.professorIds.push(p.id);
+  });
+}
+
+export async function removerProfessor(m: Membro, professorId: unknown): Promise<void> {
+  soCoordenacao(m);
+  await alterar((d) => {
+    const p = d.membros.find((x) => x.id === professorId && x.papel === "professor");
+    if (!p) throw new ErroEscola("Professor não encontrado.", 404);
+    d.membros = d.membros.filter((x) => x.id !== p.id);
+    for (const t of d.turmas) t.professorIds = t.professorIds.filter((x) => x !== p.id);
+  });
+}
+
+export async function novaSenhaProfessor(m: Membro, professorId: unknown): Promise<{ usuario: string; senha: string }> {
+  soCoordenacao(m);
+  const senha = senhaInicial();
+  const senhaHash = gerarHash(senha);
+  const usuario = await alterar((d) => {
+    const p = d.membros.find((x) => x.id === professorId && x.papel === "professor");
+    if (!p) throw new ErroEscola("Professor não encontrado.", 404);
+    p.senhaHash = senhaHash;
+    return p.usuario;
+  });
+  return { usuario, senha };
+}
+
+function codigoNovo(d: Dados): string {
+  for (;;) {
+    const c = String(randomInt(1000, 10000));
+    if (!d.turmas.some((t) => t.codigo === c)) return c;
+  }
+}
+
+export async function criarTurma(m: Membro, nome: unknown, etapa: unknown, professorIds: unknown): Promise<{ id: string; codigo: string }> {
+  soCoordenacao(m);
+  const n = typeof nome === "string" ? nome.replace(/\s+/g, " ").trim() : "";
+  if (n.length < 2 || n.length > 30) throw new ErroEscola("Nome da turma com 2 a 30 caracteres (ex.: 3º ano C).");
+  if (etapa !== "f1" && etapa !== "f2") throw new ErroEscola("Escolha a etapa da turma.");
+  const profs = Array.isArray(professorIds) ? professorIds.filter((x): x is string => typeof x === "string") : [];
+  return alterar((d) => {
+    if (d.turmas.length >= 100) throw new ErroEscola("Limite de 100 turmas.");
+    if (d.turmas.some((t) => t.nome.toLowerCase() === n.toLowerCase())) throw new ErroEscola("Já existe uma turma com esse nome.");
+    const t: Turma = { id: `t-${idAleatorio(6)}`, nome: n, etapa, codigo: codigoNovo(d), professorIds: profs.filter((id) => d.membros.some((x) => x.id === id)), criadoEm: new Date().toISOString() };
+    d.turmas.push(t);
+    return { id: t.id, codigo: t.codigo };
+  });
+}
+
+export async function removerTurma(m: Membro, turmaId: unknown): Promise<void> {
+  soCoordenacao(m);
+  await alterar((d) => {
+    const t = d.turmas.find((x) => x.id === turmaId);
+    if (!t) throw new ErroEscola("Turma não encontrada.", 404);
+    const ids = new Set(d.alunos.filter((a) => a.turmaId === t.id).map((a) => a.id));
+    d.turmas = d.turmas.filter((x) => x.id !== t.id);
+    d.alunos = d.alunos.filter((a) => !ids.has(a.id));
+    d.registros = d.registros.filter((r) => !ids.has(r.alunoId));
+    d.partidas = d.partidas.filter((p) => !ids.has(p.alunoId));
+  });
+}
+
+const CORES = ["#F5821F", "#C2410C", "#15803D", "#1D4ED8", "#7C3AED", "#BE185D", "#0F766E", "#B45309"];
+export const CORES_ESCOLA = CORES;
+
+export async function editarEscola(m: Membro, dados: Record<string, unknown>): Promise<void> {
+  soCoordenacao(m);
+  const nome = typeof dados.nome === "string" ? dados.nome.replace(/\s+/g, " ").trim() : "";
+  const sigla = typeof dados.sigla === "string" ? dados.sigla.trim().toUpperCase() : "";
+  if (nome.length < 3 || nome.length > 60) throw new ErroEscola("Nome da escola com 3 a 60 caracteres.");
+  if (!/^[A-ZÀ-Ý0-9]{1,4}$/u.test(sigla)) throw new ErroEscola("Sigla com 1 a 4 letras.");
+  const cor = typeof dados.cor === "string" && CORES.includes(dados.cor) ? dados.cor : null;
+  await alterar((d) => {
+    d.escola.nome = nome;
+    d.escola.sigla = sigla;
+    if (cor) d.escola.cor = cor;
+  });
+}
+
+export async function trocarSenha(m: Membro, atual: unknown, nova: unknown): Promise<Membro> {
+  if (typeof atual !== "string" || !senhaConfere(atual, m.senhaHash)) throw new ErroEscola("Senha atual não confere.");
+  if (typeof nova !== "string" || nova.length < 8 || nova.length > 100) throw new ErroEscola("A senha nova precisa de 8 caracteres ou mais.");
+  const senhaHash = gerarHash(nova);
+  return alterar((d) => {
+    const x = d.membros.find((y) => y.id === m.id);
+    if (!x) throw new ErroEscola("Conta não encontrada.", 404);
+    x.senhaHash = senhaHash;
+    return x;
+  });
+}
+
+export async function restaurarDemonstracao(m: Membro): Promise<void> {
+  soCoordenacao(m);
+  await restaurar();
+}

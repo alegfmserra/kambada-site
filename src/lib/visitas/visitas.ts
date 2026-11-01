@@ -10,13 +10,20 @@ import { canalDaOrigem, ficaForaDaMedicao } from "./canal";
  * pedido do Alexandre). Medição PRÓPRIA e anônima, só do servidor.
  *
  * Cada linha guarda o dia/hora, o tipo do evento e um dado genérico (caminho sem
- * query, nome do produto, segundos, rótulo do canal). Nunca guarda IP, cookie,
- * identificador de pessoa, e-mail nem aparelho. Não vale para o Kambada Play
+ * query, nome do produto, segundos, rótulo do canal, velocidade). Nunca guarda IP,
+ * cookie, e-mail, user-agent nem identificador de pessoa: só um número aleatório da
+ * visita (nasce ao abrir a aba e morre ao fechá-la, não liga a ninguém) e o tipo de
+ * aparelho (celular, tablet ou computador). Robôs são descartados na entrada. Não vale para o Kambada Play
  * (tem medição própria em lib/play/telas.ts) nem para áreas privadas
  * (carrinho, checkout, pedido, conta, entrar, admin, api).
  */
 
-export type TipoVisita = "pagina" | "tempo" | "produto" | "carrinho" | "checkout" | "clique";
+export type TipoVisita = "pagina" | "tempo" | "produto" | "carrinho" | "checkout" | "clique" | "vital" | "compra" | "erro404";
+
+export const APARELHOS = ["celular", "tablet", "computador"] as const;
+export type Aparelho = (typeof APARELHOS)[number];
+export const VITAIS = ["LCP", "INP", "CLS", "FCP", "TTFB"] as const;
+export type NomeVital = (typeof VITAIS)[number];
 
 export type EventoVisita = {
   em: string;
@@ -34,6 +41,14 @@ export type EventoVisita = {
   rotulo?: string;
   /** Para onde o clique leva: caminho interno sem query, ou só o site de fora ("instagram.com"). */
   destino?: string;
+  /** Número aleatório da visita (nasce ao abrir a aba, morre ao fechá-la; não liga a ninguém). */
+  s?: string;
+  /** Campanha do link (utm_campaign), na 1ª página da visita. */
+  campanha?: string;
+  aparelho?: Aparelho;
+  /** Métrica de velocidade (tipo "vital") e seu valor (ms; CLS sem unidade). */
+  nome?: NomeVital;
+  valor?: number;
 };
 
 const arquivo = () => process.env.VISITAS_ARQUIVO ?? join(dirname(arquivoTokens()), "visitas-site.jsonl");
@@ -62,8 +77,27 @@ export function segundosValidos(valor: unknown): number | null {
   return Math.min(Math.round(n), 30 * 60);
 }
 
+/**
+ * Robôs e ferramentas automáticas (buscadores, pré-visualização de link, Lighthouse,
+ * navegador sem cabeça). Sem user-agent também conta como robô. O texto não é guardado.
+ */
+export function ehRobo(userAgent: string | null): boolean {
+  if (!userAgent) return true;
+  return /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|chrome-lighthouse|facebookexternalhit|whatsapp|telegram|preview|monitor|uptime|curl|wget|python|axios|node-fetch|go-http/i.test(userAgent);
+}
+
 /** Valida o corpo livre que vem do navegador e devolve o evento limpo (ou null). */
 export function lerEvento(bruto: unknown): Omit<EventoVisita, "em"> | null {
+  const base = lerEventoBase(bruto);
+  if (!base) return null;
+  const o = bruto as Record<string, unknown>;
+  const s = typeof o.s === "string" && /^[a-z0-9]{8,24}$/.test(o.s) ? o.s : undefined;
+  const aparelho = APARELHOS.find((a) => a === o.aparelho);
+  const campanha = texto(o.campanha, 40)?.toLowerCase().replace(/[^a-z0-9._\-]/g, "-");
+  return { ...base, ...(s ? { s } : {}), ...(aparelho ? { aparelho } : {}), ...(campanha && base.tipo === "pagina" ? { campanha } : {}) };
+}
+
+function lerEventoBase(bruto: unknown): Omit<EventoVisita, "em"> | null {
   if (!bruto || typeof bruto !== "object") return null;
   const o = bruto as Record<string, unknown>;
   switch (o.tipo) {
@@ -93,6 +127,19 @@ export function lerEvento(bruto: unknown): Omit<EventoVisita, "em"> | null {
       if (!rotulo) return null;
       const destino = texto(o.destino, 80);
       return { tipo: "clique", rotulo, ...(destino ? { destino } : {}) };
+    }
+    case "vital": {
+      const caminho = normalizarCaminho(o.caminho);
+      const nome = VITAIS.find((v) => v === o.nome);
+      const valor = Number(o.valor);
+      if (!caminho || !nome || !Number.isFinite(valor) || valor < 0 || valor > (nome === "CLS" ? 10 : 60_000)) return null;
+      return { tipo: "vital", caminho, nome, valor: Math.round(valor * 1000) / 1000 };
+    }
+    case "compra":
+      return { tipo: "compra" };
+    case "erro404": {
+      const caminho = normalizarCaminho(o.caminho);
+      return caminho ? { tipo: "erro404", caminho } : null;
     }
     default:
       return null;
@@ -142,6 +189,8 @@ export type PedidoParaMedir = {
   criadoEm: string;
   cancelado: boolean;
   itens: { nome: string; quantidade: number }[];
+  /** Total pago (R$), para receita e ticket médio por canal. */
+  total?: number;
   fonte?: string;
   meio?: string;
 };

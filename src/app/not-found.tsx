@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Registrar404 from "@/components/Registrar404";
 import { linkWhatsApp } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function NaoEncontrada() {
   return (
     <section>
+      <Registrar404 />
       <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-28">
         <p className="text-6xl" aria-hidden="true">
           🦀

@@ -25,16 +25,18 @@ export default function MedidorDeVisitas() {
     if (!ligado || ficaForaDaMedicao(caminho)) return;
 
     let canal: string | undefined;
+    let campanha: string | undefined;
     try {
       if (!sessionStorage.getItem(CHAVE_SESSAO)) {
         sessionStorage.setItem(CHAVE_SESSAO, "1");
         const o = origemDaVisita(window.location.search, document.referrer, window.location.hostname, caminho);
         canal = o ? canalDaOrigem(o.fonte, o.meio) : "Direto";
+        campanha = o?.campanha;
       }
     } catch {
       /* sem armazenamento: não marca sessão, só página */
     }
-    rastrear({ tipo: "pagina", caminho, ...(canal ? { canal } : {}) });
+    rastrear({ tipo: "pagina", caminho, ...(canal ? { canal } : {}), ...(campanha ? { campanha } : {}) });
 
     let acumulado = 0;
     let desde = document.visibilityState === "visible" ? Date.now() : 0;

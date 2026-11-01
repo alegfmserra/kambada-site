@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canalDaOrigem, lerEvento, nomeDoProduto, normalizarCaminho, resumirVisitas, type EventoVisita } from "./visitas";
+import { canalDaOrigem, filtrarPorDias, lerEvento, nomeDoProduto, normalizarCaminho, resumirVisitas, type EventoVisita } from "./visitas";
 
 describe("canalDaOrigem", () => {
   it("reconhece os canais pedidos", () => {
@@ -35,6 +35,8 @@ describe("lerEvento", () => {
     expect(lerEvento({ tipo: "produto", produto: "Camisa Tradição" })).toEqual({ tipo: "produto", produto: "Camisa Tradição" });
     expect(lerEvento({ tipo: "carrinho", produto: "Matraca", qtd: 999 })).toEqual({ tipo: "carrinho", produto: "Matraca", qtd: 50 });
     expect(lerEvento({ tipo: "checkout", email: "a@b.c" })).toEqual({ tipo: "checkout" });
+    expect(lerEvento({ tipo: "clique", rotulo: "  Ver a  loja ", destino: "/loja" })).toEqual({ tipo: "clique", rotulo: "Ver a loja", destino: "/loja" });
+    expect(lerEvento({ tipo: "clique", rotulo: "   " })).toBeNull();
     expect(lerEvento({ tipo: "outro" })).toBeNull();
     expect(lerEvento(null)).toBeNull();
   });
@@ -71,6 +73,21 @@ describe("resumirVisitas", () => {
     expect(r.canais.find((c) => c.canal === "Google")?.conversao).toBe(0);
     expect(r.produtos[0]).toEqual({ produto: "Camisa Tradição", vistas: 2, carrinho: 1, vendidas: 1, pctCarrinho: 50, pctCompra: 50 });
     expect(r.paginas.find((p) => p.caminho === "/")).toEqual({ caminho: "/", vistas: 2, segMedio: 20 });
+  });
+  it("conta cliques por elemento e filtra por período", () => {
+    const comCliques: EventoVisita[] = [
+      ...es,
+      { em: "2026-11-01T10:03:00Z", tipo: "clique", rotulo: "Ver a loja", destino: "/loja" },
+      { em: "2026-11-01T10:04:00Z", tipo: "clique", rotulo: "Ver a loja", destino: "/loja" },
+      { em: "2026-11-01T10:05:00Z", tipo: "clique", rotulo: "Instagram", destino: "instagram.com" },
+    ];
+    const r = resumirVisitas(comCliques, []);
+    expect(r.cliques).toBe(3);
+    expect(r.topCliques[0]).toEqual({ rotulo: "Ver a loja", destino: "/loja", cliques: 2 });
+    const agora = new Date("2026-11-03T12:00:00Z");
+    expect(filtrarPorDias(comCliques, null, agora)).toHaveLength(comCliques.length);
+    expect(filtrarPorDias(comCliques, 1, agora)).toHaveLength(0);
+    expect(filtrarPorDias(comCliques, 3, agora)).toHaveLength(comCliques.length);
   });
   it("sem eventos, devolve vazio", () => {
     const r = resumirVisitas([], pedidos);

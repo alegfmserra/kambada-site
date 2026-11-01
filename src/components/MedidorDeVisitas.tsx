@@ -61,5 +61,33 @@ export default function MedidorDeVisitas() {
     };
   }, [ligado, caminho]);
 
+  // Cliques em links e botões (contador de cliques). Só o texto curto do elemento e
+  // para onde ele leva (caminho interno sem query, ou só o domínio de fora).
+  useEffect(() => {
+    if (!ligado || ficaForaDaMedicao(caminho)) return;
+    const aoClicar = (ev: MouseEvent) => {
+      const alvo = (ev.target as Element | null)?.closest?.("a,button,[role=button]");
+      if (!alvo) return;
+      const rotulo = (alvo.getAttribute("data-clique") || alvo.getAttribute("aria-label") || (alvo as HTMLElement).innerText || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 50);
+      if (!rotulo) return;
+      let destino: string | undefined;
+      const href = alvo instanceof HTMLAnchorElement ? alvo.href : "";
+      if (href) {
+        try {
+          const u = new URL(href);
+          destino = u.origin === window.location.origin ? u.pathname.slice(0, 80) : u.hostname.replace(/^www\./, "");
+        } catch {
+          /* link estranho: conta só o texto */
+        }
+      }
+      rastrear({ tipo: "clique", rotulo, ...(destino ? { destino } : {}) });
+    };
+    document.addEventListener("click", aoClicar, true);
+    return () => document.removeEventListener("click", aoClicar, true);
+  }, [ligado, caminho]);
+
   return null;
 }

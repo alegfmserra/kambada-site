@@ -16,7 +16,7 @@ import { canalDaOrigem, ficaForaDaMedicao } from "./canal";
  * (carrinho, checkout, pedido, conta, entrar, admin, api).
  */
 
-export type TipoVisita = "pagina" | "tempo" | "produto" | "carrinho" | "checkout";
+export type TipoVisita = "pagina" | "tempo" | "produto" | "carrinho" | "checkout" | "clique";
 
 export type EventoVisita = {
   em: string;
@@ -30,6 +30,10 @@ export type EventoVisita = {
   /** Nome do produto (tipos "produto" e "carrinho"). */
   produto?: string;
   qtd?: number;
+  /** Clique em link ou botão: texto curto do elemento (tipo "clique"). */
+  rotulo?: string;
+  /** Para onde o clique leva: caminho interno sem query, ou só o site de fora ("instagram.com"). */
+  destino?: string;
 };
 
 const arquivo = () => process.env.VISITAS_ARQUIVO ?? join(dirname(arquivoTokens()), "visitas-site.jsonl");
@@ -84,6 +88,12 @@ export function lerEvento(bruto: unknown): Omit<EventoVisita, "em"> | null {
     }
     case "checkout":
       return { tipo: "checkout" };
+    case "clique": {
+      const rotulo = texto(o.rotulo, 50);
+      if (!rotulo) return null;
+      const destino = texto(o.destino, 80);
+      return { tipo: "clique", rotulo, ...(destino ? { destino } : {}) };
+    }
     default:
       return null;
   }
@@ -148,7 +158,17 @@ export type ResumoVisitas = {
   produtos: { produto: string; vistas: number; carrinho: number; vendidas: number; pctCarrinho: number | null; pctCompra: number | null }[];
   canais: { canal: string; sessoes: number; pedidos: number; conversao: number | null }[];
   checkouts: number;
+  cliques: number;
+  topCliques: { rotulo: string; destino?: string; cliques: number }[];
 };
+
+/** Eventos dos últimos `dias` dias (fuso de São Luís); `dias` null = tudo; 1 = só hoje. */
+export function filtrarPorDias(es: EventoVisita[], dias: number | null, agora = new Date()): EventoVisita[] {
+  if (!dias) return es;
+  const dia = (d: Date) => new Date(d.getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+  const limite = dia(new Date(agora.getTime() - (dias - 1) * 86_400_000));
+  return es.filter((e) => dia(new Date(e.em)) >= limite);
+}
 
 /**
  * Cruza as visitas (primeira página de cada sessão = sessão) com os pedidos pagos.
@@ -170,8 +190,18 @@ export function resumirVisitas(es: EventoVisita[], pedidos: PedidoParaMedir[]): 
   let sessoes = 0;
   let paginasVistas = 0;
   let checkouts = 0;
+  let cliques = 0;
+  const cliquesPor = new Map<string, { rotulo: string; destino?: string; cliques: number }>();
 
   for (const e of es) {
+    if (e.tipo === "clique" && e.rotulo) {
+      cliques += 1;
+      const chave = `${e.rotulo}|${e.destino ?? ""}`;
+      const c = cliquesPor.get(chave) ?? { rotulo: e.rotulo, destino: e.destino, cliques: 0 };
+      c.cliques += 1;
+      cliquesPor.set(chave, c);
+      continue;
+    }
     if (e.tipo === "pagina" && e.caminho) {
       paginasVistas += 1;
       const g = paginasMap.get(e.caminho) ?? { vistas: 0, segs: [] };
@@ -205,6 +235,8 @@ export function resumirVisitas(es: EventoVisita[], pedidos: PedidoParaMedir[]): 
     pedidos: validos.length,
     conversao: pct(validos.length, sessoes),
     checkouts,
+    cliques,
+    topCliques: [...cliquesPor.values()].sort((a, b) => b.cliques - a.cliques),
     paginas: [...paginasMap.entries()]
       .filter(([, g]) => g.vistas > 0)
       .map(([caminho, g]) => ({

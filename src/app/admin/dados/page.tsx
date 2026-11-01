@@ -5,8 +5,6 @@ import MenuAdmin from "@/components/admin/MenuAdmin";
 import { conversaoPorOrigem, reunirDados, resumoGeral } from "@/lib/admin/dados";
 import { adminConfigurado, COOKIE_ADMIN, sessaoValida } from "@/lib/admin/sessao";
 import { formatarReais } from "@/lib/loja/dinheiro";
-import { duracao, listarTelas, resumirTelas } from "@/lib/play/telas";
-import { listarVisitas, resumirVisitas } from "@/lib/visitas/visitas";
 
 export const metadata: Metadata = { title: "Dados do site", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -55,17 +53,6 @@ export default async function PaginaDados() {
 
   const d = await reunirDados();
   const r = resumoGeral(d);
-  const telas = resumirTelas(await listarTelas());
-  const visitas = resumirVisitas(
-    await listarVisitas(),
-    d.pedidos.map((p) => ({
-      criadoEm: p.criadoEm,
-      cancelado: Boolean(p.cancelamento?.concluidoEm || p.estorno),
-      itens: p.itens,
-      fonte: p.atribuicao?.fonte,
-      meio: p.atribuicao?.meio,
-    })),
-  );
   const sugestoes = d.respostas.filter((x) => x.sugestao || x.problema || x.comentario).slice(-15).reverse();
   const numeros: [string, string | number][] = [
     ["Pedidos válidos", r.pedidosValidos],
@@ -184,96 +171,6 @@ export default async function PaginaDados() {
             <p className="mt-1 text-sm">{v.iniciadas} iniciadas · {v.concluidas} concluídas · {v.taxa ?? "—"}%</p>
           </div>
         ))}
-      </div>
-
-      <h2 className="mt-10 font-display text-xl font-bold">Site: visitas, produtos e de onde vêm</h2>
-      <p className="mt-1 text-sm text-texto-suave">
-        Medição própria e anônima da loja, do blog e das páginas institucionais (sem cookie, IP nem terceiros; o Play tem a sua, abaixo).
-        “Sessão” = primeira página de cada visita. Conversão = pedidos pagos ÷ sessões, contando só pedidos feitos depois que a medição começou.
-        Origem vem do link: Instagram, Facebook, Google e Bing aparecem sozinhos; o app do Instagram às vezes não informa a origem e a visita cai em “Direto”. Para não perder, use links com <code>?utm_source=instagram&amp;utm_medium=social</code>.
-        {visitas.periodo ? ` Dados de ${visitas.periodo.de} a ${visitas.periodo.ate}.` : ""}
-      </p>
-      {visitas.periodo ? (
-        <>
-          <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {(
-              [
-                ["Sessões", visitas.sessoes],
-                ["Páginas vistas", visitas.paginasVistas],
-                ["Iniciaram checkout", visitas.checkouts],
-                ["Pedidos pagos", visitas.pedidos],
-                ["Conversão", `${visitas.conversao ?? "—"}%`],
-              ] as [string, string | number][]
-            ).map(([k, v]) => (
-              <li key={k} className={CARTAO}>
-                <p className="text-xs text-texto-suave">{k}</p>
-                <p className="font-display text-2xl font-bold">{v}</p>
-              </li>
-            ))}
-          </ul>
-          <div className={`${CARTAO} mt-3 overflow-x-auto`}>
-            <h3 className="font-display font-bold">De onde vêm as visitas</h3>
-            <table className="mt-2 w-full text-sm">
-              <thead className="text-left text-xs text-texto-suave"><tr><th className="py-1">Canal</th><th>Sessões</th><th>Pedidos</th><th>Conversão</th></tr></thead>
-              <tbody>
-                {visitas.canais.map((c) => (
-                  <tr key={c.canal} className="border-t border-borda"><td className="py-1">{c.canal}</td><td>{c.sessoes}</td><td>{c.pedidos}</td><td>{c.conversao === null ? "—" : `${c.conversao}%`}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={`${CARTAO} mt-3 overflow-x-auto`}>
-            <h3 className="font-display font-bold">Produtos mais vistos</h3>
-            <p className="mt-1 text-xs text-texto-suave">Vistas = abriu a página do produto (1 por sessão). Carrinho = colocou no carrinho. Vendidas = unidades em pedidos pagos. % compra = vendidas ÷ vistas.</p>
-            <table className="mt-2 w-full text-sm">
-              <thead className="text-left text-xs text-texto-suave"><tr><th className="py-1">Produto</th><th>Vistas</th><th>Carrinho</th><th>% carrinho</th><th>Vendidas</th><th>% compra</th></tr></thead>
-              <tbody>
-                {visitas.produtos.slice(0, 30).map((p) => (
-                  <tr key={p.produto} className="border-t border-borda"><td className="py-1">{p.produto}</td><td>{p.vistas}</td><td>{p.carrinho}</td><td>{p.pctCarrinho === null ? "—" : `${p.pctCarrinho}%`}</td><td>{p.vendidas}</td><td>{p.pctCompra === null ? "—" : `${p.pctCompra}%`}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={`${CARTAO} mt-3 overflow-x-auto`}>
-            <h3 className="font-display font-bold">Páginas mais vistas e tempo de tela</h3>
-            <table className="mt-2 w-full text-sm">
-              <thead className="text-left text-xs text-texto-suave"><tr><th className="py-1">Página</th><th>Vistas</th><th>Tempo médio</th></tr></thead>
-              <tbody>
-                {visitas.paginas.slice(0, 30).map((p) => (
-                  <tr key={p.caminho} className="border-t border-borda"><td className="py-1">{p.caminho}</td><td>{p.vistas}</td><td>{p.segMedio === null ? "—" : duracao(p.segMedio)}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      ) : (
-        <div className={`${CARTAO} mt-3`}><p className="text-sm text-texto-suave">Ainda sem dados: começam a aparecer depois que o site for visitado com esta versão no ar.</p></div>
-      )}
-
-      <h2 className="mt-10 font-display text-xl font-bold">Telas do Play: mais vistas e tempo de tela</h2>
-      <p className="mt-1 text-sm text-texto-suave">
-        Medição própria e anônima (só a tela e os segundos com ela aberta e visível; sem cookie, conta, IP nem terceiros).
-        Cada visita é uma passada por uma tela. Login, confirmação e conta não entram.
-        {telas.periodo ? ` Dados de ${telas.periodo.de} a ${telas.periodo.ate} (${telas.total} passadas).` : ""}
-      </p>
-      <div className={`${CARTAO} mt-3 overflow-x-auto`}>
-        {telas.linhas.length === 0 ? (
-          <p className="text-sm text-texto-suave">Ainda sem dados: começam a aparecer depois que o Play for visitado com esta versão no ar.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs text-texto-suave">
-              <tr><th className="py-1">Tela</th><th>Visitas</th><th>Tempo médio</th><th>Mediana</th><th>Tempo total</th></tr>
-            </thead>
-            <tbody>
-              {telas.linhas.map((l) => (
-                <tr key={l.tela} className="border-t border-borda">
-                  <td className="py-1">{l.tela.replace("/kambadaplay", "") || "/ (início)"}</td>
-                  <td>{l.visitas}</td><td>{duracao(l.segMedio)}</td><td>{duracao(l.segMediana)}</td><td>{duracao(l.segTotal)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
 
       <h2 className="mt-10 font-display text-xl font-bold">Teste de preço da assinatura (F3.4)</h2>

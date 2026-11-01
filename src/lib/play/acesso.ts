@@ -110,7 +110,7 @@ export const ROTAS_PUBLICAS = [
   "/kambadaplay/entrar",
   "/kambadaplay/confirmar",
   "/kambadaplay/redefinir",
-  // Planos ficam fora do login: escola e família precisam ver o preço antes de criar a conta.
+  // Planos ficam fora do login: escola e família precisam ver as condições antes de criar a conta.
   "/kambadaplay/planos",
   // Degustação sem cadastro: só o quiz no nível fácil, sem ranking (a API confere o nível e corta a prova).
   "/kambadaplay/experimente",
@@ -121,6 +121,8 @@ export const ROTAS_PUBLICAS = [
   "/api/play/entrar",
   "/api/play/sair",
   "/api/play/conta",
+  // Medição anônima de tempo por tela (também das telas públicas: degustação e planos).
+  "/api/play/telas",
   // Exportação da base para o marketing: tem segredo próprio (REVALIDATE_SECRET), não passa pelo login.
   "/api/play/contas",
 ];

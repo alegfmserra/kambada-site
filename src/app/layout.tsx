@@ -3,6 +3,7 @@ import { DM_Sans, Poppins } from "next/font/google";
 import Analytics from "@/components/Analytics";
 import RegistrarOrigem from "@/components/Atribuicao";
 import ContadorVisitas from "@/components/ContadorVisitas";
+import MedidorDeVisitas from "@/components/MedidorDeVisitas";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import Cabecalho from "@/components/Cabecalho";
 import AvisoAdicionado from "@/components/carrinho/AvisoAdicionado";
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Analytics />
         <RegistrarOrigem />
         <ContadorVisitas />
+        <MedidorDeVisitas />
       </body>
     </html>
   );

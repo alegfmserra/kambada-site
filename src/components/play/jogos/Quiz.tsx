@@ -148,20 +148,20 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           <p className="font-display text-2xl font-extrabold text-texto">
             Não deixa esses {pontos} pontos irem embora.
           </p>
-          <p className="mt-2 text-texto-suave">Com a conta grátis, você ganha:</p>
+          <p className="mt-2 text-texto-suave">Com a conta, você ganha:</p>
           <ul className="mt-3 space-y-2 text-texto">
             <li>🏆 Vaga no <strong>ranking da semana</strong>: o top 3 ganha cupom de até 10 % na loja</li>
             <li>🔥 Níveis <strong>médio e difícil</strong>, com até o dobro de pontos</li>
             <li>🃏 A <strong>memória das estampas</strong> e os jogos novos</li>
-            <li>🎁 <strong>Tudo liberado de graça até 31/12</strong></li>
+            <li>🎁 <strong>Tudo do Kambada Play liberado</strong></li>
           </ul>
           <a
             href="/kambadaplay/entrar?modo=criar&de=/kambadaplay/jogos/quiz"
             className="mt-5 block rounded-full bg-kambada-amarelo px-8 py-4 text-center text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
           >
-            Criar minha conta grátis
+            Criar minha conta
           </a>
-          <p className="mt-2 text-center text-xs text-texto-tenue">Sem cartão. Só nome, e-mail e senha.</p>
+          <p className="mt-2 text-center text-xs text-texto-tenue">Só nome, e-mail e senha.</p>
         </div>
         <button
           type="button"

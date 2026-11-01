@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { ApoioFapema } from "@/components/play/ApoioFapema";
 import { InstalarApp } from "@/components/play/app/InstalarApp";
+import { MedidorDeTela } from "@/components/play/MedidorDeTela";
 import { RegistrarApp } from "@/components/play/app/RegistrarApp";
 import { SairDoPlay } from "@/components/play/jogos/SairDoPlay";
 import "./play.css";
@@ -31,6 +32,7 @@ export default async function PlayLayout({ children }: { children: React.ReactNo
   return (
     <div className="play-root">
       <RegistrarApp />
+      <MedidorDeTela />
       {children}
       <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 bg-kambada-preto px-4 py-3 text-center">
         <InstalarApp compacto />

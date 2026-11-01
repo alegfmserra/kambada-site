@@ -58,7 +58,7 @@ export async function POST(requisicao: Request) {
     {
       ok: false,
       mensagem:
-        "Usuário ou senha incorretos. Se a sua conta é por e-mail, digite o e-mail completo. Ainda não tem conta? Crie grátis na aba \"Criar conta\".",
+        "Usuário ou senha incorretos. Se a sua conta é por e-mail, digite o e-mail completo. Ainda não tem conta? Crie a sua na aba \"Criar conta\".",
     },
     { status: 401 },
   );

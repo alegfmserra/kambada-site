@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { evento } from "@/lib/analytics/eventos";
+import { rastrear } from "@/lib/visitas/rastrear";
 import { MAXIMO_POR_ITEM } from "@/lib/carrinho/logica";
 import type { Opcao } from "@/lib/catalogo";
 import { formatarReais } from "@/lib/loja/dinheiro";
@@ -38,6 +39,18 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
   const fotoAtiva = useOpcaoAtiva();
   const idGrupo = useId();
   const unica = opcoes.length === 1;
+
+  // Produto visto (medição própria, 01/11/2026): uma vez por sessão e produto.
+  useEffect(() => {
+    try {
+      const chave = `kambada-produto-visto-${slug}`;
+      if (sessionStorage.getItem(chave)) return;
+      sessionStorage.setItem(chave, "1");
+    } catch {
+      /* sem armazenamento: conta de novo, sem problema */
+    }
+    rastrear({ tipo: "produto", produto: nome });
+  }, [slug, nome]);
 
   // Com mais de uma opção, nada vem marcado: "G" pré-escolhido virava
   // compra do tamanho errado por descuido (auditoria de 10/10/2026).
@@ -99,6 +112,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
       value: opcao.preco * Math.min(quantidade, teto),
       items: [{ item_id: String(opcao.idBling), item_name: nome, item_category: categoria, price: opcao.preco, quantity: Math.min(quantidade, teto) }],
     });
+    rastrear({ tipo: "carrinho", produto: nome, qtd: Math.min(quantidade, teto) });
     setQuantidade(1);
     setAdicionado(true);
   }

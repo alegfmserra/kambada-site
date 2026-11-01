@@ -5,7 +5,7 @@ import { Quiz } from "@/components/play/jogos/Quiz";
 export const metadata: Metadata = {
   title: "Jogue agora: quiz da cultura maranhense",
   description:
-    "Quanto você sabe do Maranhão? 10 perguntas sobre Bumba Meu Boi, Tambor de Crioula, matraca e São Luís. Grátis, sem cadastro.",
+    "Quanto você sabe do Maranhão? 10 perguntas sobre Bumba Meu Boi, Tambor de Crioula, matraca e São Luís. Sem cadastro.",
   robots: { index: true, follow: true },
   // Sem isto herdava o canonical "/" do layout raiz e o Google tratava o quiz como cópia da home.
   alternates: { canonical: "/kambadaplay/experimente" },
@@ -34,7 +34,7 @@ export default function ExperimentePage() {
             Tem muito mais
           </p>
           <h2 id="vitrine-titulo" className="mt-2 text-center font-display text-3xl font-extrabold text-texto">
-            Conta grátis libera <span className="destaque">tudo até 31/12</span>
+            Crie a conta e <span className="destaque">libere tudo</span>
           </h2>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {VITRINE.map((v) => (
@@ -55,7 +55,7 @@ export default function ExperimentePage() {
           </ul>
           <div className="mt-10 text-center">
             <a href={CRIAR} className="inline-block rounded-full bg-kambada-amarelo px-10 py-4 text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro">
-              Criar minha conta grátis
+              Criar minha conta
             </a>
             <p className="mt-3 text-sm text-texto-tenue">
               Já tem conta? <a href="/kambadaplay/entrar" className="font-semibold text-[var(--destaque-texto)] hover:underline">Entrar</a>

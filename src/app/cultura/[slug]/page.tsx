@@ -319,7 +319,7 @@ export default async function Artigo({ params }: Props) {
                 href="/kambadaplay/experimente"
                 className="rounded-full bg-kambada-amarelo px-6 py-3 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-branco"
               >
-                Jogar o quiz grátis
+                Jogar o quiz
               </Link>
               <Link
                 href="/kambadaplay/planos"

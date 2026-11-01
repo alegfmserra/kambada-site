@@ -24,8 +24,8 @@ export const dynamic = "force-dynamic";
  * plano, a forma de pagamento e os pedidos recorrentes.
  *
  * A conta é a do Kambada Play (mesmo cookie, mesmo cadastro). Plano pago,
- * cartão guardado e pedido recorrente ainda não existem: a cobrança começa em
- * 01/01/2027 (Mercado Pago Assinaturas). Até lá a página diz isso com clareza,
+ * cartão guardado e pedido recorrente ainda não existem (Mercado Pago
+ * Assinaturas virá depois). A página não cita preço nem data de cobrança,
  * em vez de mostrar botão que não faz nada.
  */
 export default async function ContaPage({
@@ -90,8 +90,7 @@ export default async function ContaPage({
           <article className="rounded-2xl border border-borda bg-superficie p-6">
             <h2 className="font-display text-xl font-bold">Meu plano</h2>
             <p className="mt-4 text-sm text-texto-suave">
-              <span className="font-semibold text-texto">Grátis.</span> Tudo do Kambada Play liberado até 31/12/2026.
-              Os planos Família e Brincante (com cupons todo mês) começam em 01/01/2027.
+              Tudo do Kambada Play está liberado para a sua conta. Veja como são os planos Família e Brincante.
             </p>
             <Link
               href="/kambadaplay/planos"
@@ -102,8 +101,8 @@ export default async function ContaPage({
 
             <h3 className="mt-8 font-display text-lg font-bold">Forma de pagamento</h3>
             <p className="mt-2 text-sm text-texto-suave">
-              Nenhuma cadastrada. Cada pedido é pago no checkout (Pix ou cartão, pelo Mercado Pago); a Kambada não
-              guarda dados de cartão. Com as assinaturas, o cartão delas aparece aqui.
+              Nenhuma cadastrada. Cada pedido da loja é pago no checkout (Pix ou cartão, pelo Mercado Pago); a Kambada
+              não guarda dados de cartão.
             </p>
           </article>
         </div>

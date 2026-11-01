@@ -35,7 +35,7 @@ export async function POST(requisicao: Request) {
   }
   if (corpo.acao === "responder") {
     if (visitante && nivelDaPartida(corpo.estado) !== "facil") {
-      return NextResponse.json({ ok: false, mensagem: "Crie sua conta grátis para jogar este nível." }, { status: 401 });
+      return NextResponse.json({ ok: false, mensagem: "Crie sua conta para jogar este nível." }, { status: 401 });
     }
     const r = responder(corpo.estado, corpo.escolha);
     if ("erro" in r) return NextResponse.json({ ok: false, mensagem: r.erro }, { status: 400 });

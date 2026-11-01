@@ -6,6 +6,7 @@ import { lerOrigemSalva } from "@/components/Atribuicao";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
 import { evento } from "@/lib/analytics/eventos";
+import { rastrear } from "@/lib/visitas/rastrear";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
 import { textoParcelas } from "@/lib/loja/parcelas";
@@ -73,6 +74,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
   useEffect(() => {
     if (!pronto || iniciouCheckout.current || itens.length === 0) return;
     iniciouCheckout.current = true;
+    rastrear({ tipo: "checkout" });
     evento("begin_checkout", { currency: "BRL", value: subtotal, items: itens.map((i) => ({ item_id: String(i.idBling), item_name: i.nome, price: i.preco, quantity: i.quantidade })) });
   }, [pronto, itens, subtotal]);
   const [campos, setCampos] = useState<Campos>(VAZIO);

@@ -51,7 +51,6 @@ export default async function EntrarPage({
           Jogar o quiz sem cadastro
         </Link>
         <p className="mt-8 text-sm text-texto-tenue">
-          {"Tudo liberado de graça até 31/12/2026. "}
           <Link href="/kambadaplay/planos" className="font-semibold text-[var(--destaque-texto)] hover:underline">
             Ver os planos
           </Link>

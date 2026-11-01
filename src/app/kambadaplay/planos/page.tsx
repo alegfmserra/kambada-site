@@ -6,7 +6,7 @@ import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
 export const metadata: Metadata = {
   title: "Planos",
   description:
-    "Os planos do Kambada Play: tudo grátis até 31/12/2026, Play Família por R$ 9,90/mês, Play Brincante por R$ 19,90/mês e projetos personalizados para escolas, eventos e marcas, sob proposta.",
+    "Os planos do Kambada Play: Play Família, Play Brincante e projetos personalizados para escolas, eventos e marcas.",
   alternates: { canonical: "/kambadaplay/planos" },
   robots: { index: true, follow: true },
 };
@@ -21,7 +21,8 @@ const MENSAGEM_PERSONALIZADO =
 
 /**
  * Tela pública dos planos (fica fora do login de propósito: escola e família
- * precisam ver as condições antes de criar a conta). Ainda não cobra nada.
+ * precisam ver as condições antes de criar a conta). Sem preço na tela, de
+ * propósito: valores só na pesquisa de satisfação (decisão de 30/10/2026).
  */
 export default function PlanosPage() {
   return (
@@ -35,8 +36,8 @@ export default function PlanosPage() {
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
-          <strong className="text-texto">Tudo liberado de graça até {PRECOS.gratisAte}</strong> para quem tem conta.
-          A cobrança começa em {PRECOS.cobrancaComeca}, com aviso por e-mail, só para quem escolher um plano.
+          <strong className="text-texto">Tudo liberado para quem tem conta.</strong> Crie a sua e escolha o jeito de
+          brincar que combina com a sua casa.
         </p>
 
         <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -68,12 +69,6 @@ export default function PlanosPage() {
                 {p.paraQuem}
               </p>
               <h2 className="mt-3 font-display text-2xl font-extrabold">{p.nome}</h2>
-              <p className="mt-4 font-display text-3xl font-extrabold leading-none">{p.preco}</p>
-              {p.precoDetalhe ? (
-                <p className={`mt-2 text-sm ${p.destaque ? "text-kambada-branco/75" : "text-texto-suave"}`}>
-                  {p.precoDetalhe}
-                </p>
-              ) : null}
               <ul
                 className={`mt-6 flex-1 space-y-2.5 text-sm leading-snug ${
                   p.destaque ? "text-kambada-branco/85" : "text-texto-suave"
@@ -91,11 +86,11 @@ export default function PlanosPage() {
               <div className="mt-8">
                 {p.id === "gratis" ? (
                   <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} w-full`}>
-                    Criar conta grátis
+                    Criar conta
                   </Link>
                 ) : p.id === "familia" || p.id === "brincante" ? (
                   <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} w-full`}>
-                    Liberar grátis até 31/12
+                    Criar conta e liberar
                   </Link>
                 ) : p.id === "personalizado" ? (
                   <a
@@ -118,22 +113,6 @@ export default function PlanosPage() {
             </li>
           ))}
         </ul>
-
-        <section className="mt-10 rounded-2xl border-2 border-dashed border-kambada-amarelo p-6 sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Oferta de fundador</p>
-          <h2 className="mt-2 font-display text-2xl font-extrabold text-texto sm:text-3xl">
-            Chegou cedo? Paga menos no primeiro ano.
-          </h2>
-          <p className="mt-3 max-w-3xl text-texto-suave">
-            Crie sua conta até {PRECOS.gratisAte} e assine o plano anual até {PRECOS.fundadorAssinarAte}:{" "}
-            <strong className="text-texto">Play Família por R$ {PRECOS.familiaAnoFundador}</strong> (em vez de R${" "}
-            {PRECOS.familiaAno}) ou <strong className="text-texto">Play Brincante por R$ {PRECOS.brincanteAnoFundador}</strong>{" "}
-            (em vez de R$ {PRECOS.brincanteAno}) no 1º ano.
-          </p>
-          <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} mt-5`}>
-            Garantir meu lugar de fundador
-          </Link>
-        </section>
 
         {/* Personalizado: como funciona, sem pacote pronto */}
         <section className="mt-16 grid gap-8 rounded-2xl bg-kambada-amarelo p-6 text-kambada-grafite sm:p-10 md:grid-cols-[1.2fr_1fr] md:items-center">
@@ -159,7 +138,7 @@ export default function PlanosPage() {
               <li className="flex gap-3">
                 <span className="font-display text-xl font-extrabold leading-none">2</span>
                 <span>
-                  <strong>Proposta</strong>: o que será produzido, em que prazo e por quanto.
+                  <strong>Proposta</strong>: o que será produzido e em que prazo.
                 </span>
               </li>
               <li className="flex gap-3">

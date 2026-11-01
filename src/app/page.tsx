@@ -84,7 +84,7 @@ export default function Home() {
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-kambada-branco/85">
             O Kambada Play é o nosso cantinho digital: jogos do arraial em 3D, quiz e memória das
-            estampas, as HQs do Kambadinha e a história da matraca. Conta grátis até 31/12/2026.
+            estampas, as HQs do Kambadinha e a história da matraca.
           </p>
           <div className="mt-9 flex flex-wrap gap-4">
             <LinkPlayHome

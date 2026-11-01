@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { EntrarAluno } from "@/components/escola/EntrarAluno";
+import { Etiqueta, FalaKambadinha } from "@/components/escola/Marca";
 import { inicioDoPapel, quemNaPagina } from "@/lib/escola/pagina";
 
 export const metadata = { title: "Entrar (aluno)" };
@@ -10,7 +11,11 @@ export default async function EntrarAlunoPagina({ searchParams }: { searchParams
   const { turma } = await searchParams;
   return (
     <div className="py-4">
-      <h1 className="mb-6 text-center font-display text-3xl font-extrabold">Entrar para jogar 🎒</h1>
+      <div className="mb-8 flex flex-col items-center gap-3 text-center">
+        <Etiqueta>Sou aluno</Etiqueta>
+        <h1 className="font-display text-3xl font-extrabold">Entrar para <span className="destaque">jogar</span></h1>
+        <FalaKambadinha>O código está no teu cartão. Depois é só achar o teu apelido!</FalaKambadinha>
+      </div>
       <EntrarAluno codigoInicial={typeof turma === "string" ? turma.slice(0, 4) : undefined} />
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarraStatus, Legenda } from "@/components/escola/Barras";
+import { Etiqueta } from "@/components/escola/Marca";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { resumoDasTurmas } from "@/lib/escola/servico";
@@ -14,7 +15,8 @@ export default async function ProfessorInicio() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl font-extrabold">Olá, {membro.nome.split(" ")[0]}!</h1>
+        <Etiqueta>{membro.papel === "coordenacao" ? "Coordenação" : "Professor"}</Etiqueta>
+        <h1 className="font-display text-3xl font-extrabold">Olá, <span className="destaque">{membro.nome.split(" ")[0]}</span>!</h1>
         <p className="text-texto-suave">
           {membro.papel === "coordenacao" ? "Todas as turmas da escola." : "As suas turmas."} Toque numa turma para cadastrar apelidos, imprimir os cartões e ver o relatório.
         </p>
@@ -24,7 +26,7 @@ export default async function ProfessorInicio() {
       <ul className="grid gap-4 md:grid-cols-2">
         {turmas.map((t) => (
           <li key={t.id}>
-            <Link href={rotaEscola(`/professor/turma/${t.id}`)} className="block rounded-3xl border-2 border-borda p-5 transition-colors hover:border-kambada-amarelo">
+            <Link href={rotaEscola(`/professor/turma/${t.id}`)} className="relative block overflow-hidden rounded-3xl border-2 border-borda p-5 transition-all hover:-translate-y-0.5 hover:border-kambada-amarelo">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="font-display text-2xl font-bold">{t.nome}</h2>

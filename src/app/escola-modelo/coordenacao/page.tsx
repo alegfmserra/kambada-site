@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarraStatus, Legenda } from "@/components/escola/Barras";
+import { Etiqueta, Micangas } from "@/components/escola/Marca";
 import { GestaoEquipe, GestaoTurmas, IdentidadeEscola, RestaurarDemo } from "@/components/escola/Coordenacao";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
@@ -27,7 +28,8 @@ export default async function CoordenacaoPagina() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="font-display text-3xl font-extrabold">Painel da coordenação</h1>
+        <Etiqueta>Coordenação · {escola.nome}</Etiqueta>
+        <h1 className="font-display text-3xl font-extrabold">Painel da <span className="destaque">coordenação</span></h1>
         <p className="text-texto-suave">Relatório geral da escola, equipe, turmas e identidade do portal.</p>
       </div>
 
@@ -38,9 +40,9 @@ export default async function CoordenacaoPagina() {
           [professores.length, "professores"],
           [`${totalAlunos ? Math.round((ativos / totalAlunos) * 100) : 0}%`, "jogaram nos últimos 7 dias"],
         ].map(([n, r]) => (
-          <div key={String(r)} className="rounded-2xl bg-superficie p-4">
-            <p className="font-display text-3xl font-extrabold">{n}</p>
-            <p className="text-sm text-texto-suave">{r}</p>
+          <div key={String(r)} className="rounded-2xl bg-kambada-grafite p-4 text-white ring-1 ring-white/10">
+            <p className="font-display text-3xl font-extrabold text-kambada-amarelo">{n}</p>
+            <p className="text-sm text-white/70">{r}</p>
           </div>
         ))}
       </div>
@@ -76,6 +78,8 @@ export default async function CoordenacaoPagina() {
           </table>
         </div>
       </Secao>
+
+      <Micangas className="mx-auto h-4 w-72 text-texto" />
 
       <Secao titulo="Professores">
         <GestaoEquipe membros={eq.membros} turmas={eq.turmas} />

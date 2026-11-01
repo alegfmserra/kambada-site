@@ -6,6 +6,7 @@ import { rotaEscola } from "@/lib/escola/host";
 import type { EstadoPartida, Resposta } from "@/lib/escola/servico";
 import type { TrilhaPublica } from "@/lib/escola/tipos";
 import { BOTAO, BOTAO_SECUNDARIO, chamar } from "./chamar";
+import { COR_DISCIPLINA, FalaKambadinha, Kambadinha } from "./Marca";
 
 /**
  * Um desafio (trilha): pergunta por pergunta, duas tentativas.
@@ -79,8 +80,8 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
     const f = fechada.fim;
     return (
       <div className="mx-auto max-w-lg space-y-6 text-center">
-        <p className="text-6xl" aria-hidden>🏆</p>
-        <h1 className="font-display text-3xl font-extrabold">Desafio completo!</h1>
+        <Kambadinha tamanho={120} className="mx-auto" />
+        <h1 className="font-display text-3xl font-extrabold">Desafio completo! 🏆</h1>
         <p className="font-display text-5xl font-extrabold text-kambada-amarelo-escuro">{f.pontos} pontos</p>
         <div className="grid grid-cols-3 gap-3">
           <Contador simbolo="✓" rotulo="de primeira" n={f.primeira} cor="bg-kambada-green/15" />
@@ -110,7 +111,8 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
         <div className="h-full rounded-full bg-kambada-amarelo transition-all" style={{ width: `${((estado.indice + (fechada ? 1 : 0)) / estado.total) * 100}%` }} />
       </div>
 
-      <article className="rounded-3xl border-2 border-borda p-6">
+      <article className="relative overflow-hidden rounded-3xl border-2 border-borda p-6">
+        <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: COR_DISCIPLINA[q.disciplina] }} aria-hidden />
         <p className="text-xs font-bold uppercase tracking-wider text-texto-suave">
           {q.cena} · {q.habilidade}
         </p>
@@ -144,9 +146,9 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
         </div>
 
         {dica && !fechada && (
-          <p className="mt-5 rounded-2xl bg-kambada-amarelo/20 p-4 font-semibold" role="status">
-            🦀 Quase! Dica do Kambadinha: {dica}
-          </p>
+          <div className="mt-5" role="status">
+            <FalaKambadinha tamanho={56}>Quase! Dica: {dica}</FalaKambadinha>
+          </div>
         )}
         {erro && <p className="mt-4 font-semibold text-kambada-red">{erro}</p>}
 

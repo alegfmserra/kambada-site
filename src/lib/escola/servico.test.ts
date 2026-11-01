@@ -32,7 +32,14 @@ import {
   trocarSenha,
   turmaPorCodigo,
   visaoGeral,
+  alunosDaTurma,
+  fichaAluno,
+  mapaEscola,
+  mapaTurma,
+  nomearAluno,
 } from "./servico";
+import ExcelJS from "exceljs";
+import { planilhaEscola, planilhaTurma } from "./exportar";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
 
 beforeEach(() => {
@@ -273,5 +280,61 @@ describe("hub da gestão Kambada", () => {
     const v = await visaoGeral(await membro("kambada"));
     expect(v.log.map((e) => e.texto).join(" | ")).toMatch(/trocou o código do 4º ano Azul/);
     await expect(visaoGeral(await membro("coordenacao"))).rejects.toBeInstanceOf(ErroEscola);
+  });
+});
+
+describe("mapa de reforço e privacidade do nome", () => {
+  it("o nome de verdade só aparece para a escola; ranking, entrada e gestão Kambada veem só o apelido", async () => {
+    const ana = await membro("prof.ana");
+    const gestor = await membro("kambada");
+    const daAna = await alunosDaTurma(ana, "t4a");
+    expect(daAna.alunos.find((a) => a.apelido === "CaranguejoVeloz")?.nome).toBe("Davi Santos");
+    expect((await alunosDaTurma(gestor, "t4a")).alunos.every((a) => a.nome === null)).toBe(true);
+    expect((await mapaTurma(gestor, "t4a")).alunos.every((a) => a.nome === null)).toBe(true);
+    const publico = JSON.stringify([await ranking(), await ranking("t4a"), await turmaPorCodigo("4821")]);
+    expect(publico).not.toContain("Davi Santos");
+    await expect(nomearAluno(gestor, "t4a-a1", "Outro Nome")).rejects.toBeInstanceOf(ErroEscola);
+    expect((await nomearAluno(ana, "t4a-a1", "Davi S. Santos")).nome).toBe("Davi S. Santos");
+    await expect(nomearAluno(ana, "t4a-a1", "<script>")).rejects.toBeInstanceOf(ErroEscola);
+  });
+
+  it("mapa da turma: urgentes primeiro, quem não jogou aparece, jogos com uso", async () => {
+    const m = await mapaTurma(await membro("prof.ana"), "t5b");
+    expect(m.alunos).toHaveLength(8);
+    const ordem = ["reforco", "atencao", "nada", "bem"];
+    const idx = m.alunos.map((a) => ordem.indexOf(a.situacao));
+    expect(idx).toEqual([...idx].sort((x, y) => x - y));
+    expect(m.alunos.find((a) => a.apelido === "Sabiá")?.situacao).toBe("nada");
+    expect(m.contagem.reforco + m.contagem.atencao + m.contagem.bem + m.contagem.nada).toBe(8);
+    expect(m.jogos.length).toBeGreaterThan(0);
+    expect(m.jogos.every((j) => j.alunos <= j.podiam)).toBe(true);
+    // professor fora da turma não vê; sem "Ver relatório" também não
+    await expect(mapaTurma(await membro("prof.lucia"), "t5b")).rejects.toBeInstanceOf(ErroEscola);
+    await permissao(await membro("kambada"), "m-ana", "relatorio", false);
+    await expect(mapaTurma(await membro("prof.ana"), "t5b")).rejects.toBeInstanceOf(ErroEscola);
+  });
+
+  it("ficha do aluno mostra o erro escolhido e o que ele revela", async () => {
+    const f = await fichaAluno(await membro("prof.ana"), "t4a-a1");
+    expect(f.habilidades.length).toBeGreaterThan(0);
+    const comErro = f.respostas.find((r) => r.escolheu);
+    if (comErro) expect(comErro.pergunta).not.toBe("");
+    await expect(fichaAluno(await membro("prof.lucia"), "t4a-a1")).rejects.toBeInstanceOf(ErroEscola);
+  });
+
+  it("planilha da turma e da escola: abas certas e nome só para a escola", async () => {
+    const lerNomes = async (buf: Buffer) => {
+      const livro = new ExcelJS.Workbook();
+      await livro.xlsx.load(buf as never);
+      return { abas: livro.worksheets.map((w) => w.name), texto: JSON.stringify(livro.worksheets.map((w) => w.getSheetValues())) };
+    };
+    const daAna = await lerNomes((await planilhaTurma(await membro("prof.ana"), "t4a")).arquivo);
+    expect(daAna.abas).toEqual(["Quem precisa de reforço", "Por habilidade", "Jogos mais jogados", "Erros mais comuns"]);
+    expect(daAna.texto).toContain("Davi Santos");
+    const doGestor = await lerNomes((await planilhaEscola(await membro("kambada"))).arquivo);
+    expect(doGestor.texto).not.toContain("Davi Santos");
+    expect(doGestor.texto).toContain("CaranguejoVeloz");
+    expect((await mapaEscola(await membro("coordenacao"))).alunos).toHaveLength(24);
+    await expect(planilhaEscola(await membro("prof.ana"))).rejects.toBeInstanceOf(ErroEscola);
   });
 });

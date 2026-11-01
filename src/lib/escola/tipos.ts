@@ -51,6 +51,21 @@ export type EscolaPublica = {
 
 export type AlunoPublico = { id: string; apelido: string; avatar: string };
 
+/**
+ * Situação do aluno no mapa de reforço (olha as últimas respostas de cada habilidade):
+ * reforco = duas habilidades ou mais em ✗ · atencao = uma habilidade em ✗, ou três ou mais que só
+ * acerta na segunda · bem = o resto de quem jogou · nada = ainda não jogou.
+ * (✗ = errou as duas tentativas na maior parte das últimas respostas daquela habilidade.)
+ */
+export type Situacao = "reforco" | "atencao" | "bem" | "nada";
+export const SITUACAO: Record<Situacao, { rotulo: string; cor: string; simbolo: string }> = {
+  reforco: { rotulo: "Precisa de reforço", cor: "#D4432B", simbolo: "✗" },
+  atencao: { rotulo: "Atenção", cor: "#E0AF14", simbolo: "↻" },
+  bem: { rotulo: "Indo bem", cor: "#3B8D5D", simbolo: "✓" },
+  nada: { rotulo: "Ainda não jogou", cor: "#9A9A9A", simbolo: "·" },
+};
+export const ORDEM_SITUACAO: Situacao[] = ["reforco", "atencao", "nada", "bem"];
+
 /** Uma pergunta como vai ao navegador: sem a resposta certa. */
 export type QuestaoPublica = {
   cena: string;

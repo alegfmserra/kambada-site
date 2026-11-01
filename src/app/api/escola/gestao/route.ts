@@ -9,6 +9,7 @@ import {
   editarMembro,
   editarTurma,
   marcaDoMembro,
+  nomearAluno,
   novaSenhaMembro,
   novasFiguras,
   novoCodigoTurma,
@@ -36,7 +37,9 @@ export async function POST(req: Request) {
   try {
     switch (c.acao) {
       case "criar-aluno":
-        return ok({ aluno: await criarAluno(m, String(c.turma), c.apelido) });
+        return ok({ aluno: await criarAluno(m, String(c.turma), c.apelido, c.nome) });
+      case "nomear-aluno":
+        return ok({ aluno: await nomearAluno(m, c.aluno, c.nome) });
       case "novas-figuras":
         return ok({ aluno: await novasFiguras(m, c.aluno) });
       case "remover-aluno":

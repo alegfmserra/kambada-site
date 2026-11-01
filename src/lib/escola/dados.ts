@@ -48,6 +48,12 @@ export type Aluno = {
   id: string;
   turmaId: string;
   apelido: string;
+  /**
+   * Nome de verdade, opcional: SÓ a escola vê (coordenação e professores da
+   * turma). Nunca vai ao ranking, às telas do aluno, aos cartões nem à
+   * gestão Kambada. É o que liga o apelido à criança para o reforço.
+   */
+  nome?: string;
   avatar: string;
   /**
    * Senha de figuras (índices de FIGURAS). Guardada como está, de propósito:
@@ -157,6 +163,11 @@ async function atual(): Promise<Dados> {
     if (d && d.versao === 1 && Array.isArray(d.alunos)) {
       // Arquivo de antes do hub (01/11/2026): ganha o acesso da gestão Kambada.
       if (!d.membros.some((m) => m.papel === "gestor")) d.membros.unshift(gestorDemo(new Date().toISOString()));
+      // Demonstração de antes do mapa de reforço: os alunos fictícios ganham o nome fictício.
+      if (d.demo && d.alunos.some((a) => a.nome === undefined)) {
+        const nomes = new Map(sementeDemo().alunos.map((a) => [a.id, a.nome]));
+        for (const a of d.alunos) a.nome ??= nomes.get(a.id);
+      }
       estado.memoria = d;
       estado.mtime = mtime;
       return d;

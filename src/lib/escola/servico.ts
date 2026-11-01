@@ -8,6 +8,7 @@ import {
   AVATARES,
   DISCIPLINAS,
   NOME_PAPEL,
+  ORDEM_SITUACAO,
   PERMISSOES,
   PONTOS,
   TODAS_PERMISSOES,
@@ -19,6 +20,7 @@ import {
   type Permissao,
   type QuestaoPublica,
   type Resultado,
+  type Situacao,
   type TrilhaPublica,
 } from "./tipos";
 
@@ -449,7 +451,24 @@ export async function resumoDasTurmas(m: Membro): Promise<ResumoTurma[]> {
 // Gestão (professor e coordenação)
 // ---------------------------------------------------------------------------
 
-export type AlunoComFiguras = AlunoPublico & { figuras: number[] };
+/** Na tela da equipe: o nome de verdade vem só para a escola (null para a gestão Kambada). */
+export type AlunoComFiguras = AlunoPublico & { figuras: number[]; nome: string | null };
+
+/** Nome de verdade do aluno: só a escola (coordenação e professores da turma). A Kambada e o público veem o apelido. */
+export function veNomes(m: Membro): boolean {
+  return m.papel !== "gestor";
+}
+
+const nomeParaQuem = (m: Membro, a: Aluno): string | null => (veNomes(m) ? (a.nome ?? "") : null);
+const paraEquipe = (m: Membro, a: Aluno, figuras = a.figuras): AlunoComFiguras => ({ ...publicoAluno(a), figuras, nome: nomeParaQuem(m, a) });
+
+function nomeDeAlunoValido(bruto: unknown): string | undefined {
+  if (bruto === undefined || bruto === null) return undefined;
+  const n = typeof bruto === "string" ? bruto.replace(/\s+/g, " ").trim() : "";
+  if (!n) return undefined;
+  if (n.length < 2 || n.length > 80 || !/^[\p{L}\p{M} '.-]+$/u.test(n)) throw new ErroEscola("Nome com 2 a 80 letras (só a escola vê).");
+  return n;
+}
 
 export async function alunosDaTurma(m: Membro, turmaId: string): Promise<{ turma: Turma; alunos: AlunoComFiguras[] }> {
   const d = await lerDados();
@@ -458,7 +477,7 @@ export async function alunosDaTurma(m: Membro, turmaId: string): Promise<{ turma
   const alunos = d.alunos
     .filter((a) => a.turmaId === t.id)
     .sort((x, y) => x.apelido.localeCompare(y.apelido, "pt-BR"))
-    .map((a) => ({ ...publicoAluno(a), figuras: a.figuras }));
+    .map((a) => paraEquipe(m, a));
   return { turma: t, alunos };
 }
 
@@ -472,9 +491,10 @@ export function apelidoValido(bruto: unknown): string | null {
 
 const figurasNovas = () => [randomInt(9), randomInt(9), randomInt(9)];
 
-export async function criarAluno(m: Membro, turmaId: string, apelidoBruto: unknown): Promise<AlunoComFiguras> {
+export async function criarAluno(m: Membro, turmaId: string, apelidoBruto: unknown, nomeBruto?: unknown): Promise<AlunoComFiguras> {
   const apelido = apelidoValido(apelidoBruto);
   exigirPermissao(m, "cadastrar-alunos");
+  const nome = veNomes(m) ? nomeDeAlunoValido(nomeBruto) : undefined;
   if (!apelido) throw new ErroEscola("Apelido com 3 a 20 letras ou números, sem espaço. Nada de nome completo.");
   return alterar((d) => {
     const t = d.turmas.find((x) => x.id === turmaId);
@@ -482,11 +502,26 @@ export async function criarAluno(m: Membro, turmaId: string, apelidoBruto: unkno
     const daTurma = d.alunos.filter((a) => a.turmaId === t.id);
     if (daTurma.some((a) => a.apelido.toLowerCase() === apelido.toLowerCase())) throw new ErroEscola("Já existe esse apelido na turma.");
     if (daTurma.length >= 60) throw new ErroEscola("Limite de 60 alunos por turma.");
-    const a: Aluno = { id: `a-${idAleatorio(6)}`, turmaId: t.id, apelido, avatar: AVATARES[randomInt(AVATARES.length)], figuras: figurasNovas(), criadoEm: new Date().toISOString() };
+    const a: Aluno = { id: `a-${idAleatorio(6)}`, turmaId: t.id, apelido, ...(nome ? { nome } : {}), avatar: AVATARES[randomInt(AVATARES.length)], figuras: figurasNovas(), criadoEm: new Date().toISOString() };
     d.alunos.push(a);
     anotar(d, m, `cadastrou o aluno ${a.apelido} no ${t.nome}`);
     // Sem "Cartões e figuras", quem cadastrou não vê a senha de figuras.
-    return { ...publicoAluno(a), figuras: podeFazer(m, "cartoes") ? a.figuras : [] };
+    return paraEquipe(m, a, podeFazer(m, "cartoes") ? a.figuras : []);
+  });
+}
+
+/** Liga o apelido à criança (ou apaga o nome). Só a escola, com "Cadastrar alunos". */
+export async function nomearAluno(m: Membro, alunoId: unknown, nomeBruto: unknown): Promise<AlunoComFiguras> {
+  if (!veNomes(m)) throw new ErroEscola("O nome dos alunos é só da escola.", 403);
+  exigirPermissao(m, "cadastrar-alunos");
+  const nome = nomeDeAlunoValido(nomeBruto);
+  return alterar((d) => {
+    const a = alunoGerenciavel(d, m, alunoId);
+    if (nome) a.nome = nome;
+    else delete a.nome;
+    // No registro vai só o apelido: o nome não circula nem no histórico.
+    anotar(d, m, `atualizou o nome (só a escola vê) de ${a.apelido}`);
+    return paraEquipe(m, a, podeFazer(m, "cartoes") ? a.figuras : []);
   });
 }
 
@@ -504,7 +539,7 @@ export async function novasFiguras(m: Membro, alunoId: unknown): Promise<AlunoCo
     const a = alunoGerenciavel(d, m, alunoId);
     a.figuras = figurasNovas();
     anotar(d, m, `trocou as figuras de ${a.apelido}`);
-    return { ...publicoAluno(a), figuras: a.figuras };
+    return paraEquipe(m, a);
   });
 }
 
@@ -833,4 +868,231 @@ export async function visaoGeral(m: Membro): Promise<VisaoGeral> {
     ativos7d: new Set(recentes.map((r) => r.alunoId)).size,
     log: [...(d.log ?? [])].reverse().slice(0, 40),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Mapa de reforço e uso dos jogos (quem precisa de ajuda, em quê, e o que a turma joga)
+// ---------------------------------------------------------------------------
+
+export type Ponto = { disciplina: Disciplina; habilidade: string };
+
+export type MapaAluno = {
+  id: string;
+  apelido: string;
+  avatar: string;
+  /** Só para a escola; null para a gestão Kambada. */
+  nome: string | null;
+  turma: string;
+  turmaId: string;
+  situacao: Situacao;
+  reforcoEm: Ponto[];
+  quaseEm: Ponto[];
+  pontos: number;
+  respostas: number;
+  /** Última resposta (ISO) e há quantos dias foi. */
+  ultima: string | null;
+  diasSemJogar: number | null;
+};
+
+export type UsoJogo = {
+  trilhaId: string;
+  titulo: string;
+  emoji: string;
+  disciplina: Disciplina;
+  /** Alunos que jogaram ao menos uma pergunta, de quantos podiam jogar. */
+  alunos: number;
+  podiam: number;
+  respostas: number;
+  /** % de respostas certas de primeira. */
+  primeira: number;
+};
+
+const DIA = 86400000;
+
+function mapaDoAluno(m: Membro, d: Dados, a: Aluno, t: Turma, pts: Map<string, number>, agora: number): MapaAluno {
+  const meus = d.registros.filter((r) => r.alunoId === a.id);
+  const reforcoEm: Ponto[] = [];
+  const quaseEm: Ponto[] = [];
+  let jogou = false;
+  for (const disc of disciplinasDaEtapa(t.etapa)) {
+    for (const h of habilidades(disc, t.etapa)) {
+      const c = celula(meus.filter((r) => r.disciplina === disc && r.habilidade === h));
+      if (c.status !== "nada") jogou = true;
+      if (c.status === "reforco") reforcoEm.push({ disciplina: disc, habilidade: h });
+      if (c.status === "quase") quaseEm.push({ disciplina: disc, habilidade: h });
+    }
+  }
+  const ultima = meus.reduce<string | null>((u, r) => (!u || r.em > u ? r.em : u), null);
+  // Reforço = duas habilidades ou mais em ✗. Atenção = uma em ✗, ou três ou mais que só acerta
+  // na segunda. Um ↻ aqui e ali é normal (é para isso que existe a segunda chance).
+  const situacao: Situacao = !jogou ? "nada" : reforcoEm.length >= 2 ? "reforco" : reforcoEm.length === 1 || quaseEm.length >= 3 ? "atencao" : "bem";
+  return {
+    id: a.id,
+    apelido: a.apelido,
+    avatar: a.avatar,
+    nome: nomeParaQuem(m, a),
+    turma: t.nome,
+    turmaId: t.id,
+    situacao,
+    reforcoEm,
+    quaseEm,
+    pontos: pts.get(a.id) ?? 0,
+    respostas: meus.length,
+    ultima,
+    diasSemJogar: ultima ? Math.floor((agora - Date.parse(ultima)) / DIA) : null,
+  };
+}
+
+/** Mais urgente primeiro: reforço (quem tem mais habilidades em ✗), atenção, quem não jogou, quem vai bem. */
+function porUrgencia(x: MapaAluno, y: MapaAluno): number {
+  const o = ORDEM_SITUACAO.indexOf(x.situacao) - ORDEM_SITUACAO.indexOf(y.situacao);
+  if (o) return o;
+  return y.reforcoEm.length - x.reforcoEm.length || y.quaseEm.length - x.quaseEm.length || x.apelido.localeCompare(y.apelido, "pt-BR");
+}
+
+function contar(alunos: MapaAluno[]): Record<Situacao, number> {
+  const c: Record<Situacao, number> = { reforco: 0, atencao: 0, bem: 0, nada: 0 };
+  for (const a of alunos) c[a.situacao] += 1;
+  return c;
+}
+
+/** Quanto cada jogo foi jogado por um grupo de alunos (só os jogos que eles podem jogar). */
+function usoDosJogos(d: Dados, alunos: Aluno[], turmas: Turma[]): UsoJogo[] {
+  const ids = new Set(alunos.map((a) => a.id));
+  const etapaDe = new Map(turmas.map((t) => [t.id, t.etapa]));
+  const regs = d.registros.filter((r) => ids.has(r.alunoId));
+  return TRILHAS.map((tr) => {
+    const podiam = alunos.filter((a) => etapaDe.get(a.turmaId) === tr.etapa).length;
+    const desta = regs.filter((r) => r.trilhaId === tr.id);
+    return {
+      trilhaId: tr.id,
+      titulo: tr.titulo,
+      emoji: tr.emoji,
+      disciplina: tr.disciplina,
+      alunos: new Set(desta.map((r) => r.alunoId)).size,
+      podiam,
+      respostas: desta.length,
+      primeira: desta.length ? Math.round((desta.filter((r) => r.resultado === "primeira").length / desta.length) * 100) : 0,
+    };
+  })
+    .filter((u) => u.podiam > 0)
+    .sort((x, y) => y.alunos - x.alunos || y.respostas - x.respostas);
+}
+
+export type MapaTurma = {
+  turma: { id: string; nome: string; etapa: Etapa; codigo: string };
+  nomes: boolean;
+  alunos: MapaAluno[];
+  contagem: Record<Situacao, number>;
+  jogos: UsoJogo[];
+  /** Habilidades com mais alunos em ✗ (onde a turma inteira precisa de retomada). */
+  pontosFracos: (Ponto & { alunos: number })[];
+};
+
+function montarMapa(m: Membro, d: Dados, t: Turma): MapaTurma {
+  const pts = pontosPorAluno(d.registros);
+  const agora = Date.now();
+  const daTurma = d.alunos.filter((a) => a.turmaId === t.id);
+  const alunos = daTurma.map((a) => mapaDoAluno(m, d, a, t, pts, agora)).sort(porUrgencia);
+  const fracos = new Map<string, Ponto & { alunos: number }>();
+  for (const a of alunos)
+    for (const p of a.reforcoEm) {
+      const k = `${p.disciplina}|${p.habilidade}`;
+      fracos.set(k, { ...p, alunos: (fracos.get(k)?.alunos ?? 0) + 1 });
+    }
+  return {
+    turma: { id: t.id, nome: t.nome, etapa: t.etapa, codigo: t.codigo },
+    nomes: veNomes(m),
+    alunos,
+    contagem: contar(alunos),
+    jogos: usoDosJogos(d, daTurma, [t]),
+    pontosFracos: [...fracos.values()].sort((x, y) => y.alunos - x.alunos).slice(0, 5),
+  };
+}
+
+export async function mapaTurma(m: Membro, turmaId: string): Promise<MapaTurma> {
+  exigirPermissao(m, "relatorio");
+  const d = await lerDados();
+  const t = d.turmas.find((x) => x.id === turmaId);
+  if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
+  return montarMapa(m, d, t);
+}
+
+export type MapaEscola = {
+  nomes: boolean;
+  turmas: { id: string; nome: string; etapa: Etapa; total: number; contagem: Record<Situacao, number> }[];
+  contagem: Record<Situacao, number>;
+  /** Todos os alunos da escola, do mais urgente ao que vai bem. */
+  alunos: MapaAluno[];
+  jogos: UsoJogo[];
+};
+
+/** Coordenação e gestão: o mapa da escola inteira. */
+export async function mapaEscola(m: Membro): Promise<MapaEscola> {
+  soGestao(m);
+  const d = await lerDados();
+  const mapas = d.turmas.map((t) => montarMapa(m, d, t));
+  const alunos = mapas.flatMap((x) => x.alunos).sort(porUrgencia);
+  return {
+    nomes: veNomes(m),
+    turmas: mapas.map((x) => ({ id: x.turma.id, nome: x.turma.nome, etapa: x.turma.etapa, total: x.alunos.length, contagem: x.contagem })),
+    contagem: contar(alunos),
+    alunos,
+    jogos: usoDosJogos(d, d.alunos, d.turmas),
+  };
+}
+
+export type RespostaDaFicha = {
+  em: string;
+  jogo: string;
+  disciplina: Disciplina;
+  habilidade: string;
+  pergunta: string;
+  resultado: Resultado;
+  escolheu: string | null;
+  diagnostico: string | null;
+};
+
+export type FichaAluno = {
+  aluno: MapaAluno;
+  turmaId: string;
+  habilidades: { disciplina: Disciplina; habilidade: string; celula: Celula }[];
+  jogos: { titulo: string; emoji: string; disciplina: Disciplina; respostas: number; primeira: number }[];
+  respostas: RespostaDaFicha[];
+};
+
+/** Tudo de um aluno: onde está em cada habilidade, o que jogou e as últimas respostas (com o erro e o que ele revela). */
+export async function fichaAluno(m: Membro, alunoId: string): Promise<FichaAluno> {
+  exigirPermissao(m, "relatorio");
+  const d = await lerDados();
+  const a = d.alunos.find((x) => x.id === alunoId);
+  const t = a && d.turmas.find((x) => x.id === a.turmaId);
+  if (!a || !t || !podeVerTurma(m, t)) throw new ErroEscola("Aluno não encontrado.", 404);
+  const meus = d.registros.filter((r) => r.alunoId === a.id);
+  const habs = disciplinasDaEtapa(t.etapa).flatMap((disc) =>
+    habilidades(disc, t.etapa).map((h) => ({ disciplina: disc, habilidade: h, celula: celula(meus.filter((r) => r.disciplina === disc && r.habilidade === h)) })),
+  );
+  const jogos = trilhasDaEtapa(t.etapa)
+    .map((tr) => {
+      const desta = meus.filter((r) => r.trilhaId === tr.id);
+      return { titulo: tr.titulo, emoji: tr.emoji, disciplina: tr.disciplina, respostas: desta.length, primeira: desta.filter((r) => r.resultado === "primeira").length };
+    })
+    .sort((x, y) => y.respostas - x.respostas);
+  const respostas = [...meus]
+    .sort((x, y) => y.em.localeCompare(x.em))
+    .slice(0, 25)
+    .map((r) => {
+      const q = questaoPorId(r.questaoId);
+      return {
+        em: r.em,
+        jogo: q?.trilha.titulo ?? r.trilhaId,
+        disciplina: r.disciplina,
+        habilidade: r.habilidade,
+        pergunta: q?.questao.enunciado ?? "",
+        resultado: r.resultado,
+        escolheu: r.errou !== null && q ? q.questao.opcoes[r.errou] : null,
+        diagnostico: r.errou !== null && q ? (q.questao.diagnostico?.[r.errou] ?? null) : null,
+      };
+    });
+  return { aluno: mapaDoAluno(m, d, a, t, pontosPorAluno(d.registros), Date.now()), turmaId: t.id, habilidades: habs, jogos, respostas };
 }

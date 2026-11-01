@@ -4,7 +4,8 @@ import { BarraStatus, Legenda } from "@/components/escola/Barras";
 import { GestaoTurma } from "@/components/escola/GestaoTurma";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { ErroEscola, alunosDaTurma, disciplinasDaEtapa, podeFazer, relatorioTurma, type Celula, type Status } from "@/lib/escola/servico";
+import { Contagem, Exportar, JogosMaisJogados, ListaReforco, PontosFracos, linkFicha } from "@/components/escola/Mapa";
+import { ErroEscola, alunosDaTurma, disciplinasDaEtapa, mapaTurma, podeFazer, relatorioTurma, veNomes, type Celula, type MapaTurma, type Status } from "@/lib/escola/servico";
 import { NOME_ETAPA } from "@/lib/escola/tipos";
 
 export const metadata = { title: "Turma" };
@@ -21,6 +22,33 @@ function titulo(c: Celula): string {
   return `${CELULA[c.status].rotulo}: ${c.primeira} de primeira, ${c.segunda} na segunda, ${c.reforco} com erro (últimas respostas)`;
 }
 
+/** Visão geral: o jeito simples de ler a turma (quem precisa de reforço, em quê, e o que a turma joga). */
+function VisaoGeral({ mapa }: { mapa: MapaTurma }) {
+  return (
+    <div className="space-y-8">
+      <Contagem contagem={mapa.contagem} />
+      <section className="space-y-3">
+        <h2 className="font-display text-xl font-bold">Quem precisa de ajuda (e em quê)</h2>
+        <p className="text-sm text-texto-suave">
+          Do mais urgente ao que vai bem. Toque no aluno para ver a ficha dele.
+          {mapa.nomes ? " O nome de verdade só a escola vê; no ranking e nas telas dos alunos aparece só o apelido." : " A gestão Kambada vê só apelidos: o nome de verdade é da escola."}
+        </p>
+        <ListaReforco alunos={mapa.alunos} linkFicha={linkFicha} />
+      </section>
+      <div className="grid gap-8 md:grid-cols-2">
+        <section className="space-y-3">
+          <h2 className="font-display text-xl font-bold">Onde a turma mais erra</h2>
+          <PontosFracos lista={mapa.pontosFracos} total={mapa.alunos.length} />
+        </section>
+        <section className="space-y-3">
+          <h2 className="font-display text-xl font-bold">Jogos mais jogados</h2>
+          <JogosMaisJogados jogos={mapa.jogos} />
+        </section>
+      </div>
+    </div>
+  );
+}
+
 export default async function TurmaPagina({
   params,
   searchParams,
@@ -32,15 +60,20 @@ export default async function TurmaPagina({
   const { id } = await params;
   const { disciplina, aba } = await searchParams;
   const veRelatorio = podeFazer(membro, "relatorio");
-  let rel, lista;
+  let rel, lista, mapa;
   try {
     // Sem a permissão "Ver relatório", a turma abre direto em "Alunos e cartões".
-    [rel, lista] = await Promise.all([veRelatorio ? relatorioTurma(membro, id, disciplina) : null, alunosDaTurma(membro, id)]);
+    [rel, lista, mapa] = await Promise.all([
+      veRelatorio ? relatorioTurma(membro, id, disciplina) : null,
+      alunosDaTurma(membro, id),
+      veRelatorio ? mapaTurma(membro, id) : null,
+    ]);
   } catch (e) {
     if (e instanceof ErroEscola) notFound();
     throw e;
   }
-  const emAlunos = aba === "alunos" || !rel;
+  const emAlunos = aba === "alunos" || !rel || !mapa;
+  const emHabilidades = !emAlunos && aba === "habilidades";
   const turma = lista.turma;
   const voltar = { professor: "/professor", coordenacao: "/coordenacao", gestor: "/gestor" }[membro.papel];
   const base = rotaEscola(`/professor/turma/${id}`);
@@ -60,25 +93,34 @@ export default async function TurmaPagina({
             {rel && ` · ${rel.participacao.ativos7d} de ${rel.participacao.total} jogaram nos últimos 7 dias (${rel.participacao.respostas7d} respostas)`}
           </p>
         </div>
-        <div className="flex gap-2">
-          {rel && <Link href={base} className={abaClasse(!emAlunos)}>Relatório</Link>}
+        <div className="flex flex-wrap gap-2">
+          {rel && (
+            <>
+              <Link href={base} className={abaClasse(!emAlunos && !emHabilidades)}>Visão geral</Link>
+              <Link href={`${base}?aba=habilidades`} className={abaClasse(emHabilidades)}>Por habilidade</Link>
+            </>
+          )}
           <Link href={`${base}?aba=alunos`} className={abaClasse(emAlunos)}>Alunos e cartões</Link>
         </div>
       </div>
+      {rel && <Exportar planilha={`/api/escola/exportar?turma=${encodeURIComponent(id)}`} imprimir={`${base}/imprimir`} />}
 
-      {emAlunos || !rel ? (
+      {emAlunos || !rel || !mapa ? (
         <GestaoTurma
           turmaId={id}
           turmaNome={turma.nome}
           codigo={turma.codigo}
           alunosIniciais={podeFazer(membro, "cartoes") ? lista.alunos : lista.alunos.map((x) => ({ ...x, figuras: [] }))}
+          veNomes={veNomes(membro)}
           pode={{ cadastrar: podeFazer(membro, "cadastrar-alunos"), cartoes: podeFazer(membro, "cartoes"), remover: podeFazer(membro, "remover-alunos") }}
         />
+      ) : !emHabilidades ? (
+        <VisaoGeral mapa={mapa} />
       ) : (
         <>
           <div className="flex flex-wrap gap-2">
             {disciplinasDaEtapa(rel.turma.etapa).map((d) => (
-              <Link key={d} href={`${base}?disciplina=${encodeURIComponent(d)}`} className={abaClasse(d === rel.disciplina)}>
+              <Link key={d} href={`${base}?aba=habilidades&disciplina=${encodeURIComponent(d)}`} className={abaClasse(d === rel.disciplina)}>
                 {d}
               </Link>
             ))}

@@ -31,6 +31,22 @@ const APELIDOS: Record<string, string[]> = {
   t8a: ["MestreDaMatraca", "Sobrado22", "ReggaeDaIlha", "LençolBranco", "Fogueteiro", "Zabumba", "BaixadaBoy", "Cuxá"],
 };
 
+/** Nomes FICTÍCIOS (para a escola ver quem é quem no mapa de reforço), na mesma ordem dos apelidos. */
+const NOMES: Record<string, string[]> = {
+  t4a: ["Davi Santos", "Lara Mendes", "Heitor Sousa", "Ana Clara Lima", "Miguel Rocha", "Sofia Araújo", "Arthur Nunes", "Helena Pires"],
+  t5b: ["Gael Moraes", "Valentina Reis", "Theo Carvalho", "Maria Alice Dias", "Bernardo Freitas", "Laura Teixeira", "Pedro Henrique Costa", "Cecília Barros"],
+  t8a: ["Enzo Gabriel Silva", "Isadora Matos", "Caio Ferreira", "Beatriz Campos", "Lucas Viana", "Manuela Prado", "Rafael Duarte", "Júlia Andrade"],
+};
+
+/** Quanto cada jogo é procurado na demonstração (chance de o aluno jogar a trilha). */
+const PROCURA: Record<string, number> = {
+  "contas-do-arraial": 0.95,
+  "feira-da-jucara": 0.9,
+  "palavras-da-festa": 0.7,
+  "leitura-do-auto": 0.55,
+  "kambadinha-in-english": 0.6,
+};
+
 /** O acesso da Kambada ao hub de gestão da escola. */
 export function gestorDemo(criadoEm: string): Membro {
   return { id: "m-kambada", papel: "gestor", nome: "Gestão Kambada", usuario: "kambada", senhaHash: hashDemo("gestor"), disciplinas: [], criadoEm };
@@ -63,6 +79,7 @@ export function sementeDemo(agora = Date.now()): Dados {
         id: `${t.id}-a${i + 1}`,
         turmaId: t.id,
         apelido,
+        nome: NOMES[t.id][i],
         avatar: AVATARES[Math.floor(r() * AVATARES.length)],
         figuras: [0, 1, 2].map(() => Math.floor(r() * 9)),
         criadoEm,
@@ -71,16 +88,17 @@ export function sementeDemo(agora = Date.now()): Dados {
   }
 
   // Histórico fictício das duas últimas semanas, para o relatório não nascer vazio.
-  // Cada aluno tem um "jeito" (domínio de 0,35 a 0,9) e cada habilidade um peso de dificuldade.
+  // Cada aluno tem um "jeito" (domínio de 0,45 a 0,95) e cada habilidade um peso de dificuldade.
   const registros: Registro[] = [];
   const dificuldade = new Map<string, number>();
   for (const t of TRILHAS) for (const q of t.questoes) if (!dificuldade.has(q.habilidade)) dificuldade.set(q.habilidade, r() * 0.3);
   for (const a of alunos) {
     const turma = turmas.find((t) => t.id === a.turmaId)!;
-    const dominio = 0.35 + r() * 0.55;
+    const dominio = 0.45 + r() * 0.5;
     if (a.apelido === "Sabiá" || a.apelido === "Cuxá") continue; // ainda não jogaram: aparecem em cinza
     for (const trilha of trilhasDaEtapa(turma.etapa)) {
       if (trilha.disciplina === "Inglês" && turma.id === "t4a") continue; // 4º A ainda não começou o inglês
+      if (r() > (PROCURA[trilha.id] ?? 0.8)) continue; // nem todo mundo joga todos os jogos
       for (const q of trilha.questoes) {
         if (r() < 0.2) continue;
         const p = dominio - (dificuldade.get(q.habilidade) ?? 0);

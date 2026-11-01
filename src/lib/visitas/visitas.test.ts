@@ -89,6 +89,17 @@ describe("resumirVisitas", () => {
     expect(filtrarPorDias(comCliques, 1, agora)).toHaveLength(0);
     expect(filtrarPorDias(comCliques, 3, agora)).toHaveLength(comCliques.length);
   });
+  it("agrupa por dia no horário de São Luís (virada às 03:00 UTC)", () => {
+    const r = resumirVisitas(
+      [
+        { em: "2026-11-01T02:30:00Z", tipo: "pagina", caminho: "/", canal: "Direto" }, // 31/10 23:30 em São Luís
+        { em: "2026-11-01T03:30:00Z", tipo: "pagina", caminho: "/", canal: "Direto" }, // 01/11 00:30 em São Luís
+      ],
+      [],
+    );
+    expect(r.periodo).toEqual({ de: "2026-10-31", ate: "2026-11-01" });
+    expect(r.porDia.map((d) => [d.dia, d.sessoes])).toEqual([["2026-11-01", 1], ["2026-10-31", 1]]);
+  });
   it("sem eventos, devolve vazio", () => {
     const r = resumirVisitas([], pedidos);
     expect(r.periodo).toBeNull();

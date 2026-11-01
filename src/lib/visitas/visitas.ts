@@ -148,8 +148,31 @@ export type PedidoParaMedir = {
 
 const pct = (parte: number, todo: number) => (todo ? Math.round((parte / todo) * 1000) / 10 : null);
 
+/** Dia (AAAA-MM-DD) no fuso de São Luís (UTC−3), para agrupar acessos e pedidos. */
+export const diaSaoLuis = (iso: string | Date) => new Date((typeof iso === "string" ? new Date(iso) : iso).getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+
+function porDia(es: EventoVisita[], pedidos: PedidoParaMedir[]): ResumoVisitas["porDia"] {
+  const m = new Map<string, { dia: string; sessoes: number; paginasVistas: number; cliques: number; pedidos: number }>();
+  const dia = (d: string) => {
+    const x = m.get(d) ?? { dia: d, sessoes: 0, paginasVistas: 0, cliques: 0, pedidos: 0 };
+    m.set(d, x);
+    return x;
+  };
+  for (const e of es) {
+    const d = dia(diaSaoLuis(e.em));
+    if (e.tipo === "pagina") {
+      d.paginasVistas += 1;
+      if (e.canal) d.sessoes += 1;
+    } else if (e.tipo === "clique") d.cliques += 1;
+  }
+  for (const p of pedidos) dia(diaSaoLuis(p.criadoEm)).pedidos += 1;
+  return [...m.values()].sort((a, b) => b.dia.localeCompare(a.dia));
+}
+
 export type ResumoVisitas = {
   periodo: { de: string; ate: string } | null;
+  /** Um registro por dia com acesso, do mais recente ao mais antigo. */
+  porDia: { dia: string; sessoes: number; paginasVistas: number; cliques: number; pedidos: number }[];
   sessoes: number;
   paginasVistas: number;
   pedidos: number;
@@ -229,7 +252,8 @@ export function resumirVisitas(es: EventoVisita[], pedidos: PedidoParaMedir[]): 
 
   const nomesCanais = new Set([...sessoesPorCanal.keys(), ...pedidosPorCanal.keys()]);
   return {
-    periodo: es.length ? { de: es[0].em.slice(0, 10), ate: es[es.length - 1].em.slice(0, 10) } : null,
+    periodo: es.length ? { de: diaSaoLuis(es[0].em), ate: diaSaoLuis(es[es.length - 1].em) } : null,
+    porDia: porDia(es, validos),
     sessoes,
     paginasVistas,
     pedidos: validos.length,

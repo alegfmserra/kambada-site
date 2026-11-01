@@ -6,7 +6,7 @@ import MenuAdmin from "@/components/admin/MenuAdmin";
 import { adminConfigurado, COOKIE_ADMIN, sessaoValida } from "@/lib/admin/sessao";
 import { duracao, listarTelas, resumirTelas } from "@/lib/play/telas";
 import { listarRegistros } from "@/lib/pedidos/registro";
-import { filtrarPorDias, listarVisitas, resumirVisitas } from "@/lib/visitas/visitas";
+import { diaSaoLuis, filtrarPorDias, listarVisitas, resumirVisitas } from "@/lib/visitas/visitas";
 
 export const metadata: Metadata = { title: "Performance do site", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -27,7 +27,9 @@ const PERIODOS = [
   { chave: "tudo", rotulo: "Tudo", dias: null },
 ] as const;
 
-const diaSaoLuis = (d: Date) => new Date(d.getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+const brData = (dia: string) => dia.split("-").reverse().join("/");
+const DIAS_SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const diaDaSemana = (dia: string) => DIAS_SEMANA[new Date(`${dia}T12:00:00Z`).getUTCDay()];
 
 function Tabela({ titulo, nota, cab, linhas }: { titulo: string; nota?: string; cab: string[]; linhas: (string | number)[][] }) {
   return (
@@ -71,8 +73,7 @@ export default async function PaginaPerformance({ searchParams }: { searchParams
 
   const [eventos, registros, eventosTelas] = await Promise.all([listarVisitas(), listarRegistros(10000), listarTelas()]);
   const doPeriodo = filtrarPorDias(eventos, periodo.dias, agora);
-  const limite = periodo.dias ? diaSaoLuis(new Date(agora.getTime() - (periodo.dias - 1) * 86_400_000)) : null;
-  const v = resumirVisitas(
+  const limite = periodo.dias ? diaSaoLuis(new Date(agora.getTime() - (periodo.dias - 1) * 86_400_000)) : null;  const v = resumirVisitas(
     doPeriodo,
     registros
       .filter((p) => !limite || diaSaoLuis(new Date(p.criadoEm)) >= limite)
@@ -104,7 +105,7 @@ export default async function PaginaPerformance({ searchParams }: { searchParams
           <p className="mt-1 max-w-3xl text-texto-suave">
             Como as pessoas usam o site: visitas, cliques, páginas, produtos, tempo de tela e de onde vêm. Medição própria e anônima
             (sem cookie, IP nem terceiros). As respostas da pesquisa ficam em “Pesquisa e dados (FAPEMA)”.
-            {v.periodo ? ` Medido de ${v.periodo.de} a ${v.periodo.ate}.` : ""}
+            {v.periodo ? ` Medido de ${brData(v.periodo.de)} a ${brData(v.periodo.ate)} (horário de São Luís).` : " Ainda sem dados no período."}
           </p>
         </div>
         <nav aria-label="Período" className="flex gap-2">
@@ -137,6 +138,12 @@ export default async function PaginaPerformance({ searchParams }: { searchParams
         <code>?utm_source=instagram&amp;utm_medium=social</code>.
       </p>
 
+      <Tabela
+        titulo="Acessos por dia"
+        nota="Dia no horário de São Luís (a virada é à meia-noite daqui, não do servidor)."
+        cab={["Dia", "Visitas", "Páginas vistas", "Cliques", "Pedidos"]}
+        linhas={v.porDia.map((d) => [`${brData(d.dia)} (${diaDaSemana(d.dia)})`, d.sessoes, d.paginasVistas, d.cliques, d.pedidos])}
+      />
       <Tabela
         titulo="De onde vêm as visitas"
         cab={["Canal", "Visitas", "Pedidos", "Conversão"]}

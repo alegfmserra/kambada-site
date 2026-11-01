@@ -59,6 +59,7 @@ const E = {
   kitAnotacao: { comprimento: 34, largura: 24, altura: 3, peso: 0.3, origem: "ficha 18 · Kit de Anotação (peso com embalagem estimado: produto 285 g + envelope)" },
   lapis: { comprimento: 26, largura: 13, altura: ALTURA_ENVELOPE, peso: 0.015, origem: "ficha 19 · Lápis" },
   caneta: { comprimento: 17, largura: 15, altura: ALTURA_ENVELOPE, peso: 0.01, origem: "ficha 20 · Caneta" },
+  livrinho: { comprimento: 25, largura: 10, altura: ALTURA_ENVELOPE, peso: 0.02, origem: "Alexandre, 01/11/2026 · livrinho 10 × 25 cm, 10 páginas, 15–20 g embalado" },
 } satisfies Record<string, Embalagem>;
 
 function sem(texto: string): string {
@@ -134,7 +135,8 @@ export function embalagemDe(produto: Produto, opcao?: Opcao): Embalagem | null {
       if (/bloco|bloquinho/.test(nome)) return E.bloquinho;
       // Livro Vermelho: medidas parecidas com as de uma Ecobag Mini (Alexandre, 21/10/2026).
       if (/^livro vermelho/.test(nome)) return E.ecobagPequena;
-      // Livro Trilíngue, joguinhos e Kambada Goods: sem ficha de embalagem.
+      if (/^(joguinhos divertidos|kambada goods)/.test(nome)) return E.livrinho;
+      // Livro Trilíngue: sem ficha de embalagem.
       return null;
     default:
       return null;

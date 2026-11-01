@@ -77,6 +77,12 @@ export type Produto = {
    * só informação interna.
    */
   sobEncomenda?: boolean;
+  /**
+   * Estoque livre (Joguinhos Divertidos e Kambada Goods, Alexandre 01/11/2026):
+   * livrinhos feitos em casa na hora, sempre disponíveis. Vende com qualquer
+   * saldo, sem prazo de produção na página.
+   */
+  estoqueLivre?: boolean;
 };
 
 export const CATEGORIAS: Categoria[] = [
@@ -621,6 +627,7 @@ export function disponibilidade(produto: Produto): {
     const p = prazoDeProducao(produto);
     return { texto: `Feita por encomenda · ${p.min} a ${p.max} dias`, disponivel: true };
   }
+  if (produto.estoqueLivre) return { texto: "Disponível", disponivel: true };
   if (produto.quantidade <= 0) return { texto: "Esgotado", disponivel: false };
   if (produto.quantidade <= 5)
     return { texto: "Últimas unidades", disponivel: true };

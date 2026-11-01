@@ -237,10 +237,15 @@ export function rotuloDaVariacao(
  * Feita por encomenda — vende com saldo zero (o saldo do Bling vira só informação
  * interna): todas as matracas (10/10), inclusive a Mini DTF, que às vezes está
  * pronta mas também é feita sob pedido (Alexandre, 21/10/2026), e a Placa
- * Retangular (20/10).
+ * Retangular (20/10) e a Mandala (01/11, pintada à mão, 4 a 10 dias).
  */
 export function ehSobEncomenda(categoria: string, nome: string): boolean {
-  return categoria === "matracas" || /^placa de madeira retangular/i.test(nome);
+  return categoria === "matracas" || /^placa de madeira retangular|^mandala/i.test(nome);
+}
+
+/** Livrinhos feitos em casa na hora: nunca esgotam (Alexandre, 01/11/2026). */
+export function ehEstoqueLivre(nome: string): boolean {
+  return /^(joguinhos divertidos|kambada goods)/i.test(nome.trim());
 }
 
 /** "Suporte" → "suporte", "Cor/Estampa" → "cor-estampa": a chave do atributo, sem acento nem caixa. */
@@ -484,6 +489,7 @@ export async function montarDoBling(): Promise<Catalogo> {
       ? filhos.reduce((soma, f) => soma + (saldos.get(f.id) ?? 0), 0)
       : (saldos.get(p.id) ?? 0);
     const sobEncomenda = ehSobEncomenda(categoria, p.nome);
+    const estoqueLivre = ehEstoqueLivre(p.nome);
 
     produtos.push({
       slug: paraSlug(`${p.nome}-${p.id}`),
@@ -502,8 +508,9 @@ export async function montarDoBling(): Promise<Catalogo> {
       opcoes,
       // Esgotado sai da vitrine, das categorias e do Google (regra do Alexandre, 20/10/2026);
       // pelo link direto a página segue mostrando "Esgotado" e o "me avise quando voltar".
-      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || (quantidade <= 0 && !sobEncomenda) || undefined,
+      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || (quantidade <= 0 && !sobEncomenda && !estoqueLivre) || undefined,
       sobEncomenda: sobEncomenda || undefined,
+      estoqueLivre: estoqueLivre || undefined,
     });
   }
 

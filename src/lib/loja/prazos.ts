@@ -11,10 +11,10 @@ export const POSTAGEM_DIAS_UTEIS = 3;
 
 export const PRODUCAO_PINTADA_A_MAO = { min: 3, max: 7 } as const;
 
-/** Placas têm área pintada maior: 4 a 10 dias (Alexandre, 20/10/2026). */
+/** Placas e mandalas têm área pintada maior: 4 a 10 dias (Alexandre, 20/10 e 01/11/2026). */
 export const PRODUCAO_PLACA = { min: 4, max: 10 } as const;
 
-const ehPlaca = (nome: string) => /^placa/i.test(nome.trim());
+const ehPlaca = (nome: string) => /^(placa|mandala)/i.test(nome.trim());
 
 export function prazoDeProducao(produto: { nome: string }): { min: number; max: number } {
   return ehPlaca(produto.nome) ? PRODUCAO_PLACA : PRODUCAO_PINTADA_A_MAO;

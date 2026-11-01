@@ -27,7 +27,7 @@ type Props = {
   nome: string;
   /** Só as opções que podem ir para o carrinho (com embalagem conhecida). */
   opcoes: Opcao[];
-  /** Feita por encomenda: o saldo não limita a compra. */
+  /** Feita por encomenda ou de estoque livre: o saldo não limita a compra. */
   sobEncomenda?: boolean;
   /** A página tem guia de tamanhos: mostra "Qual meu tamanho?" junto da escolha. */
   temGuiaDeTamanhos?: boolean;

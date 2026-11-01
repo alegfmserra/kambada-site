@@ -262,7 +262,7 @@ export default async function PaginaProduto({ params }: Props) {
                     categoria={produto.categoria}
                     nome={produto.nome}
                     opcoes={opcoesCompraveis}
-                    sobEncomenda={produto.sobEncomenda}
+                    sobEncomenda={produto.sobEncomenda || produto.estoqueLivre}
                     temGuiaDeTamanhos={Boolean(medidas)}
                   />
                   {medidas && <GuiaDeTamanhos tabela={medidas} />}

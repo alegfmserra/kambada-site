@@ -162,7 +162,7 @@ describe("embalagens (ficha do Will, 18/08/2026)", () => {
 
   it("joguinhos e Kambada Goods vão no envelope do livrinho", () => {
     const livrinho: Produto = { slug: "j", nome: "Joguinhos Divertidos", categoria: "papelaria", preco: 10, variacoes: [], quantidade: 0 };
-    expect(embalagemDe(livrinho)).toMatchObject({ comprimento: 25, largura: 10, altura: 2, peso: 0.02 });
+    expect(embalagemDe(livrinho)).toMatchObject({ comprimento: 25, largura: 18, altura: 2, peso: 0.02 });
     expect(embalagemDe({ ...livrinho, nome: "Kambada Goods" })?.peso).toBe(0.02);
   });
 

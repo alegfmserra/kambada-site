@@ -8,6 +8,7 @@ import { Bandeirinhas } from "@/components/escola/Marca";
 import { rotaEscola } from "@/lib/escola/host";
 import { quemNaPagina } from "@/lib/escola/pagina";
 import { escolaPublica } from "@/lib/escola/servico";
+import { NOME_PAPEL } from "@/lib/escola/tipos";
 
 export const metadata: Metadata = {
   title: { absolute: "Kambada Play na escola", template: "%s | Kambada Play na escola" },
@@ -32,9 +33,11 @@ export default async function EscolaLayout({ children }: { children: React.React
         ? [["Minhas turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
         : quem?.papel === "coordenacao"
           ? [["Painel", "/coordenacao"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
-          : [];
+          : quem?.papel === "gestor"
+            ? [["Hub Kambada", "/gestor"], ["Visão da coordenação", "/coordenacao"], ["Turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
+            : [];
   const nomeDeQuem = quem ? (quem.papel === "aluno" ? `${quem.aluno.avatar} ${quem.aluno.apelido} · ${quem.turma.nome}` : quem.membro.nome) : null;
-  const papel = quem ? { aluno: "Aluno", professor: "Professor", coordenacao: "Coordenação" }[quem.papel] : null;
+  const papel = quem ? NOME_PAPEL[quem.papel] : null;
 
   return (
     <div className="escola-root flex min-h-screen flex-col bg-fundo text-texto" style={{ "--escola": escola.cor } as React.CSSProperties}>

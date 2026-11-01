@@ -3,15 +3,16 @@ import { notFound } from "next/navigation";
 import { BotaoImprimir } from "@/components/escola/BotaoImprimir";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { ErroEscola, alunosDaTurma, escolaPublica } from "@/lib/escola/servico";
+import { ErroEscola, alunosDaTurma, escolaPublica, podeFazer } from "@/lib/escola/servico";
 import { FIGURAS } from "@/lib/escola/tipos";
 
 export const metadata = { title: "Cartões de acesso" };
 
 /** Cartões para recortar: endereço, código da turma, apelido e as 3 figuras. Folha A4, 8 por página. */
 export default async function CartoesPagina({ params }: { params: Promise<{ id: string }> }) {
-  const { membro } = await exigir("professor", "coordenacao");
+  const { membro } = await exigir("professor", "coordenacao", "gestor");
   const { id } = await params;
+  if (!podeFazer(membro, "cartoes")) notFound();
   let dados;
   try {
     dados = await alunosDaTurma(membro, id);

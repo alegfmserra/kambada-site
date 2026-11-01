@@ -4,7 +4,7 @@ import { exigir } from "@/lib/escola/pagina";
 export const metadata = { title: "Trocar senha" };
 
 export default async function SenhaPagina() {
-  const { membro } = await exigir("professor", "coordenacao");
+  const { membro } = await exigir("professor", "coordenacao", "gestor");
   return (
     <div className="space-y-6 py-4">
       <div className="text-center">

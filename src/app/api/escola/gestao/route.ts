@@ -1,15 +1,20 @@
 import { corpoJson } from "@/lib/play/jogos/limite";
 import { falha, membroQuePede, ok, tratar } from "@/lib/escola/api";
 import {
+  ativarMembro,
   criarAluno,
-  criarProfessor,
+  criarMembro,
   criarTurma,
   editarEscola,
+  editarMembro,
+  editarTurma,
   marcaDoMembro,
-  novaSenhaProfessor,
+  novaSenhaMembro,
   novasFiguras,
+  novoCodigoTurma,
+  permissao,
   removerAluno,
-  removerProfessor,
+  removerMembro,
   removerTurma,
   restaurarDemonstracao,
   trocarSenha,
@@ -19,7 +24,8 @@ import { COOKIE_ESCOLA, criarSessaoEscola, opcoesCookie } from "@/lib/escola/ses
 import { NextResponse } from "next/server";
 
 /**
- * Gestão do portal: professor (só nas turmas dele) e coordenação (tudo).
+ * Gestão do portal: professor (só nas turmas dele e conforme as permissões),
+ * coordenação (a escola) e gestão Kambada (o hub: tudo, inclusive permissões).
  * As permissões são conferidas em `servico.ts`, não aqui.
  */
 export async function POST(req: Request) {
@@ -37,17 +43,33 @@ export async function POST(req: Request) {
         await removerAluno(m, c.aluno);
         return ok();
       case "criar-professor":
-        return ok({ acesso: await criarProfessor(m, c.nome, c.usuario, c.disciplinas, c.turmas) });
+        return ok({ acesso: await criarMembro(m, { nome: c.nome, usuario: c.usuario, papel: "professor", disciplinas: c.disciplinas, turmas: c.turmas }) });
+      case "criar-membro":
+        return ok({ acesso: await criarMembro(m, { nome: c.nome, usuario: c.usuario, papel: c.papel, disciplinas: c.disciplinas, turmas: c.turmas, permissoes: c.permissoes }) });
+      case "editar-membro":
+        await editarMembro(m, c.membro, c);
+        return ok();
+      case "permissao":
+        await permissao(m, c.membro, c.permissao, c.ligada);
+        return ok();
+      case "ativar-membro":
+        await ativarMembro(m, c.membro, c.ativo);
+        return ok();
       case "nova-senha-professor":
-        return ok({ acesso: await novaSenhaProfessor(m, c.professor) });
+        return ok({ acesso: await novaSenhaMembro(m, c.professor ?? c.membro) });
       case "remover-professor":
-        await removerProfessor(m, c.professor);
+        await removerMembro(m, c.professor ?? c.membro);
         return ok();
       case "vincular":
         await vincular(m, c.professor, c.turma, c.ligado);
         return ok();
       case "criar-turma":
         return ok({ turma: await criarTurma(m, c.nome, c.etapa, c.professores) });
+      case "editar-turma":
+        await editarTurma(m, c.turma, c.nome, c.etapa);
+        return ok();
+      case "novo-codigo":
+        return ok({ turma: await novoCodigoTurma(m, c.turma) });
       case "remover-turma":
         await removerTurma(m, c.turma);
         return ok();

@@ -3,25 +3,32 @@ import { BarraStatus, Legenda } from "@/components/escola/Barras";
 import { Etiqueta } from "@/components/escola/Marca";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { resumoDasTurmas } from "@/lib/escola/servico";
-import { NOME_ETAPA } from "@/lib/escola/tipos";
+import { podeFazer, resumoDasTurmas } from "@/lib/escola/servico";
+import { NOME_ETAPA, NOME_PAPEL } from "@/lib/escola/tipos";
 
 export const metadata = { title: "Minhas turmas" };
 
 export default async function ProfessorInicio() {
-  const { membro } = await exigir("professor", "coordenacao");
+  const { membro } = await exigir("professor", "coordenacao", "gestor");
   const turmas = await resumoDasTurmas(membro);
+  const veRelatorio = podeFazer(membro, "relatorio");
+  const oQueFaz = [
+    podeFazer(membro, "cadastrar-alunos") && "cadastrar apelidos",
+    podeFazer(membro, "cartoes") && "imprimir os cartões",
+    veRelatorio && "ver o relatório",
+  ].filter(Boolean);
 
   return (
     <div className="space-y-6">
       <div>
-        <Etiqueta>{membro.papel === "coordenacao" ? "Coordenação" : "Professor"}</Etiqueta>
+        <Etiqueta>{NOME_PAPEL[membro.papel]}</Etiqueta>
         <h1 className="font-display text-3xl font-extrabold">Olá, <span className="destaque">{membro.nome.split(" ")[0]}</span>!</h1>
         <p className="text-texto-suave">
-          {membro.papel === "coordenacao" ? "Todas as turmas da escola." : "As suas turmas."} Toque numa turma para cadastrar apelidos, imprimir os cartões e ver o relatório.
+          {membro.papel === "professor" ? "As suas turmas." : "Todas as turmas da escola."}
+          {oQueFaz.length > 0 ? ` Toque numa turma para ${oQueFaz.join(", ").replace(/, ([^,]*)$/, " e $1")}.` : " Toque numa turma para ver os alunos."}
         </p>
       </div>
-      <Legenda />
+      {veRelatorio && <Legenda />}
       {turmas.length === 0 && <p className="rounded-2xl bg-superficie p-5">Nenhuma turma ainda. A coordenação vincula você às turmas.</p>}
       <ul className="grid gap-4 md:grid-cols-2">
         {turmas.map((t) => (
@@ -40,14 +47,16 @@ export default async function ProfessorInicio() {
               <p className="mt-3 text-sm">
                 <b>{t.ativos7d}</b> de {t.alunos} alunos jogaram nos últimos 7 dias
               </p>
-              <div className="mt-3 space-y-2">
-                {t.porDisciplina.map((p) => (
-                  <div key={p.disciplina} className="grid grid-cols-[6.5rem_1fr] items-center gap-2 text-sm">
-                    <span>{p.disciplina}</span>
-                    <BarraStatus {...p} />
-                  </div>
-                ))}
-              </div>
+              {veRelatorio && (
+                <div className="mt-3 space-y-2">
+                  {t.porDisciplina.map((p) => (
+                    <div key={p.disciplina} className="grid grid-cols-[6.5rem_1fr] items-center gap-2 text-sm">
+                      <span>{p.disciplina}</span>
+                      <BarraStatus {...p} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </Link>
           </li>
         ))}

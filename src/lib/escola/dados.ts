@@ -1,8 +1,8 @@
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
-import type { Disciplina, EscolaPublica, Etapa, Resultado } from "./tipos";
-import { sementeDemo } from "./semente";
+import type { Disciplina, EscolaPublica, Etapa, Permissao, Resultado } from "./tipos";
+import { gestorDemo, sementeDemo } from "./semente";
 
 /**
  * Armazém do portal da escola (somente servidor).
@@ -18,13 +18,21 @@ import { sementeDemo } from "./semente";
 
 export type Membro = {
   id: string;
-  papel: "professor" | "coordenacao";
+  /** gestor = a Kambada, acima da escola (hub de gestão). */
+  papel: "professor" | "coordenacao" | "gestor";
   nome: string;
   usuario: string;
   senhaHash: string;
   disciplinas: Disciplina[];
+  /** Só professor. Ausente = todas ligadas. */
+  permissoes?: Permissao[];
+  /** false = acesso suspenso (não entra e a sessão aberta cai). Ausente = ativo. */
+  ativo?: boolean;
   criadoEm: string;
 };
+
+/** Registro de atividades da gestão (quem fez o quê), mostrado no hub. */
+export type Evento = { em: string; quem: string; texto: string };
 
 export type Turma = {
   id: string;
@@ -90,6 +98,7 @@ export type Dados = {
   alunos: Aluno[];
   registros: Registro[];
   partidas: Partida[];
+  log?: Evento[];
   criadoEm: string;
 };
 
@@ -146,6 +155,8 @@ async function atual(): Promise<Dados> {
   try {
     const d = JSON.parse(await readFile(arquivo, "utf8")) as Dados;
     if (d && d.versao === 1 && Array.isArray(d.alunos)) {
+      // Arquivo de antes do hub (01/11/2026): ganha o acesso da gestão Kambada.
+      if (!d.membros.some((m) => m.papel === "gestor")) d.membros.unshift(gestorDemo(new Date().toISOString()));
       estado.memoria = d;
       estado.mtime = mtime;
       return d;
@@ -176,10 +187,14 @@ export function alterar<T>(trabalho: (d: Dados) => T): Promise<T> {
   });
 }
 
-/** Volta tudo à demonstração (botão da coordenação). */
-export function restaurar(): Promise<void> {
+/** Volta tudo à demonstração (botão do hub). O acesso da gestão Kambada fica como está (senha trocada não volta). */
+export function restaurar(quem?: string): Promise<void> {
   return naFila(async () => {
-    estado.memoria = sementeDemo();
+    const gestores = (await atual()).membros.filter((m) => m.papel === "gestor");
+    const nova = sementeDemo();
+    if (gestores.length) nova.membros = [...gestores, ...nova.membros.filter((m) => m.papel !== "gestor")];
+    if (quem) nova.log = [{ em: new Date().toISOString(), quem, texto: "restaurou a demonstração" }];
+    estado.memoria = nova;
     estado.arquivo = arquivoEscola();
     await gravarNoDisco(estado.memoria);
   });

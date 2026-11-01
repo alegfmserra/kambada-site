@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BarraStatus, Legenda } from "@/components/escola/Barras";
 import { Etiqueta, Micangas } from "@/components/escola/Marca";
-import { GestaoEquipe, GestaoTurmas, IdentidadeEscola, RestaurarDemo } from "@/components/escola/Coordenacao";
+import { GestaoEquipe, GestaoTurmas, IdentidadeEscola } from "@/components/escola/Coordenacao";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { CORES_ESCOLA, equipe, escolaPublica, resumoDasTurmas } from "@/lib/escola/servico";
@@ -19,7 +19,7 @@ function Secao({ titulo, children }: { titulo: string; children: React.ReactNode
 }
 
 export default async function CoordenacaoPagina() {
-  const { membro } = await exigir("coordenacao");
+  const { membro } = await exigir("coordenacao", "gestor");
   const [turmas, eq, escola] = await Promise.all([resumoDasTurmas(membro), equipe(membro), escolaPublica()]);
   const totalAlunos = turmas.reduce((s, t) => s + t.alunos, 0);
   const ativos = turmas.reduce((s, t) => s + t.ativos7d, 0);
@@ -28,7 +28,7 @@ export default async function CoordenacaoPagina() {
   return (
     <div className="space-y-10">
       <div>
-        <Etiqueta>Coordenação · {escola.nome}</Etiqueta>
+        <Etiqueta>{membro.papel === "gestor" ? "Gestão Kambada vendo como a coordenação" : "Coordenação"} · {escola.nome}</Etiqueta>
         <h1 className="font-display text-3xl font-extrabold">Painel da <span className="destaque">coordenação</span></h1>
         <p className="text-texto-suave">Relatório geral da escola, equipe, turmas e identidade do portal.</p>
       </div>
@@ -92,12 +92,6 @@ export default async function CoordenacaoPagina() {
       <Secao titulo="Identidade do portal">
         <IdentidadeEscola escola={escola} cores={CORES_ESCOLA} />
       </Secao>
-
-      {escola.demo && (
-        <Secao titulo="Demonstração">
-          <RestaurarDemo />
-        </Secao>
-      )}
     </div>
   );
 }

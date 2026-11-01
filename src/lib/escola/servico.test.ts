@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -7,19 +7,31 @@ import { TRILHAS } from "./desafios";
 import { ehHostDaEscola, rotaEscola } from "./host";
 import {
   ErroEscola,
+  ativarMembro,
   celula,
   criarAluno,
+  criarMembro,
   criarProfessor,
+  criarTurma,
+  editarTurma,
   entrarAluno,
   entrarMembro,
+  equipe,
   iniciarPartida,
+  marcaDoMembro,
   novasFiguras,
+  novoCodigoTurma,
+  permissao,
+  podeFazer,
   quemEsta,
   ranking,
   relatorioTurma,
   responder,
   marcaDoAluno,
+  restaurarDemonstracao,
+  trocarSenha,
   turmaPorCodigo,
+  visaoGeral,
 } from "./servico";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
 
@@ -185,5 +197,81 @@ describe("permissões e relatório", () => {
     const rel = await relatorioTurma(await membro("prof.ana"), "t4a", "Matemática");
     expect(rel.erros.length).toBeGreaterThan(0);
     expect(rel.erros[0].diagnostico).not.toBe("");
+  });
+});
+
+describe("hub da gestão Kambada", () => {
+  it("arquivo de antes do hub ganha o acesso kambada sem perder nada", async () => {
+    const antigo = await lerDados();
+    antigo.membros = antigo.membros.filter((m) => m.papel !== "gestor");
+    writeFileSync(process.env.ESCOLA_ARQUIVO!, JSON.stringify(antigo), "utf8");
+    _zerarMemoria();
+    const d = await lerDados();
+    expect(d.membros.filter((m) => m.papel === "gestor")).toHaveLength(1);
+    expect(d.alunos).toHaveLength(24);
+  });
+
+  it("a gestão entra e cadastra a coordenação; a coordenação não", async () => {
+    expect(await entrarMembro("kambada", "senha-dos-testes-123")).not.toBeNull();
+    const coord = await membro("coordenacao");
+    await expect(criarMembro(coord, { nome: "Outra Coord", usuario: "coord.2", papel: "coordenacao" })).rejects.toThrow(/gestão Kambada/);
+    const acesso = await criarMembro(await membro("kambada"), { nome: "Coordenação do Fundamental", usuario: "coord.fund", papel: "coordenacao" });
+    expect((await entrarMembro(acesso.usuario, acesso.senha))?.papel).toBe("coordenacao");
+    // a coordenação não vê o acesso da Kambada na equipe
+    expect((await equipe(coord)).membros.some((m) => m.papel === "gestor")).toBe(false);
+  });
+
+  it("permissão desligada vale na hora: sem relatório, sem cadastro, sem figuras", async () => {
+    const gestor = await membro("kambada");
+    await permissao(gestor, "m-ana", "relatorio", false);
+    await permissao(gestor, "m-ana", "cadastrar-alunos", false);
+    const ana = await membro("prof.ana");
+    expect(podeFazer(ana, "relatorio")).toBe(false);
+    expect(podeFazer(ana, "cartoes")).toBe(true);
+    await expect(relatorioTurma(ana, "t4a")).rejects.toThrow(/Ver relatório/);
+    await expect(criarAluno(ana, "t4a", "GuaraNovo")).rejects.toThrow(/Cadastrar alunos/);
+    await permissao(gestor, "m-ana", "cadastrar-alunos", true);
+    await permissao(gestor, "m-ana", "cartoes", false);
+    const ana2 = await membro("prof.ana");
+    expect((await criarAluno(ana2, "t4a", "GuaraNovo")).figuras).toEqual([]);
+    await expect(novasFiguras(ana2, "t4a-a1")).rejects.toBeInstanceOf(ErroEscola);
+    // professor e coordenação não mexem em permissão
+    await expect(permissao(await membro("coordenacao"), "m-ana", "relatorio", true)).rejects.toBeInstanceOf(ErroEscola);
+  });
+
+  it("suspender derruba a sessão aberta e reativar devolve", async () => {
+    const gestor = await membro("kambada");
+    const ana = await membro("prof.ana");
+    const sessao = lerSessaoEscola(criarSessaoEscola("professor", ana.id, marcaDoMembro(ana)));
+    expect(await quemEsta(sessao)).not.toBeNull();
+    await ativarMembro(gestor, ana.id, false);
+    expect(await quemEsta(sessao)).toBeNull();
+    await ativarMembro(gestor, ana.id, true);
+    expect(await quemEsta(sessao)).not.toBeNull();
+    // ninguém suspende a si mesmo nem a gestão
+    await expect(ativarMembro(gestor, gestor.id, false)).rejects.toBeInstanceOf(ErroEscola);
+  });
+
+  it("restaurar a demonstração é só da gestão e mantém o acesso Kambada", async () => {
+    const gestor = await membro("kambada");
+    await expect(restaurarDemonstracao(await membro("coordenacao"))).rejects.toBeInstanceOf(ErroEscola);
+    await trocarSenha(gestor, "senha-dos-testes-123", "outra-senha-longa");
+    await criarTurma(gestor, "9º ano Z", "f2", []);
+    await restaurarDemonstracao(await membro("kambada"));
+    const d = await lerDados();
+    expect(d.turmas.some((t) => t.nome === "9º ano Z")).toBe(false);
+    expect(await entrarMembro("kambada", "outra-senha-longa")).not.toBeNull();
+    expect(d.log?.[0]?.texto).toMatch(/restaurou/);
+  });
+
+  it("registro de atividades guarda quem fez o quê", async () => {
+    const gestor = await membro("kambada");
+    await editarTurma(gestor, "t4a", "4º ano Azul", "f1");
+    const { codigo } = await novoCodigoTurma(gestor, "t4a");
+    expect(await turmaPorCodigo("4821")).toBeNull();
+    expect((await turmaPorCodigo(codigo))?.turma).toBe("4º ano Azul");
+    const v = await visaoGeral(await membro("kambada"));
+    expect(v.log.map((e) => e.texto).join(" | ")).toMatch(/trocou o código do 4º ano Azul/);
+    await expect(visaoGeral(await membro("coordenacao"))).rejects.toBeInstanceOf(ErroEscola);
   });
 });

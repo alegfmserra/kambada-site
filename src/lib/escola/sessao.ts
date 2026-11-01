@@ -61,6 +61,7 @@ export const VALIDADE_S: Record<Papel, number> = {
   aluno: 10 * 3600,
   professor: 7 * 86400,
   coordenacao: 7 * 86400,
+  gestor: 12 * 3600,
 };
 
 export type SessaoEscola = { v: "esc1"; p: Papel; id: string; m: string; exp: number };
@@ -73,7 +74,7 @@ export function criarSessaoEscola(p: Papel, id: string, m: string, agora = Date.
 export function lerSessaoEscola(cookie: unknown, agora = Date.now()): SessaoEscola | null {
   const s = verificar<SessaoEscola>(cookie);
   if (!s || s.v !== "esc1" || typeof s.exp !== "number" || s.exp <= Math.floor(agora / 1000)) return null;
-  if (s.p !== "aluno" && s.p !== "professor" && s.p !== "coordenacao") return null;
+  if (s.p !== "aluno" && s.p !== "professor" && s.p !== "coordenacao" && s.p !== "gestor") return null;
   if (typeof s.id !== "string" || typeof s.m !== "string") return null;
   return s;
 }

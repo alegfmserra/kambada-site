@@ -1,18 +1,22 @@
 import { randomInt } from "node:crypto";
 import { idAleatorio } from "../play/jogos/seguranca";
-import { alterar, lerDados, restaurar, type Aluno, type Dados, type Membro, type Registro, type Turma } from "./dados";
+import { alterar, lerDados, restaurar, type Aluno, type Dados, type Evento, type Membro, type Registro, type Turma } from "./dados";
 import { TRILHAS, habilidades, publica, questaoPorId, trilhaPorId, trilhasDaEtapa, type Questao, type Trilha } from "./desafios";
 import { gerarHash, marca, senhaConfere, senhaInicial } from "./senha";
 import type { SessaoEscola } from "./sessao";
 import {
   AVATARES,
   DISCIPLINAS,
+  NOME_PAPEL,
+  PERMISSOES,
   PONTOS,
+  TODAS_PERMISSOES,
   type AlunoPublico,
   type Disciplina,
   type EscolaPublica,
   type Etapa,
   type Papel,
+  type Permissao,
   type QuestaoPublica,
   type Resultado,
   type TrilhaPublica,
@@ -25,7 +29,11 @@ import {
  * Quem pode o quê:
  *  - aluno: joga as trilhas da etapa da turma e vê o ranking;
  *  - professor: cadastra apelidos nas SUAS turmas, imprime cartões e vê o relatório delas;
- *  - coordenação: cadastra professores e turmas, vê todas as turmas e o relatório geral.
+ *  - coordenação: cadastra professores e turmas, vê todas as turmas e o relatório geral;
+ *  - gestão Kambada (hub): tudo o que a coordenação faz, mais cadastrar a coordenação,
+ *    ligar e desligar permissões de cada professor, suspender acesso, restaurar a
+ *    demonstração e ver o registro de atividades.
+ * O que o professor pode fazer nas turmas dele depende das permissões (`podeFazer`).
  */
 
 export class ErroEscola extends Error {
@@ -47,7 +55,9 @@ export function marcaDoMembro(m: Membro): string {
 
 export type Quem =
   | { papel: "aluno"; aluno: Aluno; turma: Turma }
-  | { papel: "professor" | "coordenacao"; membro: Membro };
+  | { papel: "professor"; membro: Membro }
+  | { papel: "coordenacao"; membro: Membro }
+  | { papel: "gestor"; membro: Membro };
 
 export async function quemEsta(s: SessaoEscola | null): Promise<Quem | null> {
   if (!s) return null;
@@ -59,8 +69,8 @@ export async function quemEsta(s: SessaoEscola | null): Promise<Quem | null> {
     return { papel: "aluno", aluno, turma };
   }
   const membro = d.membros.find((m) => m.id === s.id);
-  if (!membro || membro.papel !== s.p || marcaDoMembro(membro) !== s.m) return null;
-  return { papel: membro.papel, membro };
+  if (!membro || membro.papel !== s.p || membro.ativo === false || marcaDoMembro(membro) !== s.m) return null;
+  return { papel: membro.papel, membro } as Quem;
 }
 
 export async function escolaPublica(): Promise<EscolaPublica & { demo: boolean }> {
@@ -372,10 +382,20 @@ function montarRelatorio(d: Dados, turma: Turma, disciplina: Disciplina): Relato
 }
 
 function podeVerTurma(m: Membro, t: Turma): boolean {
-  return m.papel === "coordenacao" || t.professorIds.includes(m.id);
+  return m.papel !== "professor" || t.professorIds.includes(m.id);
+}
+
+/** Coordenação e gestão podem tudo; o professor, o que estiver ligado (sem lista = tudo). */
+export function podeFazer(m: Membro, p: Permissao): boolean {
+  return m.papel !== "professor" || (m.permissoes ?? TODAS_PERMISSOES).includes(p);
+}
+
+function exigirPermissao(m: Membro, p: Permissao) {
+  if (!podeFazer(m, p)) throw new ErroEscola(`Seu acesso não inclui “${PERMISSOES.find((x) => x.id === p)!.rotulo}”. Fale com a coordenação.`, 403);
 }
 
 export async function relatorioTurma(m: Membro, turmaId: string, disciplina?: string): Promise<RelatorioTurma> {
+  exigirPermissao(m, "relatorio");
   const d = await lerDados();
   const t = d.turmas.find((x) => x.id === turmaId);
   if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
@@ -454,6 +474,7 @@ const figurasNovas = () => [randomInt(9), randomInt(9), randomInt(9)];
 
 export async function criarAluno(m: Membro, turmaId: string, apelidoBruto: unknown): Promise<AlunoComFiguras> {
   const apelido = apelidoValido(apelidoBruto);
+  exigirPermissao(m, "cadastrar-alunos");
   if (!apelido) throw new ErroEscola("Apelido com 3 a 20 letras ou números, sem espaço. Nada de nome completo.");
   return alterar((d) => {
     const t = d.turmas.find((x) => x.id === turmaId);
@@ -463,7 +484,9 @@ export async function criarAluno(m: Membro, turmaId: string, apelidoBruto: unkno
     if (daTurma.length >= 60) throw new ErroEscola("Limite de 60 alunos por turma.");
     const a: Aluno = { id: `a-${idAleatorio(6)}`, turmaId: t.id, apelido, avatar: AVATARES[randomInt(AVATARES.length)], figuras: figurasNovas(), criadoEm: new Date().toISOString() };
     d.alunos.push(a);
-    return { ...publicoAluno(a), figuras: a.figuras };
+    anotar(d, m, `cadastrou o aluno ${a.apelido} no ${t.nome}`);
+    // Sem "Cartões e figuras", quem cadastrou não vê a senha de figuras.
+    return { ...publicoAluno(a), figuras: podeFazer(m, "cartoes") ? a.figuras : [] };
   });
 }
 
@@ -476,16 +499,20 @@ function alunoGerenciavel(d: Dados, m: Membro, alunoId: unknown): Aluno {
 
 /** Nova senha de figuras: a antiga deixa de valer e a sessão do aluno cai. */
 export async function novasFiguras(m: Membro, alunoId: unknown): Promise<AlunoComFiguras> {
+  exigirPermissao(m, "cartoes");
   return alterar((d) => {
     const a = alunoGerenciavel(d, m, alunoId);
     a.figuras = figurasNovas();
+    anotar(d, m, `trocou as figuras de ${a.apelido}`);
     return { ...publicoAluno(a), figuras: a.figuras };
   });
 }
 
 export async function removerAluno(m: Membro, alunoId: unknown): Promise<void> {
+  exigirPermissao(m, "remover-alunos");
   await alterar((d) => {
     const a = alunoGerenciavel(d, m, alunoId);
+    anotar(d, m, `removeu o aluno ${a.apelido}`);
     d.alunos = d.alunos.filter((x) => x.id !== a.id);
     // Os dados são da escola: saiu o aluno, saem as respostas dele.
     d.registros = d.registros.filter((r) => r.alunoId !== a.id);
@@ -493,24 +520,49 @@ export async function removerAluno(m: Membro, alunoId: unknown): Promise<void> {
   });
 }
 
-function soCoordenacao(m: Membro) {
-  if (m.papel !== "coordenacao") throw new ErroEscola("Só a coordenação faz isso.", 403);
+/** Coordenação ou gestão Kambada. */
+function soGestao(m: Membro) {
+  if (m.papel === "professor") throw new ErroEscola("Só a coordenação faz isso.", 403);
 }
 
-export type MembroPublico = { id: string; nome: string; usuario: string; papel: Papel; disciplinas: Disciplina[]; turmas: string[] };
+/** Só a gestão Kambada (hub). */
+function soGestor(m: Membro) {
+  if (m.papel !== "gestor") throw new ErroEscola("Só a gestão Kambada faz isso.", 403);
+}
+
+/** Linha no registro de atividades do hub (as 300 mais recentes). */
+function anotar(d: Dados, m: Membro, texto: string) {
+  d.log = [...(d.log ?? []), { em: new Date().toISOString(), quem: m.nome, texto }].slice(-300);
+}
+
+export type MembroPublico = {
+  id: string;
+  nome: string;
+  usuario: string;
+  papel: Papel;
+  disciplinas: Disciplina[];
+  turmas: string[];
+  permissoes: Permissao[];
+  ativo: boolean;
+};
 
 export async function equipe(m: Membro): Promise<{ membros: MembroPublico[]; turmas: { id: string; nome: string; etapa: Etapa; codigo: string; professorIds: string[] }[] }> {
-  soCoordenacao(m);
+  soGestao(m);
   const d = await lerDados();
   return {
-    membros: d.membros.map((x) => ({
-      id: x.id,
-      nome: x.nome,
-      usuario: x.usuario,
-      papel: x.papel,
-      disciplinas: x.disciplinas,
-      turmas: d.turmas.filter((t) => t.professorIds.includes(x.id)).map((t) => t.nome),
-    })),
+    membros: d.membros
+      // A coordenação não vê (nem mexe) no acesso da Kambada.
+      .filter((x) => m.papel === "gestor" || x.papel !== "gestor")
+      .map((x) => ({
+        id: x.id,
+        nome: x.nome,
+        usuario: x.usuario,
+        papel: x.papel,
+        disciplinas: x.disciplinas,
+        turmas: d.turmas.filter((t) => t.professorIds.includes(x.id)).map((t) => t.nome),
+        permissoes: x.papel === "professor" ? (x.permissoes ?? TODAS_PERMISSOES) : TODAS_PERMISSOES,
+        ativo: x.ativo !== false,
+      })),
     turmas: d.turmas.map((t) => ({ id: t.id, nome: t.nome, etapa: t.etapa, codigo: t.codigo, professorIds: t.professorIds })),
   };
 }
@@ -521,56 +573,128 @@ function usuarioValido(bruto: unknown): string | null {
   return /^[a-z0-9._-]{3,30}$/.test(u) ? u : null;
 }
 
-export async function criarProfessor(m: Membro, nome: unknown, usuario: unknown, disciplinas: unknown, turmaIds: unknown): Promise<{ usuario: string; senha: string }> {
-  soCoordenacao(m);
-  const n = typeof nome === "string" ? nome.replace(/\s+/g, " ").trim() : "";
-  if (n.length < 2 || n.length > 60) throw new ErroEscola("Nome do professor com 2 a 60 letras.");
-  const u = usuarioValido(usuario);
+function nomeValido(bruto: unknown): string {
+  const n = typeof bruto === "string" ? bruto.replace(/\s+/g, " ").trim() : "";
+  if (n.length < 2 || n.length > 60) throw new ErroEscola("Nome com 2 a 60 letras.");
+  return n;
+}
+
+const listaDisciplinas = (v: unknown): Disciplina[] => (Array.isArray(v) ? DISCIPLINAS.filter((x) => v.includes(x)) : []);
+const listaPermissoes = (v: unknown): Permissao[] => (Array.isArray(v) ? TODAS_PERMISSOES.filter((x) => v.includes(x)) : TODAS_PERMISSOES);
+
+export type NovoMembro = { nome: unknown; usuario: unknown; papel?: unknown; disciplinas?: unknown; turmas?: unknown; permissoes?: unknown };
+
+/**
+ * Cadastra professor (coordenação ou gestão) ou coordenação (só gestão).
+ * A senha inicial volta uma vez só, para a tela mostrar.
+ */
+export async function criarMembro(m: Membro, novo: NovoMembro): Promise<{ usuario: string; senha: string }> {
+  soGestao(m);
+  const papel = novo.papel === "coordenacao" ? "coordenacao" : "professor";
+  if (papel === "coordenacao") soGestor(m);
+  const n = nomeValido(novo.nome);
+  const u = usuarioValido(novo.usuario);
   if (!u) throw new ErroEscola("Usuário com 3 a 30 letras minúsculas, números, ponto ou traço (ex.: prof.ana).");
-  const discs = Array.isArray(disciplinas) ? DISCIPLINAS.filter((x) => disciplinas.includes(x)) : [];
-  const turmas = Array.isArray(turmaIds) ? turmaIds.filter((x): x is string => typeof x === "string") : [];
+  const turmas = Array.isArray(novo.turmas) ? novo.turmas.filter((x): x is string => typeof x === "string") : [];
+  // Só a gestão escolhe permissões na criação; a coordenação cria com tudo ligado.
+  const permissoes = papel === "professor" && m.papel === "gestor" && novo.permissoes !== undefined ? listaPermissoes(novo.permissoes) : undefined;
   const senha = senhaInicial();
   const senhaHash = gerarHash(senha);
   await alterar((d) => {
     if (d.membros.some((x) => x.usuario === u)) throw new ErroEscola("Esse usuário já existe.");
     if (d.membros.length >= 200) throw new ErroEscola("Limite de 200 pessoas na equipe.");
     const id = `m-${idAleatorio(6)}`;
-    d.membros.push({ id, papel: "professor", nome: n, usuario: u, senhaHash, disciplinas: discs, criadoEm: new Date().toISOString() });
-    for (const t of d.turmas) if (turmas.includes(t.id) && !t.professorIds.includes(id)) t.professorIds.push(id);
+    d.membros.push({ id, papel, nome: n, usuario: u, senhaHash, disciplinas: listaDisciplinas(novo.disciplinas), ...(permissoes ? { permissoes } : {}), criadoEm: new Date().toISOString() });
+    if (papel === "professor") for (const t of d.turmas) if (turmas.includes(t.id) && !t.professorIds.includes(id)) t.professorIds.push(id);
+    anotar(d, m, `cadastrou ${NOME_PAPEL[papel].toLowerCase()} ${n} (${u})`);
   });
   return { usuario: u, senha };
 }
 
+export function criarProfessor(m: Membro, nome: unknown, usuario: unknown, disciplinas: unknown, turmaIds: unknown): Promise<{ usuario: string; senha: string }> {
+  return criarMembro(m, { nome, usuario, papel: "professor", disciplinas, turmas: turmaIds });
+}
+
+/** Pessoa da equipe que `m` pode administrar: coordenação mexe em professor; gestão, em professor e coordenação (nunca em si mesma). */
+function membroGerenciavel(d: Dados, m: Membro, id: unknown): Membro {
+  const x = d.membros.find((y) => y.id === id);
+  const ok = x && x.id !== m.id && x.papel !== "gestor" && (x.papel === "professor" || m.papel === "gestor");
+  if (!x || !ok) throw new ErroEscola("Pessoa não encontrada.", 404);
+  return x;
+}
+
+/** Gestão: nome, usuário, disciplinas e permissões (estas, só de professor). */
+export async function editarMembro(m: Membro, id: unknown, dados: Record<string, unknown>): Promise<void> {
+  soGestor(m);
+  const nome = nomeValido(dados.nome);
+  const u = usuarioValido(dados.usuario);
+  if (!u) throw new ErroEscola("Usuário com 3 a 30 letras minúsculas, números, ponto ou traço.");
+  await alterar((d) => {
+    const x = membroGerenciavel(d, m, id);
+    if (d.membros.some((y) => y.usuario === u && y.id !== x.id)) throw new ErroEscola("Esse usuário já existe.");
+    x.nome = nome;
+    x.usuario = u;
+    x.disciplinas = listaDisciplinas(dados.disciplinas);
+    if (x.papel === "professor" && dados.permissoes !== undefined) x.permissoes = listaPermissoes(dados.permissoes);
+    anotar(d, m, `editou ${nome} (${u})`);
+  });
+}
+
+/** Gestão: liga ou desliga UMA permissão de um professor. */
+export async function permissao(m: Membro, id: unknown, perm: unknown, ligada: unknown): Promise<void> {
+  soGestor(m);
+  const p = TODAS_PERMISSOES.find((x) => x === perm);
+  if (!p) throw new ErroEscola("Permissão inválida.");
+  await alterar((d) => {
+    const x = membroGerenciavel(d, m, id);
+    if (x.papel !== "professor") throw new ErroEscola("Permissões são só de professor; a coordenação pode tudo.");
+    const atuais = (x.permissoes ?? TODAS_PERMISSOES).filter((y) => y !== p);
+    x.permissoes = TODAS_PERMISSOES.filter((y) => atuais.includes(y) || (y === p && ligada === true));
+    anotar(d, m, `${ligada === true ? "ligou" : "desligou"} “${PERMISSOES.find((y) => y.id === p)!.rotulo}” de ${x.nome}`);
+  });
+}
+
+/** Gestão: suspende ou reativa o acesso (suspenso não entra e a sessão aberta cai na hora). */
+export async function ativarMembro(m: Membro, id: unknown, ativo: unknown): Promise<void> {
+  soGestor(m);
+  await alterar((d) => {
+    const x = membroGerenciavel(d, m, id);
+    x.ativo = ativo === true;
+    anotar(d, m, `${x.ativo ? "reativou" : "suspendeu"} o acesso de ${x.nome}`);
+  });
+}
+
 export async function vincular(m: Membro, professorId: unknown, turmaId: unknown, ligado: unknown): Promise<void> {
-  soCoordenacao(m);
+  soGestao(m);
   await alterar((d) => {
     const p = d.membros.find((x) => x.id === professorId && x.papel === "professor");
     const t = d.turmas.find((x) => x.id === turmaId);
     if (!p || !t) throw new ErroEscola("Professor ou turma não encontrado.", 404);
     t.professorIds = t.professorIds.filter((x) => x !== p.id);
     if (ligado === true) t.professorIds.push(p.id);
+    anotar(d, m, `${ligado === true ? "vinculou" : "desvinculou"} ${p.nome} ${ligado === true ? "ao" : "do"} ${t.nome}`);
   });
 }
 
-export async function removerProfessor(m: Membro, professorId: unknown): Promise<void> {
-  soCoordenacao(m);
+export async function removerMembro(m: Membro, id: unknown): Promise<void> {
+  soGestao(m);
   await alterar((d) => {
-    const p = d.membros.find((x) => x.id === professorId && x.papel === "professor");
-    if (!p) throw new ErroEscola("Professor não encontrado.", 404);
-    d.membros = d.membros.filter((x) => x.id !== p.id);
-    for (const t of d.turmas) t.professorIds = t.professorIds.filter((x) => x !== p.id);
+    const x = membroGerenciavel(d, m, id);
+    d.membros = d.membros.filter((y) => y.id !== x.id);
+    for (const t of d.turmas) t.professorIds = t.professorIds.filter((y) => y !== x.id);
+    anotar(d, m, `removeu ${x.nome} (${x.usuario}) da equipe`);
   });
 }
 
-export async function novaSenhaProfessor(m: Membro, professorId: unknown): Promise<{ usuario: string; senha: string }> {
-  soCoordenacao(m);
+export async function novaSenhaMembro(m: Membro, id: unknown): Promise<{ usuario: string; senha: string }> {
+  soGestao(m);
   const senha = senhaInicial();
   const senhaHash = gerarHash(senha);
   const usuario = await alterar((d) => {
-    const p = d.membros.find((x) => x.id === professorId && x.papel === "professor");
-    if (!p) throw new ErroEscola("Professor não encontrado.", 404);
-    p.senhaHash = senhaHash;
-    return p.usuario;
+    const x = membroGerenciavel(d, m, id);
+    x.senhaHash = senhaHash;
+    anotar(d, m, `gerou senha nova para ${x.nome}`);
+    return x.usuario;
   });
   return { usuario, senha };
 }
@@ -582,23 +706,56 @@ function codigoNovo(d: Dados): string {
   }
 }
 
-export async function criarTurma(m: Membro, nome: unknown, etapa: unknown, professorIds: unknown): Promise<{ id: string; codigo: string }> {
-  soCoordenacao(m);
-  const n = typeof nome === "string" ? nome.replace(/\s+/g, " ").trim() : "";
+function nomeTurmaValido(bruto: unknown): string {
+  const n = typeof bruto === "string" ? bruto.replace(/\s+/g, " ").trim() : "";
   if (n.length < 2 || n.length > 30) throw new ErroEscola("Nome da turma com 2 a 30 caracteres (ex.: 3º ano C).");
+  return n;
+}
+
+export async function criarTurma(m: Membro, nome: unknown, etapa: unknown, professorIds: unknown): Promise<{ id: string; codigo: string }> {
+  soGestao(m);
+  const n = nomeTurmaValido(nome);
   if (etapa !== "f1" && etapa !== "f2") throw new ErroEscola("Escolha a etapa da turma.");
   const profs = Array.isArray(professorIds) ? professorIds.filter((x): x is string => typeof x === "string") : [];
   return alterar((d) => {
     if (d.turmas.length >= 100) throw new ErroEscola("Limite de 100 turmas.");
     if (d.turmas.some((t) => t.nome.toLowerCase() === n.toLowerCase())) throw new ErroEscola("Já existe uma turma com esse nome.");
-    const t: Turma = { id: `t-${idAleatorio(6)}`, nome: n, etapa, codigo: codigoNovo(d), professorIds: profs.filter((id) => d.membros.some((x) => x.id === id)), criadoEm: new Date().toISOString() };
+    const t: Turma = { id: `t-${idAleatorio(6)}`, nome: n, etapa, codigo: codigoNovo(d), professorIds: profs.filter((id) => d.membros.some((x) => x.id === id && x.papel === "professor")), criadoEm: new Date().toISOString() };
     d.turmas.push(t);
+    anotar(d, m, `criou a turma ${t.nome} (código ${t.codigo})`);
     return { id: t.id, codigo: t.codigo };
   });
 }
 
+/** Renomeia a turma e muda a etapa (os desafios que os alunos veem mudam junto; as respostas antigas ficam). */
+export async function editarTurma(m: Membro, turmaId: unknown, nome: unknown, etapa: unknown): Promise<void> {
+  soGestao(m);
+  const n = nomeTurmaValido(nome);
+  if (etapa !== "f1" && etapa !== "f2") throw new ErroEscola("Escolha a etapa da turma.");
+  await alterar((d) => {
+    const t = d.turmas.find((x) => x.id === turmaId);
+    if (!t) throw new ErroEscola("Turma não encontrada.", 404);
+    if (d.turmas.some((x) => x.id !== t.id && x.nome.toLowerCase() === n.toLowerCase())) throw new ErroEscola("Já existe uma turma com esse nome.");
+    t.nome = n;
+    t.etapa = etapa;
+    anotar(d, m, `editou a turma ${n}`);
+  });
+}
+
+/** Código novo: o antigo deixa de abrir a turma (os cartões impressos precisam ser refeitos). */
+export async function novoCodigoTurma(m: Membro, turmaId: unknown): Promise<{ codigo: string }> {
+  soGestao(m);
+  return alterar((d) => {
+    const t = d.turmas.find((x) => x.id === turmaId);
+    if (!t) throw new ErroEscola("Turma não encontrada.", 404);
+    t.codigo = codigoNovo(d);
+    anotar(d, m, `trocou o código do ${t.nome} para ${t.codigo}`);
+    return { codigo: t.codigo };
+  });
+}
+
 export async function removerTurma(m: Membro, turmaId: unknown): Promise<void> {
-  soCoordenacao(m);
+  soGestao(m);
   await alterar((d) => {
     const t = d.turmas.find((x) => x.id === turmaId);
     if (!t) throw new ErroEscola("Turma não encontrada.", 404);
@@ -607,6 +764,7 @@ export async function removerTurma(m: Membro, turmaId: unknown): Promise<void> {
     d.alunos = d.alunos.filter((a) => !ids.has(a.id));
     d.registros = d.registros.filter((r) => !ids.has(r.alunoId));
     d.partidas = d.partidas.filter((p) => !ids.has(p.alunoId));
+    anotar(d, m, `apagou a turma ${t.nome} (${ids.size} alunos)`);
   });
 }
 
@@ -614,7 +772,7 @@ const CORES = ["#F5821F", "#C2410C", "#15803D", "#1D4ED8", "#7C3AED", "#BE185D",
 export const CORES_ESCOLA = CORES;
 
 export async function editarEscola(m: Membro, dados: Record<string, unknown>): Promise<void> {
-  soCoordenacao(m);
+  soGestao(m);
   const nome = typeof dados.nome === "string" ? dados.nome.replace(/\s+/g, " ").trim() : "";
   const sigla = typeof dados.sigla === "string" ? dados.sigla.trim().toUpperCase() : "";
   if (nome.length < 3 || nome.length > 60) throw new ErroEscola("Nome da escola com 3 a 60 caracteres.");
@@ -624,6 +782,7 @@ export async function editarEscola(m: Membro, dados: Record<string, unknown>): P
     d.escola.nome = nome;
     d.escola.sigla = sigla;
     if (cor) d.escola.cor = cor;
+    anotar(d, m, "mudou a identidade do portal");
   });
 }
 
@@ -640,6 +799,38 @@ export async function trocarSenha(m: Membro, atual: unknown, nova: unknown): Pro
 }
 
 export async function restaurarDemonstracao(m: Membro): Promise<void> {
-  soCoordenacao(m);
-  await restaurar();
+  soGestor(m);
+  await restaurar(m.nome);
+}
+
+// ---------------------------------------------------------------------------
+// Hub da gestão Kambada
+// ---------------------------------------------------------------------------
+
+export type VisaoGeral = {
+  turmas: number;
+  alunos: number;
+  professores: number;
+  coordenacao: number;
+  suspensos: number;
+  respostas7d: number;
+  ativos7d: number;
+  log: Evento[];
+};
+
+export async function visaoGeral(m: Membro): Promise<VisaoGeral> {
+  soGestor(m);
+  const d = await lerDados();
+  const semana = Date.now() - 7 * 86400000;
+  const recentes = d.registros.filter((r) => Date.parse(r.em) > semana);
+  return {
+    turmas: d.turmas.length,
+    alunos: d.alunos.length,
+    professores: d.membros.filter((x) => x.papel === "professor").length,
+    coordenacao: d.membros.filter((x) => x.papel === "coordenacao").length,
+    suspensos: d.membros.filter((x) => x.ativo === false).length,
+    respostas7d: recentes.length,
+    ativos7d: new Set(recentes.map((r) => r.alunoId)).size,
+    log: [...(d.log ?? [])].reverse().slice(0, 40),
+  };
 }

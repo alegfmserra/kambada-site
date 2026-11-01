@@ -54,7 +54,8 @@ export async function POST(req: Request) {
       contarErro(ip, "escola-equipe", JANELA);
       return falha("Usuário ou senha não conferem.", 401);
     }
-    const destino = rotaEscola(m.papel === "coordenacao" ? "/coordenacao" : "/professor");
+    if (m.ativo === false) return falha("Acesso suspenso. Fale com a coordenação da escola.", 403);
+    const destino = rotaEscola({ professor: "/professor", coordenacao: "/coordenacao", gestor: "/gestor" }[m.papel]);
     const r = NextResponse.json({ ok: true, destino });
     r.cookies.set(COOKIE_ESCOLA, criarSessaoEscola(m.papel, m.id, marcaDoMembro(m)), opcoesCookie(m.papel));
     return r;

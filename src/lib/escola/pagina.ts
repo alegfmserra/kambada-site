@@ -12,7 +12,7 @@ export async function quemNaPagina(): Promise<Quem | null> {
 }
 
 export function inicioDoPapel(p: Papel): string {
-  return rotaEscola(p === "aluno" ? "/aluno" : p === "professor" ? "/professor" : "/coordenacao");
+  return rotaEscola({ aluno: "/aluno", professor: "/professor", coordenacao: "/coordenacao", gestor: "/gestor" }[p]);
 }
 
 /** Sem sessão (ou papel errado) → tela de entrada certa. */

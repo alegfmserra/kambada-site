@@ -7,8 +7,10 @@ import type { AlunoComFiguras } from "@/lib/escola/servico";
 import { FIGURAS } from "@/lib/escola/tipos";
 import { BOTAO, BOTAO_SECUNDARIO, CAMPO, chamar } from "./chamar";
 
-/** Professor: cadastra apelidos, troca a senha de figuras e tira aluno da turma. */
-export function GestaoTurma({ turmaId, turmaNome, codigo, alunosIniciais }: { turmaId: string; turmaNome: string; codigo: string; alunosIniciais: AlunoComFiguras[] }) {
+type Pode = { cadastrar: boolean; cartoes: boolean; remover: boolean };
+
+/** Professor: cadastra apelidos, troca a senha de figuras e tira aluno da turma (o que as permissões dele deixarem). */
+export function GestaoTurma({ turmaId, turmaNome, codigo, alunosIniciais, pode }: { turmaId: string; turmaNome: string; codigo: string; alunosIniciais: AlunoComFiguras[]; pode: Pode }) {
   const [alunos, setAlunos] = useState(alunosIniciais);
   const [apelido, setApelido] = useState("");
   const [msg, setMsg] = useState("");
@@ -25,7 +27,7 @@ export function GestaoTurma({ turmaId, turmaNome, codigo, alunosIniciais }: { tu
     if (!r.ok) return setErro(r.mensagem ?? "Não deu para cadastrar.");
     setAlunos((l) => [...l, r.aluno].sort((a, b) => a.apelido.localeCompare(b.apelido, "pt-BR")));
     setApelido("");
-    setMsg(`${r.aluno.apelido} cadastrado. Senha de figuras: ${r.aluno.figuras.map((f) => FIGURAS[f]).join(" ")}`);
+    setMsg(pode.cartoes ? `${r.aluno.apelido} cadastrado. Senha de figuras: ${r.aluno.figuras.map((f) => FIGURAS[f]).join(" ")}` : `${r.aluno.apelido} cadastrado. A coordenação entrega o cartão.`);
   }
 
   async function novaSenha(a: AlunoComFiguras) {
@@ -46,16 +48,18 @@ export function GestaoTurma({ turmaId, turmaNome, codigo, alunosIniciais }: { tu
 
   return (
     <div className="space-y-6">
-      <form onSubmit={criar} className="flex flex-wrap items-end gap-3 rounded-2xl bg-superficie p-4">
-        <label className="min-w-[14rem] flex-1 text-sm font-semibold">
-          Novo aluno (apelido)
-          <input className={CAMPO} value={apelido} onChange={(e) => setApelido(e.target.value)} maxLength={20} placeholder="ex.: GuaraVeloz" />
-        </label>
-        <button type="submit" className={BOTAO} disabled={ocupado || apelido.trim().length < 3}>
-          Cadastrar
-        </button>
-        <p className="w-full text-xs text-texto-suave">Só apelido, sem nome completo, sem espaço. O sistema sorteia a senha de figuras.</p>
-      </form>
+      {pode.cadastrar && (
+        <form onSubmit={criar} className="flex flex-wrap items-end gap-3 rounded-2xl bg-superficie p-4">
+          <label className="min-w-[14rem] flex-1 text-sm font-semibold">
+            Novo aluno (apelido)
+            <input className={CAMPO} value={apelido} onChange={(e) => setApelido(e.target.value)} maxLength={20} placeholder="ex.: GuaraVeloz" />
+          </label>
+          <button type="submit" className={BOTAO} disabled={ocupado || apelido.trim().length < 3}>
+            Cadastrar
+          </button>
+          <p className="w-full text-xs text-texto-suave">Só apelido, sem nome completo, sem espaço. O sistema sorteia a senha de figuras.</p>
+        </form>
+      )}
 
       {msg && <p className="rounded-2xl bg-kambada-green/15 p-3 font-semibold" role="status">{msg}</p>}
       {erro && <p className="font-semibold text-kambada-red" role="alert">{erro}</p>}
@@ -64,9 +68,11 @@ export function GestaoTurma({ turmaId, turmaNome, codigo, alunosIniciais }: { tu
         <p className="text-sm">
           <b>{alunos.length}</b> alunos no {turmaNome} · entram com o código <b className="tracking-widest">{codigo}</b>
         </p>
-        <Link href={rotaEscola(`/professor/turma/${turmaId}/cartoes`)} className={BOTAO_SECUNDARIO} target="_blank">
-          🖨️ Imprimir cartões de acesso
-        </Link>
+        {pode.cartoes && (
+          <Link href={rotaEscola(`/professor/turma/${turmaId}/cartoes`)} className={BOTAO_SECUNDARIO} target="_blank">
+            🖨️ Imprimir cartões de acesso
+          </Link>
+        )}
       </div>
 
       <ul className="divide-y divide-borda rounded-2xl border border-borda">
@@ -74,12 +80,18 @@ export function GestaoTurma({ turmaId, turmaNome, codigo, alunosIniciais }: { tu
           <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
             <span className="text-2xl" aria-hidden>{a.avatar}</span>
             <span className="min-w-[8rem] flex-1 font-semibold">{a.apelido}</span>
-            <span className="text-2xl tracking-widest" title="Senha de figuras">{a.figuras.map((f) => FIGURAS[f]).join("")}</span>
-            <button type="button" className="text-sm underline" onClick={() => novaSenha(a)}>Novas figuras</button>
-            <button type="button" className="text-sm text-kambada-red underline" onClick={() => remover(a)}>Remover</button>
+            {pode.cartoes && (
+              <>
+                <span className="text-2xl tracking-widest" title="Senha de figuras">{a.figuras.map((f) => FIGURAS[f]).join("")}</span>
+                <button type="button" className="text-sm underline" onClick={() => novaSenha(a)}>Novas figuras</button>
+              </>
+            )}
+            {pode.remover && <button type="button" className="text-sm text-kambada-red underline" onClick={() => remover(a)}>Remover</button>}
           </li>
         ))}
-        {alunos.length === 0 && <li className="px-4 py-6 text-center text-texto-suave">Nenhum aluno ainda. Cadastre o primeiro apelido acima.</li>}
+        {alunos.length === 0 && (
+          <li className="px-4 py-6 text-center text-texto-suave">{pode.cadastrar ? "Nenhum aluno ainda. Cadastre o primeiro apelido acima." : "Nenhum aluno ainda."}</li>
+        )}
       </ul>
     </div>
   );

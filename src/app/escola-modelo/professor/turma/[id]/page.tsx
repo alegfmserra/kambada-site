@@ -4,7 +4,7 @@ import { BarraStatus, Legenda } from "@/components/escola/Barras";
 import { GestaoTurma } from "@/components/escola/GestaoTurma";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { ErroEscola, alunosDaTurma, disciplinasDaEtapa, relatorioTurma, type Celula, type Status } from "@/lib/escola/servico";
+import { ErroEscola, alunosDaTurma, disciplinasDaEtapa, podeFazer, relatorioTurma, type Celula, type Status } from "@/lib/escola/servico";
 import { NOME_ETAPA } from "@/lib/escola/tipos";
 
 export const metadata = { title: "Turma" };
@@ -28,17 +28,21 @@ export default async function TurmaPagina({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ disciplina?: string; aba?: string }>;
 }) {
-  const { membro } = await exigir("professor", "coordenacao");
+  const { membro } = await exigir("professor", "coordenacao", "gestor");
   const { id } = await params;
   const { disciplina, aba } = await searchParams;
+  const veRelatorio = podeFazer(membro, "relatorio");
   let rel, lista;
   try {
-    [rel, lista] = await Promise.all([relatorioTurma(membro, id, disciplina), alunosDaTurma(membro, id)]);
+    // Sem a permissão "Ver relatório", a turma abre direto em "Alunos e cartões".
+    [rel, lista] = await Promise.all([veRelatorio ? relatorioTurma(membro, id, disciplina) : null, alunosDaTurma(membro, id)]);
   } catch (e) {
     if (e instanceof ErroEscola) notFound();
     throw e;
   }
-  const emAlunos = aba === "alunos";
+  const emAlunos = aba === "alunos" || !rel;
+  const turma = lista.turma;
+  const voltar = { professor: "/professor", coordenacao: "/coordenacao", gestor: "/gestor" }[membro.papel];
   const base = rotaEscola(`/professor/turma/${id}`);
   const abaClasse = (ativa: boolean) =>
     `rounded-full px-4 py-2 text-sm font-bold ${ativa ? "bg-kambada-amarelo text-kambada-grafite" : "border-2 border-borda hover:border-kambada-amarelo"}`;
@@ -47,23 +51,29 @@ export default async function TurmaPagina({
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Link href={rotaEscola(membro.papel === "coordenacao" ? "/coordenacao" : "/professor")} className="text-sm font-semibold underline">
+          <Link href={rotaEscola(voltar)} className="text-sm font-semibold underline">
             ← Voltar
           </Link>
-          <h1 className="mt-1 font-display text-3xl font-extrabold">{rel.turma.nome}</h1>
+          <h1 className="mt-1 font-display text-3xl font-extrabold">{turma.nome}</h1>
           <p className="text-texto-suave">
-            {NOME_ETAPA[rel.turma.etapa]} · código da turma <b className="tracking-widest text-texto">{rel.turma.codigo}</b> · {rel.participacao.ativos7d} de{" "}
-            {rel.participacao.total} jogaram nos últimos 7 dias ({rel.participacao.respostas7d} respostas)
+            {NOME_ETAPA[turma.etapa]} · código da turma <b className="tracking-widest text-texto">{turma.codigo}</b>
+            {rel && ` · ${rel.participacao.ativos7d} de ${rel.participacao.total} jogaram nos últimos 7 dias (${rel.participacao.respostas7d} respostas)`}
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href={base} className={abaClasse(!emAlunos)}>Relatório</Link>
+          {rel && <Link href={base} className={abaClasse(!emAlunos)}>Relatório</Link>}
           <Link href={`${base}?aba=alunos`} className={abaClasse(emAlunos)}>Alunos e cartões</Link>
         </div>
       </div>
 
-      {emAlunos ? (
-        <GestaoTurma turmaId={id} turmaNome={rel.turma.nome} codigo={rel.turma.codigo} alunosIniciais={lista.alunos} />
+      {emAlunos || !rel ? (
+        <GestaoTurma
+          turmaId={id}
+          turmaNome={turma.nome}
+          codigo={turma.codigo}
+          alunosIniciais={podeFazer(membro, "cartoes") ? lista.alunos : lista.alunos.map((x) => ({ ...x, figuras: [] }))}
+          pode={{ cadastrar: podeFazer(membro, "cadastrar-alunos"), cartoes: podeFazer(membro, "cartoes"), remover: podeFazer(membro, "remover-alunos") }}
+        />
       ) : (
         <>
           <div className="flex flex-wrap gap-2">

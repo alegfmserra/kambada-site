@@ -6,9 +6,9 @@ import type { MembroPublico } from "@/lib/escola/servico";
 import { DISCIPLINAS, NOME_ETAPA, type Etapa, type EscolaPublica } from "@/lib/escola/tipos";
 import { BOTAO, BOTAO_SECUNDARIO, CAMPO, chamar } from "./chamar";
 
-type TurmaGestao = { id: string; nome: string; etapa: Etapa; codigo: string; professorIds: string[] };
+export type TurmaGestao = { id: string; nome: string; etapa: Etapa; codigo: string; professorIds: string[] };
 
-function useAcao() {
+export function useAcao() {
   const router = useRouter();
   const [erro, setErro] = useState("");
   const [msg, setMsg] = useState("");

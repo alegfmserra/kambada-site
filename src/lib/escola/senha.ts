@@ -36,9 +36,11 @@ export function senhaInicial(): string {
 const HASH_DEMO = {
   coordenacao: "scrypt$9bf535eb2dd6b8da026dc2c51ff93815$a4a9186c7d82c2ff87776d55e14f7c2ccff8ea511de429b1d6bcdf9e9cd087e0",
   professor: "scrypt$46572703f788416f08f9d3c2a2381a0e$e3d72d6be30cc61f952687581444381c16ae79eb72d087d1fafe145a92fe15a8",
+  // Gestão Kambada: senha escolhida pelo Alexandre, curta de propósito para a demonstração (trocar em "Senha").
+  gestor: "scrypt$2fbc12023174271c4569de98634f1856$697322da024f3642c7a6344a9e9b9095b1fb97ff267195a7529aa9a2756737a3",
 };
 
-export function hashDemo(papel: "coordenacao" | "professor"): string {
+export function hashDemo(papel: "coordenacao" | "professor" | "gestor"): string {
   if (process.env.ESCOLA_DEMO_SENHA) return gerarHash(process.env.ESCOLA_DEMO_SENHA);
   return HASH_DEMO[papel];
 }

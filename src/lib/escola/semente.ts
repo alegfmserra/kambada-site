@@ -8,6 +8,7 @@ import { AVATARES, PONTOS, type Resultado } from "./tipos";
  * escolas. Determinística: restaurar devolve os MESMOS códigos de turma e as
  * mesmas senhas de figuras, então os cartões impressos continuam valendo.
  *
+ * Gestão Kambada, acima da escola (hub de gestão): kambada.
  * Equipe de demonstração (senhas: ver `hashDemo` em senha.ts; os professores dividem a mesma):
  *   coordenacao · prof.ana (Matemática e Português, 4º A e 5º B)
  *   prof.marcos (Inglês, 5º B e 8º A) · prof.lucia (Matemática e Português, 8º A)
@@ -30,6 +31,11 @@ const APELIDOS: Record<string, string[]> = {
   t8a: ["MestreDaMatraca", "Sobrado22", "ReggaeDaIlha", "LençolBranco", "Fogueteiro", "Zabumba", "BaixadaBoy", "Cuxá"],
 };
 
+/** O acesso da Kambada ao hub de gestão da escola. */
+export function gestorDemo(criadoEm: string): Membro {
+  return { id: "m-kambada", papel: "gestor", nome: "Gestão Kambada", usuario: "kambada", senhaHash: hashDemo("gestor"), disciplinas: [], criadoEm };
+}
+
 export function sementeDemo(agora = Date.now()): Dados {
   const r = sorteador(20261101);
   const criadoEm = new Date(agora).toISOString();
@@ -37,6 +43,7 @@ export function sementeDemo(agora = Date.now()): Dados {
   const prof = hashDemo("professor");
 
   const membros: Membro[] = [
+    gestorDemo(criadoEm),
     { id: "m-coord", papel: "coordenacao", nome: "Coordenação Pedagógica", usuario: "coordenacao", senhaHash: coord, disciplinas: [], criadoEm },
     { id: "m-ana", papel: "professor", nome: "Ana Ribeiro", usuario: "prof.ana", senhaHash: prof, disciplinas: ["Matemática", "Português"], criadoEm },
     { id: "m-marcos", papel: "professor", nome: "Marcos Lima", usuario: "prof.marcos", senhaHash: prof, disciplinas: ["Inglês"], criadoEm },

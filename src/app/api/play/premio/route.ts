@@ -16,9 +16,11 @@ async function jogadorDa(requisicao: Request, chave: unknown): Promise<string | 
 export const dynamic = "force-dynamic";
 
 /**
- * Prêmio da semana que fechou: cupom de 10% para o 1º lugar e de 5% para o 2º
- * e o 3º. Sem e-mail e sem cadastro: quem joga prova que é o vencedor com a
- * chave guardada no próprio navegador.
+ * Prêmio da semana que fechou: cupom de 10% para o 1º lugar, 8% para o 2º e 5%
+ * para o 3º (PREMIOS_SEMANAIS). Desde 02/11/2026 a rotina de manutenção emite os
+ * cupons sozinha na segunda-feira (lib/play/premiosDaSemana.ts); este POST segue
+ * valendo como reserva e devolve o cupom já emitido. Sem e-mail e sem cadastro:
+ * quem joga prova que é o vencedor com a chave guardada no próprio navegador.
  *
  * GET  ?chave=...      -> está entre os 3 primeiros da última semana?
  * POST { chave }       -> emite (ou devolve) o cupom

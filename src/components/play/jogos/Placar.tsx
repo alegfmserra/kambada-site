@@ -225,8 +225,8 @@ export function Placar() {
             Semana de segunda a domingo; soma o seu melhor resultado em cada jogo.
           </li>
           <li>
-            Top 3 ganha cupom nas peças da loja: <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º lugar e{" "}
-            <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e o 3º. Mínimo de {PONTOS_MINIMOS_PREMIO} pontos.
+            Top 3 ganha cupom nas peças da loja: <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º lugar,{" "}
+            <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e <strong>{PREMIOS_SEMANAIS[2]}%</strong> para o 3º. Mínimo de {PONTOS_MINIMOS_PREMIO} pontos.
           </li>
           <li>
             Resgate aqui, no mesmo navegador e aparelho em que jogou, em até {REGRAS_PREMIO.prazoParaResgatarDias} dias

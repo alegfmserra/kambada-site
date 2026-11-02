@@ -372,39 +372,61 @@ export function resgatarPremio(
     if (situacao.expirou) {
       return { ok: false as const, mensagem: "O prazo para resgatar o prêmio dessa semana acabou." };
     }
-    const percentual = percentualDaPosicao(situacao.posicao);
-    if (percentual === null) return { ok: false as const, mensagem: "Posição sem prêmio." };
+    const novo = await emitirCupomDoPremio(d, situacao.semana, jogador, situacao.posicao, agora);
+    if (!novo) return { ok: false as const, mensagem: "Posição sem prêmio." };
+    return { ok: true as const, ...novo, jaEmitido: false };
+  });
+}
 
-    const hoje = hojeEmSaoLuis(agora);
-    const validoAte = somarDias(hoje, REGRAS_PREMIO.validadeCupomDias);
-    const codigo = codigoNovo(new Set(cupons.map((c) => c.codigo)));
-    const cupom: Cupom = {
-      codigo: normalizarCodigo(codigo),
-      percentual,
-      parceiro: `Kambada Play · semana ${situacao.semana} · ${situacao.posicao}º lugar`,
-      limite: { usos: 1, periodo: "total" },
-      validoDe: hoje,
-      validoAte,
-      ativo: true,
-      criadoEm: agora.toISOString(),
-    };
-    await salvarCupons([...cupons, cupom]);
-    d.premios.push({
-      semana: situacao.semana,
-      jogador,
-      posicao: situacao.posicao,
-      percentual,
-      codigo: cupom.codigo,
-      emitidoEm: agora.toISOString(),
-    });
-    await gravar(d);
-    return {
-      ok: true as const,
-      codigo: cupom.codigo,
-      percentual,
-      posicao: situacao.posicao,
-      validoAte,
-      jaEmitido: false,
-    };
+/** Cria o cupom (uso único, validade curta), grava na lista de cupons da loja e registra o prêmio. */
+async function emitirCupomDoPremio(
+  d: Dados,
+  semana: string,
+  jogador: string,
+  posicao: number,
+  agora: Date,
+): Promise<{ codigo: string; percentual: number; posicao: number; validoAte: string } | null> {
+  const percentual = percentualDaPosicao(posicao);
+  if (percentual === null) return null;
+  const cupons = await listarCupons();
+  const hoje = hojeEmSaoLuis(agora);
+  const validoAte = somarDias(hoje, REGRAS_PREMIO.validadeCupomDias);
+  const codigo = codigoNovo(new Set(cupons.map((c) => c.codigo)));
+  const cupom: Cupom = {
+    codigo: normalizarCodigo(codigo),
+    percentual,
+    parceiro: `Kambada Play · semana ${semana} · ${posicao}º lugar`,
+    limite: { usos: 1, periodo: "total" },
+    validoDe: hoje,
+    validoAte,
+    ativo: true,
+    criadoEm: agora.toISOString(),
+  };
+  await salvarCupons([...cupons, cupom]);
+  d.premios.push({ semana, jogador, posicao, percentual, codigo: cupom.codigo, emitidoEm: agora.toISOString() });
+  await gravar(d);
+  return { codigo: cupom.codigo, percentual, posicao, validoAte };
+}
+
+export type PremioNovo = { jogador: string; apelido: string; pontos: number; semana: string; codigo: string; percentual: number; posicao: number; validoAte: string };
+
+/**
+ * Fechamento automático da semana (02/11/2026): emite o cupom de cada um dos 3 primeiros
+ * da semana que fechou (mínimo de pontos incluso) que ainda não tenha cupom. Pode rodar
+ * quantas vezes quiser: só emite o que falta, então não duplica. Devolve os cupons NOVOS
+ * (quem os envia por e-mail é lib/play/premiosDaSemana.ts).
+ */
+export function emitirPremiosDaSemanaFechada(agora = new Date()): Promise<{ semana: string; top: { posicao: number; apelido: string; pontos: number }[]; novos: PremioNovo[] }> {
+  return naFila(async () => {
+    const semana = semanaFechada(agora);
+    const d = await ler();
+    const top = topDaSemana(d, semana);
+    const novos: PremioNovo[] = [];
+    for (const [i, a] of top.entries()) {
+      if (d.premios.some((p) => p.semana === semana && p.jogador === a.jogador)) continue;
+      const c = await emitirCupomDoPremio(d, semana, a.jogador, i + 1, agora);
+      if (c) novos.push({ jogador: a.jogador, apelido: a.apelido, pontos: a.pontos, semana, ...c });
+    }
+    return { semana, top: top.map((a, i) => ({ posicao: i + 1, apelido: a.apelido, pontos: a.pontos })), novos };
   });
 }

@@ -118,8 +118,8 @@ export default function JogosPage() {
           <h2 className="font-display text-2xl font-extrabold sm:text-3xl">Cupom para o top 3 da semana</h2>
           <p className="mt-3 max-w-2xl text-lg">
             Pontos de segunda a domingo:{" "}
-            <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º lugar e <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e
-            o 3º na loja. Mínimo de {PONTOS_MINIMOS_PREMIO} pontos.
+            <strong>{PREMIOS_SEMANAIS[0]}%</strong> para o 1º lugar, <strong>{PREMIOS_SEMANAIS[1]}%</strong> para o 2º e{" "}
+            <strong>{PREMIOS_SEMANAIS[2]}%</strong> para o 3º na loja. Mínimo de {PONTOS_MINIMOS_PREMIO} pontos.
           </p>
           <Link
             href="/kambadaplay/placar"

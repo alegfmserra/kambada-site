@@ -22,6 +22,7 @@ import { saldoDaCarteira } from "../frete/meApi";
 import { conferirMelhorEnvio, freteConfigurado } from "../frete/melhorEnvio";
 import { conferirChave, mercadoPagoConfigurado } from "../mercadopago/cliente";
 import { listarRegistros } from "../pedidos/registro";
+import { fecharSemanaDoRanking, type FechamentoSemanal } from "../play/premiosDaSemana";
 import { alertar } from "./alertas";
 import { aquecerPaginas, type Aquecimento } from "./aquecer";
 import { reconciliar, type Reconciliacao } from "./reconciliar";
@@ -135,6 +136,7 @@ export async function rotinaDeManutencao(
     resumo: ResumoEnviado | { enviado: false; motivo: string };
     relatorioMensal: RelatorioEnviado | { enviado: false; motivo: string };
     aquecimento: Aquecimento | { paginas: 0; motivo: string };
+    rankingSemanal: FechamentoSemanal | { erro: string };
   }
 > {
   const s = await verificarSaude();
@@ -179,6 +181,14 @@ export async function rotinaDeManutencao(
     relatorioMensal = { enviado: false, motivo: e instanceof Error ? e.message : String(e) };
   }
   const url = (process.env.URL_DO_SITE ?? "https://somoskambada.com.br").replace(/\/+$/, "");
+
+  // Ranking semanal do Play: emite os cupons do top 3 da semana que fechou (idempotente).
+  let rankingSemanal: FechamentoSemanal | { erro: string };
+  try {
+    rankingSemanal = await fecharSemanaDoRanking(url);
+  } catch (e) {
+    rankingSemanal = { erro: e instanceof Error ? e.message : String(e) };
+  }
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
   if (!s.melhorEnvio.ok) alertas.melhorEnvio = await alertar("melhor-envio", "Melhor Envio fora", `${s.melhorEnvio.detalhe}.\n\nEnquanto durar, o carrinho só oferece a retirada no ateliê.`);
@@ -235,5 +245,5 @@ Carregar: melhorenvio.com.br → Carteira → Adicionar saldo (Pix cai na hora).
     aquecimento = { paginas: 0, motivo: e instanceof Error ? e.message : String(e) };
   }
 
-  return { ...s, alertas, reconciliacao, resumo, relatorioMensal, aquecimento };
+  return { ...s, alertas, reconciliacao, resumo, relatorioMensal, aquecimento, rankingSemanal };
 }

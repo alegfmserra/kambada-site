@@ -73,8 +73,8 @@ export type LinhaPlacar = {
 
 export type PeriodoPlacar = "semana" | "mes" | "total";
 
-/** Prêmio semanal: 1º lugar 10%, 2º e 3º lugares 5%. */
-export const PREMIOS_SEMANAIS = [10, 5, 5] as const;
+/** Prêmio semanal: 1º lugar 10%, 2º lugar 8%, 3º lugar 5% (decisão do Alexandre, 02/11/2026). */
+export const PREMIOS_SEMANAIS = [10, 8, 5] as const;
 
 /** Mínimo de pontos na semana para o prêmio valer (evita cupom por uma partida qualquer). */
 export const PONTOS_MINIMOS_PREMIO = 300;

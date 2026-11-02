@@ -200,11 +200,11 @@ describe("placar e prêmios da semana", () => {
     expect(l.find((x) => x.apelido === "Fabio")?.pontos).toBe(2000); // teto da memória (difícil ×2)
   });
 
-  it("durante a semana ninguém ganha prêmio; depois que fecha, top 3 com 10% e 5% e 5%", async () => {
+  it("durante a semana ninguém ganha prêmio; depois que fecha, top 3 com 10%, 8% e 5%", async () => {
     expect((await situacaoDoPremio(A, durante)).elegivel).toBe(false);
     const sA = await situacaoDoPremio(A, depois);
     expect(sA).toMatchObject({ elegivel: true, posicao: 1, percentual: 10 });
-    expect(await situacaoDoPremio(B, depois)).toMatchObject({ elegivel: true, posicao: 2, percentual: 5 });
+    expect(await situacaoDoPremio(B, depois)).toMatchObject({ elegivel: true, posicao: 2, percentual: 8 });
     expect(await situacaoDoPremio(C, depois)).toMatchObject({ elegivel: true, posicao: 3, percentual: 5 });
     expect((await situacaoDoPremio(D, depois)).elegivel).toBe(false); // 4º lugar
     expect((await situacaoDoPremio(E, depois)).elegivel).toBe(false); // abaixo do mínimo
@@ -233,9 +233,9 @@ describe("placar e prêmios da semana", () => {
     expect(cupons.filter((x) => x.codigo === r.codigo)).toHaveLength(1);
   });
 
-  it("2º lugar recebe 5% e quem ficou de fora não resgata", async () => {
+  it("2º lugar recebe 8% e quem ficou de fora não resgata", async () => {
     const r = await resgatarPremio(B, depois);
-    expect(r).toMatchObject({ ok: true, percentual: 5, posicao: 2 });
+    expect(r).toMatchObject({ ok: true, percentual: 8, posicao: 2 });
     expect(await resgatarPremio(D, depois)).toMatchObject({ ok: false });
   });
 

@@ -52,6 +52,30 @@ export function gestorDemo(criadoEm: string): Membro {
   return { id: "m-kambada", papel: "gestor", nome: "Gestão Kambada", usuario: "kambada", senhaHash: hashDemo("gestor"), disciplinas: [], criadoEm };
 }
 
+/**
+ * Contas de teste do Alexandre (02/11/2026), fáceis de digitar: "professor"
+ * (todas as turmas e disciplinas) e "aluno" (4º ano A, sem histórico, entra
+ * por usuário e senha na tela da equipe ou pelas figuras 🦀 🐂 🥁).
+ */
+export function professorTeste(criadoEm: string): Membro {
+  return { id: "m-teste", papel: "professor", nome: "Professor de Teste", usuario: "professor", senhaHash: hashDemo("professorTeste"), disciplinas: ["Matemática", "Português", "Inglês"], criadoEm };
+}
+export function alunoTeste(criadoEm: string): Aluno {
+  return { id: "t4a-teste", turmaId: "t4a", apelido: "Aluno", nome: "Aluno de Teste", avatar: "🦀", figuras: [0, 1, 2], usuario: "aluno", senhaHash: hashDemo("alunoTeste"), criadoEm };
+}
+
+/** Garante as contas de teste num arquivo de demonstração (o de antes de 02/11 não tinha). */
+export function comContasDeTeste(d: Dados): Dados {
+  const agora = new Date().toISOString();
+  if (!d.membros.some((m) => m.usuario === "professor")) {
+    const p = professorTeste(agora);
+    d.membros.push(p);
+    for (const t of d.turmas) if (!t.professorIds.includes(p.id)) t.professorIds.push(p.id);
+  }
+  if (!d.alunos.some((a) => a.usuario === "aluno") && d.turmas.some((t) => t.id === "t4a") && !d.alunos.some((a) => a.id === "t4a-teste")) d.alunos.push(alunoTeste(agora));
+  return d;
+}
+
 export function sementeDemo(agora = Date.now()): Dados {
   const r = sorteador(20261101);
   const criadoEm = new Date(agora).toISOString();
@@ -125,7 +149,8 @@ export function sementeDemo(agora = Date.now()): Dados {
   }
   registros.sort((x, y) => x.em.localeCompare(y.em));
 
-  return {
+  // Depois do histórico: as contas de teste nascem sem respostas (e não mexem no sorteio dos outros).
+  return comContasDeTeste({
     versao: 1,
     demo: true,
     escola: {
@@ -141,5 +166,5 @@ export function sementeDemo(agora = Date.now()): Dados {
     registros,
     partidas: [],
     criadoEm,
-  };
+  });
 }

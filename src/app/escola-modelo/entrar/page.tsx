@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { rotaEscola } from "@/lib/escola/host";
 import { EntrarAluno } from "@/components/escola/EntrarAluno";
 import { Etiqueta, FalaKambadinha } from "@/components/escola/Marca";
 import { inicioDoPapel, quemNaPagina } from "@/lib/escola/pagina";
@@ -17,6 +19,12 @@ export default async function EntrarAlunoPagina({ searchParams }: { searchParams
         <FalaKambadinha>O código está no teu cartão. Depois é só achar o teu apelido!</FalaKambadinha>
       </div>
       <EntrarAluno codigoInicial={typeof turma === "string" ? turma.slice(0, 4) : undefined} />
+      <p className="mt-8 text-center text-sm text-texto-suave">
+        Tem usuário e senha?{" "}
+        <Link href={rotaEscola("/equipe")} className="font-semibold underline">
+          Entrar com usuário e senha
+        </Link>
+      </p>
     </div>
   );
 }

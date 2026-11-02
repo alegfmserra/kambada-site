@@ -116,6 +116,15 @@ export async function entrarMembro(usuario: unknown, senha: unknown): Promise<Me
   return m && ok ? m : null;
 }
 
+/** Conta de teste de aluno com usuário e senha (as crianças de verdade entram pelo código e pelas figuras). */
+export async function entrarAlunoConta(usuario: unknown, senha: unknown): Promise<{ aluno: Aluno } | null> {
+  if (typeof usuario !== "string" || typeof senha !== "string" || usuario.length > 60 || senha.length > 100) return null;
+  const d = await lerDados();
+  const a = d.alunos.find((x) => x.usuario && x.usuario === usuario.trim().toLowerCase());
+  if (!a?.senhaHash || !senhaConfere(senha, a.senhaHash)) return null;
+  return { aluno: a };
+}
+
 // ---------------------------------------------------------------------------
 // Desafios (partida)
 // ---------------------------------------------------------------------------

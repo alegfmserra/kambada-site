@@ -36,7 +36,7 @@ export function EntrarEquipe() {
       <button type="submit" className={`${BOTAO} w-full`} disabled={enviando}>
         Entrar
       </button>
-      <p className="text-center text-sm text-texto-suave">A coordenação cria o acesso de cada professor.</p>
+      <p className="text-center text-sm text-texto-suave">Professor, coordenação e contas de teste. A coordenação cria o acesso de cada professor.</p>
     </form>
   );
 }

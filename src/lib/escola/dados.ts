@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 import type { Disciplina, EscolaPublica, Etapa, Permissao, Resultado } from "./tipos";
-import { gestorDemo, sementeDemo } from "./semente";
+import { comContasDeTeste, gestorDemo, sementeDemo } from "./semente";
 
 /**
  * Armazém do portal da escola (somente servidor).
@@ -61,6 +61,9 @@ export type Aluno = {
    * cartão. A proteção vem do código da turma + limite de erros por aluno.
    */
   figuras: number[];
+  /** Só a conta de teste "aluno": entra também por usuário e senha (tela da equipe). */
+  usuario?: string;
+  senhaHash?: string;
   criadoEm: string;
 };
 
@@ -168,6 +171,7 @@ async function atual(): Promise<Dados> {
         const nomes = new Map(sementeDemo().alunos.map((a) => [a.id, a.nome]));
         for (const a of d.alunos) a.nome ??= nomes.get(a.id);
       }
+      if (d.demo) comContasDeTeste(d);
       estado.memoria = d;
       estado.mtime = mtime;
       return d;

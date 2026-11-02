@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { contarErro, corpoJson, errosEsgotados, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { falha, ok } from "@/lib/escola/api";
-import { entrarAluno, entrarMembro, marcaDoAluno, marcaDoMembro, turmaPorCodigo } from "@/lib/escola/servico";
+import { entrarAluno, entrarAlunoConta, entrarMembro, marcaDoAluno, marcaDoMembro, turmaPorCodigo } from "@/lib/escola/servico";
 import { COOKIE_ESCOLA, criarSessaoEscola, opcoesCookie } from "@/lib/escola/sessao";
 import { rotaEscola } from "@/lib/escola/host";
 
@@ -51,6 +51,12 @@ export async function POST(req: Request) {
     if (errosEsgotados(ip, "escola-equipe", 10, JANELA)) return falha("Muitas tentativas erradas. Espere uns minutos.", 429);
     const m = await entrarMembro(corpo.usuario, corpo.senha);
     if (!m) {
+      const conta = await entrarAlunoConta(corpo.usuario, corpo.senha);
+      if (conta) {
+        const r = NextResponse.json({ ok: true, destino: rotaEscola("/aluno") });
+        r.cookies.set(COOKIE_ESCOLA, criarSessaoEscola("aluno", conta.aluno.id, marcaDoAluno(conta.aluno)), opcoesCookie("aluno"));
+        return r;
+      }
       contarErro(ip, "escola-equipe", JANELA);
       return falha("Usuário ou senha não conferem.", 401);
     }

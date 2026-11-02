@@ -7,6 +7,7 @@ import { TRILHAS } from "./desafios";
 import { ehHostDaEscola, rotaEscola } from "./host";
 import {
   ErroEscola,
+  entrarAlunoConta,
   ativarMembro,
   celula,
   criarAluno,
@@ -215,7 +216,7 @@ describe("hub da gestão Kambada", () => {
     _zerarMemoria();
     const d = await lerDados();
     expect(d.membros.filter((m) => m.papel === "gestor")).toHaveLength(1);
-    expect(d.alunos).toHaveLength(24);
+    expect(d.alunos).toHaveLength(25); // 24 da demonstração + a conta de teste "aluno"
   });
 
   it("a gestão entra e cadastra a coordenação; a coordenação não", async () => {
@@ -283,6 +284,20 @@ describe("hub da gestão Kambada", () => {
   });
 });
 
+describe("contas de teste", () => {
+  it("professor vê todas as turmas e aluno entra por usuário e senha", async () => {
+    const p = await entrarMembro("professor", "senha-dos-testes-123");
+    expect(p?.papel).toBe("professor");
+    const d = await lerDados();
+    expect(d.turmas.every((t) => t.professorIds.includes(p!.id))).toBe(true);
+    expect((await entrarAlunoConta("aluno", "senha-dos-testes-123"))?.aluno.turmaId).toBe("t4a");
+    expect(await entrarAlunoConta("aluno", "errada")).toBeNull();
+    expect(await entrarAlunoConta("CaranguejoVeloz", "senha-dos-testes-123")).toBeNull();
+    // a conta de teste nasce sem respostas
+    expect(d.registros.some((r) => r.alunoId === "t4a-teste")).toBe(false);
+  });
+});
+
 describe("mapa de reforço e privacidade do nome", () => {
   it("o nome de verdade só aparece para a escola; ranking, entrada e gestão Kambada veem só o apelido", async () => {
     const ana = await membro("prof.ana");
@@ -334,7 +349,7 @@ describe("mapa de reforço e privacidade do nome", () => {
     const doGestor = await lerNomes((await planilhaEscola(await membro("kambada"))).arquivo);
     expect(doGestor.texto).not.toContain("Davi Santos");
     expect(doGestor.texto).toContain("CaranguejoVeloz");
-    expect((await mapaEscola(await membro("coordenacao"))).alunos).toHaveLength(24);
+    expect((await mapaEscola(await membro("coordenacao"))).alunos).toHaveLength(25);
     await expect(planilhaEscola(await membro("prof.ana"))).rejects.toBeInstanceOf(ErroEscola);
   });
 });

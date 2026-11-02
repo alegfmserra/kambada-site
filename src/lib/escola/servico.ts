@@ -1,8 +1,9 @@
 import { randomInt } from "node:crypto";
 import { idAleatorio } from "../play/jogos/seguranca";
-import { alterar, lerDados, restaurar, type Aluno, type Dados, type Evento, type Membro, type Registro, type Turma } from "./dados";
-import { TRILHAS, habilidades, publica, questaoPorId, trilhaPorId, trilhasDaEtapa, type Questao, type Trilha } from "./desafios";
+import { alterar, lerDados, restaurar, type Aluno, type Dados, type Evento, type Membro, type Partida, type Registro, type Turma } from "./dados";
+import { TRILHAS, habilidades, publica, questaoPorId, trilhaPorId, trilhasDaEtapa, type Questao } from "./desafios";
 import { gerarHash, marca, senhaConfere, senhaInicial } from "./senha";
+import { MISSAO } from "./missao";
 import type { SessaoEscola } from "./sessao";
 import {
   AVATARES,
@@ -138,7 +139,8 @@ function embaralhar<T>(lista: T[]): T[] {
   return a;
 }
 
-function questaoPublica(q: Questao, ordem: number[], t: Trilha): QuestaoPublica {
+function questaoPublica(q: Questao, ordem: number[]): QuestaoPublica {
+  const t = questaoPorId(q.id)!.trilha;
   return { cena: q.cena, enunciado: q.enunciado, opcoes: ordem.map((i) => q.opcoes[i]), disciplina: t.disciplina, habilidade: q.habilidade };
 }
 
@@ -159,19 +161,118 @@ export function trilhasDoAluno(turma: Turma): TrilhaPublica[] {
   return trilhasDaEtapa(turma.etapa).map(publica);
 }
 
+// ---------------------------------------------------------------------------
+// Missão de reforço: perguntas escolhidas pelo que o aluno ainda erra
+// ---------------------------------------------------------------------------
+
+export { MISSAO };
+const MISSAO_MAX = 10;
+const MISSAO_MIN = 5;
+
+/** Habilidades a treinar, da etapa da turma: as em ✗ primeiro, depois as que só acerta na segunda (↻). */
+function paraTreinar(d: Dados, aluno: Aluno, turma: Turma): Ponto[] {
+  const meus = d.registros.filter((r) => r.alunoId === aluno.id);
+  const reforco: Ponto[] = [];
+  const quase: Ponto[] = [];
+  for (const disciplina of disciplinasDaEtapa(turma.etapa))
+    for (const habilidade of habilidades(disciplina, turma.etapa)) {
+      const c = celula(meus.filter((r) => r.disciplina === disciplina && r.habilidade === habilidade));
+      if (c.status === "reforco") reforco.push({ disciplina, habilidade });
+      if (c.status === "quase") quase.push({ disciplina, habilidade });
+    }
+  return [...reforco, ...quase];
+}
+
+/**
+ * Perguntas da missão: revezando entre as habilidades a treinar (até 10),
+ * primeiro as que o aluno errou da última vez, depois as que acertou na
+ * segunda e as que ainda não viu. Com menos de 5, completa com outras
+ * perguntas da etapa que ele ainda não acerta de primeira.
+ */
+function perguntasDaMissao(d: Dados, aluno: Aluno, turma: Turma): Questao[] {
+  const alvo = paraTreinar(d, aluno, turma);
+  if (!alvo.length) return [];
+  const ultimo = new Map<string, Resultado>();
+  for (const r of d.registros) if (r.alunoId === aluno.id) ultimo.set(r.questaoId, r.resultado);
+  const PESO: Record<Resultado, number> = { reforco: 0, segunda: 1, primeira: 3 };
+  // Errou da última vez < acertou na segunda < ainda não viu < acertou de primeira.
+  const peso = (q: Questao) => {
+    const r = ultimo.get(q.id);
+    return r ? PESO[r] : 2;
+  };
+  const daEtapa = trilhasDaEtapa(turma.etapa).flatMap((t) => t.questoes.map((q) => ({ q, disciplina: t.disciplina })));
+  const ordenar = (lista: Questao[]) => embaralhar(lista).sort((x, y) => peso(x) - peso(y));
+  const filas = alvo.map((p) => ordenar(daEtapa.filter((x) => x.disciplina === p.disciplina && x.q.habilidade === p.habilidade).map((x) => x.q)));
+  const escolhidas: Questao[] = [];
+  while (escolhidas.length < MISSAO_MAX && filas.some((f) => f.length))
+    for (const f of filas) if (f.length && escolhidas.length < MISSAO_MAX) escolhidas.push(f.shift()!);
+  if (escolhidas.length < MISSAO_MIN) {
+    const resto = ordenar(daEtapa.map((x) => x.q).filter((q) => !escolhidas.includes(q) && peso(q) < 3));
+    escolhidas.push(...resto.slice(0, MISSAO_MIN - escolhidas.length));
+  }
+  return escolhidas;
+}
+
+/** O que a missão vai treinar agora (para o cartão do aluno e a ficha do professor). */
+export async function missaoDoAluno(aluno: Aluno, turma: Turma): Promise<Ponto[]> {
+  return paraTreinar(await lerDados(), aluno, turma).slice(0, 5);
+}
+
+/** Cartão da missão antes de a partida existir (a partida traz o resumo de verdade). */
+export function missaoPublica(turma: Turma, alvo: Ponto[]): TrilhaPublica {
+  const hab = alvo.map((p) => p.habilidade);
+  return {
+    id: MISSAO,
+    titulo: "Missão de reforço",
+    emoji: "🎯",
+    disciplina: alvo[0]?.disciplina ?? "Matemática",
+    etapa: turma.etapa,
+    resumo: hab.length ? `Treinar ${hab.slice(0, -1).join(", ")}${hab.length > 1 ? " e " : ""}${hab[hab.length - 1]}` : "",
+    total: MISSAO_MAX,
+  };
+}
+
+function trilhaPublicaDa(p: Partida, turma: Turma): TrilhaPublica {
+  if (p.trilhaId !== MISSAO) return publica(trilhaPorId(p.trilhaId)!);
+  const qs = p.questoes.map((id) => questaoPorId(id)!);
+  const hab = [...new Set(qs.map((x) => x.questao.habilidade))];
+  return {
+    id: MISSAO,
+    titulo: "Missão de reforço",
+    emoji: "🎯",
+    disciplina: qs[0].trilha.disciplina,
+    etapa: turma.etapa,
+    resumo: `Treinar ${hab.slice(0, -1).join(", ")}${hab.length > 1 ? " e " : ""}${hab[hab.length - 1]}`,
+    total: p.questoes.length,
+  };
+}
+
+function estadoDa(p: Partida, turma: Turma): EstadoPartida {
+  const q = questaoPorId(p.questoes[p.atual])!.questao;
+  const estado: EstadoPartida = { partida: p.id, trilha: trilhaPublicaDa(p, turma), indice: p.atual, total: p.questoes.length, tentativa: p.tentativa, questao: questaoPublica(q, p.ordens[p.atual]), pontos: p.pontos };
+  if (p.tentativa === 2 && p.primeiroErro !== null) {
+    estado.descartada = p.ordens[p.atual].indexOf(p.primeiroErro);
+    estado.dica = q.dica;
+  }
+  return estado;
+}
+
 export async function iniciarPartida(aluno: Aluno, turma: Turma, trilhaId: unknown): Promise<EstadoPartida> {
-  const trilha = trilhaPorId(trilhaId);
-  if (!trilha || trilha.etapa !== turma.etapa) throw new ErroEscola("Esse desafio não é da sua turma.", 404);
+  const missao = trilhaId === MISSAO;
+  const trilha = missao ? undefined : trilhaPorId(trilhaId);
+  if (!missao && (!trilha || trilha.etapa !== turma.etapa)) throw new ErroEscola("Esse desafio não é da sua turma.", 404);
+  const id = missao ? MISSAO : trilha!.id;
   return alterar((d) => {
-    let p = d.partidas.find((x) => x.alunoId === aluno.id && x.trilhaId === trilha.id && !x.fim);
+    let p = d.partidas.find((x) => x.alunoId === aluno.id && x.trilhaId === id && !x.fim);
     if (!p) {
-      const questoes = embaralhar(trilha.questoes.map((q) => q.id));
+      const qs = missao ? perguntasDaMissao(d, aluno, turma) : embaralhar(trilha!.questoes);
+      if (!qs.length) throw new ErroEscola("Tu tá mandando bem: nenhuma habilidade para reforçar agora! Joga um desafio da turma.", 404);
       p = {
         id: idAleatorio(),
         alunoId: aluno.id,
-        trilhaId: trilha.id,
-        questoes,
-        ordens: questoes.map((id) => embaralhar(trilha.questoes.find((q) => q.id === id)!.opcoes.map((_, i) => i))),
+        trilhaId: id,
+        questoes: qs.map((q) => q.id),
+        ordens: qs.map((q) => embaralhar(q.opcoes.map((_, i) => i))),
         atual: 0,
         tentativa: 1,
         primeiroErro: null,
@@ -180,13 +281,7 @@ export async function iniciarPartida(aluno: Aluno, turma: Turma, trilhaId: unkno
       };
       d.partidas.push(p);
     }
-    const q = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
-    const estado: EstadoPartida = { partida: p.id, trilha: publica(trilha), indice: p.atual, total: p.questoes.length, tentativa: p.tentativa, questao: questaoPublica(q, p.ordens[p.atual], trilha), pontos: p.pontos };
-    if (p.tentativa === 2 && p.primeiroErro !== null) {
-      estado.descartada = p.ordens[p.atual].indexOf(p.primeiroErro);
-      estado.dica = q.dica;
-    }
-    return estado;
+    return estadoDa(p, turma);
   });
 }
 
@@ -210,8 +305,8 @@ export async function responder(aluno: Aluno, partidaId: unknown, escolha: unkno
   return alterar((d) => {
     const p = d.partidas.find((x) => x.id === partidaId && x.alunoId === aluno.id && !x.fim);
     if (!p) throw new ErroEscola("Esse desafio já terminou. Comece de novo.", 404);
-    const trilha = trilhaPorId(p.trilhaId)!;
-    const q = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
+    // Na missão de reforço cada pergunta é de uma trilha; o registro leva a trilha de origem.
+    const { trilha, questao: q } = questaoPorId(p.questoes[p.atual])!;
     const ordem = p.ordens[p.atual];
     if (escolha < 0 || escolha >= ordem.length) throw new ErroEscola("Resposta inválida.");
     const original = ordem[escolha];
@@ -247,7 +342,7 @@ export async function responder(aluno: Aluno, partidaId: unknown, escolha: unkno
     p.primeiroErro = null;
     if (p.atual >= p.questoes.length) {
       p.fim = new Date().toISOString();
-      const desta = d.registros.filter((r) => r.alunoId === aluno.id && r.trilhaId === trilha.id && r.em >= p.inicio);
+      const desta = d.registros.filter((r) => r.alunoId === aluno.id && p.questoes.includes(r.questaoId) && r.em >= p.inicio);
       resposta.fim = {
         pontos: p.pontos,
         primeira: desta.filter((r) => r.resultado === "primeira").length,
@@ -255,8 +350,8 @@ export async function responder(aluno: Aluno, partidaId: unknown, escolha: unkno
         reforco: desta.filter((r) => r.resultado === "reforco").length,
       };
     } else {
-      const nq = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
-      resposta.proxima = { partida: p.id, trilha: publica(trilha), indice: p.atual, total: p.questoes.length, tentativa: 1, questao: questaoPublica(nq, p.ordens[p.atual], trilha), pontos: p.pontos };
+      const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
+      resposta.proxima = estadoDa(p, turma);
     }
     return resposta;
   });

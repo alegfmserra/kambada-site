@@ -38,6 +38,8 @@ import {
   mapaEscola,
   mapaTurma,
   nomearAluno,
+  MISSAO,
+  missaoDoAluno,
 } from "./servico";
 import ExcelJS from "exceljs";
 import { planilhaEscola, planilhaTurma } from "./exportar";
@@ -381,5 +383,46 @@ describe("arraial 3D", () => {
   it("a trilha é repartida em cinco fitinhas", () => {
     expect([0, 1, 2, 3, 4, 6, 8, 9, 10].map((n) => fitinhasPor(n, 10))).toEqual([0, 0, 1, 1, 2, 3, 4, 4, 5]);
     expect([1, 2, 3, 5, 6, 7, 8].map((n) => fitinhasPor(n, 8))).toEqual([0, 1, 2, 3, 4, 4, 5]);
+  });
+});
+
+describe("missão de reforço", () => {
+  it("pergunta só o que o aluno precisa treinar, ✗ antes de ↻, e registra na trilha de origem", async () => {
+    const d = await lerDados();
+    const turma = d.turmas.find((t) => t.id === "t4a")!;
+    const m = await mapaTurma(await membro("prof.ana"), "t4a");
+    const fraco = m.alunos.find((a) => a.reforcoEm.length >= 1)!;
+    const aluno = d.alunos.find((a) => a.id === fraco.id)!;
+    const alvo = await missaoDoAluno(aluno, turma);
+    expect(alvo.slice(0, fraco.reforcoEm.length).map((p) => p.habilidade)).toEqual(fraco.reforcoEm.map((p) => p.habilidade));
+
+    let estado = await iniciarPartida(aluno, turma, MISSAO);
+    expect(estado.trilha.id).toBe(MISSAO);
+    expect(estado.total).toBeGreaterThanOrEqual(5);
+    expect(estado.total).toBeLessThanOrEqual(10);
+    const nomes = alvo.map((p) => p.habilidade);
+    // as primeiras perguntas (uma por habilidade) são das habilidades a treinar
+    expect(nomes).toContain(estado.questao.habilidade);
+    // retomar devolve a mesma missão
+    expect((await iniciarPartida(aluno, turma, MISSAO)).partida).toBe(estado.partida);
+
+    let fim;
+    for (let i = 0; i < estado.total; i++) {
+      const q = TRILHAS.flatMap((t) => t.questoes).find((x) => x.enunciado === estado.questao.enunciado)!;
+      const r = await responder(aluno, estado.partida, estado.questao.opcoes.indexOf(q.opcoes[q.correta]), "arraial");
+      if (r.proxima) estado = r.proxima;
+      fim = r.fim;
+    }
+    expect(fim?.primeira).toBe(estado.total);
+    const novos = (await lerDados()).registros.filter((r) => r.alunoId === aluno.id).slice(-estado.total);
+    expect(novos.every((r) => r.trilhaId !== MISSAO && TRILHAS.some((t) => t.id === r.trilhaId && t.questoes.some((q) => q.id === r.questaoId)))).toBe(true);
+  });
+
+  it("quem não tem nada para treinar não abre missão", async () => {
+    const d = await lerDados();
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!; // sem histórico
+    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
+    expect(await missaoDoAluno(aluno, turma)).toEqual([]);
+    await expect(iniciarPartida(aluno, turma, MISSAO)).rejects.toBeInstanceOf(ErroEscola);
   });
 });

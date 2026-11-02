@@ -2,7 +2,7 @@ import Link from "next/link";
 import { COR_DISCIPLINA, Etiqueta, FalaKambadinha, SeloDisciplina } from "@/components/escola/Marca";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { escolaPublica, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
+import { MISSAO, escolaPublica, missaoDoAluno, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
 
 export const metadata = { title: "Desafios" };
 
@@ -10,7 +10,7 @@ const MEDALHA = ["🥇", "🥈", "🥉"];
 
 export default async function AlunoInicio() {
   const { aluno, turma } = await exigir("aluno");
-  const [meus, rank, escola] = await Promise.all([pontosDoAluno(aluno.id), ranking(turma.id), escolaPublica()]);
+  const [meus, rank, escola, treinar] = await Promise.all([pontosDoAluno(aluno.id), ranking(turma.id), escolaPublica(), missaoDoAluno(aluno, turma)]);
   const trilhas = trilhasDoAluno(turma);
   const posicao = rank.alunos.findIndex((a) => a.id === aluno.id) + 1;
   const comecou = Object.keys(meus.porTrilha).length > 0;
@@ -44,6 +44,21 @@ export default async function AlunoInicio() {
         <p className="mt-2 max-w-xl text-sm text-white/80">
           Anda pela praça do São João, conversa com o povo do arraial e responde as perguntas para juntar as cinco fitinhas. Os pontos valem igual aos do desafio.
         </p>
+        {treinar.length > 0 && (
+          <Link
+            href={rotaEscola(`/aluno/arraial?trilha=${MISSAO}`)}
+            className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-4 transition-colors hover:bg-kambada-amarelo/20"
+          >
+            <span className="text-3xl" aria-hidden>🎯</span>
+            <span className="min-w-[12rem] flex-1">
+              <b className="block font-display text-lg text-kambada-amarelo">Missão de reforço</b>
+              <span className="text-sm text-white/85">
+                O povo do arraial vai te ajudar a treinar: <b>{treinar.map((p) => p.habilidade).join(" · ")}</b>
+              </span>
+            </span>
+            <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Começar a missão →</span>
+          </Link>
+        )}
         <div className="mt-4 flex flex-wrap gap-2">
           {trilhas.map((t) => (
             <Link

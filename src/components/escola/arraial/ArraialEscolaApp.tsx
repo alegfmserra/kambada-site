@@ -13,6 +13,7 @@ import { Pescaria } from "@/components/play/arraial/minigames/Pescaria";
 import { PosterArraial } from "@/components/play/arraial/PosterArraial";
 import { pontoDeParada } from "@/components/play/arraial/mundo/layout";
 import { rotaEscola } from "@/lib/escola/host";
+import { MISSAO } from "@/lib/escola/missao";
 import type { EstadoPartida, Resposta } from "@/lib/escola/servico";
 import type { TrilhaPublica } from "@/lib/escola/tipos";
 import { chamar } from "../chamar";
@@ -38,7 +39,7 @@ const BOTAO_ESCURO =
  * perguntas da trilha escolhida; as respostas entram no relatório do
  * professor marcadas como "Arraial 3D". Nada aqui fala com a API do Play.
  */
-export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) {
+export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPublica }) {
   const inputRef = useRef({ x: 0, z: 0 });
   const travadoRef = useRef(false);
   const controleRef = useRef<{ irPara: (x: number, z: number) => void } | null>(null);
@@ -53,6 +54,9 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
   const [fechada, setFechada] = useState<(Resposta & { escolha: number }) | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [fim, setFim] = useState<Resposta["fim"] | null>(null);
+  // A partida traz o resumo de verdade (na missão: as habilidades que ela vai treinar).
+  const trilha = estado?.trilha ?? inicial;
+  const missao = trilha.id === MISSAO;
   const [textoCompleto, setTextoCompleto] = useState(false);
 
   const [pertoId, setPertoId] = useState<string | null>(null);
@@ -70,7 +74,7 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
     setFechada(null);
     setDescartadas([]);
     setDica("");
-    const r = await chamar<{ estado: EstadoPartida }>("desafio", { acao: "iniciar", trilha: trilha.id });
+    const r = await chamar<{ estado: EstadoPartida }>("desafio", { acao: "iniciar", trilha: inicial.id });
     if (!r.ok) {
       setErro(r.mensagem ?? "Não deu para abrir o desafio.");
       return;
@@ -80,7 +84,7 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
     if (r.estado.dica) setDica(r.estado.dica);
     // Retomada: quem já respondeu metade volta com as fitinhas daquela metade.
     setFitinhas(ORDEM.slice(0, fitinhasPor(r.estado.indice, r.estado.total)));
-  }, [trilha.id]);
+  }, [inicial.id]);
 
   useEffect(() => {
     // Abre (ou retoma) a partida da trilha ao entrar na praça.
@@ -101,9 +105,11 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
         setConversa({ quem, falas: [JA_DEU_FITINHA], etapa: 0, deu: true });
         return;
       }
-      setConversa({ quem, falas: quem.falas, etapa: 0, deu: false });
+      // Na missão, a segunda fala diz o que vai ser treinado.
+      const falas = missao && trilha.resumo ? [quem.falas[0], `Tua missão de hoje: ${trilha.resumo.toLowerCase()}. Bora treinar comigo!`] : quem.falas;
+      setConversa({ quem, falas, etapa: 0, deu: false });
     },
-    [fitinhas],
+    [fitinhas, missao, trilha.resumo],
   );
 
   /**
@@ -118,7 +124,11 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
     if (fechada.proxima) setEstado(fechada.proxima);
     setFechada(null);
     if (ganhou) setFitinhas((f) => (f.includes(conversa.quem.id) ? f : [...f, conversa.quem.id]));
-    if (fechada.fim) setFim(fechada.fim);
+    if (fechada.fim) {
+      // Missão curta (menos de 10 perguntas): no fim, as cinco fitinhas.
+      setFitinhas([...ORDEM]);
+      setFim(fechada.fim);
+    }
     return ganhou;
   }, [fechada, estado, conversa, fitinhas.length]);
 
@@ -227,7 +237,7 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
         <p className="relative max-w-sm font-body text-sm leading-relaxed text-kambada-cream/85">
           Este aparelho não conseguiu abrir a praça em 3D. O mesmo desafio funciona na tela de perguntas.
         </p>
-        <Link href={rotaEscola(`/aluno/${trilha.id}`)} className={`${BOTAO_CLARO} relative px-6 py-3`}>
+        <Link href={rotaEscola(`/aluno/${inicial.id}`)} className={`${BOTAO_CLARO} relative px-6 py-3`}>
           Jogar {trilha.titulo}
         </Link>
       </div>
@@ -258,6 +268,7 @@ export default function ArraialEscolaApp({ trilha }: { trilha: TrilhaPublica }) 
           <p className="text-xs font-semibold">
             <span aria-hidden>{trilha.emoji}</span> {trilha.titulo}
           </p>
+          {missao && trilha.resumo && <p className="text-[11px] text-kambada-cream/80">{trilha.resumo}</p>}
           <p className="text-[11px] text-kambada-cream/80">
             {Math.min(estado.indice + (fechada ? 1 : 0), estado.total)} de {estado.total} perguntas · <b className="text-kambada-gold">{pontos} pts</b>
           </p>
@@ -596,7 +607,15 @@ function Celebracao({ fim, trilha, onDeNovo }: { fim: NonNullable<Resposta["fim"
       <div role="dialog" aria-modal="true" aria-label="Desafio completo" className="celebracao-cartao w-full max-w-sm rounded-3xl border-4 border-kambada-gold bg-kambada-noite p-7 text-center font-body text-kambada-cream shadow-2xl">
         <h2 className="font-display text-3xl font-black">{textos.celebracaoTitulo}</h2>
         <p className="mt-2 text-sm text-kambada-cream/85">
-          Tu juntou as cinco fitinhas de <b>{trilha.titulo}</b>!
+          {trilha.id === MISSAO ? (
+            <>
+              <b>Missão cumprida!</b> Tu treinou {trilha.resumo.replace(/^Treinar /, "").toLowerCase()}.
+            </>
+          ) : (
+            <>
+              Tu juntou as cinco fitinhas de <b>{trilha.titulo}</b>!
+            </>
+          )}
         </p>
         <p className="mt-4 font-display text-5xl font-extrabold text-kambada-gold">{fim.pontos} pts</p>
         <div className="mt-4 grid grid-cols-3 gap-2 text-sm">

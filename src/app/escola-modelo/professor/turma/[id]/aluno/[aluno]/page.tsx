@@ -58,6 +58,13 @@ export default async function FichaPagina({ params }: { params: Promise<{ id: st
         </div>
       </section>
 
+      {a.reforcoEm.length + a.quaseEm.length > 0 && (
+        <p className="rounded-2xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-4 text-sm">
+          🎯 <b>Missão de reforço:</b> na tela de desafios, {a.apelido} tem uma missão no Arraial 3D que treina{" "}
+          <b>{[...a.reforcoEm, ...a.quaseEm].slice(0, 5).map((p) => p.habilidade).join(" · ")}</b> (primeiro o que está em ✗, depois o que só acerta na segunda). Ela se atualiza sozinha conforme o aluno joga.
+        </p>
+      )}
+
       <section className="space-y-4">
         <h2 className="font-display text-xl font-bold">Onde está em cada habilidade</h2>
         {disciplinas.map((disc) => (

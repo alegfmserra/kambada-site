@@ -54,6 +54,10 @@ export type Conta = {
   aniversario?: string;
   /** Ano do último cupom de aniversário enviado (um por ano). */
   aniversarioCupomAno?: number;
+  /** Ano do aniversário para o qual o aviso "falta uma semana" já foi enviado. */
+  aniversarioAvisoAno?: number;
+  /** Último cupom de aniversário (para o lembrete de validade). Datas AAAA-MM-DD. */
+  aniversarioCupom?: { codigo: string; emitidoEm: string; validoAte: string; lembreteEnviado?: boolean };
 };
 
 type Dados = { versao: 1; contas: Conta[] };
@@ -323,14 +327,22 @@ export function definirAniversario(id: string, aniversario: string): Promise<boo
   });
 }
 
-/** Marca o ano do cupom de aniversário já enviado (impede repetir). */
-export function marcarAniversarioEnviado(id: string, ano: number): Promise<void> {
+/** Altera uma conta com segurança (fila de gravação). Usado pelo fluxo de aniversário. */
+export function atualizarConta(id: string, mutar: (c: Conta) => void): Promise<void> {
   return naFila(async () => {
     const d = await ler();
     const c = d.contas.find((x) => x.id === id);
     if (!c) return;
-    c.aniversarioCupomAno = ano;
+    mutar(c);
     await gravar(d);
+  });
+}
+
+/** Marca o ano do cupom de aniversário já enviado (impede repetir) e guarda o cupom para o lembrete. */
+export function marcarAniversarioEnviado(id: string, ano: number, cupom?: Conta["aniversarioCupom"]): Promise<void> {
+  return atualizarConta(id, (c) => {
+    c.aniversarioCupomAno = ano;
+    if (cupom) c.aniversarioCupom = cupom;
   });
 }
 

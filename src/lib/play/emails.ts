@@ -59,25 +59,89 @@ export async function enviarConfirmacao(
   return { enviado: true, link };
 }
 
-/** Parabéns com cupom de aniversário (15 %). Só vai a quem tem e-mail confirmado e aceitou receber novidades. */
-export async function enviarAniversario(
-  base: string,
-  conta: Conta,
-  cupom: { codigo: string; percentual: number; validoAte: string },
-): Promise<boolean> {
-  if (!emailConfigurado() || !conta.confirmadoEm || !conta.novidades || conta.descadastradoEm || conta.usuario || conta.demo) return false;
-  const [a, m, d] = cupom.validoAte.split("-");
-  const validade = `${d}/${m}/${a}`;
-  const nome = escaparHtml(conta.nome.split(" ")[0]);
+// ---------------------------------------------------------------------------
+// Fluxo de aniversário (02/11/2026): 1) aviso "falta uma semana", 2) parabéns com
+// cupom de 15 % no dia, 3) lembrete de validade se o cupom não foi usado.
+// Só vai a quem tem e-mail confirmado e aceitou novidades; `teste` ignora isso e põe
+// "[TESTE]" no assunto (usado só para o Alexandre ver as mensagens no próprio e-mail).
+// ---------------------------------------------------------------------------
+
+type OpcoesAniversario = { teste?: boolean };
+
+const podeReceber = (c: Conta, o: OpcoesAniversario) =>
+  emailConfigurado() && (o.teste || (c.confirmadoEm && c.novidades && !c.descadastradoEm && !c.usuario && !c.demo));
+
+const primeiroNome = (c: Conta) => c.nome.trim().split(/\s+/)[0] ?? c.nome;
+const dataBr = (iso: string) => iso.split("-").reverse().join("/");
+const cupomEmDestaque = (codigo: string) =>
+  `<p style="font-size:28px;font-weight:bold;letter-spacing:3px;background:#1d1e20;color:#ffcc29;display:inline-block;padding:10px 18px;border-radius:8px">${escaparHtml(codigo)}</p>`;
+
+/** 1) Uma semana antes: o dia está chegando e um presente vem junto. `diaMes` = "24/11". */
+export async function enviarAvisoAniversario(base: string, conta: Conta, diaMes: string, opcoes: OpcoesAniversario = {}): Promise<boolean> {
+  if (!podeReceber(conta, opcoes)) return false;
+  const nome = primeiroNome(conta);
+  const prefixo = opcoes.teste ? "[TESTE] " : "";
   await enviarEmail({
     remetente: "Kambada",
     descadastro: linkDescadastro(base, conta),
     para: conta.email,
-    assunto: `Parabéns, ${conta.nome.split(" ")[0]}! Um presente da Kambada para o seu dia`,
-    texto: `Parabéns, ${conta.nome.split(" ")[0]}! Feliz aniversário!\n\nA Kambada deseja um dia lindo, cheio de festa e de cultura do Maranhão. Para celebrar, separamos um presente: ${cupom.percentual}% de desconto nas peças da loja.\n\nCupom: ${cupom.codigo}\nVale até ${validade}, para uma compra (o frete não tem desconto).\n\nLoja: ${base}/loja`,
+    assunto: `${prefixo}Falta uma semana para o seu dia, ${nome}! 🎉`,
+    texto: `Éguas, ${nome}! O seu aniversário (${diaMes}) está chegando e a gente não deixa passar em branco.\n\nNo dia, vai chegar aqui na sua caixa de entrada um presente da Kambada: 15% de desconto nas peças da loja, só seu.\n\nEnquanto o dia não chega, vá espiando a loja e escolhendo o que vai levar:\n${base}/loja\n\nUm abraço de todo mundo da Kambada.`,
     html: moldura(
-      `Parabéns, ${conta.nome.split(" ")[0]}! 🎉`,
-      `<p>Feliz aniversário, ${nome}! A Kambada deseja um dia lindo, cheio de festa e de cultura do Maranhão.</p><p>Para celebrar, separamos um presente: <strong>${cupom.percentual}% de desconto</strong> nas peças da loja.</p><p style="font-size:28px;font-weight:bold;letter-spacing:3px;background:#1d1e20;color:#ffcc29;display:inline-block;padding:10px 18px;border-radius:8px">${escaparHtml(cupom.codigo)}</p><p style="font-size:13px;color:#5e6266">Vale até ${validade}, para uma compra. O frete não tem desconto.</p>${botao("Usar meu presente", `${base}/loja`)}`,
+      `Éguas, ${nome}! Falta uma semana 🎉`,
+      `<p>O seu aniversário (<strong>${escaparHtml(diaMes)}</strong>) está chegando e a gente não deixa passar em branco.</p><p>No dia, vai chegar aqui na sua caixa de entrada um <strong>presente da Kambada</strong>: <strong>15% de desconto</strong> nas peças da loja, só seu.</p><p>Enquanto o dia não chega, vá espiando a loja e escolhendo o que vai levar. Se der saudade da brincadeira, o Kambada Play também está de portas abertas.</p>${botao("Espiar a loja", `${base}/loja`)}<p style="font-size:13px;color:#5e6266">Um abraço de todo mundo da Kambada.</p>`,
+      rodapePadrao(base, conta),
+    ),
+  });
+  return true;
+}
+
+/** 2) No dia: parabéns e o cupom de aniversário (15 %). */
+export async function enviarAniversario(
+  base: string,
+  conta: Conta,
+  cupom: { codigo: string; percentual: number; validoAte: string },
+  opcoes: OpcoesAniversario = {},
+): Promise<boolean> {
+  if (!podeReceber(conta, opcoes)) return false;
+  const validade = dataBr(cupom.validoAte);
+  const nome = primeiroNome(conta);
+  const prefixo = opcoes.teste ? "[TESTE] " : "";
+  await enviarEmail({
+    remetente: "Kambada",
+    descadastro: linkDescadastro(base, conta),
+    para: conta.email,
+    assunto: `${prefixo}Parabéns, ${nome}! Um presente da Kambada para o seu dia 🎁`,
+    texto: `Parabéns, ${nome}! Feliz aniversário!\n\nA Kambada deseja um dia lindo, cheio de festa e de cultura do Maranhão. Para celebrar, separamos um presente: ${cupom.percentual}% de desconto nas peças da loja.\n\nCupom: ${cupom.codigo}\nVale até ${validade}, para uma compra (o frete não tem desconto).\n\nLoja: ${base}/loja`,
+    html: moldura(
+      `Parabéns, ${nome}! 🎉`,
+      `<p>Feliz aniversário, ${escaparHtml(nome)}! A Kambada deseja um dia lindo, cheio de festa e de cultura do Maranhão.</p><p>Para celebrar, separamos um presente: <strong>${cupom.percentual}% de desconto</strong> nas peças da loja.</p>${cupomEmDestaque(cupom.codigo)}<p style="font-size:13px;color:#5e6266">Vale até ${validade}, para uma compra. O frete não tem desconto.</p>${botao("Usar meu presente", `${base}/loja`)}`,
+      rodapePadrao(base, conta),
+    ),
+  });
+  return true;
+}
+
+/** 3) Uma semana antes de o cupom vencer, se ainda não foi usado. */
+export async function enviarLembreteCupomAniversario(
+  base: string,
+  conta: Conta,
+  cupom: { codigo: string; percentual: number; validoAte: string },
+  opcoes: OpcoesAniversario = {},
+): Promise<boolean> {
+  if (!podeReceber(conta, opcoes)) return false;
+  const validade = dataBr(cupom.validoAte);
+  const nome = primeiroNome(conta);
+  const prefixo = opcoes.teste ? "[TESTE] " : "";
+  await enviarEmail({
+    remetente: "Kambada",
+    descadastro: linkDescadastro(base, conta),
+    para: conta.email,
+    assunto: `${prefixo}${nome}, o seu presente de aniversário ainda está te esperando 🎁`,
+    texto: `Oi, ${nome}! O seu cupom de aniversário de ${cupom.percentual}% vale até ${validade} e ainda não foi usado.\n\nCupom: ${cupom.codigo}\n\nÉ só colocar no carrinho: ${base}/loja\n\nSe já escolheu, aproveite. Se não, ainda dá tempo!`,
+    html: moldura(
+      `Seu presente ainda está esperando 🎁`,
+      `<p>Oi, ${escaparHtml(nome)}! O seu cupom de aniversário de <strong>${cupom.percentual}%</strong> vale até <strong>${validade}</strong> e ainda não foi usado.</p>${cupomEmDestaque(cupom.codigo)}<p style="font-size:13px;color:#5e6266">Uso único, nas peças da loja (o frete não tem desconto).</p>${botao("Escolher minha peça", `${base}/loja`)}`,
       rodapePadrao(base, conta),
     ),
   });

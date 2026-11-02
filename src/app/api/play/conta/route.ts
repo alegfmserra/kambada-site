@@ -10,8 +10,10 @@ import {
   sessaoDaRequisicao,
 } from "@/lib/play/acesso";
 import {
+  aniversarioValido,
   atualizarNovidades,
   autenticar,
+  definirAniversario,
   buscarPorEmail,
   contaDaRequisicao,
   contaDaSessao,
@@ -159,6 +161,15 @@ export async function POST(requisicao: Request) {
       if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
       const ok = await atualizarNovidades(conta.id, corpo.quer === true);
       return NextResponse.json({ ok });
+    }
+
+    case "aniversario": {
+      const conta = await contaDaRequisicao(requisicao);
+      if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
+      const valor = aniversarioValido(corpo.dia, corpo.mes);
+      if (valor === null) return NextResponse.json({ ok: false, mensagem: "Essa data não existe. Confira o dia e o mês." }, { status: 400 });
+      const ok = await definirAniversario(conta.id, valor);
+      return NextResponse.json({ ok, aniversario: valor || null, ...(ok ? {} : { mensagem: "Esta conta não recebe parabéns por e-mail." }) });
     }
 
     default:

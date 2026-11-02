@@ -5,6 +5,27 @@ import LinkPlayHome from "@/components/LinkPlayHome";
 import { ARTIGOS } from "@/lib/artigos";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { FOTOS } from "@/lib/fotos";
+import { REDES, SITE, WHATSAPP } from "@/lib/site";
+
+/** Quem somos para o Google (organização e site), só na home. Sem endereço: o ateliê não tem endereço público. */
+const DADOS_ESTRUTURADOS = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE.url}/#organizacao`,
+      name: SITE.nomeCompleto,
+      legalName: SITE.razaoSocial,
+      url: SITE.url,
+      logo: `${SITE.url}/icon.png`,
+      description: SITE.descricao,
+      sameAs: REDES.map((r) => r.url),
+      areaServed: "BR",
+      contactPoint: [{ "@type": "ContactPoint", contactType: "customer service", telephone: `+${WHATSAPP.numero}`, areaServed: "BR", availableLanguage: "pt-BR" }],
+    },
+    { "@type": "WebSite", "@id": `${SITE.url}/#site`, url: SITE.url, name: SITE.nomeCompleto, inLanguage: SITE.locale, publisher: { "@id": `${SITE.url}/#organizacao` } },
+  ],
+};
 
 /**
  * Home. Os textos são os do site em produção, preservados.
@@ -17,6 +38,10 @@ export default function Home() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(DADOS_ESTRUTURADOS).replace(/</g, "\\u003c") }}
+      />
       {/* --- Abertura: texto de um lado, família do outro ------------------ */}
       <section className="border-b border-borda">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-16">

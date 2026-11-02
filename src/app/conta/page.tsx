@@ -84,7 +84,12 @@ export default async function ContaPage({
                 </dd>
               </div>
             </dl>
-            <AcoesDaConta confirmado={Boolean(conta.confirmadoEm)} novidades={conta.novidades} />
+            <AcoesDaConta
+              confirmado={Boolean(conta.confirmadoEm)}
+              novidades={conta.novidades}
+              aniversario={conta.aniversario}
+              podeAniversario={!conta.usuario && !conta.demo}
+            />
           </article>
 
           <article className="rounded-2xl border border-borda bg-superficie p-6">

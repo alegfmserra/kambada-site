@@ -60,7 +60,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!produto) return { title: "Peça não encontrada" };
 
   const categoria = categoriaPorSlug(catSlug);
-  const descricao = `${produto.nome} — ${precoExibido(produto)}. Peça da Kambada, de São Luís do Maranhão. ${produto.variacoes.join(", ")}.`;
+  // Descrição para o Google: até ~155 caracteres. Matracas têm dezenas de variações, que
+  // estouravam o limite (1.874 caracteres em 02/11/2026); entram só as que couberem.
+  const baseDescricao = `${produto.nome} — ${precoExibido(produto)}. Peça da Kambada, de São Luís do Maranhão.`;
+  const comVariacoes = `${baseDescricao} ${produto.variacoes.slice(0, 3).join(", ")}.`;
+  const descricao = produto.variacoes.length && comVariacoes.length <= 155 ? comVariacoes : baseDescricao;
   const foto = fotoDoProduto(produto);
 
   return {

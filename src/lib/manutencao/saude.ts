@@ -23,6 +23,8 @@ import { conferirMelhorEnvio, freteConfigurado } from "../frete/melhorEnvio";
 import { conferirChave, mercadoPagoConfigurado } from "../mercadopago/cliente";
 import { listarRegistros } from "../pedidos/registro";
 import { fecharSemanaDoRanking, type FechamentoSemanal } from "../play/premiosDaSemana";
+import { enviarAniversarios, type EnvioAniversarios } from "../play/aniversarios";
+import { sincronizarIndexNow } from "../seo/indexnow";
 import { alertar } from "./alertas";
 import { aquecerPaginas, type Aquecimento } from "./aquecer";
 import { reconciliar, type Reconciliacao } from "./reconciliar";
@@ -137,6 +139,8 @@ export async function rotinaDeManutencao(
     relatorioMensal: RelatorioEnviado | { enviado: false; motivo: string };
     aquecimento: Aquecimento | { paginas: 0; motivo: string };
     rankingSemanal: FechamentoSemanal | { erro: string };
+    aniversarios: EnvioAniversarios | { erro: string };
+    indexNow: { enviou: boolean; assinatura?: string; status?: number; urls?: number } | { erro: string };
   }
 > {
   const s = await verificarSaude();
@@ -188,6 +192,25 @@ export async function rotinaDeManutencao(
     rankingSemanal = await fecharSemanaDoRanking(url);
   } catch (e) {
     rankingSemanal = { erro: e instanceof Error ? e.message : String(e) };
+  }
+
+  // Aniversariantes do dia: parabéns + cupom de 15 % (idempotente, um por ano por conta).
+  let aniversarios: EnvioAniversarios | { erro: string };
+  try {
+    aniversarios = await enviarAniversarios(url);
+  } catch (e) {
+    aniversarios = { erro: e instanceof Error ? e.message : String(e) };
+  }
+
+  // IndexNow: avisa o Bing e afins quando a lista de páginas do sitemap muda (ver lib/seo/indexnow.ts).
+  let indexNow: { enviou: boolean; assinatura?: string; status?: number; urls?: number } | { erro: string };
+  try {
+    const estado = await lerEstadoManutencao();
+    const r = await sincronizarIndexNow(estado.ultimoIndexNow);
+    if (r.enviou) await gravarEstadoManutencao({ ...estado, ultimoIndexNow: r.assinatura });
+    indexNow = r;
+  } catch (e) {
+    indexNow = { erro: e instanceof Error ? e.message : String(e) };
   }
 
   if (!s.bling.ok) alertas.bling = await alertar("bling", "Bling desconectado", `${s.bling.detalhe}\n\nSem o Bling, o checkout não cria pedido. Reautorizar: ${url}/api/bling/autorizar`);
@@ -245,5 +268,5 @@ Carregar: melhorenvio.com.br → Carteira → Adicionar saldo (Pix cai na hora).
     aquecimento = { paginas: 0, motivo: e instanceof Error ? e.message : String(e) };
   }
 
-  return { ...s, alertas, reconciliacao, resumo, relatorioMensal, aquecimento, rankingSemanal };
+  return { ...s, alertas, reconciliacao, resumo, relatorioMensal, aquecimento, rankingSemanal, aniversarios, indexNow };
 }

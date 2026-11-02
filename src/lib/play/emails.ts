@@ -59,6 +59,31 @@ export async function enviarConfirmacao(
   return { enviado: true, link };
 }
 
+/** Parabéns com cupom de aniversário (15 %). Só vai a quem tem e-mail confirmado e aceitou receber novidades. */
+export async function enviarAniversario(
+  base: string,
+  conta: Conta,
+  cupom: { codigo: string; percentual: number; validoAte: string },
+): Promise<boolean> {
+  if (!emailConfigurado() || !conta.confirmadoEm || !conta.novidades || conta.descadastradoEm || conta.usuario || conta.demo) return false;
+  const [a, m, d] = cupom.validoAte.split("-");
+  const validade = `${d}/${m}/${a}`;
+  const nome = escaparHtml(conta.nome.split(" ")[0]);
+  await enviarEmail({
+    remetente: "Kambada",
+    descadastro: linkDescadastro(base, conta),
+    para: conta.email,
+    assunto: `Parabéns, ${conta.nome.split(" ")[0]}! Um presente da Kambada para o seu dia`,
+    texto: `Parabéns, ${conta.nome.split(" ")[0]}! Feliz aniversário!\n\nA Kambada deseja um dia lindo, cheio de festa e de cultura do Maranhão. Para celebrar, separamos um presente: ${cupom.percentual}% de desconto nas peças da loja.\n\nCupom: ${cupom.codigo}\nVale até ${validade}, para uma compra (o frete não tem desconto).\n\nLoja: ${base}/loja`,
+    html: moldura(
+      `Parabéns, ${conta.nome.split(" ")[0]}! 🎉`,
+      `<p>Feliz aniversário, ${nome}! A Kambada deseja um dia lindo, cheio de festa e de cultura do Maranhão.</p><p>Para celebrar, separamos um presente: <strong>${cupom.percentual}% de desconto</strong> nas peças da loja.</p><p style="font-size:28px;font-weight:bold;letter-spacing:3px;background:#1d1e20;color:#ffcc29;display:inline-block;padding:10px 18px;border-radius:8px">${escaparHtml(cupom.codigo)}</p><p style="font-size:13px;color:#5e6266">Vale até ${validade}, para uma compra. O frete não tem desconto.</p>${botao("Usar meu presente", `${base}/loja`)}`,
+      rodapePadrao(base, conta),
+    ),
+  });
+  return true;
+}
+
 export async function enviarRedefinicao(base: string, conta: Conta): Promise<{ enviado: boolean; link: string }> {
   const link = `${base}/kambadaplay/redefinir?token=${encodeURIComponent(tokenDeEmail("redefinir", conta))}`;
   if (!emailConfigurado()) return { enviado: false, link };

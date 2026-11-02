@@ -24,6 +24,7 @@ const LINHAS: { dado: string; quando: string; paraQue: string; base: string }[] 
   { dado: "Respostas da pesquisa do site (nota, opiniões, perfil de quem responde, primeiro nome, idade, cidade; e-mail ou WhatsApp só se você deixar)", quando: "Se você responder à pesquisa — é opcional, pergunta por pergunta", paraQue: "Melhorar o site e o Kambada Play e prestar contas, de forma agregada, ao programa de apoio que financia o projeto (FAPEMA/MaraInTech). Não pedimos dados de crianças: as perguntas são para adultos. Com a conta do Play ligada, o e-mail dela vai junto", base: "Consentimento" },
   { dado: "Origem da visita (de qual link ou site você veio, e a página de entrada)", quando: "Ao entrar no site; guardada só no seu navegador por 30 dias", paraQue: "Saber quais divulgações trazem pedidos e contas no Kambada Play. Só viaja ao servidor quando você compra, cria conta ou responde a pesquisa; nunca com dado pessoal", base: "Legítimo interesse" },
   { dado: "Páginas e produtos vistos no site, cliques em links e botões, tempo de tela, velocidade de carregamento, tipo de aparelho, páginas inexistentes e canal de origem (Instagram, Google, direto...)", quando: "Ao navegar na loja, no blog e nas páginas institucionais (não vale para carrinho, checkout, pedido, conta e Kambada Play)", paraQue: "Saber quais páginas e produtos mais interessam, de onde vêm as visitas, se o site está rápido no seu aparelho (celular, tablet ou computador) e onde a compra trava. Cada visita recebe um número aleatório que existe só enquanto a aba está aberta e não liga a você. Fica só no servidor da Kambada, sem cookie e sem identificar você; robôs são descartados", base: "Legítimo interesse" },
+  { dado: "Dia e mês do aniversário do titular da conta (opcional)", quando: "Quando você informa em “Minha conta”", paraQue: "Enviar um parabéns e um cupom de desconto no dia, só a quem aceitou receber novidades por e-mail. Não guardamos o ano nem a idade", base: "Consentimento" },
   { dado: "Tela do Kambada Play e tempo de uso dela", quando: "Ao navegar no Play (não vale para login, confirmação e conta)", paraQue: "Saber quais telas do Play são mais usadas, para melhorar o que importa. Fica só no servidor da Kambada, sem cookie, sem identificar você e sem ir a terceiros", base: "Legítimo interesse" },
   { dado: "Preferência de tema e carrinho", quando: "Ao navegar", paraQue: "Guardar a sua escolha e as peças do carrinho no seu próprio navegador", base: "Não sai do seu aparelho" },
 ];
@@ -78,7 +79,9 @@ export default function PaginaPrivacidade() {
               </table>
             </div>
             <p className="mt-4">
-              Não pedimos data de nascimento, documentos além do CPF, nem dados sensíveis.{" "}
+              Não pedimos data de nascimento completa, documentos além do CPF, nem dados sensíveis. Em “Minha conta” você pode,
+              se quiser, informar só o dia e o mês do seu aniversário (sem ano e sem idade) para receber um parabéns e um
+              cupom; é opcional e pode ser apagado a qualquer momento.{" "}
               <strong>Não vendemos nem alugamos dados a ninguém.</strong>
             </p>
           </article>

@@ -47,6 +47,13 @@ export type Conta = {
   usuario?: string;
   /** Conta de demonstração (ver contasDemo.ts): fora da base de marketing e dos e-mails. */
   demo?: boolean;
+  /**
+   * Aniversário do TITULAR da conta, só dia e mês ("MM-DD", sem ano e sem idade), informado por
+   * ele mesmo em "Minha conta" (02/11/2026). Serve só para o parabéns e o cupom de 15 %.
+   */
+  aniversario?: string;
+  /** Ano do último cupom de aniversário enviado (um por ano). */
+  aniversarioCupomAno?: number;
 };
 
 type Dados = { versao: 1; contas: Conta[] };
@@ -286,6 +293,43 @@ export function registrarAcesso(id: string, agora = new Date()): Promise<void> {
     const c = d.contas.find((x) => x.id === id);
     if (!c) return;
     c.ultimoAcessoEm = agora.toISOString();
+    await gravar(d);
+  });
+}
+
+/**
+ * Aniversário "MM-DD" a partir de dia e mês (números ou texto). 29/02 vale. Dia que não existe
+ * no mês (31/04) ou valor estranho devolve null. Vazio devolve "" (apagar a data).
+ */
+export function aniversarioValido(dia: unknown, mes: unknown): string | "" | null {
+  if ((dia === "" || dia == null) && (mes === "" || mes == null)) return "";
+  const d = Number(dia);
+  const m = Number(mes);
+  if (!Number.isInteger(d) || !Number.isInteger(m) || m < 1 || m > 12 || d < 1) return null;
+  const diasDoMes = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  if (d > diasDoMes) return null;
+  return `${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+/** Guarda (ou apaga, com "") o aniversário do titular. Conta por usuário (sem e-mail) não guarda. */
+export function definirAniversario(id: string, aniversario: string): Promise<boolean> {
+  return naFila(async () => {
+    const d = await ler();
+    const c = d.contas.find((x) => x.id === id);
+    if (!c || c.usuario || c.demo) return false;
+    c.aniversario = aniversario || undefined;
+    await gravar(d);
+    return true;
+  });
+}
+
+/** Marca o ano do cupom de aniversário já enviado (impede repetir). */
+export function marcarAniversarioEnviado(id: string, ano: number): Promise<void> {
+  return naFila(async () => {
+    const d = await ler();
+    const c = d.contas.find((x) => x.id === id);
+    if (!c) return;
+    c.aniversarioCupomAno = ano;
     await gravar(d);
   });
 }

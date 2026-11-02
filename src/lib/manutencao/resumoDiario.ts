@@ -91,7 +91,7 @@ export function pedidosParados(registros: RegistroPedido[], agora = new Date()):
 function arquivoEstado(): string {
   return join(dirname(arquivoTokens()), "manutencao-estado.json");
 }
-type Estado = { ultimoResumo?: string; ultimoRelatorioMensal?: string };
+type Estado = { ultimoResumo?: string; ultimoRelatorioMensal?: string; ultimoIndexNow?: string };
 export async function lerEstadoManutencao(): Promise<Estado> { return lerEstado(); }
 export async function gravarEstadoManutencao(e: Estado): Promise<void> { return gravarEstado(e); }
 async function lerEstado(): Promise<Estado> {

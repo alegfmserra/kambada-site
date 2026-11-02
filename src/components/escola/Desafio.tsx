@@ -29,8 +29,12 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
     setDescartadas([]);
     setDica("");
     const r = await chamar<{ estado: EstadoPartida }>("desafio", { acao: "iniciar", trilha: trilha.id });
-    if (r.ok) setEstado(r.estado);
-    else setErro(r.mensagem ?? "Não deu para abrir o desafio.");
+    if (r.ok) {
+      setEstado(r.estado);
+      // Voltou no meio da 2ª tentativa: a opção riscada e a dica continuam.
+      if (r.estado.descartada !== undefined) setDescartadas([r.estado.descartada]);
+      if (r.estado.dica) setDica(r.estado.dica);
+    } else setErro(r.mensagem ?? "Não deu para abrir o desafio.");
   }, [trilha.id]);
 
   useEffect(() => {

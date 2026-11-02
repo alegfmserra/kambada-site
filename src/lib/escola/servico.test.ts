@@ -42,6 +42,7 @@ import {
 import ExcelJS from "exceljs";
 import { planilhaEscola, planilhaTurma } from "./exportar";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
+import { fitinhasPor } from "@/components/escola/arraial/falas";
 
 beforeEach(() => {
   process.env.ESCOLA_ARQUIVO = join(mkdtempSync(join(tmpdir(), "kambada-escola-")), "escola.json");
@@ -126,6 +127,10 @@ describe("desafio", () => {
     expect(r.dica).toBeTruthy();
     expect(r.resultado).toBeUndefined();
     await expect(responder(aluno, estado.partida, e1)).rejects.toBeInstanceOf(ErroEscola); // a mesma opção não vale de novo
+    // recarregou a página: volta com a opção riscada e a dica
+    const retomada = await iniciarPartida(aluno, turma, trilha.id);
+    expect(retomada.descartada).toBe(e1);
+    expect(retomada.dica).toBe(r.dica);
     r = await responder(aluno, estado.partida, certaNaTela(estado));
     expect(r.resultado).toBe("segunda");
     expect(r.pontosGanhos).toBe(50);
@@ -351,5 +356,30 @@ describe("mapa de reforço e privacidade do nome", () => {
     expect(doGestor.texto).toContain("CaranguejoVeloz");
     expect((await mapaEscola(await membro("coordenacao"))).alunos).toHaveLength(25);
     await expect(planilhaEscola(await membro("prof.ana"))).rejects.toBeInstanceOf(ErroEscola);
+  });
+});
+
+describe("arraial 3D", () => {
+  it("resposta dada na praça entra no relatório marcada como Arraial 3D", async () => {
+    const d = await lerDados();
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!;
+    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
+    const trilha = TRILHAS.find((t) => t.etapa === turma.etapa)!;
+    const estado = await iniciarPartida(aluno, turma, trilha.id);
+    const q = trilha.questoes.find((x) => x.enunciado === estado.questao.enunciado)!;
+    const r = await responder(aluno, estado.partida, estado.questao.opcoes.indexOf(q.opcoes[q.correta]), "arraial");
+    expect(r.resultado).toBe("primeira");
+    // a próxima, pela tela de desafio, continua a mesma partida e não leva a marca
+    const q2 = trilha.questoes.find((x) => x.enunciado === r.proxima!.questao.enunciado)!;
+    await responder(aluno, estado.partida, r.proxima!.questao.opcoes.indexOf(q2.opcoes[q2.correta]), "qualquer");
+    const regs = (await lerDados()).registros.filter((x) => x.alunoId === aluno.id);
+    expect(regs.map((x) => x.origem)).toEqual(["arraial", undefined]);
+    const m = await mapaTurma(await membro("prof.ana"), turma.id);
+    expect(m.jogos.find((j) => j.trilhaId === trilha.id)?.noArraial).toBe(1);
+  });
+
+  it("a trilha é repartida em cinco fitinhas", () => {
+    expect([0, 1, 2, 3, 4, 6, 8, 9, 10].map((n) => fitinhasPor(n, 10))).toEqual([0, 0, 1, 1, 2, 3, 4, 4, 5]);
+    expect([1, 2, 3, 5, 6, 7, 8].map((n) => fitinhasPor(n, 8))).toEqual([0, 1, 2, 3, 4, 4, 5]);
   });
 });

@@ -170,7 +170,7 @@ export function JogosMaisJogados({ jogos }: { jogos: UsoJogo[] }) {
               <span aria-hidden>{j.emoji}</span> {j.titulo} <span className="text-xs text-texto-suave">· {j.disciplina}</span>
             </span>
             <span className="text-xs text-texto-suave">
-              <b className="text-texto">{j.alunos} de {j.podiam}</b> jogaram · {j.respostas} respostas · {j.primeira}% certo de primeira
+              <b className="text-texto">{j.alunos} de {j.podiam}</b> jogaram · {j.respostas} respostas{j.noArraial > 0 && ` (${j.noArraial} no Arraial 3D)`} · {j.primeira}% certo de primeira
             </span>
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-superficie">

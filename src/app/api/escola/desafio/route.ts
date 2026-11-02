@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const corpo = await corpoJson(req);
   try {
     if (corpo?.acao === "iniciar") return ok({ estado: await iniciarPartida(quem.aluno, quem.turma, corpo.trilha) });
-    if (corpo?.acao === "responder") return ok({ resposta: await responder(quem.aluno, corpo.partida, corpo.escolha) });
+    if (corpo?.acao === "responder") return ok({ resposta: await responder(quem.aluno, corpo.partida, corpo.escolha, corpo.origem) });
     return falha("Pedido inválido.");
   } catch (e) {
     return tratar(e);

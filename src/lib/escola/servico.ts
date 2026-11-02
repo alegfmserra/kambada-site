@@ -142,7 +142,18 @@ function questaoPublica(q: Questao, ordem: number[], t: Trilha): QuestaoPublica 
   return { cena: q.cena, enunciado: q.enunciado, opcoes: ordem.map((i) => q.opcoes[i]), disciplina: t.disciplina, habilidade: q.habilidade };
 }
 
-export type EstadoPartida = { partida: string; trilha: TrilhaPublica; indice: number; total: number; tentativa: 1 | 2; questao: QuestaoPublica; pontos: number };
+export type EstadoPartida = {
+  partida: string;
+  trilha: TrilhaPublica;
+  indice: number;
+  total: number;
+  tentativa: 1 | 2;
+  questao: QuestaoPublica;
+  pontos: number;
+  /** Retomada na 2ª tentativa: a opção já riscada (na ordem da tela) e a dica. */
+  descartada?: number;
+  dica?: string;
+};
 
 export function trilhasDoAluno(turma: Turma): TrilhaPublica[] {
   return trilhasDaEtapa(turma.etapa).map(publica);
@@ -170,7 +181,12 @@ export async function iniciarPartida(aluno: Aluno, turma: Turma, trilhaId: unkno
       d.partidas.push(p);
     }
     const q = trilha.questoes.find((x) => x.id === p.questoes[p.atual])!;
-    return { partida: p.id, trilha: publica(trilha), indice: p.atual, total: p.questoes.length, tentativa: p.tentativa, questao: questaoPublica(q, p.ordens[p.atual], trilha), pontos: p.pontos };
+    const estado: EstadoPartida = { partida: p.id, trilha: publica(trilha), indice: p.atual, total: p.questoes.length, tentativa: p.tentativa, questao: questaoPublica(q, p.ordens[p.atual], trilha), pontos: p.pontos };
+    if (p.tentativa === 2 && p.primeiroErro !== null) {
+      estado.descartada = p.ordens[p.atual].indexOf(p.primeiroErro);
+      estado.dica = q.dica;
+    }
+    return estado;
   });
 }
 
@@ -189,7 +205,7 @@ export type Resposta = {
   fim?: { pontos: number; primeira: number; segunda: number; reforco: number };
 };
 
-export async function responder(aluno: Aluno, partidaId: unknown, escolha: unknown): Promise<Resposta> {
+export async function responder(aluno: Aluno, partidaId: unknown, escolha: unknown, origem?: unknown): Promise<Resposta> {
   if (typeof partidaId !== "string" || typeof escolha !== "number" || !Number.isInteger(escolha)) throw new ErroEscola("Resposta inválida.");
   return alterar((d) => {
     const p = d.partidas.find((x) => x.id === partidaId && x.alunoId === aluno.id && !x.fim);
@@ -220,6 +236,7 @@ export async function responder(aluno: Aluno, partidaId: unknown, escolha: unkno
       errou: resultado === "primeira" ? null : p.primeiroErro,
       pontos: PONTOS[resultado],
       em: new Date().toISOString(),
+      ...(origem === "arraial" ? { origem: "arraial" as const } : {}),
     };
     d.registros.push(reg);
     p.pontos += reg.pontos;
@@ -914,6 +931,8 @@ export type UsoJogo = {
   respostas: number;
   /** % de respostas certas de primeira. */
   primeira: number;
+  /** Respostas dadas no Arraial 3D (o resto veio da tela de desafio). */
+  noArraial: number;
 };
 
 const DIA = 86400000;
@@ -982,6 +1001,7 @@ function usoDosJogos(d: Dados, alunos: Aluno[], turmas: Turma[]): UsoJogo[] {
       podiam,
       respostas: desta.length,
       primeira: desta.length ? Math.round((desta.filter((r) => r.resultado === "primeira").length / desta.length) * 100) : 0,
+      noArraial: desta.filter((r) => r.origem === "arraial").length,
     };
   })
     .filter((u) => u.podiam > 0)

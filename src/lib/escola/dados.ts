@@ -79,6 +79,8 @@ export type Registro = {
   errou: number | null;
   pontos: number;
   em: string;
+  /** "arraial" = respondida conversando com o povo da praça 3D (sem o campo: tela de desafio). */
+  origem?: "arraial";
 };
 
 export type Partida = {

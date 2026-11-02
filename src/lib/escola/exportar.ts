@@ -65,8 +65,9 @@ function abaJogos(livro: ExcelJS.Workbook, jogos: UsoJogo[]) {
     { titulo: "De quantos podiam", largura: 12 },
     { titulo: "Respostas", largura: 11 },
     { titulo: "% certo de primeira", largura: 12 },
+    { titulo: "Respostas no Arraial 3D", largura: 12 },
   ]);
-  for (const j of jogos) ws.addRow([j.titulo, j.disciplina, j.alunos, j.podiam, j.respostas, j.primeira / 100]).getCell(6).numFmt = "0%";
+  for (const j of jogos) ws.addRow([j.titulo, j.disciplina, j.alunos, j.podiam, j.respostas, j.primeira / 100, j.noArraial]).getCell(6).numFmt = "0%";
 }
 
 async function paraBuffer(livro: ExcelJS.Workbook): Promise<Buffer> {

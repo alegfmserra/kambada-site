@@ -36,6 +36,27 @@ export default async function AlunoInicio() {
         </div>
       </section>
 
+      <section className="relative overflow-hidden rounded-3xl bg-kambada-grafite p-6 text-white ring-2 ring-kambada-amarelo sm:p-8">
+        <Etiqueta escuro>Novo · Arraial em 3D</Etiqueta>
+        <h2 className="mt-3 font-display text-2xl font-extrabold sm:text-3xl">
+          Joga o desafio <span className="text-kambada-amarelo">andando pela festa</span>
+        </h2>
+        <p className="mt-2 max-w-xl text-sm text-white/80">
+          Anda pela praça do São João, conversa com o povo do arraial e responde as perguntas para juntar as cinco fitinhas. Os pontos valem igual aos do desafio.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {trilhas.map((t) => (
+            <Link
+              key={t.id}
+              href={rotaEscola(`/aluno/arraial?trilha=${t.id}`)}
+              className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+            >
+              {t.emoji} {t.titulo} no Arraial →
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section>
         <Etiqueta>Desafios da turma</Etiqueta>
         <ul className="mt-3 grid gap-4 sm:grid-cols-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { rotaEscola } from "@/lib/escola/host";
-import type { MapaAluno, Ponto, UsoJogo } from "@/lib/escola/servico";
+import { NOME_TIPO } from "@/lib/escola/cultura";
+import type { MapaAluno, Ponto, UsoCultura, UsoJogo } from "@/lib/escola/servico";
 import { ORDEM_SITUACAO, SITUACAO, type Situacao } from "@/lib/escola/tipos";
 import { COR_DISCIPLINA } from "./Marca";
 
@@ -176,6 +177,32 @@ export function JogosMaisJogados({ jogos }: { jogos: UsoJogo[] }) {
           <div className="h-3 overflow-hidden rounded-full bg-superficie">
             <div className="h-full rounded-full" style={{ width: `${(j.alunos / (j.podiam || 1)) * 100}%`, background: COR_DISCIPLINA[j.disciplina] }} />
           </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Cultura do Maranhão: quantos jogaram, leram e assistiram cada atividade, e quanto acertaram nas perguntas. */
+export function CulturaDaTurma({ cultura }: { cultura: UsoCultura[] }) {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2">
+      {cultura.map((c) => (
+        <li key={c.id} className="space-y-1 rounded-2xl border-2 border-borda p-3">
+          <div className="flex items-baseline justify-between gap-2 text-sm">
+            <span className="font-semibold">
+              <span aria-hidden>{c.emoji}</span> {c.titulo}
+            </span>
+            <span className="text-xs text-texto-suave">{NOME_TIPO[c.tipo]}</span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-superficie">
+            <div className="h-full rounded-full bg-kambada-amarelo" style={{ width: `${(c.alunos / (c.podiam || 1)) * 100}%` }} />
+          </div>
+          <p className="text-xs text-texto-suave">
+            <b className="text-texto">{c.alunos} de {c.podiam}</b> {c.tipo === "hq" ? "leram" : c.tipo === "animacao" ? "assistiram" : "jogaram"}
+            {c.vezes > c.alunos && ` · ${c.vezes} vezes`}
+            {c.acertos !== null && ` · ${c.acertos}% de acertos`}
+          </p>
         </li>
       ))}
     </ul>

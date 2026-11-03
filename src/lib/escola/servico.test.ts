@@ -40,11 +40,14 @@ import {
   nomearAluno,
   MISSAO,
   missaoDoAluno,
+  registrarCultura,
+  culturaDoAluno,
 } from "./servico";
 import ExcelJS from "exceljs";
 import { planilhaEscola, planilhaTurma } from "./exportar";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
-import { fitinhasPor } from "@/components/escola/arraial/falas";
+import { ORDEM as ORDEM_ARRAIAL, fitinhasPor, pessoa as pessoaDoArraial } from "@/components/escola/arraial/falas";
+import { ATIVIDADES, DIDATICA, INSTRUMENTOS, SOTAQUES } from "./cultura";
 
 beforeEach(() => {
   process.env.ESCOLA_ARQUIVO = join(mkdtempSync(join(tmpdir(), "kambada-escola-")), "escola.json");
@@ -424,5 +427,45 @@ describe("missão de reforço", () => {
     const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
     expect(await missaoDoAluno(aluno, turma)).toEqual([]);
     await expect(iniciarPartida(aluno, turma, MISSAO)).rejects.toBeInstanceOf(ErroEscola);
+  });
+});
+
+describe("cultura do Maranhão", () => {
+  it("aluno registra jogo, HQ e animação; professor vê na turma e a escola no mapa", async () => {
+    const d = await lerDados();
+    expect(d.cultura?.length).toBeGreaterThan(0); // histórico fictício da demonstração
+    // atividade com perguntas sempre traz acertos no histórico (o cordel inclusive)
+    expect(d.cultura!.filter((c) => c.atividade === "conto-boi").every((c) => c.total === 3)).toBe(true);
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!; // sem histórico
+    const antes = (await mapaTurma(await membro("prof.ana"), aluno.turmaId)).cultura.find((c) => c.id === "jogo-sotaques")!;
+    await registrarCultura(aluno, "jogo-sotaques", 4, 5);
+    await registrarCultura(aluno, "hq-tambor", 99, 4); // acertos acima do total são cortados
+    await registrarCultura(aluno, "video-guaras");
+    await expect(registrarCultura(aluno, "nao-existe")).rejects.toBeInstanceOf(ErroEscola);
+    const meus = await culturaDoAluno(aluno.id);
+    expect(meus["jogo-sotaques"]).toEqual({ vezes: 1, melhor: "4 de 5" });
+    expect(meus["hq-tambor"].melhor).toBe("4 de 4");
+    expect(meus["video-guaras"]).toEqual({ vezes: 1 });
+    const depois = (await mapaTurma(await membro("prof.ana"), aluno.turmaId)).cultura.find((c) => c.id === "jogo-sotaques")!;
+    expect(depois.alunos).toBe(antes.alunos + 1);
+    expect((await mapaEscola(await membro("coordenacao"))).cultura).toHaveLength(ATIVIDADES.length);
+  });
+
+  it("toda pessoa do arraial que dá fitinha conta uma tradição; o trio conta o auto do boi", () => {
+    for (const id of ORDEM_ARRAIAL) {
+      const p = pessoaDoArraial(id)!;
+      expect(p.tradicao?.falas.length).toBeGreaterThan(0);
+      expect(p.tradicao!.quiz.opcoes[p.tradicao!.quiz.correta]).toBeTruthy();
+    }
+    expect(pessoaDoArraial("barraca")!.tradicao!.quiz.pergunta).toContain("milho");
+    for (const id of ["catirina", "pai-francisco", "amo"]) expect(pessoaDoArraial(id)!.falas.length).toBe(3);
+  });
+
+  it("atividades com perguntas têm resposta certa válida", () => {
+    for (const [id, d] of Object.entries(DIDATICA)) {
+      expect(ATIVIDADES.some((a) => a.id === id)).toBe(true);
+      for (const p of d.perguntas) expect(p.correta).toBeLessThan(p.opcoes.length);
+    }
+    for (const s of SOTAQUES) for (const c of s.certos) expect(INSTRUMENTOS.some((i) => i.id === c)).toBe(true);
   });
 });

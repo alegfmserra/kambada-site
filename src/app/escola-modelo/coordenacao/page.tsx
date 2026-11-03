@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarraSituacao, Contagem, Exportar, JogosMaisJogados, ListaReforco, linkFicha } from "@/components/escola/Mapa";
+import { BarraSituacao, Contagem, CulturaDaTurma, Exportar, JogosMaisJogados, ListaReforco, linkFicha } from "@/components/escola/Mapa";
 import { Etiqueta, Micangas } from "@/components/escola/Marca";
 import { GestaoEquipe, GestaoTurmas, IdentidadeEscola } from "@/components/escola/Coordenacao";
 import { rotaEscola } from "@/lib/escola/host";
@@ -79,6 +79,10 @@ export default async function CoordenacaoPagina() {
 
       <Secao titulo="Jogos mais jogados na escola">
         <JogosMaisJogados jogos={mapa.jogos} />
+      </Secao>
+
+      <Secao titulo="Cultura do Maranhão na escola">
+        <CulturaDaTurma cultura={mapa.cultura} />
       </Secao>
 
       <Micangas className="mx-auto h-4 w-72 text-texto" />

@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 import type { Disciplina, EscolaPublica, Etapa, Permissao, Resultado } from "./tipos";
-import { comContasDeTeste, gestorDemo, sementeDemo } from "./semente";
+import { comContasDeTeste, culturaDemo, gestorDemo, sementeDemo } from "./semente";
 
 /**
  * Armazém do portal da escola (somente servidor).
@@ -100,6 +100,17 @@ export type Partida = {
   fim?: string;
 };
 
+/** Atividade cultural feita pelo aluno (jogo, HQ, animação; ver lib/escola/cultura.ts). */
+export type FeitoCultural = {
+  alunoId: string;
+  turmaId: string;
+  atividade: string;
+  /** Acertos nas perguntas da atividade (ausente = só leu/assistiu). */
+  acertos?: number;
+  total?: number;
+  em: string;
+};
+
 export type Dados = {
   versao: 1;
   demo: boolean;
@@ -110,6 +121,7 @@ export type Dados = {
   registros: Registro[];
   partidas: Partida[];
   log?: Evento[];
+  cultura?: FeitoCultural[];
   criadoEm: string;
 };
 
@@ -174,6 +186,8 @@ async function atual(): Promise<Dados> {
         for (const a of d.alunos) a.nome ??= nomes.get(a.id);
       }
       if (d.demo) comContasDeTeste(d);
+      // Demonstração de antes da área de cultura (02/11/2026): ganha o histórico fictício de cultura.
+      if (d.demo && !d.cultura) d.cultura = culturaDemo(d.alunos);
       estado.memoria = d;
       estado.mtime = mtime;
       return d;

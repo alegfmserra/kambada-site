@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { lugares, textos, type Lugar } from "@/content/play/arraial";
+import { lugares, textos, type Lugar, type Quiz } from "@/content/play/arraial";
 import { textosPescaria } from "@/content/play/pescaria";
 import { useMediaQuery } from "@/lib/play/mediaQuery";
 import { prenderFoco } from "@/lib/play/focusTrap";
@@ -17,13 +17,18 @@ import { MISSAO } from "@/lib/escola/missao";
 import type { EstadoPartida, Resposta } from "@/lib/escola/servico";
 import type { TrilhaPublica } from "@/lib/escola/tipos";
 import { chamar } from "../chamar";
-import { FITINHA, JA_DEU_FITINHA, ORDEM, fitinhasPor, pessoa, type Pessoa } from "./falas";
+import { avisarFeito } from "../cultura/Perguntas";
+import { FESTA, FITINHA, JA_DEU_FITINHA, ORDEM, fitinhasPor, pessoa, type Pessoa } from "./falas";
 
 type Conversa = {
   quem: Pessoa;
-  /** Falas da abertura; quando acabam, entra a pergunta (se a pessoa pergunta). */
+  /** Falas da vez; quando acabam, entra a `proxima` fase (ou a conversa fecha). */
   falas: string[];
   etapa: number;
+  fase: "falas" | "tradicao" | "escola";
+  proxima?: "tradicao" | "escola";
+  /** Pergunta da tradição respondida nesta conversa (índice escolhido). */
+  escolhaTradicao?: number;
   /** A pessoa já deu a fitinha nesta conversa: só resta despedir. */
   deu: boolean;
 };
@@ -35,9 +40,11 @@ const BOTAO_ESCURO =
 
 /**
  * Arraial da escola: a praça 3D do Kambada Play (mesma cena, mesmos
- * personagens), com o conteúdo da turma. Cada pessoa com "!" faz as
- * perguntas da trilha escolhida; as respostas entram no relatório do
- * professor marcadas como "Arraial 3D". Nada aqui fala com a API do Play.
+ * personagens). Cada pessoa com "!" primeiro conta uma tradição e pergunta
+ * sobre ela; nos desafios, depois vêm as perguntas da trilha (as respostas
+ * entram no relatório marcadas como "Arraial 3D"). No modo festa
+ * (`trilha.id === "festa"`) é só cultura: a fitinha vem de acertar a
+ * tradição. Nada aqui fala com a API do Play.
  */
 export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPublica }) {
   const inputRef = useRef({ x: 0, z: 0 });
@@ -57,7 +64,13 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
   // A partida traz o resumo de verdade (na missão: as habilidades que ela vai treinar).
   const trilha = estado?.trilha ?? inicial;
   const missao = trilha.id === MISSAO;
+  const festa = inicial.id === FESTA;
   const [textoCompleto, setTextoCompleto] = useState(false);
+  /** Tradição de cada pessoa: respondida certo ou errado nesta visita à praça. */
+  const [tradicoes, setTradicoes] = useState<Record<string, "certo" | "errado">>({});
+  /** Modo festa: tradições acertadas de primeira (vai para o relatório de cultura). */
+  const [dePrimeira, setDePrimeira] = useState(0);
+  const [fimFesta, setFimFesta] = useState(false);
 
   const [pertoId, setPertoId] = useState<string | null>(null);
   const [pertoMinigame, setPertoMinigame] = useState<string | null>(null);
@@ -69,6 +82,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
   const [falhaWebgl, setFalhaWebgl] = useState(false);
 
   const iniciar = useCallback(async () => {
+    if (inicial.id === FESTA) return;
     setErro("");
     setFim(null);
     setFechada(null);
@@ -93,23 +107,37 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
   }, [iniciar]);
 
   useEffect(() => {
-    travadoRef.current = conversa !== null || pescaria || mapa || lugar !== null || fim !== null;
-  }, [conversa, pescaria, mapa, lugar, fim]);
+    travadoRef.current = conversa !== null || pescaria || mapa || lugar !== null || fim !== null || fimFesta;
+  }, [conversa, pescaria, mapa, lugar, fim, fimFesta]);
 
   const abrirConversa = useCallback(
     (id: string) => {
       const quem = pessoa(id);
       if (!quem) return;
       setTextoCompleto(false);
-      if (quem.pergunta && fitinhas.includes(quem.id)) {
-        setConversa({ quem, falas: [JA_DEU_FITINHA], etapa: 0, deu: true });
+      if (!quem.pergunta) {
+        setConversa({ quem, falas: quem.falas, etapa: 0, fase: "falas", deu: true });
         return;
       }
-      // Na missão, a segunda fala diz o que vai ser treinado.
-      const falas = missao && trilha.resumo ? [quem.falas[0], `Tua missão de hoje: ${trilha.resumo.toLowerCase()}. Bora treinar comigo!`] : quem.falas;
-      setConversa({ quem, falas, etapa: 0, deu: false });
+      if (fitinhas.includes(quem.id)) {
+        setConversa({ quem, falas: [JA_DEU_FITINHA], etapa: 0, fase: "falas", deu: true });
+        return;
+      }
+      const missaoFala = missao && trilha.resumo ? [`Tua missão de hoje: ${trilha.resumo.toLowerCase()}. Bora treinar comigo!`] : [];
+      const t = tradicoes[quem.id];
+      // Primeira conversa: a pessoa conta a tradição e pergunta sobre ela.
+      if (!t && quem.tradicao) {
+        setConversa({ quem, falas: [...quem.tradicao.falas, ...missaoFala], etapa: 0, fase: "falas", proxima: "tradicao", deu: false });
+        return;
+      }
+      // Festa: errou a tradição, tenta de novo.
+      if (festa) {
+        setConversa({ quem, falas: ["Voltou! Vamos tentar de novo?"], etapa: 0, fase: "falas", proxima: "tradicao", deu: false });
+        return;
+      }
+      setConversa({ quem, falas: missaoFala.length ? missaoFala : quem.falas, etapa: 0, fase: "falas", proxima: "escola", deu: false });
     },
-    [fitinhas, missao, trilha.resumo],
+    [fitinhas, missao, trilha.resumo, tradicoes, festa],
   );
 
   /**
@@ -138,21 +166,60 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
     setConversa(null);
   }, [concluirPergunta]);
 
-  const emPergunta = !!conversa && !conversa.deu && conversa.quem.pergunta && conversa.etapa >= conversa.falas.length && !!estado;
+  const emPergunta = !!conversa && !conversa.deu && conversa.fase === "escola" && !!estado;
+  const emTradicao = !!conversa && conversa.fase === "tradicao";
 
   const avancar = useCallback(() => {
-    if (!conversa || emPergunta) return;
+    if (!conversa || conversa.fase !== "falas") return;
     if (!textoCompleto) {
       setTextoCompleto(true);
       return;
     }
-    if (conversa.etapa < conversa.falas.length - 1 || (conversa.quem.pergunta && !conversa.deu && conversa.etapa < conversa.falas.length)) {
+    if (conversa.etapa < conversa.falas.length - 1) {
       setTextoCompleto(false);
       setConversa({ ...conversa, etapa: conversa.etapa + 1 });
       return;
     }
+    // Sem partida (erro ao abrir), a pergunta da turma não tem o que mostrar.
+    if (conversa.proxima && !conversa.deu && (conversa.proxima === "tradicao" || estado)) {
+      setConversa({ ...conversa, fase: conversa.proxima, proxima: undefined });
+      return;
+    }
     fecharConversa();
-  }, [conversa, emPergunta, textoCompleto, fecharConversa]);
+  }, [conversa, textoCompleto, fecharConversa, estado]);
+
+  /** Pergunta da tradição (conteúdo do Play, conferida aqui mesmo: é conversa, não prova). */
+  function responderTradicao(i: number) {
+    if (!conversa?.quem.tradicao || conversa.escolhaTradicao !== undefined) return;
+    const certo = i === conversa.quem.tradicao.quiz.correta;
+    const id = conversa.quem.id;
+    if (certo && !tradicoes[id]) setDePrimeira((n) => n + 1);
+    setTradicoes((t) => ({ ...t, [id]: certo || t[id] === "certo" ? "certo" : "errado" }));
+    setConversa({ ...conversa, escolhaTradicao: i });
+  }
+
+  /** Depois da tradição: na festa, fitinha (ou "volta depois"); nos desafios, a pergunta da turma. */
+  function seguirTradicao() {
+    if (!conversa?.quem.tradicao || conversa.escolhaTradicao === undefined) return;
+    const certo = conversa.escolhaTradicao === conversa.quem.tradicao.quiz.correta;
+    setTextoCompleto(false);
+    if (festa) {
+      if (!certo) {
+        setConversa(null);
+        return;
+      }
+      const novas = fitinhas.includes(conversa.quem.id) ? fitinhas : [...fitinhas, conversa.quem.id];
+      setFitinhas(novas);
+      setConversa({ ...conversa, falas: [FITINHA], etapa: 0, fase: "falas", deu: true, escolhaTradicao: undefined });
+      if (novas.length === ORDEM.length) {
+        setFimFesta(true);
+        avisarFeito("arraial-festa", dePrimeira, ORDEM.length);
+      }
+      return;
+    }
+    if (estado) setConversa({ ...conversa, fase: "escola", escolhaTradicao: undefined });
+    else setConversa(null);
+  }
 
   async function responder(escolha: number) {
     if (!estado || enviando || fechada) return;
@@ -177,7 +244,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
   function seguir() {
     if (!conversa || !concluirPergunta()) return;
     setTextoCompleto(false);
-    setConversa({ ...conversa, falas: [FITINHA], etapa: 0, deu: true });
+    setConversa({ ...conversa, falas: [FITINHA], etapa: 0, fase: "falas", deu: true });
   }
 
   // E conversa ou abre a pescaria; M abre o mapa; Esc fecha. Enter/Espaço avançam a fala.
@@ -194,7 +261,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
         }
         return;
       }
-      if (pescaria || fim) return;
+      if (pescaria || fim || fimFesta) return;
       if (e.key === "Escape") {
         setMapa(false);
         setLugar(null);
@@ -210,7 +277,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
     };
     window.addEventListener("keydown", aoTeclar);
     return () => window.removeEventListener("keydown", aoTeclar);
-  }, [conversa, pescaria, fim, mapa, lugar, pertoId, pertoMinigame, abrirConversa, fecharConversa, avancar]);
+  }, [conversa, pescaria, fim, fimFesta, mapa, lugar, pertoId, pertoMinigame, abrirConversa, fecharConversa, avancar]);
 
   const irAte = useCallback((id: string) => {
     const destino = pontoDeParada(id);
@@ -226,7 +293,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
   const aoPrimeiroMovimento = useCallback(() => setJaAndou(true), []);
 
   const quemPerto = pessoa(pertoId);
-  const livre = !conversa && !pescaria && !mapa && !lugar && !fim;
+  const livre = !conversa && !pescaria && !mapa && !lugar && !fim && !fimFesta;
   const pontos = estado ? estado.pontos + (fechada?.pontosGanhos ?? 0) : 0;
 
   if (falhaWebgl) {
@@ -235,10 +302,11 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
         <PosterArraial posicao="fixed" className="opacity-45" />
         <p className="relative font-display text-2xl font-bold italic">{textos.titulo}</p>
         <p className="relative max-w-sm font-body text-sm leading-relaxed text-kambada-cream/85">
-          Este aparelho não conseguiu abrir a praça em 3D. O mesmo desafio funciona na tela de perguntas.
+          Este aparelho não conseguiu abrir a praça em 3D.{" "}
+          {festa ? "A cultura do Maranhão continua nos jogos, quadrinhos e animações." : "O mesmo desafio funciona na tela de perguntas."}
         </p>
-        <Link href={rotaEscola(`/aluno/${inicial.id}`)} className={`${BOTAO_CLARO} relative px-6 py-3`}>
-          Jogar {trilha.titulo}
+        <Link href={rotaEscola(festa ? "/aluno/cultura" : `/aluno/${inicial.id}`)} className={`${BOTAO_CLARO} relative px-6 py-3`}>
+          {festa ? "Ver as outras atividades de cultura" : `Jogar ${trilha.titulo}`}
         </Link>
       </div>
     );
@@ -253,7 +321,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
         onPertoMinigameChange={setPertoMinigame}
         fitinhas={fitinhas}
         seloPescaria={seloPescaria}
-        celebrando={fim !== null}
+        celebrando={fim !== null || fimFesta}
         onWebglFalha={aoFalharWebgl}
         onPrimeiroMovimento={aoPrimeiroMovimento}
         controleRef={controleRef}
@@ -262,6 +330,14 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
 
       <HudTopo fitinhas={fitinhas} />
 
+      {festa && (
+        <div className="pointer-events-none absolute right-4 top-16 z-20 rounded-2xl bg-kambada-noite/85 px-3.5 py-2 text-right font-body text-kambada-cream backdrop-blur-sm">
+          <p className="text-xs font-semibold">🎉 Festa da cultura</p>
+          <p className="text-[11px] text-kambada-cream/80">
+            {fitinhas.length} de {ORDEM.length} tradições
+          </p>
+        </div>
+      )}
       {/* Trilha, progresso e pontos: abaixo das fitinhas, à direita. */}
       {estado && (
         <div className="pointer-events-none absolute right-4 top-16 z-20 rounded-2xl bg-kambada-noite/85 px-3.5 py-2 text-right font-body text-kambada-cream backdrop-blur-sm">
@@ -297,15 +373,15 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
           aria-hidden={jaAndou}
           className={`hint-arraial rounded-full bg-kambada-noite/80 px-4 py-1.5 text-center font-body text-[13px] text-kambada-cream/90 backdrop-blur-sm ${jaAndou ? "opacity-0" : "opacity-100"}`}
         >
-          {touch ? "Use o direcional pra andar." : "Use W A S D ou as setas pra andar."} Quem tem ❗ em cima te dá uma pergunta e uma fitinha.
+          {touch ? "Use o direcional pra andar." : "Use W A S D ou as setas pra andar."} Quem tem ❗ em cima conta uma tradição e te dá uma fitinha.
         </p>
       </div>
 
       <Link
-        href={rotaEscola("/aluno")}
+        href={rotaEscola(festa ? "/aluno/cultura" : "/aluno")}
         className="toque-matraca absolute bottom-24 right-4 z-20 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-xs font-semibold text-kambada-cream/90 backdrop-blur-sm hover:bg-kambada-noite/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold sm:bottom-4 sm:right-24"
       >
-        ← Desafios
+        ← {festa ? "Cultura" : "Desafios"}
       </Link>
 
       {erro && !conversa && (
@@ -345,6 +421,9 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
         <CaixaConversa
           conversa={conversa}
           emPergunta={emPergunta}
+          emTradicao={emTradicao}
+          onTradicao={responderTradicao}
+          onSeguirTradicao={seguirTradicao}
           estado={estado}
           textoCompleto={textoCompleto}
           aoCompletar={setTextoCompleto}
@@ -376,6 +455,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
       )}
 
       {fim && !conversa && <Celebracao fim={fim} trilha={trilha} onDeNovo={iniciar} />}
+      {fimFesta && !conversa && <CelebracaoFesta acertos={dePrimeira} onVoltar={() => setFimFesta(false)} />}
     </div>
   );
 }
@@ -383,6 +463,9 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
 function CaixaConversa({
   conversa,
   emPergunta,
+  emTradicao,
+  onTradicao,
+  onSeguirTradicao,
   estado,
   textoCompleto,
   aoCompletar,
@@ -398,6 +481,9 @@ function CaixaConversa({
 }: {
   conversa: Conversa;
   emPergunta: boolean;
+  emTradicao: boolean;
+  onTradicao: (i: number) => void;
+  onSeguirTradicao: () => void;
   estado: EstadoPartida | null;
   textoCompleto: boolean;
   aoCompletar: (v: boolean) => void;
@@ -418,8 +504,8 @@ function CaixaConversa({
   // Em tela baixa (celular deitado) a dica e a explicação nascem abaixo da borda: rola até elas.
   useEffect(() => {
     const el = rolagemRef.current;
-    if (el && (dica || fechada)) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [dica, fechada]);
+    if (el && (dica || fechada || conversa.escolhaTradicao !== undefined)) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [dica, fechada, conversa.escolhaTradicao]);
 
   // Foco no diálogo ao abrir e devolvido ao fechar; Tab fica preso dentro da caixa.
   useEffect(() => {
@@ -447,8 +533,8 @@ function CaixaConversa({
         role="dialog"
         aria-modal="true"
         aria-label={`Conversa com ${quem.nome}`}
-        onClick={emPergunta ? undefined : onAvancar}
-        className={`dialogo-entrada mx-auto max-w-lg rounded-2xl border-4 border-kambada-cream bg-kambada-noite/95 p-4 shadow-2xl shadow-black/60 outline-none ${emPergunta ? "" : "cursor-pointer"}`}
+        onClick={conversa.fase === "falas" ? onAvancar : undefined}
+        className={`dialogo-entrada mx-auto max-w-lg rounded-2xl border-4 border-kambada-cream bg-kambada-noite/95 p-4 shadow-2xl shadow-black/60 outline-none ${conversa.fase === "falas" ? "cursor-pointer" : ""}`}
       >
         <div className="flex items-start justify-between gap-3">
           <p className="font-display text-base font-black" style={{ color: quem.cor }}>
@@ -459,7 +545,7 @@ function CaixaConversa({
           </button>
         </div>
 
-        {!emPergunta && (
+        {conversa.fase === "falas" && (
           <>
             <p key={`sr-${conversa.etapa}-${fala}`} role="status" className="sr-only">{fala}</p>
             <p aria-hidden className="mt-1.5 min-h-[3rem] font-body text-[15px] leading-snug text-kambada-cream">
@@ -469,6 +555,10 @@ function CaixaConversa({
               {textos.avancar}
             </p>
           </>
+        )}
+
+        {emTradicao && quem.tradicao && (
+          <Tradicao quiz={quem.tradicao.quiz} escolha={conversa.escolhaTradicao} onResponder={onTradicao} onSeguir={onSeguirTradicao} />
         )}
 
         {emPergunta && q && (
@@ -531,12 +621,49 @@ function CaixaConversa({
   );
 }
 
+/** A pergunta da tradição, com a resposta contada pela própria pessoa (texto do Play). */
+function Tradicao({ quiz, escolha, onResponder, onSeguir }: { quiz: Quiz; escolha?: number; onResponder: (i: number) => void; onSeguir: () => void }) {
+  const respondeu = escolha !== undefined;
+  const certo = escolha === quiz.correta;
+  return (
+    <div className="mt-1.5 font-body text-kambada-cream">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-kambada-gold">Pergunta da tradição</p>
+      <p className="mt-1 text-[16px] font-semibold leading-snug">{quiz.pergunta}</p>
+      <div className="mt-3 flex flex-col gap-2">
+        {quiz.opcoes.map((o, i) => (
+          <button
+            key={o}
+            type="button"
+            disabled={respondeu}
+            onClick={() => onResponder(i)}
+            className={`toque-matraca rounded-xl border-2 px-4 py-2.5 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold ${
+              respondeu && i === quiz.correta ? "border-kambada-green bg-kambada-green/30" : escolha === i ? "border-kambada-red bg-kambada-red/25" : "border-kambada-cream/30 bg-kambada-navy hover:border-kambada-gold/70"
+            }`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+      {respondeu && (
+        <div role="status" className="mt-3 space-y-3">
+          <p className={`rounded-xl px-3 py-2 text-sm ${certo ? "bg-kambada-green/25" : "bg-kambada-red/20"}`}>{certo ? quiz.acerto : quiz.erro}</p>
+          <div className="flex justify-end">
+            <button type="button" autoFocus onClick={onSeguir} className={BOTAO_CLARO}>
+              Continuar →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Mapa({ fitinhas, onIr, onFechar }: { fitinhas: string[]; onIr: (id: string) => void; onFechar: () => void }) {
   const perguntam = ORDEM.map((id) => pessoa(id)!);
   const outros = lugares.filter((l) => !l.foraDoMapa && l.tipo !== "conversa");
   return (
     <Cartao titulo={textos.mapaTitulo} onFechar={onFechar}>
-      <p className="text-kambada-cream/80">Quem dá pergunta e fitinha:</p>
+      <p className="text-kambada-cream/80">Quem conta uma tradição e dá fitinha:</p>
       <ul className="mt-2 space-y-1.5">
         {perguntam.map((p) => (
           <li key={p.id}>
@@ -547,6 +674,7 @@ function Mapa({ fitinhas, onIr, onFechar }: { fitinhas: string[]; onIr: (id: str
           </li>
         ))}
       </ul>
+      <p className="mt-4 text-kambada-cream/80">O auto do boi (só conversa): Mãe Catirina, Pai Francisco e o Amo andam pela praça.</p>
       <p className="mt-4 text-kambada-cream/80">Para passear:</p>
       <ul className="mt-2 flex flex-wrap gap-2">
         {outros.map((l) => (
@@ -629,6 +757,41 @@ function Celebracao({ fim, trilha, onDeNovo }: { fim: NonNullable<Resposta["fim"
           </button>
           <Link href={rotaEscola("/aluno")} className={`${BOTAO_ESCURO} py-3`}>
             Outros desafios
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CelebracaoFesta({ acertos, onVoltar }: { acertos: number; onVoltar: () => void }) {
+  const [visivel, setVisivel] = useState(false);
+  // Um segundo para o Urrou do boi aparecer na praça antes do cartão.
+  useEffect(() => {
+    const id = window.setTimeout(() => setVisivel(true), 1000);
+    return () => window.clearTimeout(id);
+  }, []);
+  if (!visivel) return null;
+  return (
+    <div className="celebracao-veu absolute inset-0 z-40 flex items-center justify-center bg-kambada-noite/85 p-6 backdrop-blur-sm">
+      <div role="dialog" aria-modal="true" aria-label="Festa completa" className="celebracao-cartao w-full max-w-sm rounded-3xl border-4 border-kambada-gold bg-kambada-noite p-7 text-center font-body text-kambada-cream shadow-2xl">
+        <h2 className="font-display text-3xl font-black">{textos.celebracaoTitulo}</h2>
+        <p className="mt-2 text-sm text-kambada-cream/85">
+          Tu conheceu as cinco tradições do arraial: a quadrilha, a fogueira, o boi que renasce, a matraca e a comida do milho.
+        </p>
+        <p className="mt-4 font-display text-4xl font-extrabold text-kambada-gold">
+          {acertos} de {ORDEM.length}
+        </p>
+        <p className="text-xs text-kambada-cream/70">acertadas de primeira</p>
+        <div className="mt-6 flex flex-col gap-2.5">
+          <Link href={rotaEscola("/aluno/cultura/auto-do-boi")} className={`${BOTAO_CLARO} py-3`}>
+            🐂 Jogar “A história do Boi”
+          </Link>
+          <button type="button" autoFocus onClick={onVoltar} className={`${BOTAO_ESCURO} py-3`}>
+            Continuar na festa
+          </button>
+          <Link href={rotaEscola("/aluno/cultura")} className="text-sm font-semibold text-kambada-gold underline">
+            Outras atividades de cultura
           </Link>
         </div>
       </div>

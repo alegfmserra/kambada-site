@@ -1,4 +1,5 @@
 import { ArraialEscolaClient } from "@/components/escola/arraial/ArraialEscolaClient";
+import { FESTA } from "@/components/escola/arraial/falas";
 import { exigir } from "@/lib/escola/pagina";
 import { MISSAO, missaoDoAluno, missaoPublica, trilhasDoAluno } from "@/lib/escola/servico";
 import "@/components/play/arraial/arraial.css";
@@ -7,11 +8,13 @@ export const metadata = { title: "Arraial 3D" };
 
 /**
  * A praça do Arraial (mesma do Kambada Play) com as perguntas da turma.
- * `?trilha=` escolhe o desafio (ou a missão de reforço); sem ele, vale o de Matemática da etapa.
+ * `?trilha=` escolhe o desafio, a missão de reforço ou `festa` (só cultura); sem ele, vale o de Matemática da etapa.
  */
 export default async function ArraialDaEscola({ searchParams }: { searchParams: Promise<{ trilha?: string }> }) {
   const { aluno, turma } = await exigir("aluno");
   const { trilha: pedida } = await searchParams;
+  if (pedida === FESTA)
+    return <ArraialEscolaClient trilha={{ id: FESTA, titulo: "Festa da cultura", emoji: "🎉", disciplina: "Português", etapa: turma.etapa, resumo: "", total: 5 }} />;
   if (pedida === MISSAO) return <ArraialEscolaClient trilha={missaoPublica(turma, await missaoDoAluno(aluno, turma))} />;
   const trilhas = trilhasDoAluno(turma);
   const trilha = trilhas.find((t) => t.id === pedida) ?? trilhas.find((t) => t.disciplina === "Matemática") ?? trilhas[0];

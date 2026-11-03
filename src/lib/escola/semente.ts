@@ -1,4 +1,5 @@
-import type { Aluno, Dados, Membro, Registro, Turma } from "./dados";
+import { ATIVIDADES, DIDATICA } from "./cultura";
+import type { Aluno, Dados, FeitoCultural, Membro, Registro, Turma } from "./dados";
 import { TRILHAS, trilhasDaEtapa } from "./desafios";
 import { hashDemo } from "./senha";
 import { AVATARES, PONTOS, type Resultado } from "./tipos";
@@ -74,6 +75,39 @@ export function comContasDeTeste(d: Dados): Dados {
   }
   if (!d.alunos.some((a) => a.usuario === "aluno") && d.turmas.some((t) => t.id === "t4a") && !d.alunos.some((a) => a.id === "t4a-teste")) d.alunos.push(alunoTeste(agora));
   return d;
+}
+
+/** Quanto cada atividade de cultura é procurada no histórico fictício. */
+const PROCURA_CULTURA: Record<string, number> = {
+  "arraial-festa": 0.8,
+  "jogo-auto-do-boi": 0.55,
+  "jogo-sotaques": 0.4,
+  "hq-guaras": 0.7,
+  "hq-tambor": 0.6,
+  "video-guaras": 0.75,
+  "conto-boi": 0.35,
+};
+
+const PERGUNTAS_CULTURA: Record<string, number> = { "arraial-festa": 5, "jogo-auto-do-boi": 6, "jogo-sotaques": 5 };
+
+/**
+ * Histórico fictício da área de cultura (sorteio próprio: não mexe nos
+ * códigos, figuras e respostas dos desafios). Contas de teste ficam de fora.
+ */
+export function culturaDemo(alunos: Aluno[], agora = Date.now()): FeitoCultural[] {
+  const r = sorteador(20261102);
+  const feitos: FeitoCultural[] = [];
+  for (const a of alunos) {
+    if (a.id.endsWith("-teste") || a.apelido === "Sabiá" || a.apelido === "Cuxá") continue;
+    for (const at of ATIVIDADES) {
+      if (r() > (PROCURA_CULTURA[at.id] ?? 0.5)) continue;
+      const total = PERGUNTAS_CULTURA[at.id] ?? DIDATICA[at.id]?.perguntas.length;
+      const acertos = total ? Math.min(total, Math.round(total * (0.5 + r() * 0.55))) : undefined;
+      const dias = Math.floor(r() * 12);
+      feitos.push({ alunoId: a.id, turmaId: a.turmaId, atividade: at.id, ...(total ? { acertos, total } : {}), em: new Date(agora - dias * 86400000 - Math.floor(r() * 8) * 3600000).toISOString() });
+    }
+  }
+  return feitos.sort((x, y) => x.em.localeCompare(y.em));
 }
 
 export function sementeDemo(agora = Date.now()): Dados {
@@ -165,6 +199,7 @@ export function sementeDemo(agora = Date.now()): Dados {
     alunos,
     registros,
     partidas: [],
+    cultura: culturaDemo(alunos, agora),
     criadoEm,
   });
 }

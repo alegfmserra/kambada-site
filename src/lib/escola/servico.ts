@@ -3,6 +3,7 @@ import { idAleatorio } from "../play/jogos/seguranca";
 import { alterar, lerDados, restaurar, type Aluno, type Dados, type Evento, type Membro, type Partida, type Registro, type Turma } from "./dados";
 import { TRILHAS, habilidades, publica, questaoPorId, trilhaPorId, trilhasDaEtapa, type Questao } from "./desafios";
 import { gerarHash, marca, senhaConfere, senhaInicial } from "./senha";
+import { ATIVIDADES, atividadePorId, type TipoCultura } from "./cultura";
 import { MISSAO } from "./missao";
 import type { SessaoEscola } from "./sessao";
 import {
@@ -1109,6 +1110,8 @@ export type MapaTurma = {
   alunos: MapaAluno[];
   contagem: Record<Situacao, number>;
   jogos: UsoJogo[];
+  /** Cultura do Maranhão: quem jogou, leu e assistiu. */
+  cultura: UsoCultura[];
   /** Habilidades com mais alunos em ✗ (onde a turma inteira precisa de retomada). */
   pontosFracos: (Ponto & { alunos: number })[];
 };
@@ -1130,6 +1133,7 @@ function montarMapa(m: Membro, d: Dados, t: Turma): MapaTurma {
     alunos,
     contagem: contar(alunos),
     jogos: usoDosJogos(d, daTurma, [t]),
+    cultura: usoDaCultura(d, daTurma),
     pontosFracos: [...fracos.values()].sort((x, y) => y.alunos - x.alunos).slice(0, 5),
   };
 }
@@ -1142,6 +1146,75 @@ export async function mapaTurma(m: Membro, turmaId: string): Promise<MapaTurma> 
   return montarMapa(m, d, t);
 }
 
+// ---------------------------------------------------------------------------
+// Cultura (jogos, HQs e animações da área do aluno)
+// ---------------------------------------------------------------------------
+
+/** O aluno terminou uma atividade de cultura (com os acertos, quando ela tem perguntas). */
+export async function registrarCultura(aluno: Aluno, atividade: unknown, acertos?: unknown, total?: unknown): Promise<void> {
+  const at = atividadePorId(atividade);
+  if (!at) throw new ErroEscola("Atividade desconhecida.");
+  const t = typeof total === "number" && Number.isInteger(total) && total > 0 && total <= 50 ? total : undefined;
+  const a = t !== undefined && typeof acertos === "number" && Number.isInteger(acertos) ? Math.max(0, Math.min(t, acertos)) : undefined;
+  await alterar((d) => {
+    d.cultura ??= [];
+    d.cultura.push({ alunoId: aluno.id, turmaId: aluno.turmaId, atividade: at.id, ...(t !== undefined && a !== undefined ? { acertos: a, total: t } : {}), em: new Date().toISOString() });
+    d.cultura = d.cultura.slice(-20000);
+  });
+}
+
+/** Para os cartões do aluno: quantas vezes fez cada atividade e a melhor marca. */
+export async function culturaDoAluno(alunoId: string): Promise<Record<string, { vezes: number; melhor?: string }>> {
+  const d = await lerDados();
+  const r: Record<string, { vezes: number; melhor?: string; pct?: number }> = {};
+  for (const c of d.cultura ?? []) {
+    if (c.alunoId !== alunoId) continue;
+    const x = (r[c.atividade] ??= { vezes: 0 });
+    x.vezes += 1;
+    if (c.total) {
+      const pct = c.acertos! / c.total;
+      if (x.pct === undefined || pct > x.pct) {
+        x.pct = pct;
+        x.melhor = `${c.acertos} de ${c.total}`;
+      }
+    }
+  }
+  return Object.fromEntries(Object.entries(r).map(([k, v]) => [k, { vezes: v.vezes, ...(v.melhor ? { melhor: v.melhor } : {}) }]));
+}
+
+export type UsoCultura = {
+  id: string;
+  titulo: string;
+  emoji: string;
+  tipo: TipoCultura;
+  /** Alunos que fizeram ao menos uma vez, de quantos podiam. */
+  alunos: number;
+  podiam: number;
+  vezes: number;
+  /** % de acertos nas perguntas (null = atividade sem perguntas ou ninguém fez). */
+  acertos: number | null;
+};
+
+function usoDaCultura(d: Dados, alunos: Aluno[]): UsoCultura[] {
+  const ids = new Set(alunos.map((a) => a.id));
+  const feitos = (d.cultura ?? []).filter((c) => ids.has(c.alunoId));
+  return ATIVIDADES.map((at) => {
+    const desta = feitos.filter((c) => c.atividade === at.id);
+    const comNota = desta.filter((c) => c.total);
+    const soma = comNota.reduce((t, c) => t + c.total!, 0);
+    return {
+      id: at.id,
+      titulo: at.titulo,
+      emoji: at.emoji,
+      tipo: at.tipo,
+      alunos: new Set(desta.map((c) => c.alunoId)).size,
+      podiam: alunos.length,
+      vezes: desta.length,
+      acertos: soma ? Math.round((comNota.reduce((t, c) => t + c.acertos!, 0) / soma) * 100) : null,
+    };
+  });
+}
+
 export type MapaEscola = {
   nomes: boolean;
   turmas: { id: string; nome: string; etapa: Etapa; total: number; contagem: Record<Situacao, number> }[];
@@ -1149,6 +1222,7 @@ export type MapaEscola = {
   /** Todos os alunos da escola, do mais urgente ao que vai bem. */
   alunos: MapaAluno[];
   jogos: UsoJogo[];
+  cultura: UsoCultura[];
 };
 
 /** Coordenação e gestão: o mapa da escola inteira. */
@@ -1163,6 +1237,7 @@ export async function mapaEscola(m: Membro): Promise<MapaEscola> {
     contagem: contar(alunos),
     alunos,
     jogos: usoDosJogos(d, d.alunos, d.turmas),
+    cultura: usoDaCultura(d, d.alunos),
   };
 }
 

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { COR_DISCIPLINA, Etiqueta, FalaKambadinha, SeloDisciplina } from "@/components/escola/Marca";
+import { ATIVIDADES } from "@/lib/escola/cultura";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { MISSAO, escolaPublica, missaoDoAluno, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
+import { MISSAO, culturaDoAluno, escolaPublica, missaoDoAluno, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
 
 export const metadata = { title: "Desafios" };
 
@@ -10,7 +11,7 @@ const MEDALHA = ["🥇", "🥈", "🥉"];
 
 export default async function AlunoInicio() {
   const { aluno, turma } = await exigir("aluno");
-  const [meus, rank, escola, treinar] = await Promise.all([pontosDoAluno(aluno.id), ranking(turma.id), escolaPublica(), missaoDoAluno(aluno, turma)]);
+  const [meus, rank, escola, treinar, feitos] = await Promise.all([pontosDoAluno(aluno.id), ranking(turma.id), escolaPublica(), missaoDoAluno(aluno, turma), culturaDoAluno(aluno.id)]);
   const trilhas = trilhasDoAluno(turma);
   const posicao = rank.alunos.findIndex((a) => a.id === aluno.id) + 1;
   const comecou = Object.keys(meus.porTrilha).length > 0;
@@ -36,13 +37,36 @@ export default async function AlunoInicio() {
         </div>
       </section>
 
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <Etiqueta>Cultura do Maranhão</Etiqueta>
+          <Link href={rotaEscola("/aluno/cultura")} className="text-sm font-semibold underline">
+            Ver tudo ({ATIVIDADES.filter((a) => feitos[a.id]).length} de {ATIVIDADES.length} feitas)
+          </Link>
+        </div>
+        <ul className="flex snap-x gap-3 overflow-x-auto pb-2">
+          {ATIVIDADES.map((a) => (
+            <li key={a.id} className="w-44 shrink-0 snap-start">
+              <Link
+                href={rotaEscola(a.caminho)}
+                className="flex h-full flex-col gap-1 rounded-2xl border-2 border-borda p-4 transition-all hover:-translate-y-0.5 hover:border-kambada-amarelo"
+              >
+                <span className="text-3xl" aria-hidden>{a.emoji}</span>
+                <span className="font-display font-bold leading-tight">{a.titulo}</span>
+                <span className="text-xs text-texto-suave">{feitos[a.id] ? "✓ feito" : a.tipo === "jogo" ? "Jogar" : a.tipo === "hq" ? "Ler" : "Assistir"}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className="relative overflow-hidden rounded-3xl bg-kambada-grafite p-6 text-white ring-2 ring-kambada-amarelo sm:p-8">
-        <Etiqueta escuro>Novo · Arraial em 3D</Etiqueta>
+        <Etiqueta escuro>Arraial em 3D · desafios</Etiqueta>
         <h2 className="mt-3 font-display text-2xl font-extrabold sm:text-3xl">
           Joga o desafio <span className="text-kambada-amarelo">andando pela festa</span>
         </h2>
         <p className="mt-2 max-w-xl text-sm text-white/80">
-          Anda pela praça do São João, conversa com o povo do arraial e responde as perguntas para juntar as cinco fitinhas. Os pontos valem igual aos do desafio.
+          O povo do arraial conta uma tradição e depois faz as perguntas da turma. Junta as cinco fitinhas! Os pontos valem igual aos do desafio.
         </p>
         {treinar.length > 0 && (
           <Link

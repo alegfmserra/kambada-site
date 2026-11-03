@@ -4,7 +4,7 @@ import { BarraStatus, Legenda } from "@/components/escola/Barras";
 import { GestaoTurma } from "@/components/escola/GestaoTurma";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { Contagem, Exportar, JogosMaisJogados, ListaReforco, PontosFracos, linkFicha } from "@/components/escola/Mapa";
+import { Contagem, CulturaDaTurma, Exportar, JogosMaisJogados, ListaReforco, PontosFracos, linkFicha } from "@/components/escola/Mapa";
 import { ErroEscola, alunosDaTurma, disciplinasDaEtapa, mapaTurma, podeFazer, relatorioTurma, veNomes, type Celula, type MapaTurma, type Status } from "@/lib/escola/servico";
 import { NOME_ETAPA } from "@/lib/escola/tipos";
 
@@ -45,6 +45,11 @@ function VisaoGeral({ mapa }: { mapa: MapaTurma }) {
           <JogosMaisJogados jogos={mapa.jogos} />
         </section>
       </div>
+      <section className="space-y-3">
+        <h2 className="font-display text-xl font-bold">Cultura do Maranhão</h2>
+        <p className="text-sm text-texto-suave">Jogos, quadrinhos e animações da área “Cultura” do aluno: quem fez e quanto acertou nas perguntas de conversa.</p>
+        <CulturaDaTurma cultura={mapa.cultura} />
+      </section>
     </div>
   );
 }

@@ -1,22 +1,56 @@
 import Link from "next/link";
-import { COR_DISCIPLINA, Etiqueta, FalaKambadinha, SeloDisciplina } from "@/components/escola/Marca";
-import { CONCURSO } from "@/lib/escola/concurso";
-import { TEMPORADA_DESTAQUE } from "@/lib/escola/temporadas";
+import { Etiqueta, FalaKambadinha } from "@/components/escola/Marca";
+import { CONCURSO, CRITERIOS, NOTA_MAXIMA } from "@/lib/escola/concurso";
+import { minhaRedacao } from "@/lib/escola/concursoServico";
 import { ATIVIDADES } from "@/lib/escola/cultura";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
-import { MISSAO, culturaDoAluno, escolaPublica, missaoDoAluno, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
+import { ASSUNTOS, atividadeDoQuiz } from "@/lib/escola/quizzes";
+import { culturaDoAluno, escolaPublica, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
+import { trilhaDoAluno } from "@/lib/escola/temporadaServico";
+import { PASSO, TEMPORADA_DESTAQUE, temporadaPorId } from "@/lib/escola/temporadas";
 
-export const metadata = { title: "Desafios" };
+export const metadata = { title: "Início" };
 
 const MEDALHA = ["🥇", "🥈", "🥉"];
 
+/**
+ * Início do aluno: as cinco portas do portal (Desafios, Quiz, Cultura, Minhas
+ * notas, Ranking), cada uma dizendo onde a criança está, e o próximo passo
+ * da temporada. Uma tela só, poucos números, cada um com o "de quantos".
+ */
 export default async function AlunoInicio() {
   const { aluno, turma } = await exigir("aluno");
-  const [meus, rank, escola, treinar, feitos] = await Promise.all([pontosDoAluno(aluno.id), ranking(turma.id), escolaPublica(), missaoDoAluno(aluno, turma), culturaDoAluno(aluno.id)]);
+  const [meus, rank, escola, feitos, redacao, trilha] = await Promise.all([
+    pontosDoAluno(aluno.id),
+    ranking(turma.id),
+    escolaPublica(),
+    culturaDoAluno(aluno.id),
+    minhaRedacao(aluno),
+    trilhaDoAluno(aluno, temporadaPorId(TEMPORADA_DESTAQUE)!),
+  ]);
   const trilhas = trilhasDoAluno(turma);
+  const perguntas = trilhas.reduce((s, t) => s + t.total, 0);
+  const feitas = trilhas.reduce((s, t) => s + (meus.porTrilha[t.id]?.feitas ?? 0), 0);
+  const cultura = ATIVIDADES.filter((a) => a.tipo !== "quiz");
+  const culturaFeita = cultura.filter((a) => feitos[a.id]).length;
+  const quizzes = ASSUNTOS.filter((a) => feitos[atividadeDoQuiz(a.id)]).length;
   const posicao = rank.alunos.findIndex((a) => a.id === aluno.id) + 1;
-  const comecou = Object.keys(meus.porTrilha).length > 0;
+  const proximo = trilha.passos.find((p) => p.estado === "aberto" && p.caminho);
+
+  const PORTAS = [
+    { emoji: "🎯", titulo: "Desafios", texto: "Matemática, Português e Inglês, com a cultura do Maranhão.", status: `${feitas} de ${perguntas} perguntas feitas`, href: "/aluno/desafios" },
+    { emoji: "❓", titulo: "Quiz", texto: "Escolhe o assunto e responde 8 perguntas.", status: `${quizzes} de ${ASSUNTOS.length} assuntos já jogados`, href: "/aluno/quiz" },
+    { emoji: "🌴", titulo: "Cultura", texto: "Leia, jogue e assista: o Maranhão contado pelo Kambadinha.", status: `${culturaFeita} de ${cultura.length} atividades feitas`, href: "/aluno/cultura" },
+    {
+      emoji: "📊",
+      titulo: "Minhas notas",
+      texto: "A nota da redação, a tua evolução no ano e cada matéria. A família também acompanha aqui.",
+      status: redacao.avaliacao ? `Redação: ${redacao.avaliacao.total} de ${CRITERIOS.length * NOTA_MAXIMA}` : redacao.enviada ? "Redação entregue, esperando a nota" : "Redação: ainda sem nota",
+      href: "/aluno/notas",
+    },
+    { emoji: "🏆", titulo: "Ranking", texto: "Os pontos da turma e das outras turmas.", status: posicao > 0 ? `Tu é o ${posicao}º da turma` : "Joga para entrar no ranking", href: "/ranking" },
+  ];
 
   return (
     <div className="space-y-8">
@@ -27,9 +61,7 @@ export default async function AlunoInicio() {
             <h1 className="font-display text-3xl font-extrabold sm:text-4xl">
               {aluno.avatar} <span className="text-kambada-amarelo">{aluno.apelido}</span>
             </h1>
-            <FalaKambadinha escuro>
-              {comecou ? "Bora continuar? Errou, tem segunda chance com a minha dica!" : "Éguas, que bom te ver! Escolhe um desafio aí embaixo."}
-            </FalaKambadinha>
+            <FalaKambadinha escuro>Éguas, que bom te ver! O que tu quer fazer hoje?</FalaKambadinha>
           </div>
           <div className="rounded-2xl bg-white/10 px-6 py-4 text-center">
             <p className="font-display text-5xl font-extrabold text-kambada-amarelo">{meus.pontos}</p>
@@ -39,112 +71,44 @@ export default async function AlunoInicio() {
         </div>
       </section>
 
-      <Link
-        href={rotaEscola(`/aluno/temporada/${TEMPORADA_DESTAQUE}`)}
-        className="flex flex-wrap items-center gap-4 rounded-3xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-5 transition-colors hover:bg-kambada-amarelo/20"
-      >
-        <span className="text-4xl" aria-hidden>{CONCURSO.emoji}</span>
-        <span className="min-w-[14rem] flex-1">
-          <b className="block font-display text-xl">Temporada de {CONCURSO.temporada}: o Fofão</b>
-          <span className="text-sm text-texto-suave">Lê, joga, responde o quiz e, no fim, escreve para o {CONCURSO.titulo.split(" · ")[0]}.</span>
-        </span>
-        <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Abrir a trilha →</span>
-      </Link>
-
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <Etiqueta>Cultura do Maranhão</Etiqueta>
-          <Link href={rotaEscola("/aluno/cultura")} className="text-sm font-semibold underline">
-            Ver tudo ({ATIVIDADES.filter((a) => feitos[a.id]).length} de {ATIVIDADES.length} feitas)
-          </Link>
-        </div>
-        <ul className="flex snap-x gap-3 overflow-x-auto pb-2">
-          {ATIVIDADES.map((a) => (
-            <li key={a.id} className="w-44 shrink-0 snap-start">
+      <nav aria-label="O que fazer no portal">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {PORTAS.map((p) => (
+            <li key={p.titulo}>
               <Link
-                href={rotaEscola(a.caminho)}
-                className="flex h-full flex-col gap-1 rounded-2xl border-2 border-borda p-4 transition-all hover:-translate-y-0.5 hover:border-kambada-amarelo"
+                href={rotaEscola(p.href)}
+                className="flex h-full flex-col rounded-3xl border-2 border-borda p-4 transition-all hover:-translate-y-0.5 hover:border-kambada-amarelo"
               >
-                <span className="text-3xl" aria-hidden>{a.emoji}</span>
-                <span className="font-display font-bold leading-tight">{a.titulo}</span>
-                <span className="text-xs text-texto-suave">{feitos[a.id] ? "✓ feito" : a.tipo === "jogo" ? "Jogar" : a.tipo === "hq" ? "Ler" : "Assistir"}</span>
+                <span className="text-4xl" aria-hidden>{p.emoji}</span>
+                <b className="mt-2 font-display text-xl">{p.titulo}</b>
+                <span className="mt-1 flex-1 text-sm text-texto-suave">{p.texto}</span>
+                <span className="mt-3 rounded-xl bg-superficie px-3 py-2 text-xs font-semibold">{p.status}</span>
               </Link>
             </li>
           ))}
         </ul>
-      </section>
+      </nav>
 
-      <section className="relative overflow-hidden rounded-3xl bg-kambada-grafite p-6 text-white ring-2 ring-kambada-amarelo sm:p-8">
-        <Etiqueta escuro>Arraial em 3D · desafios</Etiqueta>
-        <h2 className="mt-3 font-display text-2xl font-extrabold sm:text-3xl">
-          Joga o desafio <span className="text-kambada-amarelo">andando pela festa</span>
-        </h2>
-        <p className="mt-2 max-w-xl text-sm text-white/80">
-          O povo do arraial conta uma tradição e depois faz as perguntas da turma. Junta as cinco fitinhas! Os pontos valem igual aos do desafio.
-        </p>
-        {treinar.length > 0 && (
-          <Link
-            href={rotaEscola(`/aluno/arraial?trilha=${MISSAO}`)}
-            className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-4 transition-colors hover:bg-kambada-amarelo/20"
-          >
-            <span className="text-3xl" aria-hidden>🎯</span>
-            <span className="min-w-[12rem] flex-1">
-              <b className="block font-display text-lg text-kambada-amarelo">Missão de reforço</b>
-              <span className="text-sm text-white/85">
-                O povo do arraial vai te ajudar a treinar: <b>{treinar.map((p) => p.habilidade).join(" · ")}</b>
-              </span>
-            </span>
-            <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Começar a missão →</span>
-          </Link>
-        )}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {trilhas.map((t) => (
-            <Link
-              key={t.id}
-              href={rotaEscola(`/aluno/arraial?trilha=${t.id}`)}
-              className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-            >
-              {t.emoji} {t.titulo} no Arraial →
-            </Link>
-          ))}
+      <section className="space-y-3 rounded-3xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <Etiqueta>
+            {CONCURSO.emoji} Temporada de {CONCURSO.temporada}
+          </Etiqueta>
+          <span className="text-sm font-semibold">
+            {trilha.feitos} de {trilha.total} passos feitos
+          </span>
         </div>
-      </section>
-
-      <section>
-        <Etiqueta>Desafios da turma</Etiqueta>
-        <ul className="mt-3 grid gap-4 sm:grid-cols-2">
-          {trilhas.map((t) => {
-            const p = meus.porTrilha[t.id];
-            const cor = COR_DISCIPLINA[t.disciplina];
-            return (
-              <li key={t.id}>
-                <Link
-                  href={rotaEscola(`/aluno/${t.id}`)}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-3xl border-2 border-borda p-5 transition-all hover:-translate-y-0.5 hover:border-kambada-amarelo"
-                >
-                  <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: cor }} aria-hidden />
-                  <div className="flex items-center justify-between">
-                    <span className="grid h-14 w-14 place-items-center rounded-2xl text-3xl" style={{ background: `${cor}33` }} aria-hidden>
-                      {t.emoji}
-                    </span>
-                    <SeloDisciplina disciplina={t.disciplina} />
-                  </div>
-                  <h2 className="mt-3 font-display text-xl font-extrabold">{t.titulo}</h2>
-                  <p className="mt-1 flex-1 text-sm text-texto-suave">{t.resumo}</p>
-                  <div className="mt-4">
-                    <div className="h-2 overflow-hidden rounded-full bg-superficie">
-                      <div className="h-full rounded-full" style={{ width: `${Math.round(((p?.feitas ?? 0) / t.total) * 100)}%`, background: cor }} />
-                    </div>
-                    <div className="mt-2 flex items-center justify-between text-xs text-texto-suave">
-                      <span>{p ? `${p.feitas} de ${t.total} feitas · ${p.primeira} de primeira` : `${t.total} perguntas · ainda não jogou`}</span>
-                      <span className="rounded-full bg-kambada-amarelo px-3 py-1 font-bold text-kambada-grafite">{p ? "Continuar" : "Jogar"} →</span>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <p className="font-display text-xl font-bold">O Fofão e o carnaval de rua: assiste, lê, joga, responde e escreve.</p>
+        <div className="flex flex-wrap gap-2">
+          {proximo?.caminho && (
+            <Link href={rotaEscola(proximo.caminho)} className="rounded-full bg-kambada-amarelo px-5 py-2.5 font-bold text-kambada-grafite hover:bg-kambada-amarelo-escuro">
+              Próximo passo: {PASSO[proximo.tipo].emoji} {proximo.titulo} →
+            </Link>
+          )}
+          <Link href={rotaEscola(`/aluno/temporada/${TEMPORADA_DESTAQUE}`)} className="rounded-full border-2 border-borda px-5 py-2.5 font-bold hover:border-kambada-amarelo">
+            Ver a trilha inteira
+          </Link>
+        </div>
       </section>
 
       <section>

@@ -1295,3 +1295,32 @@ export async function fichaAluno(m: Membro, alunoId: string): Promise<FichaAluno
     });
   return { aluno: mapaDoAluno(m, d, a, t, pontosPorAluno(d.registros), Date.now()), turmaId: t.id, habilidades: habs, jogos, respostas };
 }
+
+// ---------------------------------------------------------------------------
+// Minhas notas (o aluno e a família, pelo login do aluno)
+// ---------------------------------------------------------------------------
+
+export type MeuDesempenho = {
+  disciplina: Disciplina;
+  respostas: number;
+  /** Cada habilidade da matéria e onde o aluno está (pelas últimas respostas). */
+  habilidades: { habilidade: string; status: Status }[];
+};
+
+/**
+ * Onde o aluno está em cada habilidade, por matéria: o mesmo cálculo do
+ * relatório do professor, comparando o aluno só com ele mesmo (sem turma,
+ * sem ranking): é o que a família lê.
+ */
+export async function meuDesempenho(aluno: Aluno, turma: Turma): Promise<MeuDesempenho[]> {
+  const d = await lerDados();
+  const meus = d.registros.filter((r) => r.alunoId === aluno.id);
+  return disciplinasDaEtapa(turma.etapa).map((disciplina) => {
+    const daMateria = meus.filter((r) => r.disciplina === disciplina);
+    return {
+      disciplina,
+      respostas: daMateria.length,
+      habilidades: habilidades(disciplina, turma.etapa).map((habilidade) => ({ habilidade, status: celula(daMateria.filter((r) => r.habilidade === habilidade)).status })),
+    };
+  });
+}

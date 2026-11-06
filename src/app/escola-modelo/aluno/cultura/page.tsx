@@ -9,13 +9,13 @@ import { temporadasDoAluno } from "@/lib/escola/temporadaServico";
 
 export const metadata = { title: "Cultura do Maranhão" };
 
-const SECOES: { tipo: TipoCultura; titulo: string; texto: string }[] = [
-  { tipo: "jogo", titulo: "Jogos", texto: "Brincar e aprender a festa: o Arraial em 3D, a história do Boi e os sotaques." },
-  { tipo: "hq", titulo: "Quadrinhos", texto: "As histórias do Kambadinha, com perguntas para conversar depois." },
-  { tipo: "animacao", titulo: "Animações", texto: "Assistir, ver de novo e brincar com o que você viu." },
-  { tipo: "artigo", titulo: "Artigos", texto: "O texto que explica a temporada e dá ideias para a redação." },
-  { tipo: "quiz", titulo: "Quizzes", texto: "Mostre o que aprendeu na temporada." },
+/** As três portas da cultura. O quiz mora no hub próprio (/aluno/quiz), não aqui. */
+const SECOES: { id: string; tipos: TipoCultura[]; titulo: string; texto: string }[] = [
+  { id: "leia", tipos: ["artigo", "hq"], titulo: "📖 Leia sobre o Maranhão", texto: "Textos e quadrinhos que contam a nossa história, com perguntas para conversar depois." },
+  { id: "jogue", tipos: ["jogo"], titulo: "🎮 Jogue", texto: "Brincar e aprender a festa: o Arraial em 3D, a história do Boi, os sotaques e os quebra-cabeças." },
+  { id: "assista", tipos: ["animacao"], titulo: "🎬 Assista", texto: "Animações para ver, rever e brincar com o que você viu." },
 ];
+const DA_CULTURA = ATIVIDADES.filter((a) => a.tipo !== "quiz");
 
 const COR: Record<TipoCultura, string> = { jogo: "#FFCC29", hq: "#D4432B", animacao: "#518FC2", artigo: "#3B8D5D", quiz: "#E0AF14" };
 
@@ -25,7 +25,7 @@ const SELO = { pronta: "trilha completa", montagem: "em montagem", breve: "em br
 export default async function CulturaDoAluno() {
   const { aluno } = await exigir("aluno");
   const [feitos, temporadas] = await Promise.all([culturaDoAluno(aluno.id), temporadasDoAluno(aluno)]);
-  const quantos = ATIVIDADES.filter((a) => feitos[a.id]).length;
+  const quantos = DA_CULTURA.filter((a) => feitos[a.id]).length;
 
   return (
     <div className="space-y-10">
@@ -35,11 +35,21 @@ export default async function CulturaDoAluno() {
         <FalaKambadinha>
           {quantos === 0
             ? "Éguas! Aqui tem festa de São João, Bumba-meu-boi, tambor de crioula e os guarás do mangue. Escolhe por onde começar!"
-            : `Tu já fez ${quantos} de ${ATIVIDADES.length}. Bora completar a coleção?`}
+            : `Tu já fez ${quantos} de ${DA_CULTURA.length}. Bora completar a coleção?`}
         </FalaKambadinha>
-        <div className="h-2 overflow-hidden rounded-full bg-superficie" role="img" aria-label={`${quantos} de ${ATIVIDADES.length} atividades feitas`}>
-          <div className="h-full rounded-full bg-kambada-amarelo" style={{ width: `${(quantos / ATIVIDADES.length) * 100}%` }} />
+        <div className="h-2 overflow-hidden rounded-full bg-superficie" role="img" aria-label={`${quantos} de ${DA_CULTURA.length} atividades feitas`}>
+          <div className="h-full rounded-full bg-kambada-amarelo" style={{ width: `${(quantos / DA_CULTURA.length) * 100}%` }} />
         </div>
+        <nav aria-label="Atalhos da cultura" className="flex flex-wrap gap-2">
+          {SECOES.map((s) => (
+            <a key={s.id} href={`#${s.id}`} className="rounded-full border-2 border-borda px-4 py-2 text-sm font-bold hover:border-kambada-amarelo">
+              {s.titulo}
+            </a>
+          ))}
+          <Link href={rotaEscola("/aluno/quiz")} className="rounded-full border-2 border-borda px-4 py-2 text-sm font-bold hover:border-kambada-amarelo">
+            ❓ Quiz →
+          </Link>
+        </nav>
       </section>
 
       <section className="space-y-3">
@@ -83,15 +93,14 @@ export default async function CulturaDoAluno() {
         </ul>
       </section>
 
-      <h2 className="font-display text-2xl font-extrabold">Todas as atividades</h2>
       {SECOES.map((s) => (
-        <section key={s.tipo} className="space-y-3">
+        <section key={s.id} id={s.id} className="scroll-mt-6 space-y-3">
           <div>
             <h2 className="font-display text-2xl font-extrabold">{s.titulo}</h2>
             <p className="text-sm text-texto-suave">{s.texto}</p>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ATIVIDADES.filter((a) => a.tipo === s.tipo).map((a) => {
+            {DA_CULTURA.filter((a) => s.tipos.includes(a.tipo)).map((a) => {
               const f = feitos[a.id];
               return (
                 <li key={a.id}>
@@ -130,6 +139,18 @@ export default async function CulturaDoAluno() {
           </ul>
         </section>
       ))}
+
+      <Link
+        href={rotaEscola("/aluno/quiz")}
+        className="flex flex-wrap items-center gap-3 rounded-3xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-5 hover:bg-kambada-amarelo/20"
+      >
+        <span className="text-4xl" aria-hidden>❓</span>
+        <span className="flex-1">
+          <b className="block font-display text-xl">Já leu? Agora responde!</b>
+          <span className="text-sm text-texto-suave">Os quizzes ficam no Quiz: escolhe o assunto e responde 8 perguntas.</span>
+        </span>
+        <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Ir para o Quiz →</span>
+      </Link>
     </div>
   );
 }

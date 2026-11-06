@@ -74,7 +74,7 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
     return (
       <div className="space-y-4 text-center">
         <p className="font-semibold text-kambada-red">{erro}</p>
-        <Link href={rotaEscola("/aluno")} className={BOTAO_SECUNDARIO}>Voltar aos desafios</Link>
+        <Link href={rotaEscola("/aluno/desafios")} className={BOTAO_SECUNDARIO}>Voltar aos desafios</Link>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
         <p className="text-sm text-texto-suave">No ranking vale a sua melhor resposta em cada pergunta. Jogar de novo pode subir os pontos.</p>
         <div className="flex flex-wrap justify-center gap-3">
           <button type="button" className={BOTAO} onClick={iniciar}>Jogar de novo</button>
-          <Link href={rotaEscola("/aluno")} className={BOTAO_SECUNDARIO}>Outros desafios</Link>
+          <Link href={rotaEscola("/aluno/desafios")} className={BOTAO_SECUNDARIO}>Outros desafios</Link>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ export function Desafio({ trilha }: { trilha: TrilhaPublica }) {
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <div className="flex items-center justify-between text-sm">
-        <Link href={rotaEscola("/aluno")} className="font-semibold underline">← Desafios</Link>
+        <Link href={rotaEscola("/aluno/desafios")} className="font-semibold underline">← Desafios</Link>
         <span className="font-semibold">
           {trilha.emoji} {trilha.titulo} · {estado.indice + 1} de {estado.total}
         </span>

@@ -378,7 +378,7 @@ export default function ArraialEscolaApp({ trilha: inicial }: { trilha: TrilhaPu
       </div>
 
       <Link
-        href={rotaEscola(festa ? "/aluno/cultura" : "/aluno")}
+        href={rotaEscola(festa ? "/aluno/cultura" : "/aluno/desafios")}
         className="toque-matraca absolute bottom-24 right-4 z-20 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-xs font-semibold text-kambada-cream/90 backdrop-blur-sm hover:bg-kambada-noite/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold sm:bottom-4 sm:right-24"
       >
         ← {festa ? "Cultura" : "Desafios"}
@@ -755,7 +755,7 @@ function Celebracao({ fim, trilha, onDeNovo }: { fim: NonNullable<Resposta["fim"
           <button type="button" autoFocus onClick={onDeNovo} className={`${BOTAO_CLARO} py-3`}>
             Jogar de novo
           </button>
-          <Link href={rotaEscola("/aluno")} className={`${BOTAO_ESCURO} py-3`}>
+          <Link href={rotaEscola("/aluno/desafios")} className={`${BOTAO_ESCURO} py-3`}>
             Outros desafios
           </Link>
         </div>

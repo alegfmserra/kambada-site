@@ -392,3 +392,15 @@ export async function evolucaoDaTurma(m: Membro, turmaId: string): Promise<(Pont
     return { id: h.id, temporada: h.temporada, mes: h.mes, notas, total: notas ? Math.round(totalDe(notas) * 10) / 10 : null, avaliadas: rs.length };
   });
 }
+
+/** Coordenação e gestão: a média da escola em cada redação do ano. */
+export async function evolucaoDaEscola(m: Membro): Promise<(PontoDaEscrita & { avaliadas: number })[]> {
+  soGestao(m);
+  const d = await lerDados();
+  return HISTORICO.map((h) => {
+    const rs = (d.redacoes ?? []).filter((x) => x.concursoId === h.id && x.avaliacao);
+    const media = (c: string) => Math.round((rs.reduce((s, r) => s + (r.avaliacao!.notas[c] ?? 0), 0) / rs.length) * 10) / 10;
+    const notas = rs.length ? Object.fromEntries(CRITERIOS.map((c) => [c.id, media(c.id)])) : null;
+    return { id: h.id, temporada: h.temporada, mes: h.mes, notas, total: notas ? Math.round(totalDe(notas) * 10) / 10 : null, avaliadas: rs.length };
+  });
+}

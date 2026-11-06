@@ -2,9 +2,11 @@ import Link from "next/link";
 import { BarraSituacao, Contagem, CulturaDaTurma, Exportar, JogosMaisJogados, ListaReforco, linkFicha } from "@/components/escola/Mapa";
 import { Etiqueta, Micangas } from "@/components/escola/Marca";
 import { GestaoEquipe, GestaoTurmas, IdentidadeEscola } from "@/components/escola/Coordenacao";
+import { Resumo30s } from "@/components/escola/Resumo30s";
 import { EscolhaDaEscola } from "@/components/escola/concurso/Avaliar";
+import { Evolucao } from "@/components/escola/concurso/Evolucao";
 import { CONCURSO } from "@/lib/escola/concurso";
-import { finalistasDaEscola, resumoDoConcurso } from "@/lib/escola/concursoServico";
+import { evolucaoDaEscola, finalistasDaEscola, resumoDoConcurso } from "@/lib/escola/concursoServico";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { CORES_ESCOLA, equipe, escolaPublica, mapaEscola, resumoDasTurmas } from "@/lib/escola/servico";
@@ -12,26 +14,45 @@ import { NOME_ETAPA } from "@/lib/escola/tipos";
 
 export const metadata = { title: "Coordenação" };
 
-function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Secao({ id, titulo, children }: { id?: string; titulo: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3">
+    <section id={id} className="scroll-mt-6 space-y-3">
       <h2 className="font-display text-xl font-bold">{titulo}</h2>
       {children}
     </section>
   );
 }
 
+/** Seções de consulta e de administração: fechadas, para a tela abrir só com o que pede decisão. */
+function Gaveta({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <details className="group rounded-3xl border-2 border-borda p-4 open:space-y-3">
+      <summary className="cursor-pointer list-none font-display text-lg font-bold">
+        <span className="mr-2 inline-block transition-transform group-open:rotate-90" aria-hidden>▸</span>
+        {titulo}
+      </summary>
+      {children}
+    </details>
+  );
+}
+
+/**
+ * Painel da coordenação, de cima para baixo pela ordem da decisão:
+ * 1) o resumo em frases; 2) onde está cada turma; 3) quem precisa de reforço;
+ * 4) a escrita no ano e o concurso. O resto (jogos, cultura, equipe, turmas,
+ * identidade) fica em gavetas fechadas.
+ */
 export default async function CoordenacaoPagina() {
   const { membro } = await exigir("coordenacao", "gestor");
-  const [turmas, eq, escola, mapa, concurso, finalistas] = await Promise.all([
+  const [turmas, eq, escola, mapa, concurso, finalistas, escrita] = await Promise.all([
     resumoDasTurmas(membro),
     equipe(membro),
     escolaPublica(),
     mapaEscola(membro),
     resumoDoConcurso(membro),
     finalistasDaEscola(membro),
+    evolucaoDaEscola(membro),
   ]);
-  const totalAlunos = turmas.reduce((s, t) => s + t.alunos, 0);
   const ativos = turmas.reduce((s, t) => s + t.ativos7d, 0);
   const professores = eq.membros.filter((m) => m.papel === "professor");
 
@@ -40,27 +61,17 @@ export default async function CoordenacaoPagina() {
       <div>
         <Etiqueta>{membro.papel === "gestor" ? "Gestão Kambada vendo como a coordenação" : "Coordenação"} · {escola.nome}</Etiqueta>
         <h1 className="font-display text-3xl font-extrabold">Painel da <span className="destaque">coordenação</span></h1>
-        <p className="text-texto-suave">Relatório geral da escola, equipe, turmas e identidade do portal.</p>
+        <p className="text-texto-suave">
+          {turmas.length} turmas · {mapa.alunos.length} alunos · {professores.length} professores
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          [turmas.length, "turmas"],
-          [totalAlunos, "alunos"],
-          [professores.length, "professores"],
-          [`${totalAlunos ? Math.round((ativos / totalAlunos) * 100) : 0}%`, "jogaram nos últimos 7 dias"],
-        ].map(([n, r]) => (
-          <div key={String(r)} className="rounded-2xl bg-kambada-grafite p-4 text-white ring-1 ring-white/10">
-            <p className="font-display text-3xl font-extrabold text-kambada-amarelo">{n}</p>
-            <p className="text-sm text-white/70">{r}</p>
-          </div>
-        ))}
-      </div>
+      <Resumo30s alunos={mapa.alunos} ativos={ativos} escrita={escrita} />
 
-      <Secao titulo="Mapa da escola">
+      <Secao titulo="Onde está cada turma">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-texto-suave">
-            {mapa.nomes ? "Com o nome dos alunos: só a escola vê." : "A gestão Kambada vê só apelidos: o nome de verdade é da escola."}
+            Cada aluno conta uma vez, pela situação dele. {mapa.nomes ? "Com o nome dos alunos: só a escola vê." : "A gestão Kambada vê só apelidos: o nome de verdade é da escola."}
           </p>
           <Exportar planilha="/api/escola/exportar?escola=1" />
         </div>
@@ -76,28 +87,22 @@ export default async function CoordenacaoPagina() {
               </span>
               <BarraSituacao contagem={t.contagem} />
               <span className="text-xs text-texto-suave">
-                <b className="text-kambada-red">{t.contagem.reforco}</b> em reforço de {t.total}
+                <b className="text-texto">{t.contagem.reforco} de {t.total}</b> em reforço
               </span>
             </li>
           ))}
         </ul>
       </Secao>
 
-      <Secao titulo="Quem mais precisa de reforço na escola">
+      <Secao id="reforco" titulo="Quem mais precisa de reforço">
         <ListaReforco alunos={mapa.alunos.filter((a) => a.situacao !== "bem")} linkFicha={linkFicha} comTurma limite={8} />
       </Secao>
 
-      <Secao titulo="Jogos mais jogados na escola">
-        <JogosMaisJogados jogos={mapa.jogos} />
-      </Secao>
-
-      <Secao titulo="Cultura do Maranhão na escola">
-        <CulturaDaTurma cultura={mapa.cultura} />
-      </Secao>
+      <Evolucao pontos={escrita} titulo="A escrita da escola ao longo do ano (média)" />
 
       <Secao titulo={`${CONCURSO.emoji} ${CONCURSO.titulo}`}>
         <p className="text-sm text-texto-suave">
-          O professor avalia pela grade e escolhe até {CONCURSO.finalistasPorTurma} finalistas por turma. Aqui a coordenação escolhe, entre as finalistas, a redação que representa a escola em cada etapa na rede Kambada (lá ela aparece só com o apelido).
+          O professor corrige pela grade e escolhe até {CONCURSO.finalistasPorTurma} finalistas por turma. Aqui a coordenação escolhe, entre as finalistas, a redação que representa a escola na rede Kambada (lá ela aparece só com o apelido).
         </p>
         <ul className="grid gap-2 sm:grid-cols-3">
           {concurso.map((t) => (
@@ -105,7 +110,7 @@ export default async function CoordenacaoPagina() {
               <Link href={rotaEscola(`/professor/turma/${t.turmaId}/redacoes`)} className="block rounded-2xl border-2 border-borda p-3 text-sm hover:border-kambada-amarelo">
                 <b>{t.turma}</b>
                 <span className="block text-texto-suave">
-                  {t.enviaram} de {t.alunos} enviaram · {t.avaliadas} avaliadas · {t.finalistas} finalistas
+                  {t.avaliadas} de {t.alunos} corrigidas · {t.finalistas} finalistas
                 </span>
               </Link>
             </li>
@@ -129,17 +134,23 @@ export default async function CoordenacaoPagina() {
 
       <Micangas className="mx-auto h-4 w-72 text-texto" />
 
-      <Secao titulo="Professores">
-        <GestaoEquipe membros={eq.membros} turmas={eq.turmas} />
-      </Secao>
-
-      <Secao titulo="Turmas">
-        <GestaoTurmas turmas={eq.turmas} professores={professores} />
-      </Secao>
-
-      <Secao titulo="Identidade do portal">
-        <IdentidadeEscola escola={escola} cores={CORES_ESCOLA} />
-      </Secao>
+      <div className="space-y-3">
+        <Gaveta titulo="Jogos mais jogados">
+          <JogosMaisJogados jogos={mapa.jogos} />
+        </Gaveta>
+        <Gaveta titulo="Cultura do Maranhão na escola">
+          <CulturaDaTurma cultura={mapa.cultura} />
+        </Gaveta>
+        <Gaveta titulo={`Professores (${professores.length})`}>
+          <GestaoEquipe membros={eq.membros} turmas={eq.turmas} />
+        </Gaveta>
+        <Gaveta titulo={`Turmas (${turmas.length})`}>
+          <GestaoTurmas turmas={eq.turmas} professores={professores} />
+        </Gaveta>
+        <Gaveta titulo="Identidade do portal">
+          <IdentidadeEscola escola={escola} cores={CORES_ESCOLA} />
+        </Gaveta>
+      </div>
     </div>
   );
 }

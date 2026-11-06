@@ -125,6 +125,9 @@ export default async function ConcursoDoAluno() {
           </div>
         )}
         {minha.anexo && <LinkArquivo a={minha.anexo} rotulo="📎 A tua folha" />}
+        <p className="text-sm">
+          A nota também fica guardada em <Link href={rotaEscola("/aluno/notas")} className="font-semibold underline">📊 Minhas notas</Link>, junto com as outras matérias. A família acompanha por lá.
+        </p>
       </section>
 
       {evolucao.some((x) => x.total !== null) && <Evolucao pontos={evolucao} titulo="A tua escrita ao longo do ano" />}

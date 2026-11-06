@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarraStatus, Legenda } from "@/components/escola/Barras";
 import { GestaoTurma } from "@/components/escola/GestaoTurma";
+import { Resumo30s } from "@/components/escola/Resumo30s";
+import { evolucaoDaTurma } from "@/lib/escola/concursoServico";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { Contagem, CulturaDaTurma, Exportar, JogosMaisJogados, ListaReforco, PontosFracos, linkFicha } from "@/components/escola/Mapa";
@@ -23,11 +25,12 @@ function titulo(c: Celula): string {
 }
 
 /** Visão geral: o jeito simples de ler a turma (quem precisa de reforço, em quê, e o que a turma joga). */
-function VisaoGeral({ mapa }: { mapa: MapaTurma }) {
+function VisaoGeral({ mapa, ativos, escrita }: { mapa: MapaTurma; ativos: number; escrita: Awaited<ReturnType<typeof evolucaoDaTurma>> }) {
   return (
     <div className="space-y-8">
+      <Resumo30s alunos={mapa.alunos} ativos={ativos} escrita={escrita} />
       <Contagem contagem={mapa.contagem} />
-      <section className="space-y-3">
+      <section id="reforco" className="scroll-mt-6 space-y-3">
         <h2 className="font-display text-xl font-bold">Quem precisa de ajuda (e em quê)</h2>
         <p className="text-sm text-texto-suave">
           Do mais urgente ao que vai bem. Toque no aluno para ver a ficha dele.
@@ -65,13 +68,14 @@ export default async function TurmaPagina({
   const { id } = await params;
   const { disciplina, aba } = await searchParams;
   const veRelatorio = podeFazer(membro, "relatorio");
-  let rel, lista, mapa;
+  let rel, lista, mapa, escrita;
   try {
     // Sem a permissão "Ver relatório", a turma abre direto em "Alunos e cartões".
-    [rel, lista, mapa] = await Promise.all([
+    [rel, lista, mapa, escrita] = await Promise.all([
       veRelatorio ? relatorioTurma(membro, id, disciplina) : null,
       alunosDaTurma(membro, id),
       veRelatorio ? mapaTurma(membro, id) : null,
+      veRelatorio ? evolucaoDaTurma(membro, id) : [],
     ]);
   } catch (e) {
     if (e instanceof ErroEscola) notFound();
@@ -121,7 +125,7 @@ export default async function TurmaPagina({
           pode={{ cadastrar: podeFazer(membro, "cadastrar-alunos"), cartoes: podeFazer(membro, "cartoes"), remover: podeFazer(membro, "remover-alunos") }}
         />
       ) : !emHabilidades ? (
-        <VisaoGeral mapa={mapa} />
+        <VisaoGeral mapa={mapa} ativos={rel.participacao.ativos7d} escrita={escrita} />
       ) : (
         <>
           <div className="flex flex-wrap gap-2">

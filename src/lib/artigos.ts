@@ -54,6 +54,11 @@ export type Artigo = {
   tempoLeitura: string;
   capa: Imagem;
   palavrasChave: string[];
+  /**
+   * Descrição para o Google (até ~155 caracteres; o `resumo` da tela é mais longo e o Google corta).
+   * Escrita com as palavras que as pessoas realmente buscam (Search Console, 05/11/2026).
+   */
+  descricaoSeo?: string;
   /** Texto próprio no convite do Kambada Play; sem ele, vale o texto padrão. */
   chamadaPlay?: string;
   blocos: Bloco[];
@@ -211,6 +216,8 @@ export const ARTIGOS: Artigo[] = [
     slug: "tambor-de-crioula-sao-luis",
     titulo: "Tambor de Crioula: o que é, como funciona e onde ver em São Luís",
     tituloSeo: "Tambor de Crioula em São Luís: o que é e onde ver",
+    descricaoSeo:
+      "Patrimônio Cultural do Brasil desde 2007, o Tambor de Crioula é a roda afro-maranhense de tambor, toada e punga. Como funciona e onde ver em São Luís.",
     resumo:
       "Patrimônio Cultural do Brasil desde 2007, o Tambor de Crioula é a roda afro-maranhense de tambor, toada e punga. Entenda como ela funciona e onde encontrá-la em São Luís neste novembro da Consciência Negra.",
     categoria: "Consciência Negra",
@@ -355,7 +362,9 @@ export const ARTIGOS: Artigo[] = [
   {
     slug: "capoeira-em-sao-luis",
     titulo: "Capoeira em São Luís: história, mestres e onde aprender",
-    tituloSeo: "Capoeira em São Luís: história e onde aprender",
+    tituloSeo: "Capoeira em São Luís: onde treinar e ver uma roda",
+    descricaoSeo:
+      "Capoeira em São Luís: a história no Maranhão, os mestres que fizeram a capoeira da Ilha, os estilos e como achar uma roda ou escola na cidade.",
     resumo:
       "Jogo, luta e dança nascidos da resistência negra, a capoeira tem uma história própria no Maranhão. Conheça os mestres que fizeram a capoeira da Ilha, os estilos e como encontrar uma roda ou uma escola em São Luís.",
     categoria: "Consciência Negra",
@@ -488,7 +497,9 @@ export const ARTIGOS: Artigo[] = [
   {
     slug: "vila-gale-opera-sao-luis-centro-historico",
     titulo: "Vila Galé chega a São Luís: o hotel da ópera que reabriu um casarão da Praia Grande",
-    tituloSeo: "Vila Galé Ópera: o hotel no Centro de São Luís",
+    tituloSeo: "Vila Galé Collection Ópera São Luís: o novo hotel",
+    descricaoSeo:
+      "O Vila Galé Collection Ópera São Luís foi inaugurado em 27/10/2026 num casarão restaurado da Praia Grande. O que tem lá e o que muda para o Centro Histórico.",
     resumo:
       "O Vila Galé Collection Ópera São Luís foi inaugurado em 27 de outubro de 2026 num casarão do século XIX restaurado, na Praia Grande. O que tem lá, o que vem depois e o que isso significa para o Centro Histórico.",
     categoria: "Ilha do Amor",
@@ -609,6 +620,8 @@ export const ARTIGOS: Artigo[] = [
     slug: "o-que-fazer-em-sao-luis-em-novembro",
     titulo: "O que fazer em São Luís em novembro de 2026: tambor, feriadão e Centro Histórico",
     tituloSeo: "O que fazer em São Luís em novembro de 2026",
+    descricaoSeo:
+      "Dois feriadões, Festival Negritude, rodas de Tambor de Crioula, capoeira e hotel novo na Praia Grande: um roteiro para novembro em São Luís.",
     resumo:
       "Dois feriadões, o Festival Negritude, rodas de Tambor de Crioula, capoeira e um hotel novo na Praia Grande. Um roteiro para aproveitar São Luís em novembro, mês da Consciência Negra.",
     categoria: "Guia",
@@ -733,7 +746,9 @@ export const ARTIGOS: Artigo[] = [
   {
     slug: "matraca-o-instrumento-que-dita-o-ritmo",
     titulo: "A matraca: o instrumento que dita o ritmo do Bumba Meu Boi",
-    tituloSeo: "Matraca do Bumba Meu Boi: o que é e como se toca",
+    tituloSeo: "O que é matraca? O instrumento do Bumba Meu Boi",
+    descricaoSeo:
+      "O que é a matraca, o instrumento de madeira do Bumba Meu Boi: de onde vem, como se toca e por que ela dita o ritmo do sotaque de matraca.",
     resumo:
       "Duas peças de madeira, batidas uma na outra, e um arraial inteiro no mesmo compasso. O que é a matraca, de onde vem o sotaque de matraca, como se toca e por que ela virou o símbolo da Kambada.",
     categoria: "Tradição",
@@ -871,6 +886,9 @@ export const ARTIGOS: Artigo[] = [
   {
     slug: "sao-luis-em-tres-sensacoes",
     titulo: "São Luís em três sensações: azulejos, reggae e Guaraná Jesus",
+    tituloSeo: "São Luís: azulejos, reggae e Guaraná Jesus",
+    descricaoSeo:
+      "São Luís pelos sentidos: os azulejos portugueses nas paredes, o reggae de radiola na esquina e o Guaraná Jesus, o refrigerante rosa que só existe aqui.",
     resumo:
       "São Luís se conhece pelos sentidos: o que você vê na parede, ouve na esquina e bebe gelado num copo pequeno. Azulejos portugueses, reggae de radiola e o refrigerante rosa que só existe aqui.",
     categoria: "Ilha do Amor",
@@ -981,6 +999,8 @@ export const ARTIGOS: Artigo[] = [
     slug: "o-que-vestir-no-arraial",
     titulo: "O que vestir no arraial: guia sem erro para o São João maranhense",
     tituloSeo: "O que vestir no arraial do São João maranhense",
+    descricaoSeo:
+      "O que vestir no arraial e no arrastão em São Luís: roupa que aguenta calor, poeira, chuva e horas em pé, e que diz de onde você é. Guia sem erro.",
     resumo:
       "Não precisa de fantasia. Precisa de roupa que aguente calor, poeira, chuva e cinco horas em pé — e que diga de onde você é. O guia para ir a arraial e arrastão em São Luís.",
     categoria: "Guia",

@@ -100,6 +100,14 @@ describe("artigos do blog", () => {
     }
   });
 
+  it("todo artigo tem descrição para o Google entre 70 e 160 caracteres", () => {
+    for (const artigo of ARTIGOS) {
+      expect(artigo.descricaoSeo, artigo.slug).toBeTruthy();
+      expect(artigo.descricaoSeo!.length, artigo.slug).toBeGreaterThanOrEqual(70);
+      expect(artigo.descricaoSeo!.length, artigo.slug).toBeLessThanOrEqual(160);
+    }
+  });
+
   it("cada artigo tem slug único, título, resumo e conteúdo", () => {
     const slugs = ARTIGOS.map((a) => a.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

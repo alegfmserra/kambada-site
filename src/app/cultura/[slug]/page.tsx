@@ -36,13 +36,13 @@ export async function generateMetadata({
 
   return {
     title: artigo.tituloSeo ?? artigo.titulo,
-    description: artigo.resumo,
+    description: artigo.descricaoSeo ?? artigo.resumo,
     keywords: artigo.palavrasChave,
     alternates: { canonical: `/cultura/${artigo.slug}` },
     openGraph: {
       type: "article",
       title: artigo.titulo,
-      description: artigo.resumo,
+      description: artigo.descricaoSeo ?? artigo.resumo,
       publishedTime: artigo.data,
       modifiedTime: artigo.atualizado ?? artigo.data,
       section: artigo.categoria,

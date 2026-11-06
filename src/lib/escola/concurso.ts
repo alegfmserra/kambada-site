@@ -78,25 +78,19 @@ export const CONCURSO: Concurso = {
   finalistasPorTurma: 3,
 };
 
+/**
+ * As redações do ano letivo, na ordem: é a linha do tempo da escrita de cada
+ * aluno. As anteriores ao Carnaval existem na demonstração (notas fictícias)
+ * para mostrar a evolução; numa escola de verdade, cada temporada com
+ * redação entra aqui.
+ */
+export const HISTORICO: { id: string; temporada: string; mes: string }[] = [
+  { id: "saojoao-2026", temporada: "São João", mes: "jun" },
+  { id: "tambor-2026", temporada: "Consciência Negra", mes: "nov" },
+  { id: CONCURSO.id, temporada: "Carnaval", mes: "fev" },
+];
+
 export function contarPalavras(texto: string): number {
   return texto.trim() ? texto.trim().split(/\s+/).length : 0;
 }
 
-export const LIMITE_CARACTERES = 4000;
-
-// ---------------------------------------------------------------------------
-// Jogo da temporada: Monte o Fofão
-// ---------------------------------------------------------------------------
-
-export type PecaFofao = { id: string; nome: string; emoji: string; certa: boolean; explica: string };
-
-export const PECAS_FOFAO: PecaFofao[] = [
-  { id: "mascara", nome: "Máscara de nariz comprido", emoji: "👺", certa: true, explica: "Feita à mão, de papel machê, feia de propósito." },
-  { id: "macacao", nome: "Macacão largo de chita", emoji: "🌺", certa: true, explica: "Bem folgado e colorido: o Fofão parece inflado." },
-  { id: "boneca", nome: "Boneca na mão", emoji: "🪆", certa: true, explica: "Oferecida às crianças para fazer amizade." },
-  { id: "varinha", nome: "Varinha", emoji: "🪄", certa: true, explica: "Ele carrega uma varinha pela rua." },
-  { id: "chapeu", nome: "Chapéu de couro de vaqueiro", emoji: "🤠", certa: false, explica: "Chapéu de couro é do vaqueiro do sertão, não do Fofão." },
-  { id: "capa", nome: "Capa de super-herói", emoji: "🦸", certa: false, explica: "Fantasia de super-herói é de hoje; o Fofão é tradição antiga da cidade." },
-  { id: "matraca", nome: "Matracas", emoji: "🪵", certa: false, explica: "As matracas são do Bumba-meu-boi da Ilha, em junho." },
-  { id: "coroa", nome: "Coroa de rainha", emoji: "👑", certa: false, explica: "Coroa combina com rainha de bateria, não com o Fofão." },
-];

@@ -34,7 +34,6 @@ const SEMENTE: Semente[] = [
       "O carnaval de São Luís é muito animado. Tem bloco, tem música e tem o Fofão. Eu encontrei um Fofão perto da minha casa e ele tava com uma boneca velha na mão. Ele dançou com a gente na calçada e depois foi embora pro outro bloco. Eu quero ser Fofão no próximo carnaval e fazer a minha máscara.",
     enviada: true,
   },
-  { aluno: "t4a-a4", texto: "Era uma vez um Fofão que morava" },
   {
     aluno: "t5b-a1",
     texto:
@@ -89,4 +88,36 @@ export function redacoesDemo(alunos: Aluno[], agora = Date.now()): Redacao[] {
       ...(s.representante ? { representante: true } : {}),
     };
   });
+}
+
+/**
+ * Notas fictícias das redações de São João e da Consciência Negra (sem
+ * arquivo), para a demonstração mostrar a evolução da escrita no ano. Sorteio
+ * próprio e fixo: quem escreve melhor no Carnaval vem subindo desde junho.
+ */
+export function historicoDemo(alunos: Aluno[], agora = Date.now()): Redacao[] {
+  let x = 20261106;
+  const r = () => ((x = (x * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const out: Redacao[] = [];
+  const fora = (a: Aluno) => a.id.endsWith("-teste") || a.apelido === "Sabiá" || a.apelido === "Cuxá";
+  for (const a of alunos) {
+    if (fora(a)) continue;
+    const base = 1 + Math.floor(r() * 3); // 1 a 3 em junho
+    [["saojoao-2026", 0, 150], ["tambor-2026", 1, 10]].forEach(([id, ganho, dias], i) => {
+      if (r() < 0.12) return; // alguns faltaram no dia
+      const n = () => Math.min(5, Math.max(1, base + (ganho as number) + Math.round(r() * 1.4 - 0.4)));
+      const em = new Date(agora - (dias as number) * 86400000).toISOString();
+      out.push({
+        id: `r-hist-${a.id}-${i}`,
+        concursoId: id as string,
+        alunoId: a.id,
+        turmaId: a.turmaId,
+        texto: "",
+        atualizadaEm: em,
+        enviadaEm: em,
+        avaliacao: { notas: { tema: n(), repertorio: n(), organizacao: n(), lingua: n() }, comentario: "", por: "m-ana", em },
+      });
+    });
+  }
+  return out;
 }

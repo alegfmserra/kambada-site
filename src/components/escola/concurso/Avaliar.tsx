@@ -52,8 +52,24 @@ export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; p
       </button>
       {aberta && (
         <div className="mt-4 space-y-4">
-          {r.anexo && <LinkArquivo a={r.anexo} rotulo="📎 Redação anexada pelo aluno (abrir)" />}
-          {(r.texto.trim() || !r.anexo) && <article className="whitespace-pre-wrap rounded-2xl bg-superficie p-4 leading-relaxed">{r.texto || "(vazio)"}</article>}
+          {r.anexo && <LinkArquivo a={r.anexo} rotulo="📎 Folha da redação (abrir)" />}
+          {/* Texto digitado só existe nas redações fictícias da demonstração. */}
+          {r.texto.trim() && <article className="whitespace-pre-wrap rounded-2xl bg-superficie p-4 leading-relaxed">{r.texto}</article>}
+          {podeAvaliar && (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <MandarArquivo rotulo={r.anexo ? "Trocar a folha" : "Anexar a folha"} campos={{ acao: "redacao", aluno: r.alunoId }} onPronto={() => router.refresh()} />
+              <button
+                type="button"
+                disabled={ocupado}
+                onClick={() => {
+                  if (window.confirm(r.avaliacao ? "Tirar só o arquivo? A nota fica." : "Tirar esta redação? Ela volta para “sem redação”.")) void rodar({ acao: "tirar-redacao", redacao: r.id }, () => "Redação tirada.");
+                }}
+                className="font-semibold underline"
+              >
+                Tirar
+              </button>
+            </div>
+          )}
           {podeAvaliar && r.enviada && (
             <div className="space-y-3">
               {CRITERIOS.map((c) => (
@@ -90,7 +106,7 @@ export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; p
                     </button>
                   </div>
                 ) : (
-                  <MandarArquivo rotulo="Anexar a correção" campos={{ redacao: r.id }} onPronto={() => router.refresh()} />
+                  <MandarArquivo rotulo="Anexar a correção" campos={{ acao: "correcao", redacao: r.id }} onPronto={() => router.refresh()} />
                 )}
               </div>
               <textarea
@@ -156,6 +172,20 @@ export function EscolhaDaEscola({ r, modo }: { r: RedacaoNaEscola; modo: "repres
         )}
       </div>
       {avisos}
+    </li>
+  );
+}
+
+/** Aluno ainda sem redação nesta temporada: o professor anexa a folha que ele entregou. */
+export function AnexarFolha({ alunoId, apelido, avatar, nome }: { alunoId: string; apelido: string; avatar: string; nome: string | null }) {
+  const router = useRouter();
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-borda p-3">
+      <span>
+        <span aria-hidden>{avatar}</span> <b>{apelido}</b>
+        {nome ? <span className="text-texto-suave"> · {nome}</span> : null}
+      </span>
+      <MandarArquivo rotulo="Anexar a folha" campos={{ acao: "redacao", aluno: alunoId }} onPronto={() => router.refresh()} />
     </li>
   );
 }

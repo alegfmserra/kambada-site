@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { BotaoImprimir } from "@/components/escola/BotaoImprimir";
 import { COR_DISCIPLINA } from "@/components/escola/Marca";
 import { QuemE, SeloSituacao } from "@/components/escola/Mapa";
+import { Evolucao } from "@/components/escola/concurso/Evolucao";
+import { evolucaoDoAluno } from "@/lib/escola/concursoServico";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { ErroEscola, fichaAluno, type Status } from "@/lib/escola/servico";
@@ -64,6 +66,8 @@ export default async function FichaPagina({ params }: { params: Promise<{ id: st
           <b>{[...a.reforcoEm, ...a.quaseEm].slice(0, 5).map((p) => p.habilidade).join(" · ")}</b> (primeiro o que está em ✗, depois o que só acerta na segunda). Ela se atualiza sozinha conforme o aluno joga.
         </p>
       )}
+
+      <Evolucao pontos={await evolucaoDoAluno(f.aluno.id)} titulo="Redações ao longo do ano" />
 
       <section className="space-y-4">
         <h2 className="font-display text-xl font-bold">Onde está em cada habilidade</h2>

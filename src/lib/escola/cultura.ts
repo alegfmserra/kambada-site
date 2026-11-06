@@ -98,15 +98,6 @@ export const ATIVIDADES: AtividadeCultural[] = [
     resumo: "Role a tela e veja a lenda do boi em xilogravura animada, verso por verso.",
     caminho: "/aluno/cultura/conto",
   },
-  // No fim da lista de propósito: o histórico fictício sorteia na ordem desta lista.
-  {
-    id: "jogo-fofao",
-    tipo: "jogo",
-    titulo: "Monte o Fofão",
-    emoji: "👺",
-    resumo: "Temporada de Carnaval: vista o personagem mais popular do carnaval de rua de São Luís.",
-    caminho: "/aluno/cultura/fofao",
-  },
   {
     id: "quebra-agua",
     tipo: "jogo",
@@ -139,14 +130,28 @@ export const ATIVIDADES: AtividadeCultural[] = [
     resumo: "Temporada de Carnaval: quem é o Fofão, por que a máscara é feia de propósito e de onde ele veio.",
     caminho: "/aluno/temporada/carnaval/artigo",
   },
-  {
-    id: "quiz-carnaval",
-    tipo: "quiz",
-    titulo: "Quiz do Carnaval",
-    emoji: "❓",
-    resumo: "Temporada de Carnaval: 8 perguntas sobre o Fofão e o carnaval de rua de São Luís.",
-    caminho: "/aluno/temporada/carnaval/quiz",
-  },
+  // Quizzes do hub (/aluno/quiz): um por assunto; cada prova sorteia 8 do banco (lib/escola/quizzes.ts).
+  ...(
+    [
+      ["carnaval", "Carnaval", "🎭"],
+      ["saojoao", "São João", "🔥"],
+      ["boi", "Bumba-meu-boi", "🐂"],
+      ["matraca", "Matraca", "🪵"],
+      ["sotaques", "Sotaques do boi", "🥁"],
+      ["tambor", "Tambor de Crioula", "🪘"],
+      ["mangue", "Mangue e guarás", "🦩"],
+      ["saoluis", "São Luís e o Maranhão", "🏘️"],
+    ] as const
+  ).map(
+    ([id, titulo, emoji]): AtividadeCultural => ({
+      id: `quiz-${id}`,
+      tipo: "quiz",
+      titulo: `Quiz: ${titulo}`,
+      emoji,
+      resumo: "8 perguntas sorteadas do banco do assunto. Cada prova é diferente.",
+      caminho: `/aluno/quiz/${id}`,
+    }),
+  ),
 ];
 
 // ---------------------------------------------------------------------------

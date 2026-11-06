@@ -1,15 +1,21 @@
 import { idAleatorio } from "../play/jogos/seguranca";
-import { CONCURSO, CRITERIOS, LIMITE_CARACTERES, NOTA_MAXIMA, contarPalavras } from "./concurso";
+import { CONCURSO, CRITERIOS, HISTORICO, NOTA_MAXIMA, contarPalavras } from "./concurso";
 import { apagarArquivo, guardarArquivo, lerArquivo } from "./arquivos";
-import { alterar, lerDados, type Aluno, type ArquivoGuardado, type Dados, type Membro, type Redacao, type Turma } from "./dados";
+import { alterar, lerDados, type Aluno, type ArquivoGuardado, type Dados, type Membro, type Redacao } from "./dados";
 import { ErroEscola, anotar, nomeParaQuem, podeVerTurma, soGestao, soGestor } from "./servico";
 import type { Etapa } from "./tipos";
 
 /**
  * Concurso de redação (somente servidor). Fases:
- * aluno escreve e envia → professor avalia (grade) e escolhe até 3 finalistas
- * da turma → coordenação escolhe a representante da escola por etapa →
- * gestão Kambada dá 1º, 2º e 3º lugar entre as escolas (etapa da rede).
+ * o aluno escreve À MÃO, na folha do Kambada Play que o professor imprime →
+ * o professor anexa a folha (PDF ou foto) no portal, avalia (grade) e
+ * escolhe até 3 finalistas da turma → coordenação escolhe a representante
+ * da escola por etapa → gestão Kambada dá 1º, 2º e 3º lugar entre as
+ * escolas (etapa da rede). A nota de cada temporada vira a linha do tempo da
+ * escrita do aluno no ano (`evolucaoDoAluno`).
+ *
+ * A criança não envia arquivo nem escreve na plataforma (regra do Play: sem
+ * upload na área infantil); ela só vê a nota, o comentário e a correção.
  *
  * Privacidade: o texto sai da escola só com o apelido (etapa da rede e
  * resultado); o nome de verdade, como no resto do portal, só a escola vê.
@@ -49,33 +55,6 @@ export async function minhaRedacao(aluno: Aluno): Promise<MinhaRedacao> {
     anexo: r?.anexo ?? null,
     correcao: r?.avaliacao && r.correcao ? r.correcao : null,
   };
-}
-
-/** Salva o rascunho ou envia ao professor (depois de enviada, não muda mais). */
-export async function salvarRedacao(aluno: Aluno, turma: Turma, textoBruto: unknown, enviar: unknown): Promise<MinhaRedacao> {
-  if (typeof textoBruto !== "string") throw new ErroEscola("Texto inválido.");
-  const texto = textoBruto.replace(/\r\n/g, "\n").slice(0, LIMITE_CARACTERES);
-  const proposta = CONCURSO.propostas[turma.etapa];
-  await alterar((d) => {
-    const lista = (d.redacoes ??= []);
-    let r = lista.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
-    if (r?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
-    if (enviar === true) {
-      const n = contarPalavras(texto);
-      // Com arquivo anexado (escrita à mão), o texto digitado é opcional.
-      if (!r?.anexo && n < proposta.minPalavras) throw new ErroEscola(`Escreve pelo menos ${proposta.minPalavras} palavras (tu tem ${n}), ou anexa a redação em PDF ou foto.`);
-      if (n > proposta.maxPalavras) throw new ErroEscola(`O limite é ${proposta.maxPalavras} palavras (tu tem ${n}).`);
-    }
-    const agora = new Date().toISOString();
-    if (!r) {
-      r = { id: `r-${idAleatorio(8)}`, concursoId: CONCURSO.id, alunoId: aluno.id, turmaId: aluno.turmaId, texto, atualizadaEm: agora };
-      lista.push(r);
-    }
-    r.texto = texto;
-    r.atualizadaEm = agora;
-    if (enviar === true) r.enviadaEm = agora;
-  });
-  return minhaRedacao(aluno);
 }
 
 export type Premiada = { etapa: Etapa; colocacao: number; apelido: string; avatar: string; turma: string; escola: string };
@@ -148,20 +127,23 @@ const ordem = (x: RedacaoNaEscola, y: RedacaoNaEscola) =>
 export type RedacoesDaTurma = {
   turma: { id: string; nome: string; etapa: Etapa };
   redacoes: RedacaoNaEscola[];
-  /** Alunos da turma que ainda não começaram. */
-  semTexto: { apelido: string; avatar: string; nome: string | null }[];
+  /** Alunos da turma sem redação anexada nesta temporada. */
+  semRedacao: { alunoId: string; apelido: string; avatar: string; nome: string | null }[];
 };
 
 export async function redacoesDaTurma(m: Membro, turmaId: string): Promise<RedacoesDaTurma> {
   const d = await lerDados();
   const t = d.turmas.find((x) => x.id === turmaId);
   if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
-  const daTurma = daVez(d).filter((r) => r.turmaId === t.id && d.alunos.some((a) => a.id === r.alunoId) && (r.texto.trim() || r.anexo || r.enviadaEm));
-  const comTexto = new Set(daTurma.map((r) => r.alunoId));
+  const daTurma = daVez(d).filter((r) => r.turmaId === t.id && r.enviadaEm && d.alunos.some((a) => a.id === r.alunoId));
+  const comRedacao = new Set(daTurma.map((r) => r.alunoId));
   return {
     turma: { id: t.id, nome: t.nome, etapa: t.etapa },
     redacoes: daTurma.map((r) => naEscola(m, d, r)).sort(ordem),
-    semTexto: d.alunos.filter((a) => a.turmaId === t.id && !comTexto.has(a.id)).map((a) => ({ apelido: a.apelido, avatar: a.avatar, nome: nomeParaQuem(m, a) })),
+    semRedacao: d.alunos
+      .filter((a) => a.turmaId === t.id && !comRedacao.has(a.id))
+      .sort((x, y) => x.apelido.localeCompare(y.apelido, "pt-BR"))
+      .map((a) => ({ alunoId: a.id, apelido: a.apelido, avatar: a.avatar, nome: nomeParaQuem(m, a) })),
   };
 }
 
@@ -265,12 +247,12 @@ export async function resumoDoConcurso(m: Membro): Promise<{ turma: string; turm
     .filter((t) => podeVerTurma(m, t))
     .map((t) => {
       const r = daVez(d).filter((x) => x.turmaId === t.id);
-      const temTexto = (x: Redacao) => !!x.texto.trim() || !!x.anexo;
+
       return {
         turma: t.nome,
         turmaId: t.id,
         alunos: d.alunos.filter((a) => a.turmaId === t.id).length,
-        escreveram: r.filter(temTexto).length,
+        escreveram: r.filter((x) => x.enviadaEm).length,
         enviaram: r.filter((x) => x.enviadaEm).length,
         avaliadas: r.filter((x) => x.avaliacao).length,
         finalistas: r.filter((x) => x.finalista).length,
@@ -282,16 +264,22 @@ export async function resumoDoConcurso(m: Membro): Promise<{ turma: string; turm
 // Arquivos: a redação em PDF/foto (aluno) e a correção (professor)
 // ---------------------------------------------------------------------------
 
-/** Aluno: anexa (ou troca) o arquivo da redação, antes de enviar. */
-export async function anexarRedacao(aluno: Aluno, bytes: Uint8Array, nome: string): Promise<MinhaRedacao> {
-  const atual = (await lerDados()).redacoes?.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
-  if (atual?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
+/**
+ * Professor da turma (ou coordenação): anexa a redação que o aluno escreveu
+ * na folha (PDF ou foto). Anexar = entregue. Trocar o arquivo depois mantém
+ * a nota já dada.
+ */
+export async function anexarRedacaoDoAluno(m: Membro, alunoId: unknown, bytes: Uint8Array, nome: string): Promise<void> {
+  if (m.papel === "gestor") throw new ErroEscola("A redação é da escola.", 403);
+  const d0 = await lerDados();
+  const aluno = typeof alunoId === "string" ? d0.alunos.find((a) => a.id === alunoId) : undefined;
+  const t0 = aluno && d0.turmas.find((t) => t.id === aluno.turmaId);
+  if (!aluno || !t0 || !podeVerTurma(m, t0)) throw new ErroEscola("Aluno não encontrado.", 404);
   const arq = await guardarArquivo(bytes, nome);
   let antigo: string | undefined;
   await alterar((d) => {
     const lista = (d.redacoes ??= []);
     let r = lista.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
-    if (r?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
     if (!r) {
       r = { id: `r-${idAleatorio(8)}`, concursoId: CONCURSO.id, alunoId: aluno.id, turmaId: aluno.turmaId, texto: "", atualizadaEm: arq.em };
       lista.push(r);
@@ -299,24 +287,28 @@ export async function anexarRedacao(aluno: Aluno, bytes: Uint8Array, nome: strin
     antigo = r.anexo?.id;
     r.anexo = arq;
     r.atualizadaEm = arq.em;
+    r.enviadaEm ??= arq.em;
   }).catch(async (e) => {
     await apagarArquivo(arq.id);
     throw e;
   });
   await apagarArquivo(antigo);
-  return minhaRedacao(aluno);
 }
 
-export async function tirarAnexo(aluno: Aluno): Promise<MinhaRedacao> {
-  let antigo: string | undefined;
+/** Tira a redação anexada por engano. Sem nota ainda, a redação sai inteira; com nota, sai só o arquivo. */
+export async function tirarRedacaoDoAluno(m: Membro, id: unknown): Promise<void> {
+  if (m.papel === "gestor") throw new ErroEscola("A redação é da escola.", 403);
+  const apagar: (string | undefined)[] = [];
   await alterar((d) => {
-    const r = d.redacoes?.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
-    if (r?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
-    antigo = r?.anexo?.id;
-    if (r) delete r.anexo;
+    const r = redacaoDaEscola(d, m, id);
+    apagar.push(r.anexo?.id);
+    delete r.anexo;
+    if (!r.avaliacao) {
+      apagar.push(r.correcao?.id);
+      d.redacoes = d.redacoes!.filter((x) => x !== r);
+    }
   });
-  await apagarArquivo(antigo);
-  return minhaRedacao(aluno);
+  for (const a of apagar) await apagarArquivo(a);
 }
 
 /** Professor da turma (ou coordenação): anexa a correção da redação enviada. O aluno vê depois da avaliação. */
@@ -369,4 +361,34 @@ export async function abrirArquivo(quem: { papel: "aluno"; aluno: Aluno } | { pa
   if (!pode) throw new ErroEscola("Arquivo não encontrado.", 404);
   const arquivo = ehAnexo ? r.anexo! : r.correcao!;
   return { arquivo, bytes: await lerArquivo(arquivo.id) };
+}
+
+// ---------------------------------------------------------------------------
+// Evolução da escrita ao longo do ano (uma redação por temporada)
+// ---------------------------------------------------------------------------
+
+export type PontoDaEscrita = { id: string; temporada: string; mes: string; notas: Record<string, number> | null; total: number | null };
+
+const totalDe = (notas: Record<string, number>) => Object.values(notas).reduce((s, n) => s + n, 0);
+
+/** As notas do aluno em cada redação do ano, na ordem das temporadas (escola e o próprio aluno). */
+export async function evolucaoDoAluno(alunoId: string): Promise<PontoDaEscrita[]> {
+  const d = await lerDados();
+  return HISTORICO.map((h) => {
+    const r = (d.redacoes ?? []).find((x) => x.concursoId === h.id && x.alunoId === alunoId && x.avaliacao);
+    return { id: h.id, temporada: h.temporada, mes: h.mes, notas: r?.avaliacao?.notas ?? null, total: r?.avaliacao ? totalDe(r.avaliacao.notas) : null };
+  });
+}
+
+/** Média da turma em cada redação do ano (para a aba de redações e a coordenação). */
+export async function evolucaoDaTurma(m: Membro, turmaId: string): Promise<(PontoDaEscrita & { avaliadas: number })[]> {
+  const d = await lerDados();
+  const t = d.turmas.find((x) => x.id === turmaId);
+  if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
+  return HISTORICO.map((h) => {
+    const rs = (d.redacoes ?? []).filter((x) => x.concursoId === h.id && x.turmaId === t.id && x.avaliacao);
+    const media = (c: string) => Math.round((rs.reduce((s, r) => s + (r.avaliacao!.notas[c] ?? 0), 0) / rs.length) * 10) / 10;
+    const notas = rs.length ? Object.fromEntries(CRITERIOS.map((c) => [c.id, media(c.id)])) : null;
+    return { id: h.id, temporada: h.temporada, mes: h.mes, notas, total: notas ? Math.round(totalDe(notas) * 10) / 10 : null, avaliadas: rs.length };
+  });
 }

@@ -50,7 +50,8 @@ import { ORDEM as ORDEM_ARRAIAL, fitinhasPor, pessoa as pessoaDoArraial } from "
 import { ATIVIDADES, DIDATICA, INSTRUMENTOS, QUEBRAS, SOTAQUES } from "./cultura";
 import { TEMPORADAS } from "./temporadas";
 import { trilhaDoAluno } from "./temporadaServico";
-import { abrirArquivo, anexarCorrecao, anexarRedacao, avaliarRedacao, darColocacao, tirarCorrecao, escolherRepresentante, etapaDaRede, finalistasDaEscola, marcarFinalista, minhaRedacao, redacoesDaTurma, resultadoDoConcurso, salvarRedacao } from "./concursoServico";
+import { abrirArquivo, anexarCorrecao, anexarRedacaoDoAluno, avaliarRedacao, darColocacao, escolherRepresentante, etapaDaRede, evolucaoDaTurma, evolucaoDoAluno, finalistasDaEscola, marcarFinalista, minhaRedacao, redacoesDaTurma, resultadoDoConcurso, tirarCorrecao, tirarRedacaoDoAluno } from "./concursoServico";
+import { ASSUNTOS, sortearProva } from "./quizzes";
 
 beforeEach(() => {
   process.env.ESCOLA_ARQUIVO = join(mkdtempSync(join(tmpdir(), "kambada-escola-")), "escola.json");
@@ -473,51 +474,43 @@ describe("cultura do Maranhão", () => {
   });
 });
 
-describe("concurso de redação", () => {
-  const texto = (n: number) => Array.from({ length: n }, (_, i) => `palavra${i}`).join(" ");
+const PDF = new TextEncoder().encode("%PDF-1.4\n% folha de redação escrita à mão\n");
+const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
 
-  it("aluno escreve e envia; professor avalia; finalistas; escola escolhe; rede premia; nome nunca sai da escola", async () => {
+describe("concurso de redação (folha anexada pelo professor)", () => {
+  it("professor anexa a folha e corrige; finalistas; escola escolhe; rede premia; nome nunca sai da escola", async () => {
     const d = await lerDados();
-    expect(d.redacoes?.length).toBeGreaterThan(0); // redações fictícias da demonstração
+    expect(d.redacoes?.some((r) => r.concursoId === "carnaval-sao-luis")).toBe(true); // redações fictícias da demonstração
     const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!; // 5º B, sem redação
     const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
-
-    await salvarRedacao(aluno, turma, "Rascunho do Fofão", false);
-    expect((await minhaRedacao(aluno)).texto).toBe("Rascunho do Fofão");
-    await expect(salvarRedacao(aluno, turma, texto(10), true)).rejects.toBeInstanceOf(ErroEscola); // curta demais
-    const enviada = await salvarRedacao(aluno, turma, texto(60), true);
-    expect(enviada.enviada).toBe(true);
-    await expect(salvarRedacao(aluno, turma, "mudei", false)).rejects.toBeInstanceOf(ErroEscola); // enviada não muda
-
-    // professora fora da turma não vê
-    await expect(redacoesDaTurma(await membro("prof.lucia"), turma.id)).rejects.toBeInstanceOf(ErroEscola);
     const ana = await membro("prof.ana");
-    const daTurma = await redacoesDaTurma(ana, turma.id);
-    const minha = daTurma.redacoes.find((r) => r.alunoId === aluno.id)!;
+    expect((await minhaRedacao(aluno)).enviada).toBe(false);
+    expect((await redacoesDaTurma(ana, turma.id)).semRedacao.some((a) => a.alunoId === aluno.id)).toBe(true);
+
+    await expect(anexarRedacaoDoAluno(await membro("prof.lucia"), aluno.id, PDF, "folha.pdf")).rejects.toBeInstanceOf(ErroEscola); // não é da turma
+    await expect(anexarRedacaoDoAluno(await membro("kambada"), aluno.id, PDF, "folha.pdf")).rejects.toBeInstanceOf(ErroEscola); // a redação é da escola
+    await expect(anexarRedacaoDoAluno(ana, aluno.id, new TextEncoder().encode("não é pdf"), "x.pdf")).rejects.toBeInstanceOf(ErroEscola);
+    await expect(anexarRedacaoDoAluno(ana, aluno.id, new Uint8Array(5 * 1024 * 1024 + 1).fill(0x25), "grande.pdf")).rejects.toBeInstanceOf(ErroEscola);
+    await anexarRedacaoDoAluno(ana, aluno.id, PNG, "foto.png");
+    await anexarRedacaoDoAluno(ana, aluno.id, PDF, "Folha da Sabiá.pdf"); // troca a foto pelo PDF
+    const minha = (await redacoesDaTurma(ana, turma.id)).redacoes.find((r) => r.alunoId === aluno.id)!;
+    expect(minha.anexo?.tipo).toBe("application/pdf");
     expect(minha.nome).toBeTruthy(); // a escola vê o nome
+    expect((await minhaRedacao(aluno)).enviada).toBe(true);
+
     await expect(avaliarRedacao(ana, minha.id, { tema: 6 }, "")).rejects.toBeInstanceOf(ErroEscola);
     await avaliarRedacao(ana, minha.id, { tema: 5, repertorio: 4, organizacao: 4, lingua: 3 }, "Muito bem!");
     expect((await minhaRedacao(aluno)).avaliacao?.total).toBe(16);
 
-    // até 3 finalistas por turma (a demonstração do 5º B já tem 1)
     await marcarFinalista(ana, minha.id, true);
-    const outra = daTurma.redacoes.find((r) => r.enviada && !r.finalista && r.id !== minha.id);
-    if (outra) {
-      if (!outra.avaliacao) await avaliarRedacao(ana, outra.id, { tema: 3, repertorio: 3, organizacao: 3, lingua: 3 }, "");
-      await marcarFinalista(ana, outra.id, true);
-    }
-
-    // coordenação: representante só entre finalistas, uma por etapa
     const coord = await membro("coordenacao");
     await expect(escolherRepresentante(ana, minha.id)).rejects.toBeInstanceOf(ErroEscola); // professor não escolhe
     await escolherRepresentante(coord, minha.id);
     const f1 = (await finalistasDaEscola(coord)).find((x) => x.etapa === "f1")!;
     expect(f1.redacoes.filter((r) => r.representante).map((r) => r.id)).toEqual([minha.id]);
 
-    // gestão Kambada: só apelido, e dá a colocação
     const kambada = await membro("kambada");
-    const rede = await etapaDaRede(kambada);
-    const naRede = rede.find((x) => x.etapa === "f1")!.redacoes.find((r) => r.id === minha.id)!;
+    const naRede = (await etapaDaRede(kambada)).find((x) => x.etapa === "f1")!.redacoes.find((r) => r.id === minha.id)!;
     expect(naRede.nome).toBeNull();
     await expect(darColocacao(coord, minha.id, 1)).rejects.toBeInstanceOf(ErroEscola);
     await darColocacao(kambada, minha.id, 1);
@@ -527,69 +520,33 @@ describe("concurso de redação", () => {
     expect((await minhaRedacao(aluno)).colocacao).toBe(1);
   });
 
-  it("o professor não passa de 3 finalistas na turma", async () => {
+  it("até 3 finalistas por turma; tirar a redação sem nota devolve o aluno para sem redação", async () => {
     const d = await lerDados();
     const ana = await membro("prof.ana");
-    const turma = d.turmas.find((t) => t.id === "t4a")!;
-    const alunos = d.alunos.filter((a) => a.turmaId === "t4a" && !d.redacoes!.some((r) => r.alunoId === a.id)).slice(0, 2);
-    for (const a of alunos) await salvarRedacao(a, turma, texto(50), true);
-    const lista = (await redacoesDaTurma(ana, "t4a")).redacoes.filter((r) => r.enviada && !r.finalista);
+    const sem = (await redacoesDaTurma(ana, "t4a")).semRedacao;
+    for (const a of sem.slice(0, 2)) await anexarRedacaoDoAluno(ana, a.alunoId, PDF, "folha.pdf");
+    const lista = (await redacoesDaTurma(ana, "t4a")).redacoes.filter((r) => !r.finalista);
     for (const r of lista) await avaliarRedacao(ana, r.id, { tema: 3, repertorio: 3, organizacao: 3, lingua: 3 }, "");
     await marcarFinalista(ana, lista[0].id, true); // 4º A já tinha 2 finalistas na demonstração
     await expect(marcarFinalista(ana, lista[1].id, true)).rejects.toBeInstanceOf(ErroEscola);
-  });
-});
 
-describe("temporadas", () => {
-  it("cada passo aponta para uma atividade que existe, e a de destaque tem artigo, quiz e redação", () => {
-    for (const t of TEMPORADAS) for (const p of t.passos) if (p.atividade) expect(ATIVIDADES.some((a) => a.id === p.atividade)).toBe(true);
-    const c = TEMPORADAS.find((t) => t.id === "carnaval")!;
-    expect(c.artigo?.secoes.length).toBeGreaterThan(2);
-    expect(c.quiz?.every((q) => q.correta < q.opcoes.length)).toBe(true);
-    expect([...new Set(c.passos.map((p) => p.tipo))]).toEqual(["animacao", "revistinha", "artigo", "jogo", "quiz", "redacao"]);
-    // todo quebra-cabeça usado numa trilha tem imagem configurada
-    for (const t of TEMPORADAS) for (const p of t.passos) if (p.atividade?.startsWith("quebra-")) expect(QUEBRAS.some((q) => q.id === p.atividade)).toBe(true);
+    const outro = sem[2];
+    expect(outro).toBeDefined();
+    await anexarRedacaoDoAluno(ana, outro.alunoId, PDF, "engano.pdf");
+    const r = (await redacoesDaTurma(ana, "t4a")).redacoes.find((x) => x.alunoId === outro.alunoId)!;
+    await tirarRedacaoDoAluno(ana, r.id);
+    expect((await redacoesDaTurma(ana, "t4a")).semRedacao.some((a) => a.alunoId === outro.alunoId)).toBe(true);
+    expect(d.alunos.length).toBeGreaterThan(0);
   });
 
-  it("a redação abre depois do quiz e fica feita quando o aluno envia", async () => {
+  it("arquivos: só quem pode abre; a correção chega ao aluno depois da nota", async () => {
     const d = await lerDados();
     const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!;
-    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
-    const carnaval = TEMPORADAS.find((t) => t.id === "carnaval")!;
-    const estado = async () => Object.fromEntries((await trilhaDoAluno(aluno, carnaval)).passos.map((p) => [p.tipo, p.estado]));
-    expect(await estado()).toMatchObject({ animacao: "producao", artigo: "aberto", quiz: "aberto", redacao: "travado" });
-    await registrarCultura(aluno, "artigo-carnaval");
-    await registrarCultura(aluno, "quiz-carnaval", 7, 8);
-    expect(await estado()).toMatchObject({ artigo: "feito", quiz: "feito", redacao: "aberto" });
-    await salvarRedacao(aluno, turma, Array.from({ length: 50 }, () => "Fofão").join(" "), true);
-    const t = await trilhaDoAluno(aluno, carnaval);
-    expect(t.passos.find((p) => p.tipo === "redacao")?.estado).toBe("feito");
-    expect(t.feitos).toBe(3);
-    expect(t.total).toBe(4); // animação e revistinha ainda em produção
-  });
-});
-
-describe("redação em arquivo", () => {
-  const pdf = new TextEncoder().encode("%PDF-1.4\n% redação escrita à mão\n");
-  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
-
-  it("aluno manda PDF sem digitar; só quem pode abre; professor devolve a correção depois de avaliar", async () => {
-    const d = await lerDados();
-    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!; // 5º B
     const outro = d.alunos.find((x) => x.turmaId === aluno.turmaId && x.id !== aluno.id)!;
-    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
-
-    await expect(anexarRedacao(aluno, new TextEncoder().encode("não é pdf"), "x.pdf")).rejects.toBeInstanceOf(ErroEscola);
-    await expect(anexarRedacao(aluno, new Uint8Array(5 * 1024 * 1024 + 1).fill(0x25), "grande.pdf")).rejects.toBeInstanceOf(ErroEscola);
-    await anexarRedacao(aluno, png, "foto.png");
-    const r1 = await anexarRedacao(aluno, pdf, "Minha redação.pdf"); // troca a foto pelo PDF
-    expect(r1.anexo?.tipo).toBe("application/pdf");
-    expect(r1.anexo?.nome).toBe("Minha redação.pdf");
-    const enviada = await salvarRedacao(aluno, turma, "", true); // sem texto: vale o arquivo
-    expect(enviada.enviada).toBe(true);
-    await expect(anexarRedacao(aluno, pdf, "de novo.pdf")).rejects.toBeInstanceOf(ErroEscola);
-
-    const id = enviada.anexo!.id;
+    const ana = await membro("prof.ana");
+    await anexarRedacaoDoAluno(ana, aluno.id, PDF, "folha.pdf");
+    const minha = (await redacoesDaTurma(ana, aluno.turmaId)).redacoes.find((r) => r.alunoId === aluno.id)!;
+    const id = minha.anexo!.id;
     const comoAluno = (a: typeof aluno) => ({ papel: "aluno" as const, aluno: a });
     const comoMembro = async (u: string) => {
       const m = await membro(u);
@@ -601,18 +558,64 @@ describe("redação em arquivo", () => {
     await expect(abrirArquivo(await comoMembro("prof.lucia"), id)).rejects.toBeInstanceOf(ErroEscola); // não é da turma
     await expect(abrirArquivo(await comoMembro("kambada"), id)).rejects.toBeInstanceOf(ErroEscola); // não é representante
 
-    const ana = await membro("prof.ana");
-    const minha = (await redacoesDaTurma(ana, turma.id)).redacoes.find((r) => r.alunoId === aluno.id)!;
-    expect(minha.anexo?.id).toBe(id);
-    await expect(anexarCorrecao(await membro("kambada"), minha.id, pdf, "c.pdf")).rejects.toBeInstanceOf(ErroEscola);
-    await anexarCorrecao(ana, minha.id, pdf, "Correção.pdf");
+    await expect(anexarCorrecao(await membro("kambada"), minha.id, PDF, "c.pdf")).rejects.toBeInstanceOf(ErroEscola);
+    await anexarCorrecao(ana, minha.id, PDF, "Correção.pdf");
     expect((await minhaRedacao(aluno)).correcao).toBeNull(); // só aparece depois da nota
-    const corr = (await redacoesDaTurma(ana, turma.id)).redacoes.find((r) => r.alunoId === aluno.id)!.correcao!;
+    const corr = (await redacoesDaTurma(ana, aluno.turmaId)).redacoes.find((r) => r.alunoId === aluno.id)!.correcao!;
     await expect(abrirArquivo(comoAluno(aluno), corr.id)).rejects.toBeInstanceOf(ErroEscola);
     await avaliarRedacao(ana, minha.id, { tema: 4, repertorio: 4, organizacao: 4, lingua: 4 }, "Boa!");
     expect((await minhaRedacao(aluno)).correcao?.id).toBe(corr.id);
     expect((await abrirArquivo(comoAluno(aluno), corr.id)).arquivo.nome).toBe("Correção.pdf");
     await tirarCorrecao(ana, minha.id);
     expect((await minhaRedacao(aluno)).correcao).toBeNull();
+  });
+
+  it("evolução no ano: São João, Consciência Negra e Carnaval, por aluno e média da turma", async () => {
+    const ev = await evolucaoDoAluno("t4a-a1");
+    expect(ev.map((p) => p.temporada)).toEqual(["São João", "Consciência Negra", "Carnaval"]);
+    expect(ev.filter((p) => p.total !== null).length).toBeGreaterThanOrEqual(2);
+    const turma = await evolucaoDaTurma(await membro("prof.ana"), "t4a");
+    expect(turma[0].avaliadas).toBeGreaterThan(0);
+    await expect(evolucaoDaTurma(await membro("prof.lucia"), "t4a")).rejects.toBeInstanceOf(ErroEscola);
+  });
+});
+
+describe("temporadas e quiz", () => {
+  it("cada passo aponta para uma atividade que existe; o Carnaval tem artigo, quiz e redação", () => {
+    for (const t of TEMPORADAS) for (const p of t.passos) if (p.atividade) expect(ATIVIDADES.some((a) => a.id === p.atividade)).toBe(true);
+    const c = TEMPORADAS.find((t) => t.id === "carnaval")!;
+    expect(c.artigo?.secoes.length).toBeGreaterThan(2);
+    expect([...new Set(c.passos.map((p) => p.tipo))]).toEqual(["animacao", "revistinha", "artigo", "jogo", "quiz", "redacao"]);
+    for (const t of TEMPORADAS) for (const p of t.passos) if (p.atividade?.startsWith("quebra-")) expect(QUEBRAS.some((q) => q.id === p.atividade)).toBe(true);
+  });
+
+  it("hub de quiz: 50 perguntas no Carnaval, todo assunto com prova de 8, sorteio muda, gabarito certo", () => {
+    expect(ASSUNTOS.find((a) => a.id === "carnaval")!.banco).toHaveLength(50);
+    for (const a of ASSUNTOS) {
+      expect(a.banco.length).toBeGreaterThanOrEqual(8);
+      expect(ATIVIDADES.some((x) => x.id === `quiz-${a.id}`)).toBe(true);
+      for (const q of a.banco) expect(new Set([q.certa, ...q.erradas]).size).toBe(3); // três opções diferentes
+      const prova = sortearProva(a);
+      expect(prova).toHaveLength(8);
+      for (const q of prova) expect(a.banco.find((b) => b.pergunta === q.pergunta)!.certa).toBe(q.opcoes[q.correta]);
+    }
+    const carnaval = ASSUNTOS.find((a) => a.id === "carnaval")!;
+    const provas = new Set(Array.from({ length: 5 }, () => sortearProva(carnaval).map((q) => q.pergunta).sort().join("|")));
+    expect(provas.size).toBeGreaterThan(1);
+  });
+
+  it("a redação fecha a trilha: fica feita quando o professor anexa a folha", async () => {
+    const d = await lerDados();
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!;
+    const carnaval = TEMPORADAS.find((t) => t.id === "carnaval")!;
+    const estado = async () => Object.fromEntries((await trilhaDoAluno(aluno, carnaval)).passos.map((p) => [p.tipo, p.estado]));
+    expect(await estado()).toMatchObject({ animacao: "producao", artigo: "aberto", quiz: "aberto", redacao: "aberto" });
+    await registrarCultura(aluno, "artigo-carnaval");
+    await registrarCultura(aluno, "quiz-carnaval", 7, 8);
+    await anexarRedacaoDoAluno(await membro("prof.ana"), aluno.id, PDF, "folha.pdf");
+    const t = await trilhaDoAluno(aluno, carnaval);
+    expect(t.passos.find((p) => p.tipo === "redacao")?.estado).toBe("feito");
+    expect(t.feitos).toBe(3);
+    expect(t.total).toBe(3); // animação, revistinha e quebra-cabeça ainda em produção
   });
 });

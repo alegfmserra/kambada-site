@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 import type { Disciplina, EscolaPublica, Etapa, Permissao, Resultado } from "./tipos";
-import { redacoesDemo } from "./redacoesDemo";
+import { historicoDemo, redacoesDemo } from "./redacoesDemo";
 import { comContasDeTeste, culturaDemo, gestorDemo, sementeDemo } from "./semente";
 
 /**
@@ -217,6 +217,11 @@ async function atual(): Promise<Dados> {
       if (d.demo && !d.cultura) d.cultura = culturaDemo(d.alunos);
       // Demonstração de antes do concurso de redação (05/11/2026): ganha as redações fictícias.
       if (d.demo && !d.redacoes) d.redacoes = redacoesDemo(d.alunos);
+      // Demonstração de antes da folha de redação (06/11/2026): ganha as notas de São João e Consciência
+      // Negra (evolução no ano) e perde os rascunhos digitados (o aluno não escreve mais na plataforma).
+      if (d.demo && d.redacoes && !d.redacoes.some((r) => r.concursoId === "saojoao-2026")) {
+        d.redacoes = [...historicoDemo(d.alunos), ...d.redacoes.filter((r) => r.enviadaEm)];
+      }
       estado.memoria = d;
       estado.mtime = mtime;
       return d;

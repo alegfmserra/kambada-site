@@ -1,5 +1,3 @@
-import type { PerguntaCultura } from "./cultura";
-
 /**
  * Temporadas (05/11/2026, pedido do Alexandre): cada data do calendário vira
  * uma TRILHA com o mesmo caminho, para o aluno brincar, aprender e depois
@@ -10,7 +8,9 @@ import type { PerguntaCultura } from "./cultura";
  *
  * A animação e a revistinha são "cultura vivida" (a historinha do Kambadinha,
  * sem moral explicada, como manda a bíblia de personagens); o artigo e o
- * quiz são a camada didática da escola; a redação fecha a temporada.
+ * quiz são a camada didática da escola; a redação fecha a temporada (escrita
+ * à mão na folha do Kambada Play; o professor anexa e corrige no portal).
+ * O quiz de cada passo é um assunto do hub de quiz (lib/escola/quizzes.ts).
  *
  * Um passo sem conteúdo pronto fica "em produção" (com o que falta), para a
  * escola ver o plano do ano. Os passos apontam para as atividades de
@@ -54,7 +54,6 @@ export type Temporada = {
   tema: string;
   passos: Passo[];
   artigo?: { titulo: string; linhaFina: string; secoes: SecaoArtigo[]; paraPensar: string[] };
-  quiz?: PerguntaCultura[];
 };
 
 const CARNAVAL: Temporada = {
@@ -67,9 +66,8 @@ const CARNAVAL: Temporada = {
     { tipo: "animacao", titulo: "Kambadinha em: O Fofão", emProducao: "Roteiro pronto (a mesma historinha da revistinha); falta animar e gravar as vozes." },
     { tipo: "revistinha", titulo: "Kambadinha em: O Fofão", emProducao: "Roteiro pronto, quadro a quadro; falta o desenho do Ricardo e o Fofão no traço da casa." },
     { tipo: "artigo", titulo: "O Fofão e o carnaval de rua", atividade: "artigo-carnaval", caminho: "/aluno/temporada/carnaval/artigo" },
-    { tipo: "jogo", titulo: "Monte o Fofão", atividade: "jogo-fofao", caminho: "/aluno/cultura/fofao" },
     { tipo: "jogo", titulo: "Quebra-cabeça do Fofão", emProducao: "Entra com a capa da revistinha (a imagem do quebra-cabeça)." },
-    { tipo: "quiz", titulo: "Quiz do Carnaval", atividade: "quiz-carnaval", caminho: "/aluno/temporada/carnaval/quiz" },
+    { tipo: "quiz", titulo: "Quiz do Carnaval", atividade: "quiz-carnaval", caminho: "/aluno/quiz/carnaval" },
     { tipo: "redacao", titulo: "Concurso de Redação", caminho: "/aluno/concurso" },
   ],
   artigo: {
@@ -108,56 +106,6 @@ const CARNAVAL: Temporada = {
       "Por que será que o Fofão esconde o rosto?",
     ],
   },
-  quiz: [
-    {
-      pergunta: "Qual é o personagem mais popular do carnaval de rua de São Luís?",
-      opcoes: ["O Saci", "O Fofão", "O Boi"],
-      correta: 1,
-      explica: "O Fofão, com máscara de nariz comprido e macacão largo de chita.",
-    },
-    {
-      pergunta: "Do que é feita a máscara tradicional do Fofão?",
-      opcoes: ["De plástico, em fábrica", "De papel machê, à mão", "De metal"],
-      correta: 1,
-      explica: "É feita à mão, de papel machê, por artesãos da cidade.",
-    },
-    {
-      pergunta: "Por que a máscara do Fofão é feia?",
-      opcoes: ["Porque é velha", "Porque ninguém sabe fazer bonita", "De propósito: ele assusta e depois brinca"],
-      correta: 2,
-      explica: "É feia de propósito. Primeiro o susto, depois a brincadeira.",
-    },
-    {
-      pergunta: "O que o Fofão oferece às crianças para fazer amizade?",
-      opcoes: ["Uma boneca", "Uma matraca", "Um balão"],
-      correta: 0,
-      explica: "A boneca é o jeito do Fofão de conquistar quem ficou com medo da máscara.",
-    },
-    {
-      pergunta: "Qual tecido faz o macacão largo e colorido do Fofão?",
-      opcoes: ["Couro", "Chita", "Jeans"],
-      correta: 1,
-      explica: "A chita, tecido de flores coloridas, deixa o Fofão parecendo inflado.",
-    },
-    {
-      pergunta: "De quando são os registros mais antigos do Fofão em São Luís?",
-      opcoes: ["Do fim do século 19", "Do ano 2000", "De 1500, quando os portugueses chegaram"],
-      correta: 0,
-      explica: "Os primeiros registros são do fim do século 19 e do começo do século 20.",
-    },
-    {
-      pergunta: "O artigo diz que a origem do Fofão “ainda é discutida”. O que isso quer dizer?",
-      opcoes: ["Que o Fofão foi inventado ano passado", "Que quem estuda ainda não chegou a um acordo sobre de onde ele veio", "Que é proibido falar do Fofão"],
-      correta: 1,
-      explica: "Há quem veja influência europeia e há quem aponte raízes africanas. A pesquisa continua.",
-    },
-    {
-      pergunta: "Segundo o artigo, o que faz uma tradição continuar existindo?",
-      opcoes: ["Passar de uma geração para outra", "Ficar guardada num museu, sem ninguém usar", "Ser igual em todas as cidades"],
-      correta: 0,
-      explica: "Alguém precisa fazer a máscara, costurar a chita e sair na rua: a tradição passa de geração em geração.",
-    },
-  ],
 };
 
 /** O calendário do ano (o mesmo da apresentação pedagógica). */
@@ -174,7 +122,7 @@ export const TEMPORADAS: Temporada[] = [
       { tipo: "revistinha", titulo: "A Hora dos Guarás", atividade: "hq-guaras", caminho: "/aluno/cultura/hq/kambadinha-a-hora-dos-guaras" },
       { tipo: "artigo", titulo: "O mangue, berçário da Ilha", emProducao: "Artigo a escrever (mangue, guará, caranguejo)." },
       { tipo: "jogo", titulo: "Quebra-cabeça do mangue", atividade: "quebra-agua", caminho: "/aluno/cultura/quebra/quebra-agua" },
-      { tipo: "quiz", titulo: "Quiz do mangue", emProducao: "Quiz a montar a partir do artigo." },
+      { tipo: "quiz", titulo: "Quiz: Mangue e guarás", atividade: "quiz-mangue", caminho: "/aluno/quiz/mangue" },
       { tipo: "redacao", titulo: "Redação do mangue", emProducao: "Proposta a definir com a pedagoga." },
     ],
   },
@@ -192,7 +140,7 @@ export const TEMPORADAS: Temporada[] = [
       { tipo: "jogo", titulo: "A história do Boi", atividade: "jogo-auto-do-boi", caminho: "/aluno/cultura/auto-do-boi" },
       { tipo: "jogo", titulo: "Sotaques do Boi", atividade: "jogo-sotaques", caminho: "/aluno/cultura/sotaques" },
       { tipo: "jogo", titulo: "Quebra-cabeça do arraial", atividade: "quebra-saojoao", caminho: "/aluno/cultura/quebra/quebra-saojoao" },
-      { tipo: "quiz", titulo: "Quiz do São João", emProducao: "Quiz a montar a partir do artigo." },
+      { tipo: "quiz", titulo: "Quiz: São João", atividade: "quiz-saojoao", caminho: "/aluno/quiz/saojoao" },
       { tipo: "redacao", titulo: "Redação do São João", emProducao: "Proposta a definir com a pedagoga." },
     ],
   },
@@ -208,7 +156,7 @@ export const TEMPORADAS: Temporada[] = [
       { tipo: "artigo", titulo: "O tambor de crioula", emProducao: "Artigo a escrever." },
       { tipo: "jogo", titulo: "Quebra-cabeça do tambor", atividade: "quebra-tambor", caminho: "/aluno/cultura/quebra/quebra-tambor" },
       { tipo: "jogo", titulo: "Jogo do tambor", emProducao: "Jogo a criar (os três tambores, a punga)." },
-      { tipo: "quiz", titulo: "Quiz do tambor", emProducao: "Quiz a montar a partir do artigo." },
+      { tipo: "quiz", titulo: "Quiz: Tambor de Crioula", atividade: "quiz-tambor", caminho: "/aluno/quiz/tambor" },
       { tipo: "redacao", titulo: "Redação da Consciência Negra", emProducao: "Proposta a definir com a pedagoga." },
     ],
   },

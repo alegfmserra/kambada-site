@@ -28,7 +28,7 @@ export default async function EscolaLayout({ children }: { children: React.React
   const [escola, quem] = await Promise.all([escolaPublica(), quemNaPagina()]);
   const nav =
     quem?.papel === "aluno"
-      ? [["Desafios", "/aluno"], ["Cultura", "/aluno/cultura"], ["Ranking", "/ranking"]]
+      ? [["Desafios", "/aluno"], ["Cultura", "/aluno/cultura"], ["Quiz", "/aluno/quiz"], ["Ranking", "/ranking"]]
       : quem?.papel === "professor"
         ? [["Minhas turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
         : quem?.papel === "coordenacao"

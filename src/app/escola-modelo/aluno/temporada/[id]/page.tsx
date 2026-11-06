@@ -44,7 +44,7 @@ export default async function TemporadaDoAluno({ params }: { params: Promise<{ i
           Continuar: {proximo.titulo} →
         </Link>
       )}
-      <p className="text-center text-xs text-texto-suave">A redação abre depois do quiz: primeiro tu brinca e aprende, depois mostra o que sabe.</p>
+      <p className="text-center text-xs text-texto-suave">A redação tu escreve à mão, em sala, depois da trilha: primeiro tu brinca e aprende, depois mostra o que sabe.</p>
     </div>
   );
 }

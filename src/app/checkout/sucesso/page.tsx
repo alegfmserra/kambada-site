@@ -44,12 +44,14 @@ export default async function PaginaSucesso({ searchParams }: Props) {
   const aprovado = resultado?.ok === true;
   const ref = resultado && "ref" in resultado ? resultado.ref : undefined;
 
-  const total = aprovado && ref ? (await lerRegistro(ref).catch(() => null))?.total : undefined;
+  const registro = aprovado && ref ? await lerRegistro(ref).catch(() => null) : null;
+  const total = registro?.total;
+  const itens = registro?.itens.map((i) => ({ id: i.id, nome: i.nome, quantidade: i.quantidade, preco: i.preco }));
 
   return (
     <section>
       {aprovado && <EsvaziarCarrinho />}
-      {aprovado && ref && <EventoCompra pedido={ref} valor={total} />}
+      {aprovado && ref && <EventoCompra pedido={ref} valor={total} itens={itens} />}
       <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-24">
         <p className="text-6xl" aria-hidden="true">
           🦀

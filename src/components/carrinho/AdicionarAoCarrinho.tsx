@@ -50,6 +50,14 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
       /* sem armazenamento: conta de novo, sem problema */
     }
     rastrear({ tipo: "produto", produto: nome });
+    // GA4 `view_item`: sem ele o funil "jornada de compra" não vê o produto (05/11/2026). Preço = o menor das opções.
+    const menor = opcoes.length ? Math.min(...opcoes.map((o) => o.preco)) : undefined;
+    evento("view_item", {
+      currency: "BRL",
+      ...(menor !== undefined ? { value: menor } : {}),
+      items: [{ item_id: String(opcoes[0]?.idBling ?? slug), item_name: nome, item_category: categoria, ...(menor !== undefined ? { price: menor } : {}) }],
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- as opções não mudam durante a visita e não devem repetir o evento
   }, [slug, nome]);
 
   // Com mais de uma opção, nada vem marcado: "G" pré-escolhido virava

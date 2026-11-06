@@ -18,7 +18,7 @@ export default function Analytics() {
       <AnalyticsForaDoPlay ids={[ANALYTICS.ga4, ANALYTICS.googleAds]} />
       <Script id="gtag" strategy="afterInteractive">
         {`window.dataLayer = window.dataLayer || [];
-if (location.pathname.indexOf('/kambadaplay') === 0) { window['ga-disable-${ANALYTICS.ga4}'] = true; window['ga-disable-${ANALYTICS.googleAds}'] = true; }
+if (location.pathname.indexOf('/kambadaplay') === 0 || location.pathname.indexOf('/admin') === 0) { window['ga-disable-${ANALYTICS.ga4}'] = true; window['ga-disable-${ANALYTICS.googleAds}'] = true; }
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${ANALYTICS.ga4}', { anonymize_ip: true });

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { BarraSituacao, Contagem, CulturaDaTurma, Exportar, JogosMaisJogados, ListaReforco, linkFicha } from "@/components/escola/Mapa";
 import { Etiqueta, Micangas } from "@/components/escola/Marca";
 import { GestaoEquipe, GestaoTurmas, IdentidadeEscola } from "@/components/escola/Coordenacao";
+import { EscolhaDaEscola } from "@/components/escola/concurso/Avaliar";
+import { CONCURSO } from "@/lib/escola/concurso";
+import { finalistasDaEscola, resumoDoConcurso } from "@/lib/escola/concursoServico";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { CORES_ESCOLA, equipe, escolaPublica, mapaEscola, resumoDasTurmas } from "@/lib/escola/servico";
@@ -20,7 +23,14 @@ function Secao({ titulo, children }: { titulo: string; children: React.ReactNode
 
 export default async function CoordenacaoPagina() {
   const { membro } = await exigir("coordenacao", "gestor");
-  const [turmas, eq, escola, mapa] = await Promise.all([resumoDasTurmas(membro), equipe(membro), escolaPublica(), mapaEscola(membro)]);
+  const [turmas, eq, escola, mapa, concurso, finalistas] = await Promise.all([
+    resumoDasTurmas(membro),
+    equipe(membro),
+    escolaPublica(),
+    mapaEscola(membro),
+    resumoDoConcurso(membro),
+    finalistasDaEscola(membro),
+  ]);
   const totalAlunos = turmas.reduce((s, t) => s + t.alunos, 0);
   const ativos = turmas.reduce((s, t) => s + t.ativos7d, 0);
   const professores = eq.membros.filter((m) => m.papel === "professor");
@@ -83,6 +93,38 @@ export default async function CoordenacaoPagina() {
 
       <Secao titulo="Cultura do Maranhão na escola">
         <CulturaDaTurma cultura={mapa.cultura} />
+      </Secao>
+
+      <Secao titulo={`${CONCURSO.emoji} ${CONCURSO.titulo}`}>
+        <p className="text-sm text-texto-suave">
+          O professor avalia pela grade e escolhe até {CONCURSO.finalistasPorTurma} finalistas por turma. Aqui a coordenação escolhe, entre as finalistas, a redação que representa a escola em cada etapa na rede Kambada (lá ela aparece só com o apelido).
+        </p>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {concurso.map((t) => (
+            <li key={t.turmaId}>
+              <Link href={rotaEscola(`/professor/turma/${t.turmaId}/redacoes`)} className="block rounded-2xl border-2 border-borda p-3 text-sm hover:border-kambada-amarelo">
+                <b>{t.turma}</b>
+                <span className="block text-texto-suave">
+                  {t.enviaram} de {t.alunos} enviaram · {t.avaliadas} avaliadas · {t.finalistas} finalistas
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {finalistas.map((f) => (
+          <div key={f.etapa} className="space-y-2">
+            <p className="font-bold">Finalistas · {NOME_ETAPA[f.etapa]}</p>
+            {f.redacoes.length ? (
+              <ul className="space-y-2">
+                {f.redacoes.map((r) => (
+                  <EscolhaDaEscola key={r.id} r={r} modo="representante" />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-texto-suave">Nenhuma finalista ainda nesta etapa.</p>
+            )}
+          </div>
+        ))}
       </Secao>
 
       <Micangas className="mx-auto h-4 w-72 text-texto" />

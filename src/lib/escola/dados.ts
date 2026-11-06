@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../bling/tokens";
 import type { Disciplina, EscolaPublica, Etapa, Permissao, Resultado } from "./tipos";
+import { redacoesDemo } from "./redacoesDemo";
 import { comContasDeTeste, culturaDemo, gestorDemo, sementeDemo } from "./semente";
 
 /**
@@ -111,6 +112,25 @@ export type FeitoCultural = {
   em: string;
 };
 
+/** Redação do concurso da temporada (ver lib/escola/concurso.ts). Uma por aluno e concurso. */
+export type Redacao = {
+  id: string;
+  concursoId: string;
+  alunoId: string;
+  turmaId: string;
+  texto: string;
+  atualizadaEm: string;
+  /** Enviada ao professor: o aluno não edita mais. */
+  enviadaEm?: string;
+  avaliacao?: { notas: Record<string, number>; comentario: string; por: string; em: string };
+  /** Escolhida pelo professor entre as melhores da turma. */
+  finalista?: boolean;
+  /** Escolhida pela coordenação para representar a escola na etapa da rede. */
+  representante?: boolean;
+  /** Etapa da rede (gestão Kambada): 1º, 2º ou 3º lugar. */
+  colocacao?: 1 | 2 | 3;
+};
+
 export type Dados = {
   versao: 1;
   demo: boolean;
@@ -122,6 +142,7 @@ export type Dados = {
   partidas: Partida[];
   log?: Evento[];
   cultura?: FeitoCultural[];
+  redacoes?: Redacao[];
   criadoEm: string;
 };
 
@@ -188,6 +209,8 @@ async function atual(): Promise<Dados> {
       if (d.demo) comContasDeTeste(d);
       // Demonstração de antes da área de cultura (02/11/2026): ganha o histórico fictício de cultura.
       if (d.demo && !d.cultura) d.cultura = culturaDemo(d.alunos);
+      // Demonstração de antes do concurso de redação (05/11/2026): ganha as redações fictícias.
+      if (d.demo && !d.redacoes) d.redacoes = redacoesDemo(d.alunos);
       estado.memoria = d;
       estado.mtime = mtime;
       return d;

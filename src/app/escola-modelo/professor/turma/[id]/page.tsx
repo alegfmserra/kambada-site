@@ -106,6 +106,7 @@ export default async function TurmaPagina({
             </>
           )}
           <Link href={`${base}?aba=alunos`} className={abaClasse(emAlunos)}>Alunos e cartões</Link>
+          <Link href={`${base}/redacoes`} className={abaClasse(false)}>✍️ Concurso de redação</Link>
         </div>
       </div>
       {rel && <Exportar planilha={`/api/escola/exportar?turma=${encodeURIComponent(id)}`} imprimir={`${base}/imprimir`} />}

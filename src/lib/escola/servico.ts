@@ -505,7 +505,7 @@ function montarRelatorio(d: Dados, turma: Turma, disciplina: Disciplina): Relato
   };
 }
 
-function podeVerTurma(m: Membro, t: Turma): boolean {
+export function podeVerTurma(m: Membro, t: Turma): boolean {
   return m.papel !== "professor" || t.professorIds.includes(m.id);
 }
 
@@ -581,7 +581,7 @@ export function veNomes(m: Membro): boolean {
   return m.papel !== "gestor";
 }
 
-const nomeParaQuem = (m: Membro, a: Aluno): string | null => (veNomes(m) ? (a.nome ?? "") : null);
+export const nomeParaQuem = (m: Membro, a: Aluno): string | null => (veNomes(m) ? (a.nome ?? "") : null);
 const paraEquipe = (m: Membro, a: Aluno, figuras = a.figuras): AlunoComFiguras => ({ ...publicoAluno(a), figuras, nome: nomeParaQuem(m, a) });
 
 function nomeDeAlunoValido(bruto: unknown): string | undefined {
@@ -678,17 +678,17 @@ export async function removerAluno(m: Membro, alunoId: unknown): Promise<void> {
 }
 
 /** Coordenação ou gestão Kambada. */
-function soGestao(m: Membro) {
+export function soGestao(m: Membro) {
   if (m.papel === "professor") throw new ErroEscola("Só a coordenação faz isso.", 403);
 }
 
 /** Só a gestão Kambada (hub). */
-function soGestor(m: Membro) {
+export function soGestor(m: Membro) {
   if (m.papel !== "gestor") throw new ErroEscola("Só a gestão Kambada faz isso.", 403);
 }
 
 /** Linha no registro de atividades do hub (as 300 mais recentes). */
-function anotar(d: Dados, m: Membro, texto: string) {
+export function anotar(d: Dados, m: Membro, texto: string) {
   d.log = [...(d.log ?? []), { em: new Date().toISOString(), quem: m.nome, texto }].slice(-300);
 }
 

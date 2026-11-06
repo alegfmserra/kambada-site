@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { COR_DISCIPLINA, Etiqueta, FalaKambadinha, SeloDisciplina } from "@/components/escola/Marca";
+import { CONCURSO } from "@/lib/escola/concurso";
 import { ATIVIDADES } from "@/lib/escola/cultura";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
@@ -36,6 +37,18 @@ export default async function AlunoInicio() {
           </div>
         </div>
       </section>
+
+      <Link
+        href={rotaEscola("/aluno/concurso")}
+        className="flex flex-wrap items-center gap-4 rounded-3xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-5 transition-colors hover:bg-kambada-amarelo/20"
+      >
+        <span className="text-4xl" aria-hidden>{CONCURSO.emoji}</span>
+        <span className="min-w-[14rem] flex-1">
+          <b className="block font-display text-xl">{CONCURSO.titulo}</b>
+          <span className="text-sm text-texto-suave">{CONCURSO.chamada}</span>
+        </span>
+        <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Escrever →</span>
+      </Link>
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

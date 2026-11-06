@@ -98,6 +98,15 @@ export const ATIVIDADES: AtividadeCultural[] = [
     resumo: "Role a tela e veja a lenda do boi em xilogravura animada, verso por verso.",
     caminho: "/aluno/cultura/conto",
   },
+  // No fim da lista de propósito: o histórico fictício sorteia na ordem desta lista.
+  {
+    id: "jogo-fofao",
+    tipo: "jogo",
+    titulo: "Monte o Fofão",
+    emoji: "👺",
+    resumo: "Temporada de Carnaval: vista o personagem mais popular do carnaval de rua de São Luís.",
+    caminho: "/aluno/cultura/fofao",
+  },
 ];
 
 export const atividadePorId = (id: unknown) => (typeof id === "string" ? ATIVIDADES.find((a) => a.id === id) : undefined);

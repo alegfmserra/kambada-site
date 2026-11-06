@@ -1,4 +1,5 @@
 import { ATIVIDADES, DIDATICA } from "./cultura";
+import { redacoesDemo } from "./redacoesDemo";
 import type { Aluno, Dados, FeitoCultural, Membro, Registro, Turma } from "./dados";
 import { TRILHAS, trilhasDaEtapa } from "./desafios";
 import { hashDemo } from "./senha";
@@ -86,9 +87,10 @@ const PROCURA_CULTURA: Record<string, number> = {
   "hq-tambor": 0.6,
   "video-guaras": 0.75,
   "conto-boi": 0.35,
+  "jogo-fofao": 0.45,
 };
 
-const PERGUNTAS_CULTURA: Record<string, number> = { "arraial-festa": 5, "jogo-auto-do-boi": 6, "jogo-sotaques": 5 };
+const PERGUNTAS_CULTURA: Record<string, number> = { "arraial-festa": 5, "jogo-auto-do-boi": 6, "jogo-sotaques": 5, "jogo-fofao": 8 };
 
 /**
  * Histórico fictício da área de cultura (sorteio próprio: não mexe nos
@@ -200,6 +202,7 @@ export function sementeDemo(agora = Date.now()): Dados {
     registros,
     partidas: [],
     cultura: culturaDemo(alunos, agora),
+    redacoes: redacoesDemo(alunos, agora),
     criadoEm,
   });
 }

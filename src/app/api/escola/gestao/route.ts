@@ -1,4 +1,5 @@
 import { corpoJson } from "@/lib/play/jogos/limite";
+import { avaliarRedacao, darColocacao, escolherRepresentante, marcarFinalista } from "@/lib/escola/concursoServico";
 import { falha, membroQuePede, ok, tratar } from "@/lib/escola/api";
 import {
   ativarMembro,
@@ -62,6 +63,18 @@ export async function POST(req: Request) {
         return ok({ acesso: await novaSenhaMembro(m, c.professor ?? c.membro) });
       case "remover-professor":
         await removerMembro(m, c.professor ?? c.membro);
+        return ok();
+      case "avaliar-redacao":
+        await avaliarRedacao(m, c.redacao, c.notas, c.comentario);
+        return ok();
+      case "finalista":
+        await marcarFinalista(m, c.redacao, c.ligado);
+        return ok();
+      case "representante":
+        await escolherRepresentante(m, c.redacao);
+        return ok();
+      case "colocacao":
+        await darColocacao(m, c.redacao, c.colocacao);
         return ok();
       case "vincular":
         await vincular(m, c.professor, c.turma, c.ligado);

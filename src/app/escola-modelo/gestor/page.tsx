@@ -2,7 +2,11 @@ import Link from "next/link";
 import { IdentidadeEscola, RestaurarDemo } from "@/components/escola/Coordenacao";
 import { GestaoPessoas, GestaoTurmasHub } from "@/components/escola/Gestor";
 import { Etiqueta, FalaKambadinha, Micangas, TituloDuo } from "@/components/escola/Marca";
+import { EscolhaDaEscola } from "@/components/escola/concurso/Avaliar";
+import { CONCURSO } from "@/lib/escola/concurso";
+import { etapaDaRede } from "@/lib/escola/concursoServico";
 import { rotaEscola } from "@/lib/escola/host";
+import { NOME_ETAPA } from "@/lib/escola/tipos";
 import { exigir } from "@/lib/escola/pagina";
 import { CORES_ESCOLA, equipe, escolaPublica, visaoGeral } from "@/lib/escola/servico";
 
@@ -44,13 +48,14 @@ const ATALHOS: [string, string][] = [
   ["#pessoas", "Pessoas e permissões"],
   ["#turmas", "Turmas"],
   ["#regras", "Quem pode o quê"],
+  ["#concurso", "Concurso de redação"],
   ["#portal", "Portal"],
   ["#registro", "Registro"],
 ];
 
 export default async function GestorPagina() {
   const { membro } = await exigir("gestor");
-  const [visao, eq, escola] = await Promise.all([visaoGeral(membro), equipe(membro), escolaPublica()]);
+  const [visao, eq, escola, rede] = await Promise.all([visaoGeral(membro), equipe(membro), escolaPublica(), etapaDaRede(membro)]);
   const professores = eq.membros.filter((m) => m.papel === "professor");
   const pessoas = eq.membros.filter((m) => m.papel !== "gestor");
   const quando = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Fortaleza" });
@@ -139,6 +144,26 @@ export default async function GestorPagina() {
           </table>
         </div>
         <p className="text-xs text-texto-suave">“Se ligado” = depende das chaves do professor em Pessoas e permissões. Professor e coordenação só veem a escola deles.</p>
+      </Secao>
+
+      <Secao id="concurso" etiqueta={`Concurso · temporada de ${CONCURSO.temporada}`} titulo="Etapa da rede Kambada">
+        <p className="text-texto-suave">
+          Cada escola parceira manda uma redação por etapa (a escolhida pela coordenação). Aqui a Kambada dá o 1º, 2º e 3º lugar; o resultado aparece para os alunos só com apelido, turma e escola. O nome de verdade continua só com a escola.
+        </p>
+        {rede.map((f) => (
+          <div key={f.etapa} className="space-y-2">
+            <p className="font-bold">{NOME_ETAPA[f.etapa]}</p>
+            {f.redacoes.length ? (
+              <ul className="space-y-2">
+                {f.redacoes.map((r) => (
+                  <EscolhaDaEscola key={r.id} r={r} modo="colocacao" />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-texto-suave">Nenhuma escola mandou representante nesta etapa ainda.</p>
+            )}
+          </div>
+        ))}
       </Secao>
 
       <Secao id="portal" etiqueta="Portal" titulo="Identidade e demonstração">

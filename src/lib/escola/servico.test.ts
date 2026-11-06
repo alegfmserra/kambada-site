@@ -48,6 +48,7 @@ import { planilhaEscola, planilhaTurma } from "./exportar";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
 import { ORDEM as ORDEM_ARRAIAL, fitinhasPor, pessoa as pessoaDoArraial } from "@/components/escola/arraial/falas";
 import { ATIVIDADES, DIDATICA, INSTRUMENTOS, SOTAQUES } from "./cultura";
+import { avaliarRedacao, darColocacao, escolherRepresentante, etapaDaRede, finalistasDaEscola, marcarFinalista, minhaRedacao, redacoesDaTurma, resultadoDoConcurso, salvarRedacao } from "./concursoServico";
 
 beforeEach(() => {
   process.env.ESCOLA_ARQUIVO = join(mkdtempSync(join(tmpdir(), "kambada-escola-")), "escola.json");
@@ -467,5 +468,72 @@ describe("cultura do Maranhão", () => {
       for (const p of d.perguntas) expect(p.correta).toBeLessThan(p.opcoes.length);
     }
     for (const s of SOTAQUES) for (const c of s.certos) expect(INSTRUMENTOS.some((i) => i.id === c)).toBe(true);
+  });
+});
+
+describe("concurso de redação", () => {
+  const texto = (n: number) => Array.from({ length: n }, (_, i) => `palavra${i}`).join(" ");
+
+  it("aluno escreve e envia; professor avalia; finalistas; escola escolhe; rede premia; nome nunca sai da escola", async () => {
+    const d = await lerDados();
+    expect(d.redacoes?.length).toBeGreaterThan(0); // redações fictícias da demonstração
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!; // 5º B, sem redação
+    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
+
+    await salvarRedacao(aluno, turma, "Rascunho do Fofão", false);
+    expect((await minhaRedacao(aluno)).texto).toBe("Rascunho do Fofão");
+    await expect(salvarRedacao(aluno, turma, texto(10), true)).rejects.toBeInstanceOf(ErroEscola); // curta demais
+    const enviada = await salvarRedacao(aluno, turma, texto(60), true);
+    expect(enviada.enviada).toBe(true);
+    await expect(salvarRedacao(aluno, turma, "mudei", false)).rejects.toBeInstanceOf(ErroEscola); // enviada não muda
+
+    // professora fora da turma não vê
+    await expect(redacoesDaTurma(await membro("prof.lucia"), turma.id)).rejects.toBeInstanceOf(ErroEscola);
+    const ana = await membro("prof.ana");
+    const daTurma = await redacoesDaTurma(ana, turma.id);
+    const minha = daTurma.redacoes.find((r) => r.alunoId === aluno.id)!;
+    expect(minha.nome).toBeTruthy(); // a escola vê o nome
+    await expect(avaliarRedacao(ana, minha.id, { tema: 6 }, "")).rejects.toBeInstanceOf(ErroEscola);
+    await avaliarRedacao(ana, minha.id, { tema: 5, repertorio: 4, organizacao: 4, lingua: 3 }, "Muito bem!");
+    expect((await minhaRedacao(aluno)).avaliacao?.total).toBe(16);
+
+    // até 3 finalistas por turma (a demonstração do 5º B já tem 1)
+    await marcarFinalista(ana, minha.id, true);
+    const outra = daTurma.redacoes.find((r) => r.enviada && !r.finalista && r.id !== minha.id);
+    if (outra) {
+      if (!outra.avaliacao) await avaliarRedacao(ana, outra.id, { tema: 3, repertorio: 3, organizacao: 3, lingua: 3 }, "");
+      await marcarFinalista(ana, outra.id, true);
+    }
+
+    // coordenação: representante só entre finalistas, uma por etapa
+    const coord = await membro("coordenacao");
+    await expect(escolherRepresentante(ana, minha.id)).rejects.toBeInstanceOf(ErroEscola); // professor não escolhe
+    await escolherRepresentante(coord, minha.id);
+    const f1 = (await finalistasDaEscola(coord)).find((x) => x.etapa === "f1")!;
+    expect(f1.redacoes.filter((r) => r.representante).map((r) => r.id)).toEqual([minha.id]);
+
+    // gestão Kambada: só apelido, e dá a colocação
+    const kambada = await membro("kambada");
+    const rede = await etapaDaRede(kambada);
+    const naRede = rede.find((x) => x.etapa === "f1")!.redacoes.find((r) => r.id === minha.id)!;
+    expect(naRede.nome).toBeNull();
+    await expect(darColocacao(coord, minha.id, 1)).rejects.toBeInstanceOf(ErroEscola);
+    await darColocacao(kambada, minha.id, 1);
+    const res = await resultadoDoConcurso();
+    expect(res.find((x) => x.etapa === "f1" && x.colocacao === 1)?.apelido).toBe("Sabiá");
+    expect(JSON.stringify(res)).not.toContain(aluno.nome!);
+    expect((await minhaRedacao(aluno)).colocacao).toBe(1);
+  });
+
+  it("o professor não passa de 3 finalistas na turma", async () => {
+    const d = await lerDados();
+    const ana = await membro("prof.ana");
+    const turma = d.turmas.find((t) => t.id === "t4a")!;
+    const alunos = d.alunos.filter((a) => a.turmaId === "t4a" && !d.redacoes!.some((r) => r.alunoId === a.id)).slice(0, 2);
+    for (const a of alunos) await salvarRedacao(a, turma, texto(50), true);
+    const lista = (await redacoesDaTurma(ana, "t4a")).redacoes.filter((r) => r.enviada && !r.finalista);
+    for (const r of lista) await avaliarRedacao(ana, r.id, { tema: 3, repertorio: 3, organizacao: 3, lingua: 3 }, "");
+    await marcarFinalista(ana, lista[0].id, true); // 4º A já tinha 2 finalistas na demonstração
+    await expect(marcarFinalista(ana, lista[1].id, true)).rejects.toBeInstanceOf(ErroEscola);
   });
 });

@@ -88,9 +88,11 @@ const PROCURA_CULTURA: Record<string, number> = {
   "video-guaras": 0.75,
   "conto-boi": 0.35,
   "jogo-fofao": 0.45,
+  "artigo-carnaval": 0.5,
+  "quiz-carnaval": 0.45,
 };
 
-const PERGUNTAS_CULTURA: Record<string, number> = { "arraial-festa": 5, "jogo-auto-do-boi": 6, "jogo-sotaques": 5, "jogo-fofao": 8 };
+const PERGUNTAS_CULTURA: Record<string, number> = { "arraial-festa": 5, "jogo-auto-do-boi": 6, "jogo-sotaques": 5, "jogo-fofao": 8, "quiz-carnaval": 8 };
 
 /**
  * Histórico fictício da área de cultura (sorteio próprio: não mexe nos

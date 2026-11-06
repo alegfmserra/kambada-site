@@ -13,7 +13,7 @@
  */
 export const REVISADO = false;
 
-export type TipoCultura = "jogo" | "hq" | "animacao";
+export type TipoCultura = "jogo" | "hq" | "animacao" | "artigo" | "quiz";
 
 export type PerguntaCultura = {
   pergunta: string;
@@ -107,12 +107,31 @@ export const ATIVIDADES: AtividadeCultural[] = [
     resumo: "Temporada de Carnaval: vista o personagem mais popular do carnaval de rua de São Luís.",
     caminho: "/aluno/cultura/fofao",
   },
+  {
+    id: "artigo-carnaval",
+    tipo: "artigo",
+    titulo: "O Fofão e o carnaval de rua",
+    emoji: "📰",
+    resumo: "Temporada de Carnaval: quem é o Fofão, por que a máscara é feia de propósito e de onde ele veio.",
+    caminho: "/aluno/temporada/carnaval/artigo",
+  },
+  {
+    id: "quiz-carnaval",
+    tipo: "quiz",
+    titulo: "Quiz do Carnaval",
+    emoji: "❓",
+    resumo: "Temporada de Carnaval: 8 perguntas sobre o Fofão e o carnaval de rua de São Luís.",
+    caminho: "/aluno/temporada/carnaval/quiz",
+  },
 ];
 
 export const atividadePorId = (id: unknown) => (typeof id === "string" ? ATIVIDADES.find((a) => a.id === id) : undefined);
 export const atividadePorSlug = (tipo: TipoCultura, slug: string) => ATIVIDADES.find((a) => a.tipo === tipo && a.slug === slug);
 
-export const NOME_TIPO: Record<TipoCultura, string> = { jogo: "Jogo", hq: "Quadrinhos", animacao: "Animação" };
+export const NOME_TIPO: Record<TipoCultura, string> = { jogo: "Jogo", hq: "Quadrinhos", animacao: "Animação", artigo: "Artigo", quiz: "Quiz" };
+
+/** Verbo do relatório do professor ("8 de 9 leram"). */
+export const VERBO_TIPO: Record<TipoCultura, string> = { jogo: "jogaram", hq: "leram", animacao: "assistiram", artigo: "leram", quiz: "responderam" };
 
 // ---------------------------------------------------------------------------
 // Camada didática das HQs e da animação

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { COR_DISCIPLINA, Etiqueta, FalaKambadinha, SeloDisciplina } from "@/components/escola/Marca";
 import { CONCURSO } from "@/lib/escola/concurso";
+import { TEMPORADA_DESTAQUE } from "@/lib/escola/temporadas";
 import { ATIVIDADES } from "@/lib/escola/cultura";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
@@ -39,15 +40,15 @@ export default async function AlunoInicio() {
       </section>
 
       <Link
-        href={rotaEscola("/aluno/concurso")}
+        href={rotaEscola(`/aluno/temporada/${TEMPORADA_DESTAQUE}`)}
         className="flex flex-wrap items-center gap-4 rounded-3xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-5 transition-colors hover:bg-kambada-amarelo/20"
       >
         <span className="text-4xl" aria-hidden>{CONCURSO.emoji}</span>
         <span className="min-w-[14rem] flex-1">
-          <b className="block font-display text-xl">{CONCURSO.titulo}</b>
-          <span className="text-sm text-texto-suave">{CONCURSO.chamada}</span>
+          <b className="block font-display text-xl">Temporada de {CONCURSO.temporada}: o Fofão</b>
+          <span className="text-sm text-texto-suave">Lê, joga, responde o quiz e, no fim, escreve para o {CONCURSO.titulo.split(" · ")[0]}.</span>
         </span>
-        <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Escrever →</span>
+        <span className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm font-bold text-kambada-grafite">Abrir a trilha →</span>
       </Link>
 
       <section className="space-y-3">

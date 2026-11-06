@@ -10,8 +10,8 @@ export default async function FofaoPagina() {
   await exigir("aluno");
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <Link href={rotaEscola("/aluno/cultura")} className="text-sm font-semibold underline">
-        ← Cultura do Maranhão
+      <Link href={rotaEscola("/aluno/temporada/carnaval")} className="text-sm font-semibold underline">
+        ← Trilha da temporada de Carnaval
       </Link>
       <div>
         <Etiqueta>Jogo · temporada de Carnaval</Etiqueta>

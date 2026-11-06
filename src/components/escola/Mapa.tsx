@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { rotaEscola } from "@/lib/escola/host";
-import { NOME_TIPO } from "@/lib/escola/cultura";
+import { NOME_TIPO, VERBO_TIPO } from "@/lib/escola/cultura";
 import type { MapaAluno, Ponto, UsoCultura, UsoJogo } from "@/lib/escola/servico";
 import { ORDEM_SITUACAO, SITUACAO, type Situacao } from "@/lib/escola/tipos";
 import { COR_DISCIPLINA } from "./Marca";
@@ -199,7 +199,7 @@ export function CulturaDaTurma({ cultura }: { cultura: UsoCultura[] }) {
             <div className="h-full rounded-full bg-kambada-amarelo" style={{ width: `${(c.alunos / (c.podiam || 1)) * 100}%` }} />
           </div>
           <p className="text-xs text-texto-suave">
-            <b className="text-texto">{c.alunos} de {c.podiam}</b> {c.tipo === "hq" ? "leram" : c.tipo === "animacao" ? "assistiram" : "jogaram"}
+            <b className="text-texto">{c.alunos} de {c.podiam}</b> {VERBO_TIPO[c.tipo]}
             {c.vezes > c.alunos && ` · ${c.vezes} vezes`}
             {c.acertos !== null && ` · ${c.acertos}% de acertos`}
           </p>

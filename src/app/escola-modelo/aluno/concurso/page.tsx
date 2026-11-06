@@ -3,6 +3,8 @@ import { Escrever } from "@/components/escola/concurso/Escrever";
 import { Etiqueta, FalaKambadinha, TituloDuo } from "@/components/escola/Marca";
 import { CONCURSO, CRITERIOS } from "@/lib/escola/concurso";
 import { minhaRedacao, resultadoDoConcurso } from "@/lib/escola/concursoServico";
+import { trilhaDoAluno } from "@/lib/escola/temporadaServico";
+import { temporadaPorId } from "@/lib/escola/temporadas";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { NOME_ETAPA } from "@/lib/escola/tipos";
@@ -19,7 +21,8 @@ const FASES = [
 /** Concurso de redação da temporada (Carnaval de São Luís), lado do aluno. */
 export default async function ConcursoDoAluno() {
   const { aluno, turma } = await exigir("aluno");
-  const [minha, premiadas] = await Promise.all([minhaRedacao(aluno), resultadoDoConcurso()]);
+  const [minha, premiadas, trilha] = await Promise.all([minhaRedacao(aluno), resultadoDoConcurso(), trilhaDoAluno(aluno, temporadaPorId("carnaval")!)]);
+  const falta = trilha.passos.filter((x) => x.tipo !== "redacao" && x.estado === "aberto");
   const p = CONCURSO.propostas[turma.etapa];
   const daEtapa = premiadas.filter((x) => x.etapa === turma.etapa);
 
@@ -39,6 +42,12 @@ export default async function ConcursoDoAluno() {
           ))}
         </ol>
       </section>
+
+      {!minha.enviada && falta.length > 0 && (
+        <Link href={rotaEscola("/aluno/temporada/carnaval")} className="block rounded-3xl border-2 border-dashed border-kambada-amarelo p-4 text-sm hover:bg-kambada-amarelo/10">
+          <b>Antes de escrever, faz a trilha da temporada:</b> falta {falta.map((x) => x.titulo).join(", ")}. É de lá que vêm as ideias para a tua redação →
+        </Link>
+      )}
 
       {daEtapa.length > 0 && (
         <section className="rounded-3xl bg-kambada-grafite p-5 text-white">

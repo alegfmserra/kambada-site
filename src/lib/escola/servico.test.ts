@@ -48,6 +48,8 @@ import { planilhaEscola, planilhaTurma } from "./exportar";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
 import { ORDEM as ORDEM_ARRAIAL, fitinhasPor, pessoa as pessoaDoArraial } from "@/components/escola/arraial/falas";
 import { ATIVIDADES, DIDATICA, INSTRUMENTOS, SOTAQUES } from "./cultura";
+import { TEMPORADAS } from "./temporadas";
+import { trilhaDoAluno } from "./temporadaServico";
 import { avaliarRedacao, darColocacao, escolherRepresentante, etapaDaRede, finalistasDaEscola, marcarFinalista, minhaRedacao, redacoesDaTurma, resultadoDoConcurso, salvarRedacao } from "./concursoServico";
 
 beforeEach(() => {
@@ -535,5 +537,32 @@ describe("concurso de redação", () => {
     for (const r of lista) await avaliarRedacao(ana, r.id, { tema: 3, repertorio: 3, organizacao: 3, lingua: 3 }, "");
     await marcarFinalista(ana, lista[0].id, true); // 4º A já tinha 2 finalistas na demonstração
     await expect(marcarFinalista(ana, lista[1].id, true)).rejects.toBeInstanceOf(ErroEscola);
+  });
+});
+
+describe("temporadas", () => {
+  it("cada passo aponta para uma atividade que existe, e a de destaque tem artigo, quiz e redação", () => {
+    for (const t of TEMPORADAS) for (const p of t.passos) if (p.atividade) expect(ATIVIDADES.some((a) => a.id === p.atividade)).toBe(true);
+    const c = TEMPORADAS.find((t) => t.id === "carnaval")!;
+    expect(c.artigo?.secoes.length).toBeGreaterThan(2);
+    expect(c.quiz?.every((q) => q.correta < q.opcoes.length)).toBe(true);
+    expect(c.passos.map((p) => p.tipo)).toEqual(["animacao", "revistinha", "artigo", "jogo", "quiz", "redacao"]);
+  });
+
+  it("a redação abre depois do quiz e fica feita quando o aluno envia", async () => {
+    const d = await lerDados();
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!;
+    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
+    const carnaval = TEMPORADAS.find((t) => t.id === "carnaval")!;
+    const estado = async () => Object.fromEntries((await trilhaDoAluno(aluno, carnaval)).passos.map((p) => [p.tipo, p.estado]));
+    expect(await estado()).toMatchObject({ animacao: "producao", artigo: "aberto", quiz: "aberto", redacao: "travado" });
+    await registrarCultura(aluno, "artigo-carnaval");
+    await registrarCultura(aluno, "quiz-carnaval", 7, 8);
+    expect(await estado()).toMatchObject({ artigo: "feito", quiz: "feito", redacao: "aberto" });
+    await salvarRedacao(aluno, turma, Array.from({ length: 50 }, () => "Fofão").join(" "), true);
+    const t = await trilhaDoAluno(aluno, carnaval);
+    expect(t.passos.find((p) => p.tipo === "redacao")?.estado).toBe("feito");
+    expect(t.feitos).toBe(3);
+    expect(t.total).toBe(4); // animação e revistinha ainda em produção
   });
 });

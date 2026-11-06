@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CRITERIOS, NOTA_MAXIMA } from "@/lib/escola/concurso";
 import type { RedacaoNaEscola } from "@/lib/escola/concursoServico";
 import { BOTAO, BOTAO_SECUNDARIO } from "../chamar";
 import { useAcao } from "../Coordenacao";
+import { LinkArquivo, MandarArquivo } from "./Arquivos";
 
 /** Quem escreveu: apelido sempre; nome de verdade quando quem vê é a escola. */
 export function Autor({ r }: { r: Pick<RedacaoNaEscola, "apelido" | "avatar" | "nome" | "turma"> }) {
@@ -33,6 +35,7 @@ function Selos({ r }: { r: RedacaoNaEscola }) {
 /** Uma redação no painel do professor: texto, grade de 1 a 5 por critério, comentário e "finalista". */
 export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; podeAvaliar?: boolean }) {
   const { rodar, ocupado, avisos } = useAcao();
+  const router = useRouter();
   const [aberta, setAberta] = useState(r.enviada && !r.avaliacao);
   const [notas, setNotas] = useState<Record<string, number>>(r.avaliacao?.notas ?? {});
   const [comentario, setComentario] = useState(r.avaliacao?.comentario ?? "");
@@ -49,7 +52,8 @@ export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; p
       </button>
       {aberta && (
         <div className="mt-4 space-y-4">
-          <article className="whitespace-pre-wrap rounded-2xl bg-superficie p-4 leading-relaxed">{r.texto || "(vazio)"}</article>
+          {r.anexo && <LinkArquivo a={r.anexo} rotulo="📎 Redação anexada pelo aluno (abrir)" />}
+          {(r.texto.trim() || !r.anexo) && <article className="whitespace-pre-wrap rounded-2xl bg-superficie p-4 leading-relaxed">{r.texto || "(vazio)"}</article>}
           {podeAvaliar && r.enviada && (
             <div className="space-y-3">
               {CRITERIOS.map((c) => (
@@ -74,6 +78,21 @@ export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; p
                   </span>
                 </fieldset>
               ))}
+              <div className="space-y-2 rounded-2xl border-2 border-dashed border-borda p-3">
+                <p className="text-sm font-semibold">Correção em arquivo (opcional): a redação marcada à mão ou no computador. O aluno recebe junto com a nota.</p>
+                {r.correcao ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="min-w-[14rem] flex-1">
+                      <LinkArquivo a={r.correcao} rotulo="📝 Correção anexada" />
+                    </div>
+                    <button type="button" disabled={ocupado} onClick={() => rodar({ acao: "tirar-correcao", redacao: r.id }, () => "Correção tirada.")} className="text-sm font-semibold underline">
+                      Tirar
+                    </button>
+                  </div>
+                ) : (
+                  <MandarArquivo rotulo="Anexar a correção" campos={{ redacao: r.id }} onPronto={() => router.refresh()} />
+                )}
+              </div>
               <textarea
                 value={comentario}
                 onChange={(e) => setComentario(e.target.value)}
@@ -114,7 +133,12 @@ export function EscolhaDaEscola({ r, modo }: { r: RedacaoNaEscola; modo: "repres
       <button type="button" onClick={() => setAberta(!aberta)} className="text-sm font-semibold underline" aria-expanded={aberta}>
         {aberta ? "Esconder o texto" : "Ler a redação"}
       </button>
-      {aberta && <article className="whitespace-pre-wrap rounded-2xl bg-superficie p-4 text-sm leading-relaxed">{r.texto}</article>}
+      {aberta && (
+        <>
+          {r.anexo && <LinkArquivo a={r.anexo} rotulo="📎 Redação anexada (abrir)" />}
+          {r.texto.trim() && <article className="whitespace-pre-wrap rounded-2xl bg-superficie p-4 text-sm leading-relaxed">{r.texto}</article>}
+        </>
+      )}
       {r.avaliacao?.comentario && <p className="text-xs text-texto-suave">Professor: “{r.avaliacao.comentario}”</p>}
       <div className="flex flex-wrap gap-2">
         {modo === "representante" ? (

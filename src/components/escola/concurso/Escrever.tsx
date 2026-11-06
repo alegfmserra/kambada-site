@@ -4,12 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { CRITERIOS, LIMITE_CARACTERES, NOTA_MAXIMA, contarPalavras, type Proposta } from "@/lib/escola/concurso";
 import type { MinhaRedacao } from "@/lib/escola/concursoServico";
 import { BOTAO, BOTAO_SECUNDARIO, chamar } from "../chamar";
+import { LinkArquivo, MandarArquivo } from "./Arquivos";
 
 /**
  * Folha da redação: contador de palavras com a faixa pedida, rascunho
  * guardado sozinho a cada pausa (e no botão), e o envio ao professor com
  * confirmação (depois de enviada, não muda mais). Avaliada, mostra a nota
  * de cada critério e o comentário do professor.
+ *
+ * Quem escreveu no caderno manda o PDF ou a foto (aí o texto digitado é
+ * opcional); o professor pode devolver a correção em arquivo.
  */
 export function Escrever({ proposta, inicial }: { proposta: Proposta; inicial: MinhaRedacao }) {
   const [r, setR] = useState(inicial);
@@ -20,6 +24,14 @@ export function Escrever({ proposta, inicial }: { proposta: Proposta; inicial: M
   const ultimo = useRef(inicial.texto);
   const palavras = contarPalavras(texto);
   const naFaixa = palavras >= proposta.minPalavras && palavras <= proposta.maxPalavras;
+  // Com arquivo anexado, o texto digitado é opcional (só não pode passar do limite).
+  const podeEnviar = naFaixa || (!!r.anexo && palavras <= proposta.maxPalavras);
+
+  async function tirarAnexo() {
+    const resp = await chamar<{ redacao: MinhaRedacao }>("concurso", { acao: "tirar-anexo" });
+    if (resp.ok) setR(resp.redacao);
+    else setErro(resp.mensagem ?? "Não deu para tirar o arquivo.");
+  }
 
   async function salvar(enviar = false) {
     setErro("");
@@ -78,9 +90,15 @@ export function Escrever({ proposta, inicial }: { proposta: Proposta; inicial: M
                 <b>Do professor:</b> {r.avaliacao.comentario}
               </p>
             )}
+            {r.correcao && (
+              <div className="mt-3">
+                <LinkArquivo a={r.correcao} rotulo="📝 Correção do professor" />
+              </div>
+            )}
           </div>
         )}
-        <article className="whitespace-pre-wrap rounded-3xl border-2 border-dashed border-borda p-5 leading-relaxed">{r.texto}</article>
+        {r.anexo && <LinkArquivo a={r.anexo} rotulo="A redação que tu mandou" />}
+        {r.texto.trim() && <article className="whitespace-pre-wrap rounded-3xl border-2 border-dashed border-borda p-5 leading-relaxed">{r.texto}</article>}
       </div>
     );
   }
@@ -110,13 +128,27 @@ export function Escrever({ proposta, inicial }: { proposta: Proposta; inicial: M
           {estado === "salvando" ? "Guardando…" : estado === "salvo" ? "Rascunho guardado ✓" : ""}
         </span>
       </div>
+      <div className="space-y-3 rounded-2xl border-2 border-dashed border-borda p-4">
+        <p className="text-sm font-semibold">✏️ Escreveu no caderno? Manda a foto ou o PDF da redação (aí não precisa digitar).</p>
+        {r.anexo ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="min-w-[14rem] flex-1">
+              <LinkArquivo a={r.anexo} rotulo="Redação anexada" />
+            </div>
+            <button type="button" onClick={tirarAnexo} className="text-sm font-semibold underline">Tirar</button>
+          </div>
+        ) : (
+          <MandarArquivo rotulo="Anexar a redação" onPronto={(j) => setR(j.redacao as MinhaRedacao)} />
+        )}
+        <p className="text-xs text-texto-suave">Não escreve o teu nome completo na folha: se tua redação for para o concurso entre escolas, ela vai só com o apelido.</p>
+      </div>
       {erro && <p className="font-semibold text-kambada-red" role="alert">{erro}</p>}
       {!confirmar ? (
         <div className="flex flex-wrap gap-3">
           <button type="button" onClick={() => salvar()} className={BOTAO_SECUNDARIO}>
             Guardar rascunho
           </button>
-          <button type="button" onClick={() => setConfirmar(true)} disabled={!naFaixa} className={BOTAO}>
+          <button type="button" onClick={() => setConfirmar(true)} disabled={!podeEnviar} className={BOTAO}>
             Enviar ao professor →
           </button>
         </div>

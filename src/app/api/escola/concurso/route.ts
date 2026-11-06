@@ -1,6 +1,6 @@
 import { corpoJson, dentroDoLimite } from "@/lib/play/jogos/limite";
 import { falha, ok, quemPede, tratar } from "@/lib/escola/api";
-import { salvarRedacao } from "@/lib/escola/concursoServico";
+import { salvarRedacao, tirarAnexo } from "@/lib/escola/concursoServico";
 
 /** Concurso de redação, lado do aluno: salvar o rascunho ou enviar ao professor. */
 export async function POST(req: Request) {
@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   const corpo = await corpoJson(req);
   try {
     if (corpo?.acao === "salvar") return ok({ redacao: await salvarRedacao(quem.aluno, quem.turma, corpo.texto, corpo.enviar) });
+    if (corpo?.acao === "tirar-anexo") return ok({ redacao: await tirarAnexo(quem.aluno) });
     return falha("Pedido inválido.");
   } catch (e) {
     return tratar(e);

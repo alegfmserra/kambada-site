@@ -108,6 +108,30 @@ export const ATIVIDADES: AtividadeCultural[] = [
     caminho: "/aluno/cultura/fofao",
   },
   {
+    id: "quebra-agua",
+    tipo: "jogo",
+    titulo: "Quebra-cabeça do mangue",
+    emoji: "🧩",
+    resumo: "Temporada do Manguezal: monte a capa de “A Hora dos Guarás”.",
+    caminho: "/aluno/cultura/quebra/quebra-agua",
+  },
+  {
+    id: "quebra-saojoao",
+    tipo: "jogo",
+    titulo: "Quebra-cabeça do arraial",
+    emoji: "🧩",
+    resumo: "Temporada de São João: monte a praça do Arraial da Kambada.",
+    caminho: "/aluno/cultura/quebra/quebra-saojoao",
+  },
+  {
+    id: "quebra-tambor",
+    tipo: "jogo",
+    titulo: "Quebra-cabeça do tambor",
+    emoji: "🧩",
+    resumo: "Temporada da Consciência Negra: monte a capa de “Na Batida do Tambor”.",
+    caminho: "/aluno/cultura/quebra/quebra-tambor",
+  },
+  {
     id: "artigo-carnaval",
     tipo: "artigo",
     titulo: "O Fofão e o carnaval de rua",
@@ -124,6 +148,57 @@ export const ATIVIDADES: AtividadeCultural[] = [
     caminho: "/aluno/temporada/carnaval/quiz",
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Quebra-cabeças das temporadas (imagens que já estão no Play)
+// ---------------------------------------------------------------------------
+
+export type Quebra = {
+  id: string;
+  titulo: string;
+  imagem: string;
+  largura: number;
+  altura: number;
+  /** Frase mostrada ao montar. */
+  legenda: string;
+  depois?: { rotulo: string; caminho: string };
+};
+
+/**
+ * No Carnaval, o quebra-cabeça entra com a capa da revistinha "Kambadinha
+ * em: O Fofão" (quando o Ricardo entregar): é só acrescentar aqui e na trilha.
+ */
+export const QUEBRAS: Quebra[] = [
+  {
+    id: "quebra-agua",
+    titulo: "A Hora dos Guarás",
+    imagem: "/kambadaplay/hq/kambadinha-a-hora-dos-guaras/01.webp",
+    largura: 1200,
+    altura: 1697,
+    legenda: "O mangue é a casa do Kambadinha e o lugar onde os guarás dormem.",
+    depois: { rotulo: "Ler a revistinha", caminho: "/aluno/cultura/hq/kambadinha-a-hora-dos-guaras" },
+  },
+  {
+    id: "quebra-saojoao",
+    titulo: "Arraial da Kambada",
+    imagem: "/kambadaplay/images/arraial/poster.webp",
+    largura: 1600,
+    altura: 1000,
+    legenda: "Fogueira, capela, coreto e barracas: a praça do São João.",
+    depois: { rotulo: "Entrar no Arraial", caminho: "/aluno/arraial?trilha=festa" },
+  },
+  {
+    id: "quebra-tambor",
+    titulo: "Na Batida do Tambor",
+    imagem: "/kambadaplay/hq/kambadinha-na-batida-do-tambor/01.webp",
+    largura: 1094,
+    altura: 1547,
+    legenda: "No dia 18 de junho, o Kambadinha descobriu o tambor de crioula.",
+    depois: { rotulo: "Ler a revistinha", caminho: "/aluno/cultura/hq/kambadinha-na-batida-do-tambor" },
+  },
+];
+
+export const quebraPorId = (id: string) => QUEBRAS.find((q) => q.id === id);
 
 export const atividadePorId = (id: unknown) => (typeof id === "string" ? ATIVIDADES.find((a) => a.id === id) : undefined);
 export const atividadePorSlug = (tipo: TipoCultura, slug: string) => ATIVIDADES.find((a) => a.tipo === tipo && a.slug === slug);

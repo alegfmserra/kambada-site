@@ -1,6 +1,7 @@
 import { idAleatorio } from "../play/jogos/seguranca";
 import { CONCURSO, CRITERIOS, LIMITE_CARACTERES, NOTA_MAXIMA, contarPalavras } from "./concurso";
-import { alterar, lerDados, type Aluno, type Dados, type Membro, type Redacao, type Turma } from "./dados";
+import { apagarArquivo, guardarArquivo, lerArquivo } from "./arquivos";
+import { alterar, lerDados, type Aluno, type ArquivoGuardado, type Dados, type Membro, type Redacao, type Turma } from "./dados";
 import { ErroEscola, anotar, nomeParaQuem, podeVerTurma, soGestao, soGestor } from "./servico";
 import type { Etapa } from "./tipos";
 
@@ -30,6 +31,9 @@ export type MinhaRedacao = {
   finalista: boolean;
   representante: boolean;
   colocacao: number | null;
+  anexo: ArquivoGuardado | null;
+  /** A correção do professor só aparece depois que ele avalia. */
+  correcao: ArquivoGuardado | null;
 };
 
 export async function minhaRedacao(aluno: Aluno): Promise<MinhaRedacao> {
@@ -42,6 +46,8 @@ export async function minhaRedacao(aluno: Aluno): Promise<MinhaRedacao> {
     finalista: !!r?.finalista,
     representante: !!r?.representante,
     colocacao: r?.colocacao ?? null,
+    anexo: r?.anexo ?? null,
+    correcao: r?.avaliacao && r.correcao ? r.correcao : null,
   };
 }
 
@@ -50,15 +56,16 @@ export async function salvarRedacao(aluno: Aluno, turma: Turma, textoBruto: unkn
   if (typeof textoBruto !== "string") throw new ErroEscola("Texto inválido.");
   const texto = textoBruto.replace(/\r\n/g, "\n").slice(0, LIMITE_CARACTERES);
   const proposta = CONCURSO.propostas[turma.etapa];
-  if (enviar === true) {
-    const n = contarPalavras(texto);
-    if (n < proposta.minPalavras) throw new ErroEscola(`Escreve pelo menos ${proposta.minPalavras} palavras (tu tem ${n}).`);
-    if (n > proposta.maxPalavras) throw new ErroEscola(`O limite é ${proposta.maxPalavras} palavras (tu tem ${n}).`);
-  }
   await alterar((d) => {
     const lista = (d.redacoes ??= []);
     let r = lista.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
     if (r?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
+    if (enviar === true) {
+      const n = contarPalavras(texto);
+      // Com arquivo anexado (escrita à mão), o texto digitado é opcional.
+      if (!r?.anexo && n < proposta.minPalavras) throw new ErroEscola(`Escreve pelo menos ${proposta.minPalavras} palavras (tu tem ${n}), ou anexa a redação em PDF ou foto.`);
+      if (n > proposta.maxPalavras) throw new ErroEscola(`O limite é ${proposta.maxPalavras} palavras (tu tem ${n}).`);
+    }
     const agora = new Date().toISOString();
     if (!r) {
       r = { id: `r-${idAleatorio(8)}`, concursoId: CONCURSO.id, alunoId: aluno.id, turmaId: aluno.turmaId, texto, atualizadaEm: agora };
@@ -106,6 +113,8 @@ export type RedacaoNaEscola = {
   finalista: boolean;
   representante: boolean;
   colocacao: number | null;
+  anexo: ArquivoGuardado | null;
+  correcao: ArquivoGuardado | null;
 };
 
 function naEscola(m: Membro, d: Dados, r: Redacao): RedacaoNaEscola {
@@ -127,6 +136,8 @@ function naEscola(m: Membro, d: Dados, r: Redacao): RedacaoNaEscola {
     finalista: !!r.finalista,
     representante: !!r.representante,
     colocacao: r.colocacao ?? null,
+    anexo: r.anexo ?? null,
+    correcao: r.correcao ?? null,
   };
 }
 
@@ -145,7 +156,7 @@ export async function redacoesDaTurma(m: Membro, turmaId: string): Promise<Redac
   const d = await lerDados();
   const t = d.turmas.find((x) => x.id === turmaId);
   if (!t || !podeVerTurma(m, t)) throw new ErroEscola("Turma não encontrada.", 404);
-  const daTurma = daVez(d).filter((r) => r.turmaId === t.id && d.alunos.some((a) => a.id === r.alunoId));
+  const daTurma = daVez(d).filter((r) => r.turmaId === t.id && d.alunos.some((a) => a.id === r.alunoId) && (r.texto.trim() || r.anexo || r.enviadaEm));
   const comTexto = new Set(daTurma.map((r) => r.alunoId));
   return {
     turma: { id: t.id, nome: t.nome, etapa: t.etapa },
@@ -254,14 +265,108 @@ export async function resumoDoConcurso(m: Membro): Promise<{ turma: string; turm
     .filter((t) => podeVerTurma(m, t))
     .map((t) => {
       const r = daVez(d).filter((x) => x.turmaId === t.id);
+      const temTexto = (x: Redacao) => !!x.texto.trim() || !!x.anexo;
       return {
         turma: t.nome,
         turmaId: t.id,
         alunos: d.alunos.filter((a) => a.turmaId === t.id).length,
-        escreveram: r.filter((x) => x.texto.trim()).length,
+        escreveram: r.filter(temTexto).length,
         enviaram: r.filter((x) => x.enviadaEm).length,
         avaliadas: r.filter((x) => x.avaliacao).length,
         finalistas: r.filter((x) => x.finalista).length,
       };
     });
+}
+
+// ---------------------------------------------------------------------------
+// Arquivos: a redação em PDF/foto (aluno) e a correção (professor)
+// ---------------------------------------------------------------------------
+
+/** Aluno: anexa (ou troca) o arquivo da redação, antes de enviar. */
+export async function anexarRedacao(aluno: Aluno, bytes: Uint8Array, nome: string): Promise<MinhaRedacao> {
+  const atual = (await lerDados()).redacoes?.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
+  if (atual?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
+  const arq = await guardarArquivo(bytes, nome);
+  let antigo: string | undefined;
+  await alterar((d) => {
+    const lista = (d.redacoes ??= []);
+    let r = lista.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
+    if (r?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
+    if (!r) {
+      r = { id: `r-${idAleatorio(8)}`, concursoId: CONCURSO.id, alunoId: aluno.id, turmaId: aluno.turmaId, texto: "", atualizadaEm: arq.em };
+      lista.push(r);
+    }
+    antigo = r.anexo?.id;
+    r.anexo = arq;
+    r.atualizadaEm = arq.em;
+  }).catch(async (e) => {
+    await apagarArquivo(arq.id);
+    throw e;
+  });
+  await apagarArquivo(antigo);
+  return minhaRedacao(aluno);
+}
+
+export async function tirarAnexo(aluno: Aluno): Promise<MinhaRedacao> {
+  let antigo: string | undefined;
+  await alterar((d) => {
+    const r = d.redacoes?.find((x) => x.concursoId === CONCURSO.id && x.alunoId === aluno.id);
+    if (r?.enviadaEm) throw new ErroEscola("Tua redação já foi enviada ao professor.");
+    antigo = r?.anexo?.id;
+    if (r) delete r.anexo;
+  });
+  await apagarArquivo(antigo);
+  return minhaRedacao(aluno);
+}
+
+/** Professor da turma (ou coordenação): anexa a correção da redação enviada. O aluno vê depois da avaliação. */
+export async function anexarCorrecao(m: Membro, id: unknown, bytes: Uint8Array, nome: string): Promise<void> {
+  if (m.papel === "gestor") throw new ErroEscola("A correção é da escola.", 403);
+  redacaoDaEscola(await lerDados(), m, id);
+  const arq = await guardarArquivo(bytes, nome);
+  let antigo: string | undefined;
+  await alterar((d) => {
+    const r = redacaoDaEscola(d, m, id);
+    if (!r.enviadaEm) throw new ErroEscola("O aluno ainda não enviou esta redação.");
+    antigo = r.correcao?.id;
+    r.correcao = { ...arq, por: m.id };
+  }).catch(async (e) => {
+    await apagarArquivo(arq.id);
+    throw e;
+  });
+  await apagarArquivo(antigo);
+}
+
+export async function tirarCorrecao(m: Membro, id: unknown): Promise<void> {
+  if (m.papel === "gestor") throw new ErroEscola("A correção é da escola.", 403);
+  let antigo: string | undefined;
+  await alterar((d) => {
+    const r = redacaoDaEscola(d, m, id);
+    antigo = r.correcao?.id;
+    delete r.correcao;
+  });
+  await apagarArquivo(antigo);
+}
+
+/**
+ * Quem pode abrir um arquivo: o aluno dono da redação (o anexo sempre; a
+ * correção depois da avaliação); a equipe da escola que vê a turma; a gestão
+ * Kambada só o anexo das representantes (etapa da rede).
+ */
+export async function abrirArquivo(quem: { papel: "aluno"; aluno: Aluno } | { papel: "professor" | "coordenacao" | "gestor"; membro: Membro }, arquivoId: unknown): Promise<{ arquivo: ArquivoGuardado; bytes: Buffer }> {
+  if (typeof arquivoId !== "string") throw new ErroEscola("Arquivo não encontrado.", 404);
+  const d = await lerDados();
+  const r = daVez(d).find((x) => x.anexo?.id === arquivoId || x.correcao?.id === arquivoId);
+  if (!r) throw new ErroEscola("Arquivo não encontrado.", 404);
+  const ehAnexo = r.anexo?.id === arquivoId;
+  let pode = false;
+  if (quem.papel === "aluno") pode = r.alunoId === quem.aluno.id && (ehAnexo || !!r.avaliacao);
+  else if (quem.papel === "gestor") pode = ehAnexo && !!r.representante;
+  else {
+    const t = d.turmas.find((x) => x.id === r.turmaId);
+    pode = !!t && podeVerTurma(quem.membro, t);
+  }
+  if (!pode) throw new ErroEscola("Arquivo não encontrado.", 404);
+  const arquivo = ehAnexo ? r.anexo! : r.correcao!;
+  return { arquivo, bytes: await lerArquivo(arquivo.id) };
 }

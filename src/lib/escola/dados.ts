@@ -129,7 +129,13 @@ export type Redacao = {
   representante?: boolean;
   /** Etapa da rede (gestão Kambada): 1º, 2º ou 3º lugar. */
   colocacao?: 1 | 2 | 3;
+  /** Redação mandada em arquivo (PDF ou foto da escrita à mão). Ver lib/escola/arquivos.ts. */
+  anexo?: ArquivoGuardado;
+  /** Correção que o professor anexou (PDF ou foto da redação marcada). */
+  correcao?: ArquivoGuardado & { por: string };
 };
+
+export type ArquivoGuardado = { id: string; nome: string; tipo: "application/pdf" | "image/jpeg" | "image/png"; tamanho: number; em: string };
 
 export type Dados = {
   versao: 1;

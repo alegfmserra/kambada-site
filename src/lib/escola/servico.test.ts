@@ -47,10 +47,10 @@ import ExcelJS from "exceljs";
 import { planilhaEscola, planilhaTurma } from "./exportar";
 import { criarSessaoEscola, lerSessaoEscola } from "./sessao";
 import { ORDEM as ORDEM_ARRAIAL, fitinhasPor, pessoa as pessoaDoArraial } from "@/components/escola/arraial/falas";
-import { ATIVIDADES, DIDATICA, INSTRUMENTOS, SOTAQUES } from "./cultura";
+import { ATIVIDADES, DIDATICA, INSTRUMENTOS, QUEBRAS, SOTAQUES } from "./cultura";
 import { TEMPORADAS } from "./temporadas";
 import { trilhaDoAluno } from "./temporadaServico";
-import { avaliarRedacao, darColocacao, escolherRepresentante, etapaDaRede, finalistasDaEscola, marcarFinalista, minhaRedacao, redacoesDaTurma, resultadoDoConcurso, salvarRedacao } from "./concursoServico";
+import { abrirArquivo, anexarCorrecao, anexarRedacao, avaliarRedacao, darColocacao, tirarCorrecao, escolherRepresentante, etapaDaRede, finalistasDaEscola, marcarFinalista, minhaRedacao, redacoesDaTurma, resultadoDoConcurso, salvarRedacao } from "./concursoServico";
 
 beforeEach(() => {
   process.env.ESCOLA_ARQUIVO = join(mkdtempSync(join(tmpdir(), "kambada-escola-")), "escola.json");
@@ -546,7 +546,9 @@ describe("temporadas", () => {
     const c = TEMPORADAS.find((t) => t.id === "carnaval")!;
     expect(c.artigo?.secoes.length).toBeGreaterThan(2);
     expect(c.quiz?.every((q) => q.correta < q.opcoes.length)).toBe(true);
-    expect(c.passos.map((p) => p.tipo)).toEqual(["animacao", "revistinha", "artigo", "jogo", "quiz", "redacao"]);
+    expect([...new Set(c.passos.map((p) => p.tipo))]).toEqual(["animacao", "revistinha", "artigo", "jogo", "quiz", "redacao"]);
+    // todo quebra-cabeça usado numa trilha tem imagem configurada
+    for (const t of TEMPORADAS) for (const p of t.passos) if (p.atividade?.startsWith("quebra-")) expect(QUEBRAS.some((q) => q.id === p.atividade)).toBe(true);
   });
 
   it("a redação abre depois do quiz e fica feita quando o aluno envia", async () => {
@@ -564,5 +566,53 @@ describe("temporadas", () => {
     expect(t.passos.find((p) => p.tipo === "redacao")?.estado).toBe("feito");
     expect(t.feitos).toBe(3);
     expect(t.total).toBe(4); // animação e revistinha ainda em produção
+  });
+});
+
+describe("redação em arquivo", () => {
+  const pdf = new TextEncoder().encode("%PDF-1.4\n% redação escrita à mão\n");
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+
+  it("aluno manda PDF sem digitar; só quem pode abre; professor devolve a correção depois de avaliar", async () => {
+    const d = await lerDados();
+    const aluno = d.alunos.find((x) => x.apelido === "Sabiá")!; // 5º B
+    const outro = d.alunos.find((x) => x.turmaId === aluno.turmaId && x.id !== aluno.id)!;
+    const turma = d.turmas.find((t) => t.id === aluno.turmaId)!;
+
+    await expect(anexarRedacao(aluno, new TextEncoder().encode("não é pdf"), "x.pdf")).rejects.toBeInstanceOf(ErroEscola);
+    await expect(anexarRedacao(aluno, new Uint8Array(5 * 1024 * 1024 + 1).fill(0x25), "grande.pdf")).rejects.toBeInstanceOf(ErroEscola);
+    await anexarRedacao(aluno, png, "foto.png");
+    const r1 = await anexarRedacao(aluno, pdf, "Minha redação.pdf"); // troca a foto pelo PDF
+    expect(r1.anexo?.tipo).toBe("application/pdf");
+    expect(r1.anexo?.nome).toBe("Minha redação.pdf");
+    const enviada = await salvarRedacao(aluno, turma, "", true); // sem texto: vale o arquivo
+    expect(enviada.enviada).toBe(true);
+    await expect(anexarRedacao(aluno, pdf, "de novo.pdf")).rejects.toBeInstanceOf(ErroEscola);
+
+    const id = enviada.anexo!.id;
+    const comoAluno = (a: typeof aluno) => ({ papel: "aluno" as const, aluno: a });
+    const comoMembro = async (u: string) => {
+      const m = await membro(u);
+      return { papel: m.papel, membro: m } as { papel: "professor" | "coordenacao" | "gestor"; membro: typeof m };
+    };
+    expect((await abrirArquivo(comoAluno(aluno), id)).bytes.toString()).toContain("%PDF");
+    await expect(abrirArquivo(comoAluno(outro), id)).rejects.toBeInstanceOf(ErroEscola);
+    expect((await abrirArquivo(await comoMembro("prof.ana"), id)).arquivo.id).toBe(id);
+    await expect(abrirArquivo(await comoMembro("prof.lucia"), id)).rejects.toBeInstanceOf(ErroEscola); // não é da turma
+    await expect(abrirArquivo(await comoMembro("kambada"), id)).rejects.toBeInstanceOf(ErroEscola); // não é representante
+
+    const ana = await membro("prof.ana");
+    const minha = (await redacoesDaTurma(ana, turma.id)).redacoes.find((r) => r.alunoId === aluno.id)!;
+    expect(minha.anexo?.id).toBe(id);
+    await expect(anexarCorrecao(await membro("kambada"), minha.id, pdf, "c.pdf")).rejects.toBeInstanceOf(ErroEscola);
+    await anexarCorrecao(ana, minha.id, pdf, "Correção.pdf");
+    expect((await minhaRedacao(aluno)).correcao).toBeNull(); // só aparece depois da nota
+    const corr = (await redacoesDaTurma(ana, turma.id)).redacoes.find((r) => r.alunoId === aluno.id)!.correcao!;
+    await expect(abrirArquivo(comoAluno(aluno), corr.id)).rejects.toBeInstanceOf(ErroEscola);
+    await avaliarRedacao(ana, minha.id, { tema: 4, repertorio: 4, organizacao: 4, lingua: 4 }, "Boa!");
+    expect((await minhaRedacao(aluno)).correcao?.id).toBe(corr.id);
+    expect((await abrirArquivo(comoAluno(aluno), corr.id)).arquivo.nome).toBe("Correção.pdf");
+    await tirarCorrecao(ana, minha.id);
+    expect((await minhaRedacao(aluno)).correcao).toBeNull();
   });
 });

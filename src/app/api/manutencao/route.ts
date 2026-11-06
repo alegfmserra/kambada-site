@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { validarGA4 } from "@/lib/analytics/servidor";
 import { rotinaDeManutencao } from "@/lib/manutencao/saude";
 import { enviarTesteDoFluxo } from "@/lib/play/aniversarios";
 import { aniversarioValido, buscarPorEmail, definirAniversario } from "@/lib/play/contas";
@@ -28,6 +29,8 @@ export async function GET(req: Request) {
   // Fluxo de aniversário (02/11/2026), só com a senha de manutenção:
   //  ?definir-aniversario=<e-mail>&dia=24&mes=11 → guarda dia e mês (nunca o ano) na conta daquele e-mail;
   //  ?teste-aniversario=<e-mail> → manda as 3 mensagens de modelo, com "[TESTE]", ao dono da conta.
+  // ?teste-ga4=1 → confere se a chave GA4_API_SECRET está na Hostinger e se o formato da compra é aceito (não grava nada no Analytics).
+  if (params.get("teste-ga4")) return NextResponse.json(await validarGA4().catch((e) => ({ erro: e instanceof Error ? e.message : String(e) })));
   const definir = params.get("definir-aniversario");
   if (definir) {
     const conta = await buscarPorEmail(definir);

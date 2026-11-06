@@ -30,6 +30,8 @@ export type RetratoPedido = {
   cupom?: { codigo: string; percentual: number; descontoCentavos: number; parceiro?: string; comissaoPercentual?: number };
   /** De onde veio a venda (utm/referência), só para medir conversão por canal. Sem dado pessoal. */
   atr?: Atribuicao;
+  /** Cookies do Google Analytics da visita (client_id e sessão), para a compra confirmada pelo servidor cair na mesma origem. Sem dado pessoal. */
+  ga?: { c: string; s?: string };
 };
 
 /** "KMB-20261008-7F3A9C" — legível no extrato do Mercado Pago e no Bling. */

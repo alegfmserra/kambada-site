@@ -22,6 +22,7 @@
  * Uma etapa que falha não impede as outras e fica anotada com o erro.
  */
 
+import { enviarCompraGA4 } from "../analytics/servidor";
 import { chamarBling } from "../bling/cliente";
 import { ID_PRODUTO_TESTE } from "../bling/produtos";
 import {
@@ -324,6 +325,14 @@ export function executarPosVenda(
     if (process.env.BLING_EMITIR_NFE === "1" && !soTeste && !r.nfe?.feitoEm) {
       r = { ...r, nfe: await etapaNota(r) };
       await salvarRegistro(r);
+    }
+    // Compra no Google Analytics 4 pelo servidor (o navegador só avisa se o cliente voltar à página de sucesso).
+    if (!soTeste && !r.analytics?.feitoEm) {
+      const etapa = await enviarCompraGA4(r, retrato.ga);
+      if (etapa) {
+        r = { ...r, analytics: etapa };
+        await salvarRegistro(r);
+      }
     }
     if (emailConfigurado() && !r.email?.feitoEm) {
       r = { ...r, email: await etapaEmail(r) };

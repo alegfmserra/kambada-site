@@ -6,6 +6,7 @@ import { lerOrigemSalva } from "@/components/Atribuicao";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
 import { evento } from "@/lib/analytics/eventos";
+import { gaDoNavegador } from "@/lib/analytics/cookiesGoogle";
 import { rastrear } from "@/lib/visitas/rastrear";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
@@ -290,7 +291,9 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       const r = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itens: pedido, freteId, cliente: campos, cupom: cupom?.codigo }),
+        // origem + ga: de onde veio a venda e a identificação da visita no Analytics. Antes só iam ao /api/frete
+        // (que não os usa), então nenhum pedido guardava o canal (achado de 06/11/2026).
+        body: JSON.stringify({ itens: pedido, freteId, cliente: campos, cupom: cupom?.codigo, origem: lerOrigemSalva(), ga: gaDoNavegador() }),
       });
       const d = (await r.json()) as {
         url?: string;

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { lerGaDoNavegador } from "@/lib/analytics/servidor";
 import { lerAtribuicao } from "@/lib/atribuicao/atribuicao";
 import { dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { buscarCatalogo, saldoAoVivo } from "@/lib/bling/produtos";
@@ -145,6 +146,7 @@ export async function POST(requisicao: Request) {
     }
 
     const atribuicao = lerAtribuicao(corpo.origem);
+    const ga = lerGaDoNavegador(corpo.ga);
     const retrato: RetratoPedido = {
       v: VERSAO_RETRATO,
       ref: novaReferencia(),
@@ -158,6 +160,7 @@ export async function POST(requisicao: Request) {
       cliente,
       ...(cupomDoRetrato ? { cupom: cupomDoRetrato } : {}),
       ...(atribuicao ? { atr: atribuicao } : {}),
+      ...(ga ? { ga } : {}),
     };
 
     const preferencia = await criarPreferencia(retrato, urlDoSite(requisicao));

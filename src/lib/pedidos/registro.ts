@@ -42,6 +42,8 @@ export type RegistroPedido = {
   nfe?: Etapa & { idNota?: number };
   /** E-mail da nota autorizada (PDF + XML) ao cliente, com cópia oculta à loja. */
   emailNota?: Etapa;
+  /** Compra enviada ao Google Analytics 4 pelo servidor (lib/analytics/servidor.ts), uma vez por pedido. */
+  analytics?: Etapa;
   /**
    * Pagamento devolvido (refunded), contestado (charged_back) ou cancelado depois
    * de aprovado. O site só registra e avisa a loja: cancelar o pedido no Bling,

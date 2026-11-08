@@ -149,6 +149,8 @@ export type Dados = {
   log?: Evento[];
   cultura?: FeitoCultural[];
   redacoes?: Redacao[];
+  /** Temporadas ligadas/desligadas para a escola (sem registro = liberada). */
+  liberacoes?: Record<string, boolean>;
   criadoEm: string;
 };
 

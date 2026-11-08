@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { IdentidadeEscola, RestaurarDemo } from "@/components/escola/Coordenacao";
+import { TemporadasDaEscola } from "@/components/escola/Temporadas";
 import { GestaoPessoas, GestaoTurmasHub } from "@/components/escola/Gestor";
 import { Etiqueta, FalaKambadinha, Micangas, TituloDuo } from "@/components/escola/Marca";
 import { EscolhaDaEscola } from "@/components/escola/concurso/Avaliar";
 import { CONCURSO } from "@/lib/escola/concurso";
+import { liberacoesDaEscola } from "@/lib/escola/liberacao";
 import { etapaDaRede } from "@/lib/escola/concursoServico";
 import { rotaEscola } from "@/lib/escola/host";
 import { NOME_ETAPA } from "@/lib/escola/tipos";
@@ -38,6 +40,7 @@ const MATRIZ: [string, string, string, string, string][] = [
   ["Cadastrar professor e vincular turmas", NAO, NAO, SIM, SIM],
   ["Criar, editar e apagar turmas", NAO, NAO, SIM, SIM],
   ["Identidade do portal (nome, sigla, cor)", NAO, NAO, SIM, SIM],
+  ["Liberar e fechar temporadas da escola", NAO, NAO, NAO, SIM],
   ["Cadastrar e remover a coordenação", NAO, NAO, NAO, SIM],
   ["Ligar e desligar permissões do professor", NAO, NAO, NAO, SIM],
   ["Suspender acesso e editar dados da equipe", NAO, NAO, NAO, SIM],
@@ -47,6 +50,7 @@ const MATRIZ: [string, string, string, string, string][] = [
 const ATALHOS: [string, string][] = [
   ["#pessoas", "Pessoas e permissões"],
   ["#turmas", "Turmas"],
+  ["#temporadas", "Temporadas"],
   ["#regras", "Quem pode o quê"],
   ["#concurso", "Concurso de redação"],
   ["#portal", "Portal"],
@@ -55,7 +59,7 @@ const ATALHOS: [string, string][] = [
 
 export default async function GestorPagina() {
   const { membro } = await exigir("gestor");
-  const [visao, eq, escola, rede] = await Promise.all([visaoGeral(membro), equipe(membro), escolaPublica(), etapaDaRede(membro)]);
+  const [visao, eq, escola, rede, temporadas] = await Promise.all([visaoGeral(membro), equipe(membro), escolaPublica(), etapaDaRede(membro), liberacoesDaEscola()]);
   const professores = eq.membros.filter((m) => m.papel === "professor");
   const pessoas = eq.membros.filter((m) => m.papel !== "gestor");
   const quando = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Fortaleza" });
@@ -112,6 +116,13 @@ export default async function GestorPagina() {
 
       <Secao id="turmas" etiqueta="Escola" titulo="Turmas">
         <GestaoTurmasHub turmas={eq.turmas} professores={professores} />
+      </Secao>
+
+      <Secao id="temporadas" etiqueta="Venda por temporada" titulo="Temporadas da escola">
+        <p className="text-texto-suave">
+          Escolhe o que {escola.nome} recebe. Fechou, a temporada some da trilha, do início e da área de cultura dos alunos, na hora. Os pontos e as redações já feitos ficam guardados.
+        </p>
+        <TemporadasDaEscola linhas={temporadas} />
       </Secao>
 
       <Secao id="regras" etiqueta="Régua de acesso" titulo="Quem pode o quê">

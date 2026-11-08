@@ -46,6 +46,10 @@ export type Passo = {
 
 export type SecaoArtigo = { titulo: string; texto: string };
 
+/** "Para ir além": leituras e visitas. Só aparece para o aluno o que está `confirmado` (nome e fato conferidos). */
+export type ItemAlem = { nome: string; texto: string; confirmado: boolean };
+export type GrupoAlem = { titulo: string; itens: ItemAlem[] };
+
 export type Temporada = {
   id: string;
   mes: string;
@@ -53,7 +57,7 @@ export type Temporada = {
   titulo: string;
   tema: string;
   passos: Passo[];
-  artigo?: { titulo: string; linhaFina: string; secoes: SecaoArtigo[]; paraPensar: string[] };
+  artigo?: { titulo: string; linhaFina: string; secoes: SecaoArtigo[]; paraPensar: string[]; paraIrAlem?: GrupoAlem[] };
 };
 
 const CARNAVAL: Temporada = {
@@ -104,6 +108,28 @@ const CARNAVAL: Temporada = {
       "Tu já viu um Fofão na rua ou numa foto? O que tu sentiu?",
       "Pergunta em casa: como era o carnaval quando teus avós eram crianças?",
       "Por que será que o Fofão esconde o rosto?",
+      "Antigamente passavam pregoeiros pelas ruas, gritando o que vendiam. Tu conhece algum que ainda passa no teu bairro? O que ele grita?",
+    ],
+    // Feedback da sócia (08/11/2026). Livros e a manifestação "curso" ficam fora até conferir nome e autoria.
+    paraIrAlem: [
+      {
+        titulo: "Visite quem mantém o Fofão vivo",
+        itens: [
+          { nome: "Ateliê de Marlene Barros", texto: "Artista plástica que faz máscaras de Fofão em papel machê e não deixa a tradição morrer.", confirmado: true },
+          { nome: "Ateliê de Katya Reis", texto: "Também trabalha para resgatar o Fofão e faz as máscaras em papel machê.", confirmado: true },
+        ],
+      },
+      {
+        titulo: "Leituras de autores daqui",
+        itens: [
+          { nome: "Livro de Camila Reis sobre o Fofão", texto: "Título a confirmar com a autora.", confirmado: false },
+          { nome: "Wilson Marques e as lendas do Maranhão", texto: "Obra a confirmar.", confirmado: false },
+        ],
+      },
+      {
+        titulo: "Outra tradição do carnaval daqui",
+        itens: [{ nome: "O “curso”", texto: "Atividade carnavalesca antiga de São Luís, anterior ao Fofão, segundo a professora Edith. Nome e história a pesquisar.", confirmado: false }],
+      },
     ],
   },
 };

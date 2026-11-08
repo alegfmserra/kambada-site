@@ -4,6 +4,7 @@ import { Etiqueta, FalaKambadinha } from "@/components/escola/Marca";
 import { Progresso, Trilha } from "@/components/escola/temporada/Trilha";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
+import { temporadaAberta } from "@/lib/escola/liberacao";
 import { trilhaDoAluno } from "@/lib/escola/temporadaServico";
 import { temporadaPorId } from "@/lib/escola/temporadas";
 
@@ -15,6 +16,7 @@ export default async function TemporadaDoAluno({ params }: { params: Promise<{ i
   const { id } = await params;
   const t = temporadaPorId(id);
   if (!t || !t.passos.length) notFound();
+  if (!(await temporadaAberta(t.id))) notFound();
   const trilha = await trilhaDoAluno(aluno, t);
   const proximo = trilha.passos.find((p) => p.estado === "aberto");
 

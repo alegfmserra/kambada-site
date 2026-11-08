@@ -1,5 +1,6 @@
 import { corpoJson } from "@/lib/play/jogos/limite";
 import { avaliarRedacao, darColocacao, escolherRepresentante, marcarFinalista, tirarCorrecao, tirarRedacaoDoAluno } from "@/lib/escola/concursoServico";
+import { liberarTemporada } from "@/lib/escola/liberacao";
 import { falha, membroQuePede, ok, tratar } from "@/lib/escola/api";
 import {
   ativarMembro,
@@ -37,6 +38,9 @@ export async function POST(req: Request) {
   if (!c) return falha("Pedido inválido.");
   try {
     switch (c.acao) {
+      case "liberar-temporada":
+        await liberarTemporada(m, c.temporada, c.ligada);
+        return ok();
       case "criar-aluno":
         return ok({ aluno: await criarAluno(m, String(c.turma), c.apelido, c.nome) });
       case "nomear-aluno":

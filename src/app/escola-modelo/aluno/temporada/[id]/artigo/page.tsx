@@ -3,6 +3,7 @@ import { Etiqueta } from "@/components/escola/Marca";
 import { LiOArtigo } from "@/components/escola/temporada/LiOArtigo";
 import { ProximoPasso } from "@/components/escola/temporada/Trilha";
 import { exigir } from "@/lib/escola/pagina";
+import { temporadaAberta } from "@/lib/escola/liberacao";
 import { trilhaDoAluno } from "@/lib/escola/temporadaServico";
 import { temporadaPorId } from "@/lib/escola/temporadas";
 
@@ -15,6 +16,7 @@ export default async function ArtigoDaTemporada({ params }: { params: Promise<{ 
   const t = temporadaPorId(id);
   const passo = t?.passos.find((p) => p.tipo === "artigo" && p.atividade);
   if (!t?.artigo || !passo?.atividade) notFound();
+  if (!(await temporadaAberta(t.id))) notFound();
   const trilha = await trilhaDoAluno(aluno, t);
   const a = t.artigo;
   const jaLeu = trilha.passos.find((p) => p.atividade === passo.atividade)?.estado === "feito";
@@ -42,6 +44,21 @@ export default async function ArtigoDaTemporada({ params }: { params: Promise<{ 
           ))}
         </ul>
       </aside>
+      {a.paraIrAlem
+        ?.map((g) => ({ ...g, itens: g.itens.filter((i) => i.confirmado) }))
+        .filter((g) => g.itens.length > 0)
+        .map((g) => (
+          <aside key={g.titulo} className="space-y-2 rounded-3xl bg-superficie p-5">
+            <p className="font-display text-lg font-extrabold">🧭 {g.titulo}</p>
+            <ul className="space-y-2">
+              {g.itens.map((i) => (
+                <li key={i.nome}>
+                  <b>{i.nome}.</b> {i.texto}
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ))}
       <LiOArtigo atividade={passo.atividade} jaLeu={jaLeu} />
       <ProximoPasso trilha={trilha} atual={passo.atividade} />
     </article>

@@ -7,6 +7,7 @@ import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { ASSUNTOS, atividadeDoQuiz } from "@/lib/escola/quizzes";
 import { MISSAO, culturaDoAluno, escolaPublica, missaoDoAluno, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
+import { temporadaAberta } from "@/lib/escola/liberacao";
 import { trilhaDoAluno } from "@/lib/escola/temporadaServico";
 import { PASSO, TEMPORADA_DESTAQUE, temporadaPorId } from "@/lib/escola/temporadas";
 
@@ -21,7 +22,7 @@ const MEDALHA = ["🥇", "🥈", "🥉"];
  */
 export default async function AlunoInicio() {
   const { aluno, turma } = await exigir("aluno");
-  const [meus, rank, escola, feitos, redacao, trilha, treinar] = await Promise.all([
+  const [meus, rank, escola, feitos, redacao, trilha, treinar, destaqueAberto] = await Promise.all([
     pontosDoAluno(aluno.id),
     ranking(turma.id),
     escolaPublica(),
@@ -29,6 +30,7 @@ export default async function AlunoInicio() {
     minhaRedacao(aluno),
     trilhaDoAluno(aluno, temporadaPorId(TEMPORADA_DESTAQUE)!),
     missaoDoAluno(aluno, turma),
+    temporadaAberta(TEMPORADA_DESTAQUE),
   ]);
   const trilhas = trilhasDoAluno(turma);
   const perguntas = trilhas.reduce((s, t) => s + t.total, 0);
@@ -37,7 +39,7 @@ export default async function AlunoInicio() {
   const culturaFeita = cultura.filter((a) => feitos[a.id]).length;
   const quizzes = ASSUNTOS.filter((a) => feitos[atividadeDoQuiz(a.id)]).length;
   const posicao = rank.alunos.findIndex((a) => a.id === aluno.id) + 1;
-  const proximo = trilha.passos.find((p) => p.estado === "aberto" && p.caminho);
+  const proximo = destaqueAberto ? trilha.passos.find((p) => p.estado === "aberto" && p.caminho) : undefined;
   const desafioAberto = trilhas.find((t) => (meus.porTrilha[t.id]?.feitas ?? 0) < t.total);
 
   // Uma ação principal, já escolhida: a criança não precisa decidir para começar.
@@ -112,6 +114,7 @@ export default async function AlunoInicio() {
         </ul>
       </nav>
 
+      {destaqueAberto && (
       <section className="space-y-3 rounded-3xl border-2 border-kambada-amarelo bg-kambada-amarelo/10 p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <Etiqueta>
@@ -133,6 +136,7 @@ export default async function AlunoInicio() {
           </Link>
         </div>
       </section>
+      )}
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">

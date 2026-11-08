@@ -1,5 +1,6 @@
 import { minhaRedacao } from "./concursoServico";
 import type { Aluno } from "./dados";
+import { temporadasLiberadas } from "./liberacao";
 import { culturaDoAluno } from "./servico";
 import { TEMPORADAS, TEMPORADA_DESTAQUE, situacaoDa, type Passo, type Temporada } from "./temporadas";
 
@@ -31,6 +32,7 @@ export async function trilhaDoAluno(aluno: Aluno, t: Temporada): Promise<TrilhaD
 
 /** Todas as temporadas do ano, com o progresso do aluno; a de destaque primeiro. */
 export async function temporadasDoAluno(aluno: Aluno): Promise<TrilhaDoAluno[]> {
-  const lista = await Promise.all(TEMPORADAS.map((t) => trilhaDoAluno(aluno, t)));
+  const abertas = await temporadasLiberadas();
+  const lista = await Promise.all(TEMPORADAS.filter((t) => abertas.has(t.id)).map((t) => trilhaDoAluno(aluno, t)));
   return [...lista.filter((x) => x.temporada.id === TEMPORADA_DESTAQUE), ...lista.filter((x) => x.temporada.id !== TEMPORADA_DESTAQUE)];
 }

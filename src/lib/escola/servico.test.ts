@@ -25,6 +25,7 @@ import {
   permissao,
   podeFazer,
   quemEsta,
+  ganhoDaSemana,
   ranking,
   relatorioTurma,
   responder,
@@ -181,6 +182,17 @@ describe("desafio", () => {
     }
     const rank = await ranking(turma.id);
     expect(rank.alunos.find((a) => a.id === aluno.id)?.pontos).toBe(trilha.questoes.length * 100);
+    // O que acabou de jogar entra no progresso da semana.
+    expect(await ganhoDaSemana(aluno.id)).toBe(trilha.questoes.length * 100);
+  });
+
+  it("ranking de turmas pela média por aluno e lista de alunos inteira", async () => {
+    const d = await lerDados();
+    const rank = await ranking();
+    expect(rank.alunos).toHaveLength(d.alunos.length);
+    for (const t of rank.turmas) expect(t.detalhe).toMatch(/alunos/);
+    const pontos = rank.turmas.map((t) => t.pontos);
+    expect([...pontos].sort((a, b) => b - a)).toEqual(pontos);
   });
 });
 

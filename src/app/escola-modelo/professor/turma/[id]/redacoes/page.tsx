@@ -18,10 +18,18 @@ const COMO = [
   ["✅", "Corrija aqui", "Nota pela grade, comentário e, se quiser, a folha corrigida. Vira a evolução do aluno no ano."],
 ];
 
+/** Número estável a partir de um texto (FNV-1a): serve para sortear a ordem sem ela mudar a cada atualização. */
+function embaralho(texto: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < texto.length; i++) h = Math.imul(h ^ texto.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
 /** Redações da turma: anexar a folha de cada aluno, avaliar pela grade, comentar e escolher as finalistas. */
-export default async function RedacoesDaTurma({ params }: { params: Promise<{ id: string }> }) {
+export default async function RedacoesDaTurma({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ nomes?: string }> }) {
   const { membro } = await exigir("professor", "coordenacao", "gestor");
   const { id } = await params;
+  const cega = (await searchParams).nomes !== "1";
   let dados, evolucao;
   try {
     [dados, evolucao] = await Promise.all([redacoesDaTurma(membro, id), evolucaoDaTurma(membro, id)]);
@@ -32,6 +40,13 @@ export default async function RedacoesDaTurma({ params }: { params: Promise<{ id
   const { turma, redacoes, semRedacao } = dados;
   const p = CONCURSO.propostas[turma.etapa];
   const finalistas = redacoes.filter((r) => r.finalista).length;
+  // Para corrigir: ordem sorteada por professor e por dia (sem efeito de ordem nem "o melhor aluno primeiro").
+  const dia = new Date().toISOString().slice(0, 10);
+  const paraCorrigir = redacoes.filter((r) => !r.avaliacao).sort((a, b) => embaralho(`${membro.id}|${dia}|${a.id}`) - embaralho(`${membro.id}|${dia}|${b.id}`));
+  // Corrigidas: em ordem de apelido, não de nota (a lista não vira ranking).
+  const corrigidas = redacoes.filter((r) => r.avaliacao).sort((a, b) => a.apelido.localeCompare(b.apelido, "pt-BR"));
+  // Finalistas só depois de corrigir todas: escolher no meio da pilha favorece as primeiras.
+  const todasCorrigidas = paraCorrigir.length === 0;
   const escola = membro.papel !== "gestor";
   const base = rotaEscola(`/professor/turma/${id}`);
 
@@ -82,12 +97,38 @@ export default async function RedacoesDaTurma({ params }: { params: Promise<{ id
 
       <Evolucao pontos={evolucao} titulo={`Média do ${turma.nome} ao longo do ano`} />
 
-      {redacoes.length > 0 && (
+      {paraCorrigir.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-display text-xl font-bold">Redações anexadas</h2>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display text-xl font-bold">Para corrigir ({paraCorrigir.length})</h2>
+            <Link href={cega ? `${base}/redacoes?nomes=1` : `${base}/redacoes`} className="text-sm font-semibold underline">
+              {cega ? "Mostrar os nomes" : "Esconder os nomes"}
+            </Link>
+          </div>
+          {cega && (
+            <p className="text-sm text-texto-suave">
+              Correção às cegas: em ordem sorteada e sem o nome, que aparece depois de salvar a nota. Assim a nota mede o texto, não a lembrança do aluno nem a redação anterior.
+            </p>
+          )}
           <ul className="space-y-3">
-            {redacoes.map((r) => (
-              <CartaoRedacao key={r.id} r={r} podeAvaliar={escola} />
+            {paraCorrigir.map((r, i) => (
+              <CartaoRedacao key={r.id} r={r} podeAvaliar={escola} cega={cega} numero={i + 1} abertaInicial={escola && i === 0} podeFinalista={false} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {corrigidas.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-display text-xl font-bold">Corrigidas ({corrigidas.length})</h2>
+          <p className="text-sm text-texto-suave">
+            {todasCorrigidas
+              ? `Tudo corrigido. Agora escolha até ${CONCURSO.finalistasPorTurma} finalistas: releia as de maior nota antes de decidir.`
+              : `As finalistas se escolhem quando todas estiverem corrigidas (faltam ${paraCorrigir.length}).`}
+          </p>
+          <ul className="space-y-3">
+            {corrigidas.map((r) => (
+              <CartaoRedacao key={r.id} r={r} podeAvaliar={escola} podeFinalista={todasCorrigidas || r.finalista} />
             ))}
           </ul>
         </section>

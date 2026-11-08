@@ -32,19 +32,44 @@ function Selos({ r }: { r: RedacaoNaEscola }) {
   );
 }
 
-/** Uma redação no painel do professor: texto, grade de 1 a 5 por critério, comentário e "finalista". */
-export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; podeAvaliar?: boolean }) {
+/**
+ * Uma redação no painel do professor: texto, grade de 1 a 5 por critério, comentário e "finalista".
+ * `cega`: enquanto não tem nota, a redação aparece só como "Redação nº N" (sem apelido nem nome),
+ * para a nota não ser puxada pelo que o professor já pensa do aluno (efeito halo).
+ */
+export function CartaoRedacao({
+  r,
+  podeAvaliar = true,
+  cega = false,
+  numero,
+  podeFinalista = true,
+  abertaInicial = false,
+}: {
+  r: RedacaoNaEscola;
+  podeAvaliar?: boolean;
+  cega?: boolean;
+  numero?: number;
+  podeFinalista?: boolean;
+  abertaInicial?: boolean;
+}) {
   const { rodar, ocupado, avisos } = useAcao();
   const router = useRouter();
-  const [aberta, setAberta] = useState(r.enviada && !r.avaliacao);
+  const [aberta, setAberta] = useState(abertaInicial);
   const [notas, setNotas] = useState<Record<string, number>>(r.avaliacao?.notas ?? {});
   const [comentario, setComentario] = useState(r.avaliacao?.comentario ?? "");
   const completa = CRITERIOS.every((c) => notas[c.id]);
+  const escondida = cega && !r.avaliacao;
 
   return (
     <li className="rounded-3xl border-2 border-borda p-4 sm:p-5">
       <button type="button" onClick={() => setAberta(!aberta)} className="flex w-full flex-wrap items-center justify-between gap-2 text-left" aria-expanded={aberta}>
-        <Autor r={r} />
+        {escondida ? (
+          <span>
+            <span aria-hidden>📄</span> <b>Redação nº {numero}</b> <span className="text-xs text-texto-suave">· o nome aparece depois da nota</span>
+          </span>
+        ) : (
+          <Autor r={r} />
+        )}
         <span className="flex items-center gap-2">
           <Selos r={r} />
           <span className="text-xs text-texto-suave">{r.palavras} palavras {aberta ? "▲" : "▼"}</span>
@@ -72,28 +97,43 @@ export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; p
           )}
           {podeAvaliar && r.enviada && (
             <div className="space-y-3">
-              {CRITERIOS.map((c) => (
-                <fieldset key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+              {CRITERIOS.map((c) => {
+                const n = notas[c.id];
+                const ancora = n === 1 || n === 3 || n === 5 ? c.niveis[n] : n ? `entre o ${n - 1} e o ${n + 1}` : null;
+                return (
+                <fieldset key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-superficie/60 p-3">
                   <legend className="sr-only">{c.nome}</legend>
-                  <span className="text-sm">
+                  <span className="min-w-[14rem] flex-1 text-sm">
                     <b>{c.nome}</b> <span className="text-texto-suave">· {c.explica}</span>
+                    <span className="mt-1 block text-xs text-texto-suave">
+                      {ancora ? (
+                        <>
+                          <b className="text-texto">{n}:</b> {ancora}
+                        </>
+                      ) : (
+                        <>
+                          <b>1</b> {c.niveis[1]} · <b>3</b> {c.niveis[3]} · <b>5</b> {c.niveis[5]}
+                        </>
+                      )}
+                    </span>
                   </span>
                   <span className="flex gap-1">
-                    {Array.from({ length: NOTA_MAXIMA }, (_, i) => i + 1).map((n) => (
+                    {Array.from({ length: NOTA_MAXIMA }, (_, i) => i + 1).map((v) => (
                       <button
-                        key={n}
+                        key={v}
                         type="button"
-                        aria-label={`${c.nome}: ${n} de ${NOTA_MAXIMA}`}
-                        aria-pressed={notas[c.id] === n}
-                        onClick={() => setNotas({ ...notas, [c.id]: n })}
-                        className={`h-9 w-9 rounded-full border-2 text-sm font-bold ${notas[c.id] === n ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda hover:border-kambada-amarelo"}`}
+                        aria-label={`${c.nome}: ${v} de ${NOTA_MAXIMA}`}
+                        aria-pressed={n === v}
+                        onClick={() => setNotas({ ...notas, [c.id]: v })}
+                        className={`h-10 w-10 rounded-full border-2 text-sm font-bold ${n === v ? "border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite" : "border-borda hover:border-kambada-amarelo"}`}
                       >
-                        {n}
+                        {v}
                       </button>
                     ))}
                   </span>
                 </fieldset>
-              ))}
+                );
+              })}
               <div className="space-y-2 rounded-2xl border-2 border-dashed border-borda p-3">
                 <p className="text-sm font-semibold">Correção em arquivo (opcional): a redação marcada à mão ou no computador. O aluno recebe junto com a nota.</p>
                 {r.correcao ? (
@@ -121,7 +161,7 @@ export function CartaoRedacao({ r, podeAvaliar = true }: { r: RedacaoNaEscola; p
                 <button type="button" disabled={!completa || ocupado} onClick={() => rodar({ acao: "avaliar-redacao", redacao: r.id, notas, comentario }, () => "Avaliação guardada. O aluno já vê a nota.")} className={BOTAO}>
                   Salvar avaliação
                 </button>
-                {r.avaliacao && (
+                {r.avaliacao && podeFinalista && (
                   <button type="button" disabled={ocupado} onClick={() => rodar({ acao: "finalista", redacao: r.id, ligado: !r.finalista }, () => (r.finalista ? "Saiu das finalistas." : "Finalista da turma! A coordenação já vê."))} className={BOTAO_SECUNDARIO}>
                     {r.finalista ? "Tirar das finalistas" : "⭐ Escolher como finalista"}
                   </button>

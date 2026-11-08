@@ -6,7 +6,7 @@ import { ATIVIDADES } from "@/lib/escola/cultura";
 import { rotaEscola } from "@/lib/escola/host";
 import { exigir } from "@/lib/escola/pagina";
 import { ASSUNTOS, atividadeDoQuiz } from "@/lib/escola/quizzes";
-import { culturaDoAluno, escolaPublica, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
+import { MISSAO, culturaDoAluno, escolaPublica, missaoDoAluno, pontosDoAluno, ranking, trilhasDoAluno } from "@/lib/escola/servico";
 import { trilhaDoAluno } from "@/lib/escola/temporadaServico";
 import { PASSO, TEMPORADA_DESTAQUE, temporadaPorId } from "@/lib/escola/temporadas";
 
@@ -21,13 +21,14 @@ const MEDALHA = ["🥇", "🥈", "🥉"];
  */
 export default async function AlunoInicio() {
   const { aluno, turma } = await exigir("aluno");
-  const [meus, rank, escola, feitos, redacao, trilha] = await Promise.all([
+  const [meus, rank, escola, feitos, redacao, trilha, treinar] = await Promise.all([
     pontosDoAluno(aluno.id),
     ranking(turma.id),
     escolaPublica(),
     culturaDoAluno(aluno.id),
     minhaRedacao(aluno),
     trilhaDoAluno(aluno, temporadaPorId(TEMPORADA_DESTAQUE)!),
+    missaoDoAluno(aluno, turma),
   ]);
   const trilhas = trilhasDoAluno(turma);
   const perguntas = trilhas.reduce((s, t) => s + t.total, 0);
@@ -37,19 +38,29 @@ export default async function AlunoInicio() {
   const quizzes = ASSUNTOS.filter((a) => feitos[atividadeDoQuiz(a.id)]).length;
   const posicao = rank.alunos.findIndex((a) => a.id === aluno.id) + 1;
   const proximo = trilha.passos.find((p) => p.estado === "aberto" && p.caminho);
+  const desafioAberto = trilhas.find((t) => (meus.porTrilha[t.id]?.feitas ?? 0) < t.total);
+
+  // Uma ação principal, já escolhida: a criança não precisa decidir para começar.
+  const continuar = treinar.length
+    ? { emoji: "🎯", titulo: "Missão de reforço", texto: `Treinar ${treinar[0].habilidade} no Arraial`, href: `/aluno/arraial?trilha=${MISSAO}` }
+    : desafioAberto
+      ? { emoji: desafioAberto.emoji, titulo: desafioAberto.titulo, texto: (meus.porTrilha[desafioAberto.id]?.feitas ?? 0) ? "Continuar de onde parou" : "Começar este desafio", href: `/aluno/${desafioAberto.id}` }
+      : proximo?.caminho
+        ? { emoji: PASSO[proximo.tipo].emoji, titulo: proximo.titulo, texto: `Próximo passo do ${CONCURSO.temporada}`, href: proximo.caminho }
+        : { emoji: "❓", titulo: "Quiz", texto: "Escolhe um assunto", href: "/aluno/quiz" };
 
   const PORTAS = [
-    { emoji: "🎯", titulo: "Desafios", texto: "Matemática, Português e Inglês, com a cultura do Maranhão.", status: `${feitas} de ${perguntas} perguntas feitas`, href: "/aluno/desafios" },
-    { emoji: "❓", titulo: "Quiz", texto: "Escolhe o assunto e responde 8 perguntas.", status: `${quizzes} de ${ASSUNTOS.length} assuntos já jogados`, href: "/aluno/quiz" },
-    { emoji: "🌴", titulo: "Cultura", texto: "Leia, jogue e assista: o Maranhão contado pelo Kambadinha.", status: `${culturaFeita} de ${cultura.length} atividades feitas`, href: "/aluno/cultura" },
+    { emoji: "🎯", titulo: "Desafios", texto: "Matemática, Português e Inglês.", status: `${feitas} de ${perguntas} perguntas feitas`, href: "/aluno/desafios" },
+    { emoji: "❓", titulo: "Quiz", texto: "8 perguntas sobre um assunto.", status: `${quizzes} de ${ASSUNTOS.length} assuntos já jogados`, href: "/aluno/quiz" },
+    { emoji: "🌴", titulo: "Cultura", texto: "Ler, jogar e assistir o Maranhão.", status: `${culturaFeita} de ${cultura.length} atividades feitas`, href: "/aluno/cultura" },
     {
       emoji: "📊",
       titulo: "Minhas notas",
-      texto: "A nota da redação, a tua evolução no ano e cada matéria. A família também acompanha aqui.",
+      texto: "Redação e matérias. A família vê aqui.",
       status: redacao.avaliacao ? `Redação: ${redacao.avaliacao.total} de ${CRITERIOS.length * NOTA_MAXIMA}` : redacao.enviada ? "Redação entregue, esperando a nota" : "Redação: ainda sem nota",
       href: "/aluno/notas",
     },
-    { emoji: "🏆", titulo: "Ranking", texto: "Os pontos da turma e das outras turmas.", status: posicao > 0 ? `Tu é o ${posicao}º da turma` : "Joga para entrar no ranking", href: "/ranking" },
+    { emoji: "🏆", titulo: "Ranking", texto: "Os pontos das turmas.", status: posicao > 0 ? `Tu é o ${posicao}º da turma` : "Joga para entrar no ranking", href: "/ranking" },
   ];
 
   return (
@@ -61,15 +72,27 @@ export default async function AlunoInicio() {
             <h1 className="font-display text-3xl font-extrabold sm:text-4xl">
               {aluno.avatar} <span className="text-kambada-amarelo">{aluno.apelido}</span>
             </h1>
-            <FalaKambadinha escuro>Éguas, que bom te ver! O que tu quer fazer hoje?</FalaKambadinha>
+            <FalaKambadinha escuro>Éguas, que bom te ver! Bora continuar?</FalaKambadinha>
           </div>
           <div className="rounded-2xl bg-white/10 px-6 py-4 text-center">
             <p className="font-display text-5xl font-extrabold text-kambada-amarelo">{meus.pontos}</p>
             <p className="text-sm text-white/75">pontos</p>
-            {posicao > 0 && <p className="mt-1 text-sm font-bold">{MEDALHA[posicao - 1] ?? `${posicao}º`} da turma</p>}
           </div>
         </div>
+        <Link
+          href={rotaEscola(continuar.href)}
+          className="mt-6 flex items-center gap-4 rounded-2xl bg-kambada-amarelo p-4 text-kambada-grafite transition-transform hover:-translate-y-0.5 sm:p-5"
+        >
+          <span className="text-5xl" aria-hidden>{continuar.emoji}</span>
+          <span className="flex-1">
+            <b className="block font-display text-2xl">{continuar.titulo}</b>
+            <span className="text-sm font-semibold">{continuar.texto}</span>
+          </span>
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-kambada-grafite text-2xl text-kambada-amarelo" aria-hidden>▶</span>
+        </Link>
       </section>
+
+      <h2 className="sr-only">Ou escolhe outra coisa</h2>
 
       <nav aria-label="O que fazer no portal">
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

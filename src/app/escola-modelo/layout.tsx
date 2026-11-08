@@ -4,6 +4,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { ApoioFapema } from "@/components/play/ApoioFapema";
 import { BotaoSair } from "@/components/escola/BotaoSair";
+import { NavPortal } from "@/components/escola/NavPortal";
 import { Bandeirinhas } from "@/components/escola/Marca";
 import { rotaEscola } from "@/lib/escola/host";
 import { quemNaPagina } from "@/lib/escola/pagina";
@@ -28,7 +29,7 @@ export default async function EscolaLayout({ children }: { children: React.React
   const [escola, quem] = await Promise.all([escolaPublica(), quemNaPagina()]);
   const nav =
     quem?.papel === "aluno"
-      ? [["Início", "/aluno"], ["Desafios", "/aluno/desafios"], ["Quiz", "/aluno/quiz"], ["Cultura", "/aluno/cultura"], ["Minhas notas", "/aluno/notas"], ["Ranking", "/ranking"]]
+      ? [["Início", "/aluno", "🏠"], ["Desafios", "/aluno/desafios", "🎯"], ["Quiz", "/aluno/quiz", "❓"], ["Cultura", "/aluno/cultura", "🌴"], ["Minhas notas", "/aluno/notas", "📊"], ["Ranking", "/ranking", "🏆"]]
       : quem?.papel === "professor"
         ? [["Minhas turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
         : quem?.papel === "coordenacao"
@@ -56,13 +57,7 @@ export default async function EscolaLayout({ children }: { children: React.React
             </span>
           </Link>
           {nav.length > 0 && (
-            <nav className="flex flex-wrap gap-1 text-sm font-semibold sm:ml-2" aria-label="Portal">
-              {nav.map(([rotulo, caminho]) => (
-                <Link key={caminho} href={rotaEscola(caminho)} className="rounded-full px-3 py-1.5 hover:bg-white/10 hover:text-kambada-amarelo">
-                  {rotulo}
-                </Link>
-              ))}
-            </nav>
+            <NavPortal itens={nav.map(([rotulo, caminho, icone]) => ({ rotulo, href: rotaEscola(caminho), icone }))} aluno={quem?.papel === "aluno"} />
           )}
           {nomeDeQuem && (
             <div className="ml-auto flex items-center gap-3 text-sm">

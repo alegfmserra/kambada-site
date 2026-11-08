@@ -382,6 +382,11 @@ function pontosPorAluno(registros: Registro[]): Map<string, number> {
 
 export type LinhaRanking = { id: string; nome: string; avatar?: string; pontos: number; detalhe?: string };
 
+/**
+ * Ranking da temporada. Turmas pela **média por aluno** (pela soma, a turma
+ * maior ganharia sempre). Alunos: a lista inteira, para cada um se achar;
+ * a página mostra o topo e a linha de quem está vendo.
+ */
 export async function ranking(turmaId?: string): Promise<{ turmas: LinhaRanking[]; alunos: LinhaRanking[] }> {
   const d = await lerDados();
   const pts = pontosPorAluno(d.registros);
@@ -390,15 +395,24 @@ export async function ranking(turmaId?: string): Promise<{ turmas: LinhaRanking[
       const membros = d.alunos.filter((a) => a.turmaId === t.id);
       const soma = membros.reduce((s, a) => s + (pts.get(a.id) ?? 0), 0);
       const media = membros.length ? Math.round(soma / membros.length) : 0;
-      return { id: t.id, nome: t.nome, pontos: soma, detalhe: `${media} por aluno` };
+      return { id: t.id, nome: t.nome, pontos: media, detalhe: `${membros.length} alunos · ${soma.toLocaleString("pt-BR")} no total` };
     })
     .sort((a, b) => b.pontos - a.pontos);
   const alunos = d.alunos
     .filter((a) => !turmaId || a.turmaId === turmaId)
     .map((a) => ({ id: a.id, nome: a.apelido, avatar: a.avatar, pontos: pts.get(a.id) ?? 0, detalhe: d.turmas.find((t) => t.id === a.turmaId)?.nome }))
-    .sort((a, b) => b.pontos - a.pontos)
-    .slice(0, 20);
+    .sort((a, b) => b.pontos - a.pontos);
   return { turmas, alunos };
+}
+
+/** Pontos que o aluno ganhou nos últimos 7 dias: o progresso dele, comparado com ele mesmo. */
+export async function ganhoDaSemana(alunoId: string): Promise<number> {
+  const d = await lerDados();
+  const corte = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+  const meus = d.registros.filter((r) => r.alunoId === alunoId);
+  const agora = pontosPorAluno(meus).get(alunoId) ?? 0;
+  const antes = pontosPorAluno(meus.filter((r) => r.em < corte)).get(alunoId) ?? 0;
+  return agora - antes;
 }
 
 export async function pontosDoAluno(alunoId: string): Promise<{ pontos: number; porTrilha: Record<string, { feitas: number; primeira: number }> }> {

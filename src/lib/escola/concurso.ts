@@ -18,14 +18,39 @@ import type { Etapa } from "./tipos";
  */
 export const REVISADO = false;
 
-export type Criterio = { id: string; nome: string; explica: string };
+/**
+ * `niveis` são as âncoras da grade: o que é um 1, um 3 e um 5 (2 e 4 ficam
+ * entre eles). Com a régua escrita, a nota não muda conforme o cansaço ou a
+ * redação anterior (deriva e efeito de contraste).
+ */
+export type Criterio = { id: string; nome: string; explica: string; niveis: { 1: string; 3: string; 5: string } };
 
 /** Grade de avaliação: cada critério vale de 1 a 5 (total 20). */
 export const CRITERIOS: Criterio[] = [
-  { id: "tema", nome: "Tema e proposta", explica: "Escreveu sobre o que a proposta pediu, no gênero pedido." },
-  { id: "repertorio", nome: "Repertório cultural", explica: "Usa o que aprendeu na temporada (personagens, histórias, palavras do carnaval) com sentido." },
-  { id: "organizacao", nome: "Organização das ideias", explica: "Começo, meio e fim; as ideias se ligam umas às outras." },
-  { id: "lingua", nome: "Escrita", explica: "Ortografia, pontuação e concordância esperadas para a série." },
+  {
+    id: "tema",
+    nome: "Tema e proposta",
+    explica: "Escreveu sobre o que a proposta pediu, no gênero pedido.",
+    niveis: { 1: "Fugiu do tema ou não é o gênero pedido.", 3: "Fala do tema, mas perde o foco ou o gênero em partes.", 5: "Atende à proposta inteira, no gênero pedido." },
+  },
+  {
+    id: "repertorio",
+    nome: "Repertório cultural",
+    explica: "Usa o que aprendeu na temporada (personagens, histórias, palavras do carnaval) com sentido.",
+    niveis: { 1: "Não usa nada da temporada.", 3: "Cita algo da temporada, sem ligar à história.", 5: "Usa o que aprendeu e isso faz diferença no texto." },
+  },
+  {
+    id: "organizacao",
+    nome: "Organização das ideias",
+    explica: "Começo, meio e fim; as ideias se ligam umas às outras.",
+    niveis: { 1: "Ideias soltas, sem começo, meio e fim.", 3: "Tem começo, meio e fim, mas algumas ideias não se ligam.", 5: "Partes claras e ideias bem ligadas do início ao fim." },
+  },
+  {
+    id: "lingua",
+    nome: "Escrita",
+    explica: "Ortografia, pontuação e concordância esperadas para a série.",
+    niveis: { 1: "Erros atrapalham entender o texto.", 3: "Alguns erros, mas o texto se entende bem.", 5: "Poucos erros para a série." },
+  },
 ];
 export const NOTA_MAXIMA = 5;
 

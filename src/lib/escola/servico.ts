@@ -50,6 +50,11 @@ export class ErroEscola extends Error {
 // Quem está na sessão
 // ---------------------------------------------------------------------------
 
+/** Acesso temporário vencido (ex.: os do SESI depois de 14/11). */
+export function venceu(x: { expiraEm?: string }, agora = Date.now()): boolean {
+  return !!x.expiraEm && Date.parse(x.expiraEm) <= agora;
+}
+
 export function marcaDoAluno(a: Aluno): string {
   return marca(`${a.id}|${a.figuras.join("-")}`);
 }
@@ -69,11 +74,11 @@ export async function quemEsta(s: SessaoEscola | null): Promise<Quem | null> {
   if (s.p === "aluno") {
     const aluno = d.alunos.find((a) => a.id === s.id);
     const turma = aluno && d.turmas.find((t) => t.id === aluno.turmaId);
-    if (!aluno || !turma || marcaDoAluno(aluno) !== s.m) return null;
+    if (!aluno || !turma || venceu(aluno) || marcaDoAluno(aluno) !== s.m) return null;
     return { papel: "aluno", aluno, turma };
   }
   const membro = d.membros.find((m) => m.id === s.id);
-  if (!membro || membro.papel !== s.p || membro.ativo === false || marcaDoMembro(membro) !== s.m) return null;
+  if (!membro || membro.papel !== s.p || membro.ativo === false || venceu(membro) || marcaDoMembro(membro) !== s.m) return null;
   return { papel: membro.papel, membro } as Quem;
 }
 

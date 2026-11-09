@@ -29,6 +29,8 @@ export type Membro = {
   permissoes?: Permissao[];
   /** false = acesso suspenso (não entra e a sessão aberta cai). Ausente = ativo. */
   ativo?: boolean;
+  /** Acesso temporário (ISO): depois desta hora não entra e a sessão aberta cai. Ausente = sem prazo. */
+  expiraEm?: string;
   criadoEm: string;
 };
 
@@ -65,6 +67,8 @@ export type Aluno = {
   /** Só a conta de teste "aluno": entra também por usuário e senha (tela da equipe). */
   usuario?: string;
   senhaHash?: string;
+  /** Acesso temporário (ISO): depois desta hora não entra e a sessão aberta cai. Ausente = sem prazo. */
+  expiraEm?: string;
   criadoEm: string;
 };
 

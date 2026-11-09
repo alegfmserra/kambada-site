@@ -39,6 +39,10 @@ const HASH_DEMO = {
   // Contas de teste escolhidas pelo Alexandre em 02/11/2026: gestão Kambada, professor e aluno.
   gestor: "scrypt$f990d40459ec3fa2d597420f807072f0$9af609252d27c6147fae26d1acdbe3edbe0916c16448a65539ddbd66072c3dfa",
   professorTeste: "scrypt$9ade3665275b08d95dacc03c28632a67$9b9e071aef30a102461c4d01569c65c52e8a0fc323527c5e2ae78c6706a96947",
+  // Acessos temporários do SESI (09/11/2026, até 14/11): senhas na ficha do OneDrive.
+  alunoSesi: "scrypt$18adbfed0d60b596bff436c91ebf1c4b$5e297cafcb639f940c841e3045c0bac507ce42191465582286410c00ed1efaa2",
+  professorSesi: "scrypt$662ed2325c3a9a321145c58e4b8bfd54$b51f1fc4c5b57bcc5dc89ec310e0223d6d0bc1f23484f4a4c11f33ca5fcffd52",
+  coordenacaoSesi: "scrypt$85dcaecbc54e495852c5f48d45483d61$26a1eaae34a1a389e4d14518030f81cdd043fb4dc77de843429f03341b55d0e2",
   alunoTeste: "scrypt$834062260330dd3cd879e6641304d3fd$0fe78381d10f80541d6e595176ce49b9cf41390b813be39590f9060e273c91cb",
 };
 

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { contarErro, corpoJson, errosEsgotados, ipDaRequisicao } from "@/lib/play/jogos/limite";
 import { falha, ok } from "@/lib/escola/api";
-import { entrarAluno, entrarAlunoConta, entrarMembro, marcaDoAluno, marcaDoMembro, turmaPorCodigo } from "@/lib/escola/servico";
+import { entrarAluno, entrarAlunoConta, entrarMembro, marcaDoAluno, marcaDoMembro, turmaPorCodigo, venceu } from "@/lib/escola/servico";
+
+const ACESSO_ENCERRADO = "Este acesso de demonstração terminou. Para continuar, fale com a Kambada: contato@somoskambada.com.br.";
 import { COOKIE_ESCOLA, criarSessaoEscola, opcoesCookie } from "@/lib/escola/sessao";
 import { rotaEscola } from "@/lib/escola/host";
 
@@ -37,6 +39,7 @@ export async function POST(req: Request) {
       return falha("Muitas tentativas. Chame o professor para conferir o cartão.", 429);
     }
     const aluno = await entrarAluno(corpo.codigo, corpo.alunoId, corpo.figuras);
+    if (aluno && venceu(aluno)) return falha(ACESSO_ENCERRADO, 403);
     if (!aluno) {
       contarErro(chave, "escola-aluno", JANELA);
       contarErro(ip, "escola-aluno-ip", JANELA);
@@ -52,6 +55,7 @@ export async function POST(req: Request) {
     const m = await entrarMembro(corpo.usuario, corpo.senha);
     if (!m) {
       const conta = await entrarAlunoConta(corpo.usuario, corpo.senha);
+      if (conta && venceu(conta.aluno)) return falha(ACESSO_ENCERRADO, 403);
       if (conta) {
         const r = NextResponse.json({ ok: true, destino: rotaEscola("/aluno") });
         r.cookies.set(COOKIE_ESCOLA, criarSessaoEscola("aluno", conta.aluno.id, marcaDoAluno(conta.aluno)), opcoesCookie("aluno"));
@@ -61,6 +65,7 @@ export async function POST(req: Request) {
       return falha("Usuário ou senha não conferem.", 401);
     }
     if (m.ativo === false) return falha("Acesso suspenso. Fale com a coordenação da escola.", 403);
+    if (venceu(m)) return falha(ACESSO_ENCERRADO, 403);
     const destino = rotaEscola({ professor: "/professor", coordenacao: "/coordenacao", gestor: "/gestor" }[m.papel]);
     const r = NextResponse.json({ ok: true, destino });
     r.cookies.set(COOKIE_ESCOLA, criarSessaoEscola(m.papel, m.id, marcaDoMembro(m)), opcoesCookie(m.papel));

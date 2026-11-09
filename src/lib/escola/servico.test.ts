@@ -25,6 +25,7 @@ import {
   permissao,
   podeFazer,
   quemEsta,
+  venceu,
   ganhoDaSemana,
   ranking,
   relatorioTurma,
@@ -242,7 +243,7 @@ describe("hub da gestão Kambada", () => {
     _zerarMemoria();
     const d = await lerDados();
     expect(d.membros.filter((m) => m.papel === "gestor")).toHaveLength(1);
-    expect(d.alunos).toHaveLength(25); // 24 da demonstração + a conta de teste "aluno"
+    expect(d.alunos).toHaveLength(26); // 24 da demonstração + a conta de teste "aluno" + o acesso do SESI
   });
 
   it("a gestão entra e cadastra a coordenação; a coordenação não", async () => {
@@ -322,6 +323,37 @@ describe("contas de teste", () => {
     // a conta de teste nasce sem respostas
     expect(d.registros.some((r) => r.alunoId === "t4a-teste")).toBe(false);
   });
+
+  it("acessos do SESI entram até 14/11 e depois a sessão cai", async () => {
+    const prof = await entrarMembro("professor.sesi", "senha-dos-testes-123");
+    const coord = await entrarMembro("coordenacao.sesi", "senha-dos-testes-123");
+    const aluno = await entrarAlunoConta("aluno.sesi", "senha-dos-testes-123");
+    expect(prof?.papel).toBe("professor");
+    expect(coord?.papel).toBe("coordenacao");
+    expect(aluno?.aluno.turmaId).toBe("t4a");
+    for (const x of [prof!, coord!, aluno!.aluno]) {
+      expect(x.expiraEm).toBe("2026-11-15T03:00:00.000Z");
+      // 14/11, 23h59 em São Luís: ainda vale; meia-noite do dia 15: venceu.
+      expect(venceu(x, Date.parse("2026-11-15T02:59:00Z"))).toBe(false);
+      expect(venceu(x, Date.parse("2026-11-15T03:00:00Z"))).toBe(true);
+    }
+    // Contas sem prazo nunca vencem.
+    expect(venceu((await entrarMembro("professor", "senha-dos-testes-123"))!, Date.parse("2030-01-01"))).toBe(false);
+    // Sessão aberta do professor SESI cai quando o prazo passa.
+    const sessao = lerSessaoEscola(criarSessaoEscola("professor", prof!.id, marcaDoMembro(prof!)));
+    const real = Date.now;
+    try {
+      Date.now = () => Date.parse("2026-11-10T12:00:00Z");
+      expect((await quemEsta(sessao))?.papel).toBe("professor");
+      Date.now = () => Date.parse("2026-11-16T12:00:00Z");
+      expect(await quemEsta(sessao)).toBeNull();
+    } finally {
+      Date.now = real;
+    }
+    // O professor SESI vê as turmas, como o professor de teste.
+    const d = await lerDados();
+    expect(d.turmas.every((t) => t.professorIds.includes(prof!.id))).toBe(true);
+  });
 });
 
 describe("mapa de reforço e privacidade do nome", () => {
@@ -375,7 +407,7 @@ describe("mapa de reforço e privacidade do nome", () => {
     const doGestor = await lerNomes((await planilhaEscola(await membro("kambada"))).arquivo);
     expect(doGestor.texto).not.toContain("Davi Santos");
     expect(doGestor.texto).toContain("CaranguejoVeloz");
-    expect((await mapaEscola(await membro("coordenacao"))).alunos).toHaveLength(25);
+    expect((await mapaEscola(await membro("coordenacao"))).alunos).toHaveLength(26); // inclui o acesso do SESI
     await expect(planilhaEscola(await membro("prof.ana"))).rejects.toBeInstanceOf(ErroEscola);
   });
 });

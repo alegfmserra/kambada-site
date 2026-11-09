@@ -66,6 +66,22 @@ export function alunoTeste(criadoEm: string): Aluno {
   return { id: "t4a-teste", turmaId: "t4a", apelido: "Aluno", nome: "Aluno de Teste", avatar: "🦀", figuras: [0, 1, 2], usuario: "aluno", senhaHash: hashDemo("alunoTeste"), criadoEm };
 }
 
+/**
+ * Acessos temporários do SESI (09/11/2026, depois da apresentação): um de
+ * aluno, um de professor e um de coordenação, valendo até o fim de 14/11
+ * (horário de São Luís). Depois disso o login é recusado e a sessão cai.
+ */
+export const FIM_SESI = "2026-11-15T03:00:00.000Z";
+export function contasSesi(criadoEm: string): { membros: Membro[]; aluno: Aluno } {
+  return {
+    membros: [
+      { id: "m-sesi-prof", papel: "professor", nome: "Professor SESI", usuario: "professor.sesi", senhaHash: hashDemo("professorSesi"), disciplinas: ["Matemática", "Português", "Inglês"], expiraEm: FIM_SESI, criadoEm },
+      { id: "m-sesi-coord", papel: "coordenacao", nome: "Coordenação SESI", usuario: "coordenacao.sesi", senhaHash: hashDemo("coordenacaoSesi"), disciplinas: [], expiraEm: FIM_SESI, criadoEm },
+    ],
+    aluno: { id: "t4a-sesi", turmaId: "t4a", apelido: "AlunoSESI", nome: "Aluno SESI", avatar: "⭐", figuras: [6, 3, 1], usuario: "aluno.sesi", senhaHash: hashDemo("alunoSesi"), expiraEm: FIM_SESI, criadoEm },
+  };
+}
+
 /** Garante as contas de teste num arquivo de demonstração (o de antes de 02/11 não tinha). */
 export function comContasDeTeste(d: Dados): Dados {
   const agora = new Date().toISOString();
@@ -75,6 +91,14 @@ export function comContasDeTeste(d: Dados): Dados {
     for (const t of d.turmas) if (!t.professorIds.includes(p.id)) t.professorIds.push(p.id);
   }
   if (!d.alunos.some((a) => a.usuario === "aluno") && d.turmas.some((t) => t.id === "t4a") && !d.alunos.some((a) => a.id === "t4a-teste")) d.alunos.push(alunoTeste(agora));
+  // SESI: entra uma vez; vencido, fica guardado mas não entra mais.
+  const sesi = contasSesi(agora);
+  for (const m of sesi.membros) {
+    if (d.membros.some((x) => x.id === m.id || x.usuario === m.usuario)) continue;
+    d.membros.push(m);
+    if (m.papel === "professor") for (const t of d.turmas) if (!t.professorIds.includes(m.id)) t.professorIds.push(m.id);
+  }
+  if (d.turmas.some((t) => t.id === "t4a") && !d.alunos.some((a) => a.id === sesi.aluno.id || a.usuario === sesi.aluno.usuario)) d.alunos.push(sesi.aluno);
   return d;
 }
 

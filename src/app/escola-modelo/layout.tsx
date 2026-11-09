@@ -31,9 +31,9 @@ export default async function EscolaLayout({ children }: { children: React.React
     quem?.papel === "aluno"
       ? [["Início", "/aluno", "🏠"], ["Desafios", "/aluno/desafios", "🎯"], ["Quiz", "/aluno/quiz", "❓"], ["Cultura", "/aluno/cultura", "🌴"], ["Minhas notas", "/aluno/notas", "📊"], ["Ranking", "/ranking", "🏆"]]
       : quem?.papel === "professor"
-        ? [["Minhas turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
+        ? [["Minhas turmas", "/professor"], ["Fora da tela", "/imprimir"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
         : quem?.papel === "coordenacao"
-          ? [["Painel", "/coordenacao"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
+          ? [["Painel", "/coordenacao"], ["Fora da tela", "/imprimir"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
           : quem?.papel === "gestor"
             ? [["Hub Kambada", "/gestor"], ["Visão da coordenação", "/coordenacao"], ["Turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
             : [];

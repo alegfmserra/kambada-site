@@ -31,6 +31,8 @@ export type Membro = {
   ativo?: boolean;
   /** Acesso temporário (ISO): depois desta hora não entra e a sessão aberta cai. Ausente = sem prazo. */
   expiraEm?: string;
+  /** Só em memória (nunca gravado): a coordenação vendo o portal como professor. */
+  visaoDaCoordenacao?: true;
   criadoEm: string;
 };
 
@@ -69,6 +71,8 @@ export type Aluno = {
   senhaHash?: string;
   /** Acesso temporário (ISO): depois desta hora não entra e a sessão aberta cai. Ausente = sem prazo. */
   expiraEm?: string;
+  /** Aluno de demonstração da coordenação (visão "aluno"): id do membro dono. */
+  visitaDe?: string;
   criadoEm: string;
 };
 

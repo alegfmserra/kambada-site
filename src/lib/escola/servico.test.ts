@@ -44,6 +44,8 @@ import {
   missaoDoAluno,
   registrarCultura,
   culturaDoAluno,
+  prepararVisao,
+  idAlunoDaVisao,
 } from "./servico";
 import ExcelJS from "exceljs";
 import { planilhaEscola, planilhaTurma } from "./exportar";
@@ -353,6 +355,51 @@ describe("contas de teste", () => {
     // O professor SESI vê as turmas, como o professor de teste.
     const d = await lerDados();
     expect(d.turmas.every((t) => t.professorIds.includes(prof!.id))).toBe(true);
+  });
+});
+
+describe("Colégio Ipê e a troca de visão da coordenação", () => {
+  it("colegioipe entra como coordenação até 16/11", async () => {
+    const m = await entrarMembro("colegioipe", "senha-dos-testes-123");
+    expect(m?.papel).toBe("coordenacao");
+    expect(venceu(m!, Date.parse("2026-11-17T02:59:00Z"))).toBe(false);
+    expect(venceu(m!, Date.parse("2026-11-17T03:00:00Z"))).toBe(true);
+  });
+
+  it("a coordenação vê como professor (todas as turmas) e como aluno, e volta", async () => {
+    const coord = (await entrarMembro("colegioipe", "senha-dos-testes-123"))!;
+    const sessao = (ver?: "professor" | "aluno") => lerSessaoEscola(criarSessaoEscola("coordenacao", coord.id, marcaDoMembro(coord), Date.now(), ver));
+    // Professor: vê e abre o relatório de todas as turmas da escola.
+    const prof = await quemEsta(sessao(await prepararVisao(coord, "professor")));
+    expect(prof?.papel).toBe("professor");
+    if (prof?.papel !== "professor") throw new Error();
+    expect(prof.coordenacao?.id).toBe(coord.id);
+    const d = await lerDados();
+    for (const t of d.turmas) await expect(relatorioTurma(prof.membro, t.id)).resolves.toBeTruthy();
+    // Na visão de professor não troca a senha nem troca de visão de novo por ali.
+    await expect(trocarSenha(prof.membro, "senha-dos-testes-123", "outra-senha-123")).rejects.toBeInstanceOf(ErroEscola);
+    await expect(prepararVisao(prof.membro, "aluno")).rejects.toBeInstanceOf(ErroEscola);
+    // Aluno: um aluno de demonstração da coordenação, criado uma vez só.
+    expect(await prepararVisao(coord, "aluno")).toBe("aluno");
+    await prepararVisao(coord, "aluno");
+    const aluno = await quemEsta(sessao("aluno"));
+    expect(aluno?.papel).toBe("aluno");
+    if (aluno?.papel !== "aluno") throw new Error();
+    expect(aluno.aluno.id).toBe(idAlunoDaVisao(coord));
+    expect(aluno.turma.id).toBe("t4a");
+    expect((await lerDados()).alunos.filter((a) => a.visitaDe === coord.id)).toHaveLength(1);
+    await expect(iniciarPartida(aluno.aluno, aluno.turma, TRILHAS[0].id)).resolves.toBeTruthy();
+    // Coordenação de novo.
+    expect(await prepararVisao(coord, "coordenacao")).toBeUndefined();
+    expect((await quemEsta(sessao()))?.papel).toBe("coordenacao");
+    // Ninguém mais troca de visão; nem um cookie forjado de professor com "ver".
+    await expect(prepararVisao((await entrarMembro("professor", "senha-dos-testes-123"))!, "aluno")).rejects.toBeInstanceOf(ErroEscola);
+    const p = (await entrarMembro("prof.ana", "senha-dos-testes-123"))!;
+    expect(lerSessaoEscola(criarSessaoEscola("professor", p.id, marcaDoMembro(p), Date.now(), "aluno"))?.ver).toBeUndefined();
+    // Restaurada a demonstração, a visão de aluno some e volta a ser coordenação.
+    await restaurarDemonstracao((await entrarMembro("kambada", "senha-dos-testes-123"))!);
+    const c2 = (await entrarMembro("colegioipe", "senha-dos-testes-123"))!;
+    expect((await quemEsta(lerSessaoEscola(criarSessaoEscola("coordenacao", c2.id, marcaDoMembro(c2), Date.now(), "aluno"))))?.papel).toBe("coordenacao");
   });
 });
 

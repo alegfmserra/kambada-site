@@ -5,7 +5,7 @@ import { TRILHAS, habilidades, publica, questaoPorId, trilhaPorId, trilhasDaEtap
 import { gerarHash, marca, senhaConfere, senhaInicial } from "./senha";
 import { ATIVIDADES, atividadePorId, type TipoCultura } from "./cultura";
 import { MISSAO } from "./missao";
-import type { SessaoEscola } from "./sessao";
+import type { SessaoEscola, Visao } from "./sessao";
 import {
   AVATARES,
   DISCIPLINAS,
@@ -62,11 +62,24 @@ export function marcaDoMembro(m: Membro): string {
   return marca(m.senhaHash);
 }
 
+/** `coordenacao` presente = a coordenação vendo o portal em outra visão (ver `Visao`). */
 export type Quem =
-  | { papel: "aluno"; aluno: Aluno; turma: Turma }
-  | { papel: "professor"; membro: Membro }
+  | { papel: "aluno"; aluno: Aluno; turma: Turma; coordenacao?: Membro }
+  | { papel: "professor"; membro: Membro; coordenacao?: Membro }
   | { papel: "coordenacao"; membro: Membro }
   | { papel: "gestor"; membro: Membro };
+
+/** Id do aluno de demonstração de cada coordenação (visão "aluno"). */
+export const idAlunoDaVisao = (m: Membro) => `visita-${m.id}`;
+
+/**
+ * A coordenação vendo como professor: as turmas e relatórios da PRÓPRIA escola
+ * (o portal é de uma escola só), com todas as chaves ligadas. Cópia em memória:
+ * nada disso é gravado.
+ */
+function professorDaVisao(m: Membro): Membro {
+  return { ...m, papel: "professor", permissoes: undefined, visaoDaCoordenacao: true };
+}
 
 export async function quemEsta(s: SessaoEscola | null): Promise<Quem | null> {
   if (!s) return null;
@@ -79,7 +92,40 @@ export async function quemEsta(s: SessaoEscola | null): Promise<Quem | null> {
   }
   const membro = d.membros.find((m) => m.id === s.id);
   if (!membro || membro.papel !== s.p || membro.ativo === false || venceu(membro) || marcaDoMembro(membro) !== s.m) return null;
+  if (membro.papel === "coordenacao" && s.ver === "professor") return { papel: "professor", membro: professorDaVisao(membro), coordenacao: membro };
+  if (membro.papel === "coordenacao" && s.ver === "aluno") {
+    const aluno = d.alunos.find((a) => a.id === idAlunoDaVisao(membro) && a.visitaDe === membro.id);
+    const turma = aluno && d.turmas.find((t) => t.id === aluno.turmaId);
+    // Sem o aluno (demonstração restaurada, turma apagada): volta à visão da coordenação.
+    if (aluno && turma) return { papel: "aluno", aluno, turma, coordenacao: membro };
+  }
   return { papel: membro.papel, membro } as Quem;
+}
+
+/**
+ * Troca de visão da coordenação. Para "aluno", garante o aluno de demonstração
+ * dela (fictício, num 4º ano, ou na primeira turma), criado na primeira vez.
+ * Só a coordenação troca, e só dentro da própria escola.
+ */
+export async function prepararVisao(m: Membro, ver: unknown): Promise<Visao | undefined> {
+  if (m.papel !== "coordenacao" || m.visaoDaCoordenacao) throw new ErroEscola("Só a coordenação troca de visão.", 403);
+  if (ver === "coordenacao") return undefined;
+  if (ver === "professor") return "professor";
+  if (ver !== "aluno") throw new ErroEscola("Visão inválida.");
+  await alterar((d) => {
+    const id = idAlunoDaVisao(m);
+    const existe = d.alunos.find((a) => a.id === id);
+    if (existe && d.turmas.some((t) => t.id === existe.turmaId)) return;
+    if (existe) d.alunos = d.alunos.filter((a) => a.id !== id);
+    const turma = d.turmas.find((t) => t.id === "t4a") ?? d.turmas.find((t) => t.etapa === "f1") ?? d.turmas[0];
+    if (!turma) throw new ErroEscola("A escola ainda não tem turma. Crie uma turma no painel.");
+    const base = `Coord_${m.usuario.replace(/[^a-z0-9]/gi, "")}`.slice(0, 20);
+    let apelido = base;
+    for (let n = 2; d.alunos.some((a) => a.turmaId === turma.id && a.apelido.toLowerCase() === apelido.toLowerCase()); n++) apelido = `${base.slice(0, 18)}${n}`;
+    d.alunos.push({ id, turmaId: turma.id, apelido, nome: `Aluno da coordenação (${m.nome})`, avatar: "🎒", figuras: figurasNovas(), visitaDe: m.id, criadoEm: new Date().toISOString() });
+    anotar(d, m, `abriu a visão do aluno (${apelido}, ${turma.nome})`);
+  });
+  return "aluno";
 }
 
 export async function escolaPublica(): Promise<EscolaPublica & { demo: boolean }> {
@@ -525,7 +571,7 @@ function montarRelatorio(d: Dados, turma: Turma, disciplina: Disciplina): Relato
 }
 
 export function podeVerTurma(m: Membro, t: Turma): boolean {
-  return m.papel !== "professor" || t.professorIds.includes(m.id);
+  return m.papel !== "professor" || !!m.visaoDaCoordenacao || t.professorIds.includes(m.id);
 }
 
 /** Coordenação e gestão podem tudo; o professor, o que estiver ligado (sem lista = tudo). */
@@ -963,6 +1009,7 @@ export async function editarEscola(m: Membro, dados: Record<string, unknown>): P
 }
 
 export async function trocarSenha(m: Membro, atual: unknown, nova: unknown): Promise<Membro> {
+  if (m.visaoDaCoordenacao) throw new ErroEscola("Para trocar a senha, volte à visão da coordenação.", 403);
   if (typeof atual !== "string" || !senhaConfere(atual, m.senhaHash)) throw new ErroEscola("Senha atual não confere.");
   if (typeof nova !== "string" || nova.length < 8 || nova.length > 100) throw new ErroEscola("A senha nova precisa de 8 caracteres ou mais.");
   const senhaHash = gerarHash(nova);

@@ -43,6 +43,8 @@ const HASH_DEMO = {
   alunoSesi: "scrypt$18adbfed0d60b596bff436c91ebf1c4b$5e297cafcb639f940c841e3045c0bac507ce42191465582286410c00ed1efaa2",
   professorSesi: "scrypt$662ed2325c3a9a321145c58e4b8bfd54$b51f1fc4c5b57bcc5dc89ec310e0223d6d0bc1f23484f4a4c11f33ca5fcffd52",
   coordenacaoSesi: "scrypt$85dcaecbc54e495852c5f48d45483d61$26a1eaae34a1a389e4d14518030f81cdd043fb4dc77de843429f03341b55d0e2",
+  // Coordenação do Colégio Ipê (11/11/2026, até 16/11): senha na ficha do OneDrive.
+  coordenacaoIpe: "scrypt$e957541964b3cc0aeb9d39e2ff33bca3$6a7f9910f392b83468441f67fe93892644c91aa1389242a2d757db7f6f64ddfd",
   alunoTeste: "scrypt$834062260330dd3cd879e6641304d3fd$0fe78381d10f80541d6e595176ce49b9cf41390b813be39590f9060e273c91cb",
 };
 

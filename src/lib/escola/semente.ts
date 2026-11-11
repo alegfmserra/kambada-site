@@ -82,6 +82,17 @@ export function contasSesi(criadoEm: string): { membros: Membro[]; aluno: Aluno 
   };
 }
 
+/**
+ * Coordenação do Colégio Ipê de Educação Básica (11/11/2026, depois da
+ * apresentação): um login só, de coordenação, sobre a escola de demonstração
+ * (dados fictícios), valendo até o fim de 16/11 (horário de São Luís). Pela
+ * troca "Ver como", passeia também pelas visões de professor e de aluno.
+ */
+export const FIM_IPE = "2026-11-17T03:00:00.000Z";
+export function contaIpe(criadoEm: string): Membro {
+  return { id: "m-ipe-coord", papel: "coordenacao", nome: "Coordenação · Colégio Ipê", usuario: "colegioipe", senhaHash: hashDemo("coordenacaoIpe"), disciplinas: [], expiraEm: FIM_IPE, criadoEm };
+}
+
 /** Garante as contas de teste num arquivo de demonstração (o de antes de 02/11 não tinha). */
 export function comContasDeTeste(d: Dados): Dados {
   const agora = new Date().toISOString();
@@ -99,6 +110,8 @@ export function comContasDeTeste(d: Dados): Dados {
     if (m.papel === "professor") for (const t of d.turmas) if (!t.professorIds.includes(m.id)) t.professorIds.push(m.id);
   }
   if (d.turmas.some((t) => t.id === "t4a") && !d.alunos.some((a) => a.id === sesi.aluno.id || a.usuario === sesi.aluno.usuario)) d.alunos.push(sesi.aluno);
+  const ipe = contaIpe(agora);
+  if (!d.membros.some((x) => x.id === ipe.id || x.usuario === ipe.usuario)) d.membros.push(ipe);
   return d;
 }
 

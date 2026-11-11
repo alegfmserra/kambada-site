@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { ApoioFapema } from "@/components/play/ApoioFapema";
 import { BotaoSair } from "@/components/escola/BotaoSair";
 import { NavPortal } from "@/components/escola/NavPortal";
+import { TrocaVisao } from "@/components/escola/TrocaVisao";
 import { Bandeirinhas } from "@/components/escola/Marca";
 import { rotaEscola } from "@/lib/escola/host";
 import { quemNaPagina } from "@/lib/escola/pagina";
@@ -27,18 +28,27 @@ const ESCONDE_LOJA = `body:has(.escola-root) > :not(main):not(script):not(next-r
 export default async function EscolaLayout({ children }: { children: React.ReactNode }) {
   await connection();
   const [escola, quem] = await Promise.all([escolaPublica(), quemNaPagina()]);
+  // A coordenação vendo como professor ou aluno (troca "Ver como" no cabeçalho).
+  const coordVendo = quem && (quem.papel === "aluno" || quem.papel === "professor") ? quem.coordenacao : undefined;
+  const visao = quem?.papel === "coordenacao" ? "coordenacao" : coordVendo ? (quem!.papel as "professor" | "aluno") : null;
   const nav =
     quem?.papel === "aluno"
       ? [["Início", "/aluno", "🏠"], ["Desafios", "/aluno/desafios", "🎯"], ["Quiz", "/aluno/quiz", "❓"], ["Cultura", "/aluno/cultura", "🌴"], ["Minhas notas", "/aluno/notas", "📊"], ["Ranking", "/ranking", "🏆"]]
       : quem?.papel === "professor"
-        ? [["Minhas turmas", "/professor"], ["Fora da tela", "/imprimir"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
+        ? [["Minhas turmas", "/professor"], ["Roda ao vivo", "/roda"], ["Fora da tela", "/imprimir"], ["Ranking", "/ranking"], ...(coordVendo ? [] : [["Senha", "/senha"]])]
         : quem?.papel === "coordenacao"
-          ? [["Painel", "/coordenacao"], ["Fora da tela", "/imprimir"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
+          ? [["Painel", "/coordenacao"], ["Roda ao vivo", "/roda"], ["Fora da tela", "/imprimir"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
           : quem?.papel === "gestor"
-            ? [["Hub Kambada", "/gestor"], ["Visão da coordenação", "/coordenacao"], ["Turmas", "/professor"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
+            ? [["Hub Kambada", "/gestor"], ["Visão da coordenação", "/coordenacao"], ["Turmas", "/professor"], ["Roda ao vivo", "/roda"], ["Ranking", "/ranking"], ["Senha", "/senha"]]
             : [];
-  const nomeDeQuem = quem ? (quem.papel === "aluno" ? `${quem.aluno.avatar} ${quem.aluno.apelido} · ${quem.turma.nome}` : quem.membro.nome) : null;
-  const papel = quem ? NOME_PAPEL[quem.papel] : null;
+  const nomeDeQuem = coordVendo ? coordVendo.nome : quem ? (quem.papel === "aluno" ? `${quem.aluno.avatar} ${quem.aluno.apelido} · ${quem.turma.nome}` : quem.membro.nome) : null;
+  const papel = coordVendo
+    ? quem!.papel === "aluno"
+      ? `Vendo como aluno · ${quem!.aluno.apelido} · ${quem!.turma.nome}`
+      : "Vendo como professor"
+    : quem
+      ? NOME_PAPEL[quem.papel]
+      : null;
 
   return (
     <div className="escola-root flex min-h-screen flex-col bg-fundo text-texto" style={{ "--escola": escola.cor } as React.CSSProperties}>
@@ -68,6 +78,7 @@ export default async function EscolaLayout({ children }: { children: React.React
               <BotaoSair />
             </div>
           )}
+          {visao && <TrocaVisao atual={visao} />}
         </div>
         <Bandeirinhas className="block h-5 w-full" />
       </header>

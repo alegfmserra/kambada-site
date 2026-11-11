@@ -64,10 +64,16 @@ export const VALIDADE_S: Record<Papel, number> = {
   gestor: 12 * 3600,
 };
 
-export type SessaoEscola = { v: "esc1"; p: Papel; id: string; m: string; exp: number };
+/**
+ * `ver` (só coordenação): a coordenação passeia pelas visões da própria escola
+ * sem sair — "professor" (todas as turmas da escola) ou "aluno" (um aluno de
+ * demonstração dela). Ausente = a visão da coordenação.
+ */
+export type Visao = "professor" | "aluno";
+export type SessaoEscola = { v: "esc1"; p: Papel; id: string; m: string; exp: number; ver?: Visao };
 
-export function criarSessaoEscola(p: Papel, id: string, m: string, agora = Date.now()): string {
-  const s: SessaoEscola = { v: "esc1", p, id, m, exp: Math.floor(agora / 1000) + VALIDADE_S[p] };
+export function criarSessaoEscola(p: Papel, id: string, m: string, agora = Date.now(), ver?: Visao): string {
+  const s: SessaoEscola = { v: "esc1", p, id, m, exp: Math.floor(agora / 1000) + VALIDADE_S[p], ...(p === "coordenacao" && ver ? { ver } : {}) };
   return assinar(s);
 }
 
@@ -76,6 +82,7 @@ export function lerSessaoEscola(cookie: unknown, agora = Date.now()): SessaoEsco
   if (!s || s.v !== "esc1" || typeof s.exp !== "number" || s.exp <= Math.floor(agora / 1000)) return null;
   if (s.p !== "aluno" && s.p !== "professor" && s.p !== "coordenacao" && s.p !== "gestor") return null;
   if (typeof s.id !== "string" || typeof s.m !== "string") return null;
+  if (s.ver !== undefined && (s.p !== "coordenacao" || (s.ver !== "professor" && s.ver !== "aluno"))) return null;
   return s;
 }
 

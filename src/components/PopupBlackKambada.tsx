@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { evento } from "@/lib/analytics/eventos";
-import { BLACK, ativaEm, hojeSaoLuis, podeAparecerEm } from "@/lib/campanhas/black";
+import { BLACK, ativaEm, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
 
 const CHAVE = "kambada-black-2026";
 const VOLTA_EM_MS = 24 * 3_600_000;
@@ -25,7 +25,7 @@ export default function PopupBlackKambada() {
     if (!podeAparecerEm(caminho)) return;
     const forcado = new URLSearchParams(window.location.search).get("black") === "1";
     if (!forcado) {
-      if (!ativaEm(hojeSaoLuis())) return;
+      if (!popupNoAr(hojeSaoLuis())) return;
       try {
         const ultima = Number(localStorage.getItem(CHAVE) ?? 0);
         if (Date.now() - ultima < VOLTA_EM_MS) return;
@@ -67,6 +67,8 @@ export default function PopupBlackKambada() {
   }
 
   if (!aberto) return null;
+  const jaVale = ativaEm(hojeSaoLuis());
+  const inicio = BLACK.inicio.split("-").reverse().slice(0, 2).join("/");
   const fim = BLACK.fim.split("-").reverse().slice(0, 2).join("/");
 
   return (
@@ -90,7 +92,7 @@ export default function PopupBlackKambada() {
         <div className="relative flex h-full flex-col justify-between p-[6%]">
           <Image src="/marca/kambada-logo-horizontal-amarelo.png" alt="Somos Kambada" width={160} height={48} className="h-auto w-[34%]" />
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#FFCC29]">Black Friday</p>
+            <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#FFCC29]">Black Friday{jaVale ? "" : ` · a partir de ${inicio}`}</p>
             <h2 id="black-titulo" className="font-display text-[clamp(2.4rem,11vw,4.2rem)] font-extrabold leading-[0.95]">
               Black <span className="text-[#FFCC29]">Kambada</span>
             </h2>
@@ -116,7 +118,7 @@ export default function PopupBlackKambada() {
               Ir para a loja →
             </Link>
             <p className="text-center text-[11px] text-white/60">
-              Use no carrinho · vale até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
+              {jaVale ? "Use no carrinho" : `Guarde o código: vale a partir de ${inicio}`} · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
             </p>
           </div>
         </div>

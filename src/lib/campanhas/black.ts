@@ -13,6 +13,9 @@ export const BLACK = {
   link: "/loja?utm_source=popup&utm_medium=site&utm_campaign=black-kambada-2026",
 } as const;
 
+/** O pop-up fica no ar desde já até o fim; o cupom só vale a partir de `inicio` (ativaEm). */
+export const popupNoAr = (hoje: string) => hoje <= BLACK.fim;
+
 export const ativaEm = (hoje: string) => hoje >= BLACK.inicio && hoje <= BLACK.fim;
 
 /** Páginas em que o pop-up nunca aparece: compra em andamento, conta, admin e o Play (público infantil). */

@@ -9,6 +9,7 @@ import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import Cabecalho from "@/components/Cabecalho";
 import AvisoAdicionado from "@/components/carrinho/AvisoAdicionado";
 import { ProvedorCarrinho } from "@/components/carrinho/ProvedorCarrinho";
+import PopupBlackKambada from "@/components/PopupBlackKambada";
 import PesquisaSatisfacao from "@/components/PesquisaSatisfacao";
 import Rodape from "@/components/Rodape";
 import { EH_PRODUCAO, SITE } from "@/lib/site";
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Rodape />
           <BotaoWhatsApp />
           <PesquisaSatisfacao />
+          <PopupBlackKambada />
         </ProvedorCarrinho>
         <Analytics />
         <RegistrarOrigem />

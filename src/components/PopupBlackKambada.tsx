@@ -8,11 +8,11 @@ import { evento } from "@/lib/analytics/eventos";
 import { BLACK, ativaEm, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
 
 const CHAVE = "kambada-black-2026";
-const VOLTA_EM_MS = 24 * 3_600_000;
+const VOLTA_EM_MS = 6 * 3_600_000;
 
 /**
  * Pop-up da Black Kambada: quadrado de 5 × 5 polegadas (480 px; no celular encolhe para caber),
- * centralizado, com o cupom e o botão para a loja. Aparece uma vez por dia por navegador, só dentro
+ * centralizado, com o cupom e o botão para a loja. Aparece até 4 vezes ao dia (de 6 em 6 horas) por navegador, só dentro
  * da janela da promoção. `?black=1` na URL força a abertura para conferir o visual.
  */
 export default function PopupBlackKambada() {

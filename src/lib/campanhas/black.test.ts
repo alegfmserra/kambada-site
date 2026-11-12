@@ -3,8 +3,8 @@ import { ativaEm, hojeSaoLuis, podeAparecerEm } from "./black";
 
 describe("Black Kambada", () => {
   it("só vale dentro da janela, inclusive nos dois dias das pontas", () => {
-    expect(ativaEm("2026-11-22")).toBe(false);
-    expect(ativaEm("2026-11-23")).toBe(true);
+    expect(ativaEm("2026-11-21")).toBe(false);
+    expect(ativaEm("2026-11-22")).toBe(true);
     expect(ativaEm("2026-11-30")).toBe(true);
     expect(ativaEm("2026-12-01")).toBe(false);
   });

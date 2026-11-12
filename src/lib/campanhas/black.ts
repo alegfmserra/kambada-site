@@ -8,7 +8,7 @@ export const BLACK = {
   percentual: 15,
   usos: 50,
   /** Janela do pop-up e do cupom, em AAAA-MM-DD (inclusive), no fuso de São Luís. */
-  inicio: "2026-11-23",
+  inicio: "2026-11-22",
   fim: "2026-11-30",
   link: "/loja?utm_source=popup&utm_medium=site&utm_campaign=black-kambada-2026",
 } as const;

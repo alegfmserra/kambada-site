@@ -30,6 +30,8 @@ export type ResultadoProcessamento =
       ref: string;
       /** Retirada no ateliê: a página de sucesso mostra o endereço. */
       retirada: boolean;
+      /** Entrega por aplicativo na Grande São Luís: a página de sucesso manda chamar no WhatsApp. */
+      local: boolean;
     }
   | { ok: false; motivo: "nao_aprovado"; status: string; ref?: string }
   | { ok: false; motivo: "estornado"; status: string; ref: string }
@@ -126,5 +128,5 @@ export async function processarPagamento(
     await depoisDaResposta(() => executarPosVenda(retrato, pagamento, r.idPedido), posVendaAgora);
   }
 
-  return { ok: true, ...r, ref: retrato.ref, retirada: retrato.frete.retirada === true };
+  return { ok: true, ...r, ref: retrato.ref, retirada: retrato.frete.retirada === true, local: retrato.frete.local === true };
 }

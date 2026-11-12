@@ -75,6 +75,7 @@ export function montarRegistro(
       descricao: retrato.frete.servico,
       valor: retrato.frete.valor,
       retirada: retrato.frete.retirada === true,
+      ...(retrato.frete.local ? { local: true } : {}),
       prazoDias: retrato.frete.prazo,
     },
     total: (itensCentavos + emCentavos(retrato.frete.valor) - (retrato.cupom?.descontoCentavos ?? 0)) / 100,
@@ -352,7 +353,7 @@ export function executarPosVenda(
     // ETIQUETA_AUTOMATICA=0. Falhou (sem saldo, por exemplo)? Avisa a loja; o
     // botão da área de controle continua de onde parou.
     const notaOk = process.env.BLING_EMITIR_NFE !== "1" || Boolean(r.nfe?.feitoEm);
-    if (process.env.ETIQUETA_AUTOMATICA !== "0" && !soTeste && !r.entrega.retirada && !r.etiqueta?.idMe && notaOk) {
+    if (process.env.ETIQUETA_AUTOMATICA !== "0" && !soTeste && !r.entrega.retirada && !r.entrega.local && !r.etiqueta?.idMe && notaOk) {
       const { gerarEtiqueta } = await import("../frete/etiqueta");
       const { alertar } = await import("../manutencao/alertas");
       try {

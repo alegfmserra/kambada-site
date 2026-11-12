@@ -81,12 +81,16 @@ export function textoConfirmacao(d: DadosEmail): string {
     ...(r.cupom ? [`Cupom ${r.cupom.codigo} (${r.cupom.percentual}%): −${real(r.cupom.desconto)}`] : []),
     r.entrega.retirada
       ? "Retirada no ateliê — grátis"
-      : `Entrega: ${r.entrega.descricao} — ${r.entrega.valor > 0 ? real(r.entrega.valor) : "grátis"}`,
+      : r.entrega.local
+        ? `Entrega: ${r.entrega.descricao} — corrida combinada no WhatsApp`
+        : `Entrega: ${r.entrega.descricao} — ${r.entrega.valor > 0 ? real(r.entrega.valor) : "grátis"}`,
     `Total: ${real(r.total)}`,
     "",
     r.entrega.retirada && d.enderecoRetirada
       ? `Retire no ateliê: ${d.enderecoRetirada}. Combine o dia e o horário pelo WhatsApp antes de vir: ${d.linkWhatsApp}`
-      : `Avisamos por aqui quando a encomenda for postada. Prazo da transportadora: até ${r.entrega.prazoDias} dias úteis após a postagem.`,
+      : r.entrega.local
+        ? `Vamos chamar a corrida e combinar o horário com você pelo WhatsApp: ${d.linkWhatsApp}. A corrida é cotada no app na hora e paga por Pix; em São Luís, pedidos a partir de R$ 180 em produtos têm a corrida por nossa conta.`
+        : `Avisamos por aqui quando a encomenda for postada. Prazo da transportadora: até ${r.entrega.prazoDias} dias úteis após a postagem.`,
     "",
     `Acompanhe o pedido: ${d.urlDoSite}/pedido?ref=${encodeURIComponent(r.ref)}`,
     `Trocas e devoluções: ${d.urlDoSite}/trocas-e-devolucoes`,
@@ -133,6 +137,12 @@ export function htmlConfirmacao(d: DadosEmail): string {
            <p style="margin:0 0 8px">${e(d.enderecoRetirada)}</p>
            <p style="margin:0">Combine o dia e o horário antes de vir:
              <a href="${e(d.linkWhatsApp)}" style="color:#201E1F;font-weight:bold">chamar no WhatsApp</a></p>
+         </div>`
+      : r.entrega.local
+        ? `<div style="margin:22px 0;padding:16px;border:2px solid #FFD72B;border-radius:12px;background:#fffdf3">
+           <p style="margin:0 0 6px;font-weight:bold">🛵 Entrega por aplicativo</p>
+           <p style="margin:0 0 8px">Vamos cotar a corrida no app na hora e combinar o horário com você. A corrida é paga por Pix; em São Luís, pedidos a partir de R$ 180 em produtos têm a corrida por nossa conta.</p>
+           <p style="margin:0"><a href="${e(d.linkWhatsApp)}" style="color:#201E1F;font-weight:bold">Combinar no WhatsApp</a></p>
          </div>`
       : `<div style="margin:22px 0;padding:16px;border-radius:12px;background:#f6f2ea">
            <p style="margin:0 0 6px;font-weight:bold">📦 Entrega</p>
@@ -306,7 +316,7 @@ export type DadosLoja = {
 };
 
 export function assuntoLoja(r: RegistroPedido): string {
-  const entrega = r.entrega.retirada ? "RETIRADA" : r.entrega.descricao;
+  const entrega = r.entrega.retirada ? "RETIRADA" : r.entrega.local ? "ENTREGA POR APP" : r.entrega.descricao;
   return `🟡 Novo pedido pago · ${r.ref} · ${real(r.total)} · ${entrega}`;
 }
 
@@ -328,7 +338,9 @@ export function textoLoja(d: DadosLoja): string {
     "",
     r.entrega.retirada
       ? "ENTREGA: RETIRADA NO ATELIÊ (sem etiqueta — o cliente combina o horário pelo WhatsApp)"
-      : `ENTREGA: ${r.entrega.descricao} — frete ${r.entrega.valor > 0 ? real(r.entrega.valor) : "GRÁTIS (custo da loja)"}`,
+      : r.entrega.local
+        ? `ENTREGA POR APLICATIVO (${r.entrega.descricao}) — cotar a corrida no app, combinar pelo WhatsApp${r.entrega.valor === 0 ? " e cobrar a corrida do cliente por Pix (corrida grátis só em São Luís a partir de R$ 180)" : ""}. Sem etiqueta.`
+        : `ENTREGA: ${r.entrega.descricao} — frete ${r.entrega.valor > 0 ? real(r.entrega.valor) : "GRÁTIS (custo da loja)"}`,
     "",
     "CLIENTE",
     r.cliente.nome,
@@ -346,7 +358,9 @@ export function htmlLoja(d: DadosLoja): string {
   const itens = r.itens.map((i) => linhaTabela(`${i.quantidade}× ${e(i.nome)}`, real(i.preco * i.quantidade))).join("");
   const entrega = r.entrega.retirada
     ? `<p style="margin:0;font-weight:bold">📍 RETIRADA NO ATELIÊ</p><p style="margin:4px 0 0">Sem etiqueta. O cliente combina o horário pelo WhatsApp.</p>`
-    : `<p style="margin:0;font-weight:bold">📦 ${e(r.entrega.descricao)}</p>
+    : r.entrega.local
+      ? `<p style="margin:0;font-weight:bold">🛵 ENTREGA POR APLICATIVO — ${e(r.entrega.descricao)}</p><p style="margin:4px 0 0">Cotar a corrida no app e combinar com o cliente pelo WhatsApp. Se a corrida não for grátis (só em São Luís, a partir de R$ 180), cobrar o valor por Pix. Sem etiqueta.</p>`
+      : `<p style="margin:0;font-weight:bold">📦 ${e(r.entrega.descricao)}</p>
        <p style="margin:4px 0 0">Frete ${r.entrega.valor > 0 ? real(r.entrega.valor) : "<strong>GRÁTIS — custo da loja</strong>"} · gerar a etiqueta no Melhor Envio com <strong>este mesmo serviço</strong>.</p>`;
 
   return `<!doctype html>

@@ -154,6 +154,7 @@ export async function gerarEtiqueta(
   const r = await lerRegistro(ref);
   if (!r) throw new Error(`pedido ${ref} não encontrado`);
   if (r.entrega.retirada) throw new Error("pedido com retirada no ateliê não tem etiqueta");
+  if (r.entrega.local) throw new Error("entrega por aplicativo não tem etiqueta do Melhor Envio");
   if (r.cancelamento?.concluidoEm || r.estorno) throw new Error("pedido cancelado");
   // Compra automática (no pagamento) só para pronta entrega: peça sob encomenda
   // leva dias para ficar pronta e a etiqueta tem prazo para ser postada — essas

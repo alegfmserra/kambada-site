@@ -27,7 +27,7 @@ export type RegistroPedido = {
   criadoEm: string;
   cliente: { nome: string; email: string };
   itens: { id: number; nome: string; quantidade: number; preco: number }[];
-  entrega: { descricao: string; valor: number; retirada: boolean; prazoDias: number };
+  entrega: { descricao: string; valor: number; retirada: boolean; prazoDias: number; local?: boolean };
   total: number;
   pagamento: { tipo?: string; parcelas?: number; taxa?: number };
   bling: { idPedido: number };

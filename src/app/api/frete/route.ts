@@ -6,6 +6,7 @@ import { cotarCarrinho } from "@/lib/frete/cotar";
 import { ErroFrete, freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
 import { faltaParaFreteGratis, FRETE_GRATIS_A_PARTIR_DE, normalizarCep } from "@/lib/frete/regras";
 import { validarCupom } from "@/lib/cupons/cupons";
+import { cidadeLocalDoCep, opcaoLocal } from "@/lib/frete/entregaLocal";
 import { opcaoRetirada } from "@/lib/frete/retirada";
 import { emReais } from "@/lib/loja/dinheiro";
 
@@ -61,14 +62,16 @@ export async function POST(requisicao: Request) {
     if (c.ok) subtotalCentavos -= c.descontoCentavos;
   }
   const subtotal = emReais(subtotalCentavos);
-  const resposta = (entregas: ReturnType<typeof opcaoRetirada>[], aviso?: string) =>
+  const cidadeLocal = cidadeLocalDoCep(cep);
+  const resposta = (entregas: object[], aviso?: string) =>
     NextResponse.json({
       subtotal,
       freteGratisAPartirDe: FRETE_GRATIS_A_PARTIR_DE,
       faltaParaFreteGratis: faltaParaFreteGratis(subtotal),
       // A retirada no ateliê vale para qualquer CEP e entra sempre por
       // último: o padrão continua sendo a entrega mais barata.
-      opcoes: [...entregas, opcaoRetirada()],
+      // Grande São Luís: entrega por aplicativo (corrida cotada na hora, combinada no WhatsApp).
+      opcoes: [...entregas, ...(cidadeLocal ? [opcaoLocal(cidadeLocal, subtotal)] : []), opcaoRetirada()],
       aviso,
     });
 

@@ -24,7 +24,7 @@ export type RetratoPedido = {
   ref: string;
   itens: { id: number; q: number; p: number; n: string }[];
   /** `retirada`: o cliente busca no ateliê — sem transporte, sem frete. */
-  frete: { servico: string; valor: number; prazo: number; gratis: boolean; retirada?: boolean };
+  frete: { servico: string; valor: number; prazo: number; gratis: boolean; retirada?: boolean; local?: boolean };
   cliente: DadosCliente;
   /** Cupom aplicado no checkout (desconto em centavos, já conferido no servidor). */
   cupom?: { codigo: string; percentual: number; descontoCentavos: number; parceiro?: string; comissaoPercentual?: number };

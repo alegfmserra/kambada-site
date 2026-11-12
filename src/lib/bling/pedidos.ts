@@ -165,7 +165,7 @@ export function montarPedido(params: {
         }${pagamento.payment_type_id ? ` · ${pagamento.payment_type_id}` : ""}`,
       },
     ],
-    transporte: frete.retirada
+    transporte: frete.retirada || frete.local
       ? {
           // 9 = Sem Ocorrência de Transporte (especificação OpenAPI do Bling,
           // conferida em 08/10/2026): o cliente retira no ateliê, e a nota
@@ -194,15 +194,19 @@ export function montarPedido(params: {
         },
     observacoes: frete.retirada
       ? `Pedido feito no site da Kambada — ${retrato.ref}. Retirada no ateliê.`
-      : `Pedido feito no site da Kambada — ${retrato.ref}.`,
+      : frete.local
+        ? `Pedido feito no site da Kambada — ${retrato.ref}. Entrega por aplicativo.`
+        : `Pedido feito no site da Kambada — ${retrato.ref}.`,
     observacoesInternas: [
       `Pagamento Mercado Pago #${pagamento.id} aprovado${
         pagamento.date_approved ? ` em ${pagamento.date_approved}` : ""
       }.`,
       frete.retirada
         ? "RETIRADA NO ATELIÊ — sem frete e sem transporte. Combinar dia e horário com o cliente pelo WhatsApp."
-        : `Envio escolhido: ${frete.servico} (${frete.prazo} dias úteis).`,
-      frete.retirada
+        : frete.local
+          ? `ENTREGA POR APLICATIVO — ${frete.servico}. Cotar a corrida no app, combinar pelo WhatsApp${frete.gratis ? " (corrida GRÁTIS: custo da loja)" : " e cobrar a corrida do cliente por Pix"}. Sem etiqueta.`
+          : `Envio escolhido: ${frete.servico} (${frete.prazo} dias úteis).`,
+      frete.retirada || frete.local
         ? ""
         : frete.gratis
           ? "FRETE GRÁTIS para o cliente — o custo do envio é da loja; apurar na etiqueta."

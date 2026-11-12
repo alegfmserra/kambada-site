@@ -9,6 +9,7 @@ import { novaReferencia, VERSAO_RETRATO, type RetratoPedido } from "@/lib/checko
 import { cotarCarrinho } from "@/lib/frete/cotar";
 import { freteConfigurado, nomeDaEntrega } from "@/lib/frete/melhorEnvio";
 import { validarCupom } from "@/lib/cupons/cupons";
+import { cidadeLocalDoCep, corridaGratis, ID_LOCAL } from "@/lib/frete/entregaLocal";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 import {
@@ -65,7 +66,8 @@ export async function POST(requisicao: Request) {
     return NextResponse.json({ erro: "Escolha uma opção de frete." }, { status: 422 });
   }
   const retirada = freteId === ID_RETIRADA;
-  if (!retirada && !freteConfigurado()) {
+  const local = freteId === ID_LOCAL;
+  if (!retirada && !local && !freteConfigurado()) {
     return NextResponse.json(
       { erro: "A entrega está sendo configurada. Escolha a retirada ou finalize pelo WhatsApp." },
       { status: 503 },
@@ -128,6 +130,23 @@ export async function POST(requisicao: Request) {
     let freteDoRetrato: RetratoPedido["frete"];
     if (retirada) {
       freteDoRetrato = { servico: RETIRADA.nome, valor: 0, prazo: 0, gratis: false, retirada: true };
+    } else if (local) {
+      // Entrega por aplicativo na Grande São Luís: frete zero no pedido; a corrida é combinada no WhatsApp.
+      const cidade = cidadeLocalDoCep(cliente.cep);
+      if (!cidade) {
+        return NextResponse.json(
+          { erro: "A entrega por aplicativo não atende este CEP. Escolha outra opção.", motivo: "frete_mudou" },
+          { status: 409 },
+        );
+      }
+      freteDoRetrato = {
+        servico: `Entrega em ${cidade} por aplicativo`,
+        valor: 0,
+        prazo: 0,
+        gratis: corridaGratis(cidade, (validacao.subtotalCentavos - descontoCentavos) / 100),
+        retirada: false,
+        local: true,
+      };
     } else {
       const opcoes = await cotarCarrinho(cliente.cep, validacao.itens, validacao.subtotalCentavos - descontoCentavos);
       const frete = opcoes.find((o) => o.id === freteId);

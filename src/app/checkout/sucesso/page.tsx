@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import EventoCompra from "@/components/checkout/EventoCompra";
 import EsvaziarCarrinho from "@/components/carrinho/EsvaziarCarrinho";
+import BlocoEntregaLocal from "@/components/checkout/BlocoEntregaLocal";
 import BlocoRetirada from "@/components/checkout/BlocoRetirada";
 import { processarPagamento, type ResultadoProcessamento } from "@/lib/checkout/processar";
 import { lerRegistro } from "@/lib/pedidos/registro";
@@ -70,6 +71,7 @@ export default async function PaginaSucesso({ searchParams }: Props) {
           </p>
         )}
         {resultado?.ok && resultado.retirada && <BlocoRetirada refPedido={ref} />}
+        {resultado?.ok && resultado.local && <BlocoEntregaLocal refPedido={ref} />}
         {ref && (
           <p className="mt-6 text-sm">
             <Link

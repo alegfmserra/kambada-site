@@ -662,7 +662,9 @@ export default async function PaginaAdminPedidos({
                   <li className={r.entrega.retirada ? "font-semibold" : "text-texto-suave"}>
                     {r.entrega.retirada
                       ? "RETIRADA NO ATELIÊ"
-                      : `${r.entrega.descricao} — ${r.entrega.valor > 0 ? formatarReais(r.entrega.valor) : "frete grátis"}`}
+                      : r.entrega.local
+                        ? `${r.entrega.descricao.toUpperCase()}: chamar a corrida no app e combinar pelo WhatsApp; cobrar a corrida do cliente por Pix (grátis só em São Luís a partir de R$ 180)`
+                        : `${r.entrega.descricao} — ${r.entrega.valor > 0 ? formatarReais(r.entrega.valor) : "frete grátis"}`}
                   </li>
                   {r.cupom && (
                     <li className="font-semibold">
@@ -728,9 +730,9 @@ export default async function PaginaAdminPedidos({
                 {!cancelado(r) && <AcoesDoPedido r={r} />}
                 {!cancelado(r) && <BlocoProblemaETroca r={r} variacoes={variacoes} />}
 
-                {!r.entrega.retirada && !cancelado(r) && !r.conclusao && <BlocoEtiqueta r={r} />}
+                {!r.entrega.retirada && !r.entrega.local && !cancelado(r) && !r.conclusao && <BlocoEtiqueta r={r} />}
 
-                {!r.entrega.retirada && !cancelado(r) && !r.conclusao && (
+                {!r.entrega.retirada && !r.entrega.local && !cancelado(r) && !r.conclusao && (
                   <form action={avisarPostagem} className="mt-3 flex flex-wrap items-center gap-2 border-t border-borda pt-3 text-sm">
                     <input type="hidden" name="ref" value={r.ref} />
                     <label className="font-semibold" htmlFor={`rastreio-${r.ref}`}>

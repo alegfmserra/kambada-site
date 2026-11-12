@@ -57,7 +57,7 @@ export type Acompanhamento = {
   ref: string;
   feitoEm?: string;
   itens: { nome: string; quantidade: number; preco: number }[];
-  entrega: { descricao: string; valor: number; retirada: boolean };
+  entrega: { descricao: string; valor: number; retirada: boolean; local?: boolean };
   total: number;
   pagamento: { texto: string; tom: "ok" | "espera" | "problema"; aprovado: boolean };
   pedido: { situacao: string; rastreios: { servico?: string; codigo: string }[] } | null;
@@ -143,6 +143,7 @@ export async function acompanharPedido(
         descricao: registro.entrega.descricao,
         valor: registro.entrega.valor,
         retirada: registro.entrega.retirada,
+        local: registro.entrega.local === true,
       },
       total: registro.total,
       pagamento: { ...situacaoDoPagamento(pagamento.status), aprovado },
@@ -186,6 +187,7 @@ export async function acompanharPedido(
       descricao: retrato.frete.servico,
       valor: retrato.frete.valor,
       retirada: retrato.frete.retirada === true,
+      local: retrato.frete.local === true,
     },
     total: (itensCentavos + Math.round(retrato.frete.valor * 100)) / 100,
     pagamento: { ...situacaoDoPagamento(pagamento.status), aprovado },

@@ -8,6 +8,7 @@ import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica"
 import { evento } from "@/lib/analytics/eventos";
 import { gaDoNavegador } from "@/lib/analytics/cookiesGoogle";
 import { rastrear } from "@/lib/visitas/rastrear";
+import { explicacaoLocal } from "@/lib/frete/entregaLocal";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
 import { textoParcelas } from "@/lib/loja/parcelas";
@@ -26,6 +27,8 @@ type OpcaoFrete = {
   gratis: boolean;
   /** Retirada no ateliê: sem transporte, sem custo. */
   retirada?: boolean;
+  /** Entrega por aplicativo na Grande São Luís: corrida combinada no WhatsApp. */
+  local?: boolean;
 };
 
 type Campos = {
@@ -473,13 +476,17 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                       <span className="block text-sm text-texto-suave">
                         {o.retirada
                           ? RETIRADA.explicacao
-                          : `até ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem · postamos em até ${POSTAGEM_DIAS_UTEIS} dias úteis`}
+                          : o.local
+                            ? explicacaoLocal(o.gratis)
+                            : `até ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem · postamos em até ${POSTAGEM_DIAS_UTEIS} dias úteis`}
                       </span>
                     </span>
                   </span>
                   <span className="text-right font-display font-bold">
                     {o.retirada ? (
                       <span className="destaque font-semibold">Grátis</span>
+                    ) : o.local && !o.gratis ? (
+                      <span className="text-sm font-semibold">A combinar</span>
                     ) : o.gratis ? (
                       <>
                         <span className="destaque font-semibold">Grátis</span>
@@ -570,12 +577,14 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
             </div>
           )}
           <div className="flex justify-between">
-            <dt>{freteEscolhido?.retirada ? "Retirada no ateliê" : "Frete"}</dt>
+            <dt>{freteEscolhido?.retirada ? "Retirada no ateliê" : freteEscolhido?.local ? "Corrida do app" : "Frete"}</dt>
             <dd>
               {freteEscolhido
                 ? freteEscolhido.gratis || freteEscolhido.retirada
                   ? "Grátis"
-                  : formatarReais(freteEscolhido.preco)
+                  : freteEscolhido.local
+                    ? "Pix à parte"
+                    : formatarReais(freteEscolhido.preco)
                 : "—"}
             </dd>
           </div>

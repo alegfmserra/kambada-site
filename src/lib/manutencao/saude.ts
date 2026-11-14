@@ -96,7 +96,13 @@ async function mercadoPago(): Promise<Item> {
 
 async function email(): Promise<Item> {
   if (!emailConfigurado()) return { ok: false, detalhe: "SMTP não configurado" };
-  const r = await conferirEmail();
+  let r = await conferirEmail();
+  // Queda isolada do servidor ("Connection closed unexpectedly", 14/11/2026 04:22) não é senha vencida:
+  // confere de novo depois de alguns segundos antes de acordar o dono.
+  if (!r.ok && !/auth|535|credenc|senha|password/i.test(r.detalhe ?? "")) {
+    await new Promise((res) => setTimeout(res, 5000));
+    r = await conferirEmail();
+  }
   return r.ok ? { ok: true, detalhe: r.remetente ?? "ok" } : { ok: false, detalhe: r.detalhe ?? "falhou" };
 }
 

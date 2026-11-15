@@ -68,10 +68,12 @@ export function alunoTeste(criadoEm: string): Aluno {
 
 /**
  * Acessos temporários do SESI (09/11/2026, depois da apresentação): um de
- * aluno, um de professor e um de coordenação, valendo até o fim de 14/11
- * (horário de São Luís). Depois disso o login é recusado e a sessão cai.
+ * aluno, um de professor e um de coordenação. Prazo estendido em 15/11 a
+ * pedido do Alexandre: até o fim da sexta, 20/11 (horário de São Luís; antes
+ * era 14/11). Depois disso o login é recusado e a sessão cai.
  */
-export const FIM_SESI = "2026-11-15T03:00:00.000Z";
+export const FIM_SESI = "2026-11-21T03:00:00.000Z";
+const IDS_SESI = new Set(["m-sesi-prof", "m-sesi-coord", "t4a-sesi"]);
 export function contasSesi(criadoEm: string): { membros: Membro[]; aluno: Aluno } {
   return {
     membros: [
@@ -110,6 +112,8 @@ export function comContasDeTeste(d: Dados): Dados {
     if (m.papel === "professor") for (const t of d.turmas) if (!t.professorIds.includes(m.id)) t.professorIds.push(m.id);
   }
   if (d.turmas.some((t) => t.id === "t4a") && !d.alunos.some((a) => a.id === sesi.aluno.id || a.usuario === sesi.aluno.usuario)) d.alunos.push(sesi.aluno);
+  // Prazo do SESI mudou depois de criado: as contas já gravadas passam a valer o prazo atual.
+  for (const x of [...d.membros, ...d.alunos]) if (IDS_SESI.has(x.id) && x.expiraEm !== FIM_SESI) x.expiraEm = FIM_SESI;
   const ipe = contaIpe(agora);
   if (!d.membros.some((x) => x.id === ipe.id || x.usuario === ipe.usuario)) d.membros.push(ipe);
   return d;

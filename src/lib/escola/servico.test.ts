@@ -326,7 +326,18 @@ describe("contas de teste", () => {
     expect(d.registros.some((r) => r.alunoId === "t4a-teste")).toBe(false);
   });
 
-  it("acessos do SESI entram até 14/11 e depois a sessão cai", async () => {
+  it("contas do SESI já gravadas com o prazo antigo passam a valer até 20/11", async () => {
+    const { comContasDeTeste, FIM_SESI } = await import("./semente");
+    const d = structuredClone(await lerDados());
+    for (const x of [...d.membros, ...d.alunos]) if (["m-sesi-prof", "m-sesi-coord", "t4a-sesi"].includes(x.id)) x.expiraEm = "2026-11-15T03:00:00.000Z";
+    comContasDeTeste(d);
+    const sesi = [...d.membros, ...d.alunos].filter((x) => ["m-sesi-prof", "m-sesi-coord", "t4a-sesi"].includes(x.id));
+    expect(sesi).toHaveLength(3);
+    for (const x of sesi) expect(x.expiraEm).toBe(FIM_SESI);
+    expect(FIM_SESI).toBe("2026-11-21T03:00:00.000Z");
+  });
+
+  it("acessos do SESI entram até 20/11 e depois a sessão cai", async () => {
     const prof = await entrarMembro("professor.sesi", "senha-dos-testes-123");
     const coord = await entrarMembro("coordenacao.sesi", "senha-dos-testes-123");
     const aluno = await entrarAlunoConta("aluno.sesi", "senha-dos-testes-123");
@@ -334,10 +345,11 @@ describe("contas de teste", () => {
     expect(coord?.papel).toBe("coordenacao");
     expect(aluno?.aluno.turmaId).toBe("t4a");
     for (const x of [prof!, coord!, aluno!.aluno]) {
-      expect(x.expiraEm).toBe("2026-11-15T03:00:00.000Z");
-      // 14/11, 23h59 em São Luís: ainda vale; meia-noite do dia 15: venceu.
-      expect(venceu(x, Date.parse("2026-11-15T02:59:00Z"))).toBe(false);
-      expect(venceu(x, Date.parse("2026-11-15T03:00:00Z"))).toBe(true);
+      expect(x.expiraEm).toBe("2026-11-21T03:00:00.000Z");
+      // Prazo estendido em 15/11: 20/11, 23h59 em São Luís ainda vale; meia-noite do dia 21 venceu.
+      expect(venceu(x, Date.parse("2026-11-15T12:00:00Z"))).toBe(false);
+      expect(venceu(x, Date.parse("2026-11-21T02:59:00Z"))).toBe(false);
+      expect(venceu(x, Date.parse("2026-11-21T03:00:00Z"))).toBe(true);
     }
     // Contas sem prazo nunca vencem.
     expect(venceu((await entrarMembro("professor", "senha-dos-testes-123"))!, Date.parse("2030-01-01"))).toBe(false);
@@ -348,6 +360,8 @@ describe("contas de teste", () => {
       Date.now = () => Date.parse("2026-11-10T12:00:00Z");
       expect((await quemEsta(sessao))?.papel).toBe("professor");
       Date.now = () => Date.parse("2026-11-16T12:00:00Z");
+      expect((await quemEsta(sessao))?.papel).toBe("professor");
+      Date.now = () => Date.parse("2026-11-22T12:00:00Z");
       expect(await quemEsta(sessao)).toBeNull();
     } finally {
       Date.now = real;

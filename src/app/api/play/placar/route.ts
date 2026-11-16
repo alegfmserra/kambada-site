@@ -7,6 +7,7 @@ import type { ProvaQuebra } from "@/lib/play/jogos/quebra";
 import type { ProvaQuiz } from "@/lib/play/jogos/quiz";
 import { contaDaRequisicao } from "@/lib/play/contas";
 import { chaveValida, resumoDaChave, verificar } from "@/lib/play/jogos/seguranca";
+import { liberarProva, reservarProva } from "@/lib/play/jogos/usoUnico";
 import type { JogoId, PeriodoPlacar } from "@/lib/play/jogos/tipos";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +64,15 @@ export async function POST(requisicao: Request) {
 
   const jogador =
     conta ? resumoDaChave(`conta:${conta.id}`) : resumoDaChave(corpo.chave as string);
+  // A prova vale uma vez, para um jogador: fica presa a quem enviou primeiro.
+  // Sem isto, a mesma prova pontuava em várias contas (e de novo na mesma).
+  // A marca dura mais que o prazo de envio da prova (10 minutos).
+  if (typeof prova.partida !== "string" || !reservarProva(prova.jogo, prova.partida, jogador, 2 * DEZ_MINUTOS)) {
+    return NextResponse.json(
+      { ok: false, mensagem: "Essa partida já foi enviada para o ranking. Jogue outra para pontuar de novo." },
+      { status: 409 },
+    );
+  }
   let resultado: Awaited<ReturnType<typeof registrarPontuacao>>;
   let posicao: number | null;
   try {
@@ -75,6 +85,8 @@ export async function POST(requisicao: Request) {
   });
     posicao = await posicaoNaSemana(jogador);
   } catch {
+    // Não gravou: devolve a prova, para o "tente de novo" funcionar.
+    liberarProva(prova.jogo, prova.partida);
     return NextResponse.json(
       { ok: false, mensagem: "Não foi possível guardar sua pontuação agora. Tente de novo." },
       { status: 500 },

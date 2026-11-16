@@ -22,6 +22,7 @@
  */
 
 import { assinar, idAleatorio, permutacaoSecreta, verificar } from "./seguranca";
+import { registrarResposta } from "./usoUnico";
 import { MISSOES, ORDEM_NPCS, type Missao, type NpcId } from "./missoesArraial";
 
 export const PERGUNTAS_DO_DESAFIO = 6;
@@ -211,6 +212,11 @@ export function responderDesafio(
   if (d.i >= d.ordem.length) return { erro: "O desafio já terminou." };
   if (typeof escolha !== "number" || !Number.isInteger(escolha) || escolha < 0 || escolha > 2) {
     return { erro: "Resposta inválida." };
+  }
+  // Cada pergunta do desafio é respondida uma vez só (mesmo motivo do quiz:
+  // sem isto, o estado assinado podia ser reenviado depois de ver a resposta).
+  if (!registrarResposta("arraial", estado.id, d.i, VALIDADE_MS, agora)) {
+    return { erro: "Essa pergunta já foi respondida. Recarregue o arraial para jogar de novo." };
   }
   const p = missao.perguntas[d.ordem[d.i]];
   const mostradas = permutacaoSecreta(estado.id, d.i, p.opcoes.length);

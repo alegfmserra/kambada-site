@@ -1,4 +1,5 @@
 import { assinar, idAleatorio, permutacaoSecreta, verificar } from "./seguranca";
+import { registrarResposta } from "./usoUnico";
 import {
   QUIZ_NIVEL,
   QUIZ_PERGUNTAS_POR_PARTIDA,
@@ -388,6 +389,8 @@ export function nivelDaPartida(tokenEstado: unknown): Nivel | null {
   return nivelValido(estado.nivel);
 }
 
+const VALIDADE_DA_PARTIDA_MS = 30 * 60 * 1000;
+
 export function responder(
   tokenEstado: unknown,
   escolha: unknown,
@@ -396,11 +399,16 @@ export function responder(
   const estado = verificar<EstadoPartida>(tokenEstado);
   if (!estado || estado.v !== 3) return { erro: "Partida inválida. Comece outra." };
   const nivel = nivelValido(estado.nivel);
-  if (agora - estado.t0 > 30 * 60 * 1000) return { erro: "Partida expirada. Comece outra." };
+  if (agora - estado.t0 > VALIDADE_DA_PARTIDA_MS) return { erro: "Partida expirada. Comece outra." };
   if (typeof escolha !== "number" || !Number.isInteger(escolha) || escolha < 0 || escolha > 3) {
     return { erro: "Resposta inválida." };
   }
   if (estado.i < 0 || estado.i >= estado.ordem.length) return { erro: "Partida já terminou." };
+  // Cada pergunta é respondida uma vez só: sem isto, dava para ver a resposta
+  // certa e reenviar o mesmo estado assinado com ela (o ranking vale cupom).
+  if (!registrarResposta("quiz", estado.id, estado.i, VALIDADE_DA_PARTIDA_MS, agora)) {
+    return { erro: "Essa pergunta já foi respondida. Comece outra partida." };
+  }
 
   const p = BANCO[estado.ordem[estado.i]];
   const ordem = permutacaoSecreta(estado.id, estado.i, p.opcoes.length); // posição mostrada -> índice original

@@ -232,7 +232,7 @@ export function Placar() {
             Resgate aqui, no mesmo navegador e aparelho em que jogou, em até {REGRAS_PREMIO.prazoParaResgatarDias} dias
             a partir da segunda-feira. O cupom vale por {REGRAS_PREMIO.validadeCupomDias} dias, para uma compra.
           </li>
-          <li>Sem e-mail e sem cadastro: seu apelido é só um apelido.</li>
+          <li>No ranking aparece só o apelido que você escolheu, nunca o seu nome nem o seu e-mail. Não use seu nome de verdade.</li>
         </ul>
       </section>
     </div>

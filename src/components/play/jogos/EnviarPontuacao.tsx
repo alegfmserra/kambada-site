@@ -9,7 +9,8 @@ type Enviada = { pontos: number; melhorDaSemana: boolean; pontosDaSemana: number
 
 /**
  * Fim de partida: mostra a pontuação e deixa a pessoa entrar no ranking com
- * apelido e avatar. Sem e-mail, sem cadastro.
+ * apelido e avatar. Quem chega aqui já está com a conta ligada (o envio da
+ * pontuação fica atrás do login); no ranking aparece só o apelido.
  */
 export function EnviarPontuacao({ prova, pontos }: { prova: string; pontos: number }) {
   const { apelido: salvo, avatar: avatarSalvo, salvar } = useJogador();
@@ -70,6 +71,9 @@ export function EnviarPontuacao({ prova, pontos }: { prova: string; pontos: numb
       <label className="mt-4 block text-sm font-semibold text-texto-suave" htmlFor="apelido">
         Seu apelido (3 a 16 letras ou números)
       </label>
+      <p id="apelido-dica" className="mt-1 text-sm text-texto-suave">
+        Não use seu nome de verdade.
+      </p>
       <input
         id="apelido"
         value={nome}
@@ -78,6 +82,7 @@ export function EnviarPontuacao({ prova, pontos }: { prova: string; pontos: numb
         minLength={3}
         required
         autoComplete="off"
+        aria-describedby="apelido-dica"
         className="mt-1 w-full rounded-lg border-2 border-borda bg-fundo px-4 py-3 text-texto outline-none focus:border-kambada-amarelo"
       />
       <fieldset className="mt-4">
@@ -101,7 +106,7 @@ export function EnviarPontuacao({ prova, pontos }: { prova: string; pontos: numb
         </div>
       </fieldset>
       <p className="mt-3 text-xs text-texto-tenue">
-        Sem e-mail e sem cadastro. O apelido aparece para todo mundo no ranking.
+        O apelido aparece para todo mundo no ranking.
       </p>
       {erro ? (
         <p role="alert" className="mt-3 rounded-md bg-kambada-grafite/10 px-3 py-2 text-sm font-semibold text-texto">

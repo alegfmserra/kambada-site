@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IMAGEM_OG_PLAY, og } from "@/lib/seo/og";
 import { EMAILS, linkWhatsApp } from "@/lib/site";
-import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
+import { PERGUNTAS_PLANOS, PLANOS, PRECOS, itemEmProducao, textoDoItem } from "@/lib/play/planos";
 
 export const metadata: Metadata = {
   title: "Planos",
@@ -17,6 +17,30 @@ const BOTAO_AMARELO =
   "inline-block rounded-full bg-kambada-amarelo px-8 py-3.5 text-center font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-kambada-amarelo";
 const BOTAO_CONTORNO =
   "inline-block rounded-full border-2 border-borda px-8 py-3 text-center font-bold text-texto transition-colors hover:border-kambada-amarelo focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-kambada-amarelo";
+
+/** Pedido de demonstração da escola: a mensagem já pede o que precisamos para responder. */
+const MENSAGEM_ESCOLA = [
+  "Olá! Gostaria de pedir uma demonstração do Kambada Play para a minha escola.",
+  "Nome da escola: ",
+  "Etapa (Educação Infantil, Fundamental anos iniciais ou anos finais): ",
+  "Número de alunos: ",
+].join("\n");
+
+/** O que o portal da escola já tem hoje. Só entra aqui o que existe. */
+const ESCOLA_JA_TEM = [
+  "Portal com perfis de aluno, professor e coordenação",
+  "Temporadas culturais ao longo do ano",
+  "Jogos, quadrinhos e animações",
+  "Relatório por habilidade",
+  "Material para imprimir",
+  "Aluno entra sem e-mail",
+];
+
+const ESCOLA_ETAPAS = [
+  { nome: "Educação Infantil", detalhe: "Conduzida pela professora" },
+  { nome: "Ensino Fundamental", detalhe: "Anos iniciais" },
+  { nome: "Ensino Fundamental", detalhe: "Anos finais" },
+];
 
 const MENSAGEM_PERSONALIZADO =
   "Olá! Quero conversar sobre um projeto personalizado no Kambada Play (escola, evento ou ativação de marca).";
@@ -53,9 +77,53 @@ export default function PlanosPage() {
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
-          <strong className="text-texto">Tudo liberado para quem tem conta.</strong> Crie a sua e escolha o jeito de
-          brincar que combina com a sua casa.
+          <strong className="text-texto">Hoje, a conta abre tudo o que já está pronto no Kambada Play:</strong> os
+          jogos, o Arraial em 3D, as HQs e a animação. O que aparece como “Em produção” ainda está sendo feito.
         </p>
+
+        {/* Para escolas: logo abaixo do título, com âncora (#escolas) para os links "Sou escola". */}
+        <section
+          id="escolas"
+          aria-labelledby="escolas-titulo"
+          className="mt-10 scroll-mt-28 rounded-2xl border-2 border-borda bg-superficie p-6 sm:p-8"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Para escolas</p>
+          <h2 id="escolas-titulo" className="mt-2 font-display text-2xl font-extrabold leading-tight text-texto sm:text-3xl">
+            A cultura do Maranhão na sala de aula
+          </h2>
+          <div className="mt-6 grid gap-8 md:grid-cols-[1.3fr_1fr]">
+            <div>
+              <h3 className="text-sm font-bold text-texto">O que a escola já encontra</h3>
+              <ul className="mt-3 grid gap-2.5 text-sm leading-snug text-texto-suave sm:grid-cols-2">
+                {ESCOLA_JA_TEM.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span aria-hidden="true" className="text-[var(--destaque-texto)]">
+                      ✦
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-texto">Para cada etapa</h3>
+              <ul className="mt-3 space-y-2 text-sm">
+                {ESCOLA_ETAPAS.map((etapa) => (
+                  <li key={`${etapa.nome} ${etapa.detalhe}`} className="rounded-xl border border-borda px-4 py-2.5">
+                    <strong className="text-texto">{etapa.nome}</strong>
+                    <span className="text-texto-suave"> · {etapa.detalhe}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <a href={linkWhatsApp(MENSAGEM_ESCOLA)} target="_blank" rel="noopener noreferrer" className={BOTAO_AMARELO}>
+              Pedir demonstração
+            </a>
+            <p className="text-sm text-texto-suave">Pelo WhatsApp, com o nome da escola, a etapa e o número de alunos.</p>
+          </div>
+        </section>
 
         <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {PLANOS.map((p) => (
@@ -92,11 +160,22 @@ export default function PlanosPage() {
                 }`}
               >
                 {p.inclui.map((item) => (
-                  <li key={item} className="flex gap-2">
+                  <li key={textoDoItem(item)} className="flex gap-2">
                     <span aria-hidden className={p.destaque ? "text-kambada-amarelo" : "text-[var(--destaque-texto)]"}>
                       ✦
                     </span>
-                    <span>{item}</span>
+                    <span>
+                      {textoDoItem(item)}
+                      {itemEmProducao(item) ? (
+                        <span
+                          className={`ml-2 inline-block rounded-full border px-2 py-0.5 align-middle text-[11px] font-semibold whitespace-nowrap ${
+                            p.destaque ? "border-kambada-branco/50 text-kambada-branco" : "border-borda-campo text-texto"
+                          }`}
+                        >
+                          Em produção
+                        </span>
+                      ) : null}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -106,8 +185,9 @@ export default function PlanosPage() {
                     Criar conta
                   </Link>
                 ) : p.id === "familia" || p.id === "brincante" ? (
+                  // Plano ainda não disponível: a conta abre o que já existe (texto do topo), sem prometer o plano.
                   <Link href="/kambadaplay/entrar?modo=criar" className={`${BOTAO_AMARELO} w-full`}>
-                    Criar conta e liberar
+                    Criar conta
                   </Link>
                 ) : p.id === "personalizado" ? (
                   <a

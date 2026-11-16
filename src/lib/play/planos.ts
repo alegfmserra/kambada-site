@@ -17,11 +17,22 @@
 
 export type PlanoId = "gratis" | "familia" | "brincante" | "personalizado" | "licenca";
 
+/**
+ * Um item do plano. Texto simples = já existe no Play. `emProducao` = está
+ * prometido, mas ainda não existe no código (conferido em 15/11/2026): a tela
+ * mostra o selo "Em produção" ao lado, em vez de vender como pronto. Ficou
+ * pronto? Troque o objeto pelo texto.
+ */
+export type ItemDoPlano = string | { texto: string; emProducao: true };
+
+export const textoDoItem = (item: ItemDoPlano): string => (typeof item === "string" ? item : item.texto);
+export const itemEmProducao = (item: ItemDoPlano): boolean => typeof item !== "string" && item.emProducao;
+
 export type Plano = {
   id: PlanoId;
   nome: string;
   paraQuem: string;
-  inclui: string[];
+  inclui: ItemDoPlano[];
   /** Já dá para usar hoje (sem cobrança)? */
   disponivel: boolean;
   /** Plano em evidência na tela. */
@@ -56,13 +67,16 @@ export const PLANOS: Plano[] = [
     inclui: [
       "Tudo do Básico, sem limite",
       "Arraial da Kambada em 3D, com conversas novas todo mês",
-      "Todas as animações, HQs e histórias em áudio para dormir",
-      "Desenhos e atividades para imprimir",
-      "Até 4 perfis na mesma conta",
+      "Todas as HQs",
+      // Hoje há uma animação no ar (content/play/videos.ts); as próximas estão sendo feitas.
+      { texto: "Todas as animações", emProducao: true },
+      { texto: "Histórias em áudio para dormir", emProducao: true },
+      { texto: "Desenhos e atividades para imprimir", emProducao: true },
+      { texto: "Até 4 perfis na mesma conta", emProducao: true },
       "1 cupom de 10 % por mês na loja",
     ],
     disponivel: false,
-    selo: "Liberado",
+    selo: "Em breve",
   },
   {
     id: "brincante",
@@ -75,13 +89,13 @@ export const PLANOS: Plano[] = [
       "Episódios e jogos novos antes de todo mundo",
       "Pré-venda de lançamentos e estampas limitadas",
       "15 % de desconto em oficinas da Kambada",
-      "Arquivos para impressora 3D",
-      "Vote no próximo episódio e veja seu nome nos créditos",
+      { texto: "Arquivos para impressora 3D", emProducao: true },
+      { texto: "Vote no próximo episódio e veja seu nome nos créditos", emProducao: true },
       "No plano anual: uma visita ao ateliê da Kambada, com hora marcada",
     ],
     disponivel: false,
     destaque: true,
-    selo: "Liberado",
+    selo: "Em breve",
   },
   {
     id: "personalizado",

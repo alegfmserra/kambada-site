@@ -108,9 +108,10 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
           Kambada Play · jogue agora, sem cadastro
         </p>
-        <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight text-texto sm:text-5xl">
+        {/* h2: o h1 da degustação é da página (fica visível antes, durante e depois do quiz). */}
+        <h2 className="mt-3 font-display text-4xl font-extrabold leading-tight text-texto sm:text-5xl">
           Éguas! <span className="destaque">Quanto tu sabes do Maranhão?</span>
-        </h1>
+        </h2>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
           10 perguntas sobre boi, tambor, matraca e São Luís, em 2 minutinhos. Cada resposta traz uma curiosidade.
         </p>

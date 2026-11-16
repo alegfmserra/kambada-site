@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { IMAGEM_OG_PLAY, og } from "@/lib/seo/og";
 import Image from "next/image";
+import Link from "next/link";
 import { Quiz } from "@/components/play/jogos/Quiz";
+import { VIDEOS, capaDoVideo } from "@/content/play/videos";
 
 export const metadata: Metadata = {
   title: "Jogue agora: quiz da cultura maranhense",
@@ -20,13 +22,37 @@ const VITRINE = [
   { titulo: "Arraial da Kambada", texto: "O São João em 3D: junte as 5 fitinhas.", img: "/kambadaplay/images/arraial/poster.webp" },
   { titulo: "Memória das estampas", texto: "Ache os pares das nossas estampas.", img: "/kambadaplay/jogos/memoria/camisa-boi-maranhense.webp" },
   { titulo: "HQs do Kambadinha", texto: "A Hora dos Guarás e Na Batida do Tambor.", img: "/kambadaplay/hq/kambadinha-a-hora-dos-guaras/01.webp" },
+  // A animação que está no ar (content/play/videos.ts). Com ela são 4 cartões: a grade fecha sem buraco.
+  ...VIDEOS.slice(0, 1).map((v) => ({ titulo: "Animação do Kambadinha", texto: `${v.titulo}.`, img: capaDoVideo(v) })),
 ];
+
+const PORTA =
+  "flex min-h-11 items-center justify-center rounded-full border-2 px-3 py-2 text-center text-sm font-bold leading-tight transition-colors";
 
 /** Degustação do Kambada Play: o quiz fácil abre sem conta; o resto aparece trancado com o convite. */
 export default function ExperimentePage() {
   return (
     <div className="play-tema-site">
-      <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+      {/* Quem chega sem conta cai aqui: uma frase do que é o Play e três portas, sem empurrar o quiz. */}
+      <header className="mx-auto max-w-2xl px-4 pt-8 text-center sm:px-6 sm:pt-10">
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Kambada Play</p>
+        <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight text-balance text-texto sm:text-3xl">
+          Jogos, quadrinhos e animação da cultura do Maranhão para crianças
+        </h1>
+        <nav aria-label="Por onde começar" className="mt-5 grid grid-cols-3 gap-2">
+          <a href="#quiz" className={`${PORTA} border-kambada-amarelo bg-kambada-amarelo text-kambada-grafite hover:bg-kambada-amarelo-escuro`}>
+            Jogar agora
+          </a>
+          <Link href="/kambadaplay/planos" className={`${PORTA} border-borda-campo text-texto hover:border-kambada-amarelo`}>
+            Sou família
+          </Link>
+          <Link href="/kambadaplay/planos#escolas" className={`${PORTA} border-borda-campo text-texto hover:border-kambada-amarelo`}>
+            Sou escola
+          </Link>
+        </nav>
+      </header>
+
+      <div id="quiz" className="mx-auto max-w-2xl scroll-mt-24 px-4 pt-8 pb-10 sm:px-6">
         <Quiz visitante />
       </div>
 

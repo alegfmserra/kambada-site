@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { notFound } from "next/navigation";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import BarraCategorias from "@/components/BarraCategorias";
@@ -150,9 +151,7 @@ export default async function Categoria({ params }: Props) {
             {produtos.length}{" "}
             {produtos.length === 1 ? "peça nesta categoria" : "peças nesta categoria"}
           </p>
-          <div className="mt-8">
-            <AvisoDemonstracao />
-          </div>
+          <AvisoDemonstracao className="mt-8" />
         </div>
       </section>
 
@@ -179,7 +178,8 @@ export default async function Categoria({ params }: Props) {
             <p className="mt-4 max-w-2xl leading-relaxed text-kambada-grafite/80">
               Também fazemos sob encomenda. Conta no WhatsApp o que você quer.
             </p>
-            <a
+            <LinkWhatsApp
+              origem="categoria"
               href={linkWhatsApp(
                 `Oi! Estava vendo a categoria "${categoria.nome}" e queria falar sobre uma encomenda.`,
               )}
@@ -188,7 +188,7 @@ export default async function Categoria({ params }: Props) {
               className="mt-8 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto"
             >
               Falar no WhatsApp
-            </a>
+            </LinkWhatsApp>
           </div>
         </div>
       </section>

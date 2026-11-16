@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { og } from "@/lib/seo/og";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import FaixaBeneficios from "@/components/FaixaBeneficios";
@@ -68,7 +69,8 @@ export default async function Loja() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados).replace(/</g, "\\u003c") }}
       />
       <section className="border-b border-borda">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        {/* No celular o topo é mais baixo: a primeira peça precisa aparecer cedo. */}
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-20">
           <h1 className="font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
             Vista o <span className="destaque">Maranhão</span>
           </h1>
@@ -76,10 +78,8 @@ export default async function Loja() {
             O Boi, o reggae e a Ilha em cada peça.
           </p>
           <SeloNotaDoSite className="mt-4" />
-          <div className="mt-10">
-            <AvisoDemonstracao />
-          </div>
-          <FaixaBeneficios />
+          <AvisoDemonstracao className="mt-10" />
+          <FaixaBeneficios rolagemNoCelular />
         </div>
       </section>
 
@@ -91,7 +91,7 @@ export default async function Loja() {
           id={categoria.slug}
           className="border-b border-borda scroll-mt-24"
         >
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="font-display text-2xl font-bold sm:text-3xl">
                 {categoria.nome}
@@ -109,9 +109,11 @@ export default async function Loja() {
             {categoria.foto && (
               <Link
                 href={`/loja/${categoria.slug}`}
-                className="group mt-7 block overflow-hidden rounded-2xl"
+                // A foto grande da categoria só entra de 640 px para cima: no
+                // celular ela empurrava as peças uma tela inteira para baixo.
+                className="group mt-7 hidden overflow-hidden rounded-2xl sm:block"
               >
-                <div className="relative aspect-[4/3] sm:aspect-[2/1]">
+                <div className="relative aspect-[2/1]">
                   <Image
                     src={categoria.foto.arquivo}
                     alt={categoria.foto.alt}
@@ -123,7 +125,7 @@ export default async function Loja() {
                 </div>
               </Link>
             )}
-            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-6 grid gap-6 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
               {destaques(categoria.slug).mostrados.map((produto) => (
                 <CartaoProduto key={produto.slug} produto={produto} />
               ))}
@@ -152,14 +154,15 @@ export default async function Loja() {
               Encomenda para arraial, pedido de empresa ou uma peça só: chama
               no WhatsApp.
             </p>
-            <a
+            <LinkWhatsApp
+              origem="loja"
               href={linkWhatsApp()}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 inline-block rounded-full bg-kambada-grafite px-7 py-3.5 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto whitespace-nowrap"
             >
               Falar no WhatsApp
-            </a>
+            </LinkWhatsApp>
           </div>
         </div>
       </section>

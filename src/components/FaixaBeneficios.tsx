@@ -7,7 +7,14 @@ import { LIMITES_PARCELAS } from "@/lib/loja/parcelas";
  * (auditoria de 10/10/2026). Valores vêm das mesmas constantes do checkout:
  * mudou a regra, muda aqui.
  */
-export default function FaixaBeneficios({ compacta = false }: { compacta?: boolean }) {
+export default function FaixaBeneficios({
+  compacta = false,
+  rolagemNoCelular = false,
+}: {
+  compacta?: boolean;
+  /** No celular, uma linha só que rola de lado (na loja, para as peças subirem). */
+  rolagemNoCelular?: boolean;
+}) {
   const reais0 = (v: number) => formatarReais(v).replace(/,00$/, "");
   const limite2x = LIMITES_PARCELAS.find((l) => l.parcelas === 2)!.aPartirDeCentavos / 100;
   const itens = [
@@ -19,10 +26,19 @@ export default function FaixaBeneficios({ compacta = false }: { compacta?: boole
   return (
     <ul
       aria-label="Vantagens de comprar na Kambada"
-      className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-4 ${compacta ? "" : "mt-10"}`}
+      className={
+        rolagemNoCelular
+          ? "-mx-4 mt-6 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:mt-10 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4"
+          : `grid gap-3 sm:grid-cols-2 lg:grid-cols-4 ${compacta ? "" : "mt-10"}`
+      }
     >
       {itens.map((i) => (
-        <li key={i.titulo} className="flex items-start gap-3 rounded-2xl border border-borda bg-superficie px-4 py-3">
+        <li
+          key={i.titulo}
+          className={`flex items-start gap-3 rounded-2xl border border-borda bg-superficie px-4 py-3 ${
+            rolagemNoCelular ? "w-[17rem] shrink-0 snap-start sm:w-auto" : ""
+          }`}
+        >
           <span aria-hidden="true" className="text-xl leading-none">
             {i.icone}
           </span>

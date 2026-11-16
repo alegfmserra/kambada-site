@@ -4,9 +4,9 @@ import Link from "next/link";
 import { PONTOS_MINIMOS_PREMIO, PREMIOS_SEMANAIS } from "@/lib/play/jogos/tipos";
 
 export const metadata: Metadata = {
-  title: "Jogos",
+  title: "Jogos da cultura maranhense",
   description:
-    "Jogue o Arraial, o quiz Éguas! Quem é quem? e a Memória das estampas. Os 3 primeiros do ranking da semana ganham cupom.",
+    "Jogue o Arraial da Kambada, o quiz Éguas! Quem é quem?, a Memória e o Quebra-cabeça das estampas e a Palavra do dia maranhense, e monte sua matraca. Os 3 primeiros do ranking da semana ganham cupom.",
 };
 
 const JOGOS = [
@@ -62,7 +62,8 @@ const JOGOS = [
     texto: "Passeie pelo São João e junte as cinco fitinhas.",
     imagem: "/kambadaplay/images/arraial/poster.webp",
     acao: "Entrar no arraial",
-    ranking: false,
+    // O Arraial pontua no ranking (até 1.000 pontos por partida, ver JOGOS em tipos.ts).
+    ranking: true,
   },
 ];
 

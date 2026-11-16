@@ -7,6 +7,7 @@ import { Revelar } from "@/components/play/hub/Revelar";
 import { VideoAuto } from "@/components/play/hub/VideoAuto";
 import { BoiKambada } from "@/components/play/ilustracoes/BoiKambada";
 import { HQS, paginaDaHQ } from "@/content/play/hq";
+import { PREMIOS_SEMANAIS } from "@/lib/play/jogos/tipos";
 import { VIDEOS, arquivoDoVideo, capaDoVideo } from "@/content/play/videos";
 
 export const metadata: Metadata = {
@@ -95,7 +96,7 @@ const FILEIRAS: Fileira[] = [
       },
       {
         titulo: "Ranking e cupons",
-        texto: "Top 3 da semana ganha cupom: 10% para o 1º lugar, 5% para o 2º e o 3º.",
+        texto: `Top 3 da semana ganha cupom: ${PREMIOS_SEMANAIS[0]}% para o 1º lugar, ${PREMIOS_SEMANAIS[1]}% para o 2º e ${PREMIOS_SEMANAIS[2]}% para o 3º.`,
         selo: "Ranking",
         href: "/kambadaplay/placar",
         imagem: "/kambadaplay/jogos/memoria/placa-boi-colorido.webp",

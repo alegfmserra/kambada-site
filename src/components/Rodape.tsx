@@ -1,6 +1,7 @@
 import { ApoioFapema } from "@/components/play/ApoioFapema";
 import Image from "next/image";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { BotaoAvaliarSite } from "@/components/PesquisaSatisfacao";
 import { EMAILS, NAV, POS_VENDA, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
@@ -80,14 +81,15 @@ export default function Rodape() {
           <ul className="mt-4 space-y-2.5">
             <li>
               {/* Sem número escrito: o link já leva para a conversa. */}
-              <a
+              <LinkWhatsApp
+                origem="rodape"
                 href={linkWhatsApp()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-kambada-branco/70 transition-colors hover:text-kambada-amarelo"
               >
                 Falar no WhatsApp
-              </a>
+              </LinkWhatsApp>
             </li>
             {REDES.map((rede) => (
               <li key={rede.nome}>

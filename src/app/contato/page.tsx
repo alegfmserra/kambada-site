@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { og } from "@/lib/seo/og";
 import { EMAILS, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
@@ -29,7 +30,8 @@ export default function Contato() {
         </p>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2">
-          <a
+          <LinkWhatsApp
+            origem="contato"
             href={linkWhatsApp()}
             target="_blank"
             rel="noopener noreferrer"
@@ -54,7 +56,7 @@ export default function Contato() {
             <p className="mt-5 font-display font-semibold underline underline-offset-4">
               Abrir conversa →
             </p>
-          </a>
+          </LinkWhatsApp>
 
           <div className="rounded-2xl border border-borda bg-superficie p-8">
             <h2 className="font-display text-2xl font-bold">Nossas redes</h2>

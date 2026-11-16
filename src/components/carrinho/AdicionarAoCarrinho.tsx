@@ -132,7 +132,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
       href={`#${ANCORA_GUIA_DE_TAMANHOS}`}
       className="mt-3 inline-block text-sm font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
     >
-      📏 Qual meu tamanho? Ver as medidas
+      <span aria-hidden="true">📏</span> Qual meu tamanho? Ver as medidas
     </a>
   ) : null;
 
@@ -163,7 +163,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                       className={`min-h-11 cursor-pointer rounded-full border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
                         marcado
                           ? "border-kambada-amarelo-escuro bg-kambada-amarelo font-semibold text-kambada-grafite"
-                          : "border-borda hover:border-kambada-amarelo-escuro"
+                          : "border-borda-campo hover:border-kambada-amarelo-escuro"
                       } ${existe ? "" : "border-dashed text-texto-tenue"}`}
                     >
                       <input
@@ -210,7 +210,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                   className={`min-h-11 cursor-pointer rounded-full border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
                     escolhida === o.idBling
                       ? "border-kambada-amarelo-escuro bg-kambada-amarelo font-semibold text-kambada-grafite"
-                      : "border-borda hover:border-kambada-amarelo-escuro"
+                      : "border-borda-campo hover:border-kambada-amarelo-escuro"
                   } ${semEstoque ? "text-texto-tenue line-through" : ""}`}
                 >
                   <input
@@ -243,7 +243,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
         <p className="mt-6 text-sm font-semibold text-texto-tenue">Esta opção esgotou.</p>
       ) : (
         <div className="mt-6 flex flex-wrap items-center gap-4">
-          <div className="flex items-center rounded-full border border-borda" role="group" aria-label="Quantidade">
+          <div className="flex items-center rounded-full border border-borda-campo" role="group" aria-label="Quantidade">
             <button
               type="button"
               onClick={() => setQuantidade((q) => Math.max(1, q - 1))}

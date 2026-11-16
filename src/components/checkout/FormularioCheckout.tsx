@@ -50,6 +50,16 @@ const VAZIO: Campos = {
   numero: "", complemento: "", bairro: "", cidade: "", uf: "",
 };
 
+/** As 27 siglas, em ordem alfabética (a mesma lista que o servidor valida). */
+const UFS = [
+  "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA",
+  "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
+];
+
+/** Campo de texto e seletor: borda com contraste de 3:1 e fundo de cartão. */
+const CLASSE_CAMPO =
+  "mt-1 min-h-11 w-full rounded-xl border border-borda-campo bg-superficie px-4 py-2.5 text-texto outline-none focus:border-kambada-amarelo-escuro aria-[invalid=true]:border-erro";
+
 /** Rascunho do formulário só nesta aba — some ao fechar. CPF nunca é salvo. */
 const CHAVE_RASCUNHO = "kambada:checkout:rascunho";
 
@@ -359,10 +369,10 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         onChange={(e) => alterar(nome, e.target.value)}
         aria-invalid={Boolean(erros[nome])}
         aria-describedby={erros[nome] ? `co-${nome}-erro` : undefined}
-        className="mt-1 min-h-11 w-full rounded-xl border border-borda bg-fundo px-4 py-2.5 text-texto outline-none focus:border-kambada-amarelo-escuro aria-[invalid=true]:border-red-500"
+        className={CLASSE_CAMPO}
       />
       {erros[nome] && (
-        <p id={`co-${nome}-erro`} className="mt-1 text-sm text-red-500">
+        <p id={`co-${nome}-erro`} className="mt-1 text-sm text-erro">
           {erros[nome]}
         </p>
       )}
@@ -409,9 +419,36 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
               {campo("logradouro", "Rua", { auto: "address-line1" })}
               {campo("numero", "Número", { largura: "" })}
               {campo("complemento", "Complemento", { auto: "address-line2", largura: "", obrigatorio: false })}
-              {campo("bairro", "Bairro", { largura: "" })}
+              {campo("bairro", "Bairro", { auto: "address-level3", largura: "" })}
               {campo("cidade", "Cidade", { auto: "address-level2", largura: "" })}
-              {campo("uf", "UF", { auto: "address-level1", largura: "" })}
+              <div>
+                <label htmlFor="co-uf" className="block text-sm font-semibold">
+                  UF
+                </label>
+                <select
+                  id="co-uf"
+                  name="uf"
+                  autoComplete="address-level1"
+                  required
+                  value={UFS.includes(campos.uf) ? campos.uf : ""}
+                  onChange={(e) => alterar("uf", e.target.value)}
+                  aria-invalid={Boolean(erros.uf)}
+                  aria-describedby={erros.uf ? "co-uf-erro" : undefined}
+                  className={CLASSE_CAMPO}
+                >
+                  <option value="">Escolha</option>
+                  {UFS.map((uf) => (
+                    <option key={uf} value={uf}>
+                      {uf}
+                    </option>
+                  ))}
+                </select>
+                {erros.uf && (
+                  <p id="co-uf-erro" className="mt-1 text-sm text-erro">
+                    {erros.uf}
+                  </p>
+                )}
+              </div>
             </>
           )}
         </fieldset>

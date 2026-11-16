@@ -258,8 +258,8 @@ export default async function Artigo({ params }: Props) {
             {artigo.perguntas.map((p) => (
               <details key={p.pergunta} className="group px-6 py-4">
                 <summary className="cursor-pointer list-none font-display text-lg font-semibold marker:hidden">
-                  <span className="mr-2 text-kambada-amarelo-escuro group-open:hidden">+</span>
-                  <span className="mr-2 hidden text-kambada-amarelo-escuro group-open:inline">−</span>
+                  <span aria-hidden="true" className="mr-2 text-realce group-open:hidden">+</span>
+                  <span aria-hidden="true" className="mr-2 hidden text-realce group-open:inline">−</span>
                   {p.pergunta}
                 </summary>
                 <p className="mt-3 leading-relaxed text-texto-suave">{p.resposta}</p>

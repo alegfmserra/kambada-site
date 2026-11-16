@@ -84,7 +84,7 @@ export default function Cabecalho() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className="text-sm font-medium text-texto-suave transition-colors hover:text-kambada-amarelo-escuro"
+                      className="text-sm font-medium text-texto-suave transition-colors hover-marca"
                     >
                       {item.rotulo}
                     </Link>
@@ -97,7 +97,7 @@ export default function Cabecalho() {
                   <span className="flex items-center gap-1">
                     <Link
                       href={item.href}
-                      className="text-sm font-medium text-texto-suave transition-colors hover:text-kambada-amarelo-escuro"
+                      className="text-sm font-medium text-texto-suave transition-colors hover-marca"
                     >
                       {item.rotulo}
                     </Link>
@@ -106,7 +106,7 @@ export default function Cabecalho() {
                       onClick={() => setSubmenu((v) => !v)}
                       aria-expanded={submenu}
                       aria-controls="submenu-loja"
-                      className="rounded p-0.5 text-texto-tenue transition-colors hover:text-kambada-amarelo-escuro"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded text-texto-tenue transition-colors hover-marca"
                     >
                       <span className="sr-only">
                         {submenu
@@ -139,7 +139,7 @@ export default function Cabecalho() {
                         <Link
                           href="/loja"
                           onClick={() => setSubmenu(false)}
-                          className="block rounded-xl px-4 py-2.5 text-sm font-medium text-texto-suave hover:bg-superficie hover:text-kambada-amarelo-escuro"
+                          className="block rounded-xl px-4 py-2.5 text-sm font-medium text-texto-suave hover:bg-superficie hover-marca"
                         >
                           Toda a loja
                         </Link>
@@ -149,7 +149,7 @@ export default function Cabecalho() {
                           <Link
                             href={`/loja/${categoria.slug}`}
                             onClick={() => setSubmenu(false)}
-                            className="block rounded-xl px-4 py-2.5 text-sm font-medium text-texto-suave hover:bg-superficie hover:text-kambada-amarelo-escuro"
+                            className="block rounded-xl px-4 py-2.5 text-sm font-medium text-texto-suave hover:bg-superficie hover-marca"
                           >
                             {categoria.nome}
                           </Link>
@@ -169,7 +169,7 @@ export default function Cabecalho() {
             href="/conta"
             aria-label="Minha conta"
             title="Minha conta"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover:text-kambada-amarelo-escuro"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover-marca"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="3.5" />
@@ -228,7 +228,7 @@ export default function Cabecalho() {
                 <Link
                   href={item.href}
                   onClick={() => setAberto(false)}
-                  className="block py-3 font-medium text-texto-suave hover:text-kambada-amarelo-escuro"
+                  className="block py-3 font-medium text-texto-suave hover-marca"
                 >
                   {item.rotulo}
                 </Link>
@@ -241,7 +241,7 @@ export default function Cabecalho() {
                         <Link
                           href={`/loja/${categoria.slug}`}
                           onClick={() => setAberto(false)}
-                          className="block py-2.5 text-sm text-texto-tenue hover:text-kambada-amarelo-escuro"
+                          className="block py-2.5 text-sm text-texto-tenue hover-marca"
                         >
                           {categoria.nome}
                         </Link>

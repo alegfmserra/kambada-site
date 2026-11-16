@@ -137,7 +137,7 @@ export default function TelaCarrinho({
           </div>
         </dl>
         <p className="mt-3 text-sm text-texto-suave" aria-live="polite">
-          💳 {textoParcelas(Math.round(subtotal * 100))}
+          <span aria-hidden="true">💳</span> {textoParcelas(Math.round(subtotal * 100))}
         </p>
 
         <p className="mt-4 rounded-xl bg-fundo px-4 py-3 text-sm" aria-live="polite">

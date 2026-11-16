@@ -14,7 +14,7 @@ export default async function SeloNotaDoSite({ className = "" }: { className?: s
   const media = nota.media.toFixed(1).replace(".", ",");
   return (
     <p className={`inline-flex flex-wrap items-center gap-x-2 text-sm text-texto-suave ${className}`}>
-      <span aria-hidden="true" className="text-kambada-amarelo-escuro">
+      <span aria-hidden="true" className="text-realce">
         ★
       </span>
       <span>

@@ -16,7 +16,7 @@ export default function AvaliacoesDaPeca({ media, lista }: { media: number | nul
         {media !== null ? (
           <>
             <p className="mt-2 flex flex-wrap items-center gap-x-3 text-texto-suave">
-              <span aria-hidden="true" className="text-xl text-kambada-amarelo-escuro">
+              <span aria-hidden="true" className="text-xl text-realce">
                 {estrelas(media)}
               </span>
               <span>
@@ -27,7 +27,7 @@ export default function AvaliacoesDaPeca({ media, lista }: { media: number | nul
             <ul className="mt-6 grid gap-4 sm:grid-cols-2">
               {lista.slice(0, 20).map((a) => (
                 <li key={a.id} className="rounded-2xl border border-borda bg-superficie p-5">
-                  <p className="text-kambada-amarelo-escuro" aria-label={`${a.nota} de 5`}>
+                  <p className="text-realce" aria-label={`${a.nota} de 5`}>
                     {estrelas(a.nota)}
                   </p>
                   {a.texto && <p className="mt-2 leading-relaxed">{a.texto}</p>}

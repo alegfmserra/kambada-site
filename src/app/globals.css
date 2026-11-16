@@ -24,6 +24,11 @@
   --color-texto-suave: var(--texto-suave);
   --color-texto-tenue: var(--texto-tenue);
   --color-borda: var(--borda);
+  /* Borda de campo, pílula e seletor (>= 3:1 contra o fundo), erro e realce
+     (estrelas e sinais) com contraste de texto nos dois temas. */
+  --color-borda-campo: var(--borda-campo);
+  --color-erro: var(--erro);
+  --color-realce: var(--realce);
 
   /* Tipografia */
   --font-display: var(--font-poppins), "Poppins", system-ui, sans-serif;
@@ -44,6 +49,13 @@
   --destaque-texto: #ffcc29;
   --destaque-fundo: transparent;
   --destaque-padding: 0;
+  --borda-campo: rgb(255 255 255 / 0.45);
+  --erro: #ff8a80;
+  --realce: #ffcc29;
+  --hover-texto: #e0af14;
+  --hover-sublinhado: transparent;
+  --foco: #ffcc29;
+  --foco-anel: 0 0 0 0 transparent;
 }
 
 /* --- Tema claro ---------------------------------------------------------
@@ -67,6 +79,15 @@
   --destaque-texto: #1d1e20;
   --destaque-fundo: #ffcc29;
   --destaque-padding: 0 0.18em;
+  /* Amarelo sobre o bege dá ~1,5:1: no claro, borda de campo cinza (3,3:1),
+     estrelas e sinais em ocre (4,6:1), hover em grafite com sublinhado amarelo. */
+  --borda-campo: #8a8d90;
+  --erro: #b3261e;
+  --realce: #8a6a00;
+  --hover-texto: #1d1e20;
+  --hover-sublinhado: #ffcc29;
+  --foco: #1d1e20;
+  --foco-anel: 0 0 0 3px #ffcc29;
 }
 
 @media (prefers-color-scheme: light) {
@@ -81,6 +102,13 @@
     --destaque-texto: #1d1e20;
     --destaque-fundo: #ffcc29;
     --destaque-padding: 0 0.18em;
+    --borda-campo: #8a8d90;
+    --erro: #b3261e;
+    --realce: #8a6a00;
+    --hover-texto: #1d1e20;
+    --hover-sublinhado: #ffcc29;
+    --foco: #1d1e20;
+    --foco-anel: 0 0 0 3px #ffcc29;
   }
 }
 
@@ -136,16 +164,26 @@ body {
   white-space: nowrap;
 }
 
-/* Foco visível em toda a interface — requisito do Gate 4 (acessibilidade). */
+/* Foco visível em toda a interface — requisito do Gate 4 (acessibilidade).
+   Escuro: contorno amarelo. Claro (escolhido ou do sistema): contorno grafite
+   com um anel amarelo por dentro, para aparecer tanto sobre o fundo bege
+   quanto sobre cartão escuro. As cores vêm dos tokens --foco e --foco-anel,
+   que seguem as mesmas condições do tema. */
 :focus-visible {
-  outline: 3px solid var(--color-kambada-amarelo-escuro);
+  outline: 3px solid var(--foco);
   outline-offset: 3px;
+  box-shadow: var(--foco-anel);
   border-radius: 2px;
 }
 
-:root[data-tema="escuro"] :focus-visible,
-:root:not([data-tema="claro"]) :focus-visible {
-  outline-color: var(--color-kambada-amarelo);
+/* Passagem do mouse em link de texto: amarelo-escuro no escuro; no claro,
+   grafite com sublinhado amarelo (amarelo como letra reprova em contraste). */
+.hover-marca:hover {
+  color: var(--hover-texto);
+  text-decoration-line: underline;
+  text-decoration-color: var(--hover-sublinhado);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
 }
 
 @media (prefers-reduced-motion: reduce) {

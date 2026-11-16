@@ -356,15 +356,15 @@ export default async function PaginaProduto({ params }: Props) {
               <ul className="mt-8 space-y-2 border-t border-borda pt-6 text-sm leading-relaxed text-texto-suave">
                 {ehPintadaAMao(produto) && (
                   <li className="rounded-xl bg-superficie px-4 py-3 font-medium text-texto">
-                    🎨 {textoDeProducao(produto)}
+                    <span aria-hidden="true">🎨</span> {textoDeProducao(produto)}
                   </li>
                 )}
-                <li>📦 {TEXTO_POSTAGEM}.</li>
-                <li>🚚 Frete grátis a partir de {formatarReais(FRETE_GRATIS_A_PARTIR_DE)} na entrega mais barata.</li>
-                <li>📍 Retirada grátis no ateliê, em São Luís.</li>
-                <li>💳 {TEXTO_REGRA_PARCELAS}</li>
+                <li><span aria-hidden="true">📦</span> {TEXTO_POSTAGEM}.</li>
+                <li><span aria-hidden="true">🚚</span> Frete grátis a partir de {formatarReais(FRETE_GRATIS_A_PARTIR_DE)} na entrega mais barata.</li>
+                <li><span aria-hidden="true">📍</span> Retirada grátis no ateliê, em São Luís.</li>
+                <li><span aria-hidden="true">💳</span> {TEXTO_REGRA_PARCELAS}</li>
                 <li>
-                  ↩️ Trocas e devoluções pelo Código de Defesa do Consumidor —{" "}
+                  <span aria-hidden="true">↩️</span> Trocas e devoluções pelo Código de Defesa do Consumidor —{" "}
                   <Link href="/trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">
                     veja como
                   </Link>

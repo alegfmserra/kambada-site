@@ -12,11 +12,12 @@ export default function GuiaDeTamanhos({ tabela }: { tabela: TabelaDeMedidas }) 
       </summary>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full text-sm">
+          <caption className="sr-only">Medidas por tamanho · {tabela.titulo}</caption>
           <thead>
             <tr className="text-left text-xs uppercase text-texto-tenue">
-              <th className="py-1.5 pr-3 font-semibold">Tamanho</th>
+              <th scope="col" className="py-1.5 pr-3 font-semibold">Tamanho</th>
               {tabela.colunas.map((c) => (
-                <th key={c} className="py-1.5 pr-3 font-semibold">
+                <th key={c} scope="col" className="py-1.5 pr-3 font-semibold">
                   {c}
                 </th>
               ))}
@@ -25,7 +26,7 @@ export default function GuiaDeTamanhos({ tabela }: { tabela: TabelaDeMedidas }) 
           <tbody>
             {tabela.linhas.map((l) => (
               <tr key={l.tamanho} className="border-t border-borda">
-                <td className="py-1.5 pr-3 font-display font-bold">{l.tamanho}</td>
+                <th scope="row" className="py-1.5 pr-3 text-left font-display font-bold">{l.tamanho}</th>
                 {l.valores.map((v, i) => (
                   <td key={i} className="py-1.5 pr-3 whitespace-nowrap">
                     {v}

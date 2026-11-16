@@ -121,9 +121,10 @@ export default function Sobre() {
                 <p className="mt-3 text-texto-suave">{numero.rotulo}</p>
               </div>
             ))}
+            {/* Convite secundário; o principal, para a loja, fecha a página. */}
             <Link
               href="/cultura"
-              className="block rounded-2xl bg-kambada-amarelo p-8 font-display text-lg font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+              className="block rounded-2xl border-2 border-borda-campo p-8 font-display text-lg font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro"
             >
               Conheça a nossa Cultura →
             </Link>
@@ -197,6 +198,14 @@ export default function Sobre() {
               </li>
             ))}
           </ul>
+          <p className="mt-12 text-center">
+            <Link
+              href="/loja"
+              className="inline-block rounded-full bg-kambada-amarelo px-10 py-4 font-display text-lg font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+            >
+              Ver a loja →
+            </Link>
+          </p>
         </div>
       </section>
     </>

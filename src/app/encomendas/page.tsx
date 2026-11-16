@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { og } from "@/lib/seo/og";
 import { EMAILS, ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
 
@@ -50,26 +51,43 @@ export default function Encomendas() {
             material e quantidade a gente define junto, no WhatsApp.
           </p>
 
-          <a
-            href={linkWhatsApp(
-              "Olá! Quero fazer uma encomenda corporativa para o meu evento.",
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-10 inline-flex items-center gap-3 rounded-2xl bg-kambada-amarelo px-8 py-5 font-display text-lg font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
+          {/* Dois pedidos diferentes, duas conversas: as regras de cada um estão logo abaixo. */}
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <LinkWhatsApp
+              origem="encomendas-1-peca"
+              href={linkWhatsApp("Olá! Quero 1 peça pintada à mão (matraca ou placa de madeira) com nome ou frase.")}
+              className="inline-flex items-center gap-3 rounded-2xl bg-kambada-amarelo px-6 py-4 font-display text-lg font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
             >
-              <path d="M12.04 2C6.6 2 2.17 6.43 2.17 11.87c0 1.74.46 3.44 1.32 4.94L2 22l5.33-1.4a9.83 9.83 0 0 0 4.71 1.2h.01c5.43 0 9.86-4.43 9.86-9.87A9.8 9.8 0 0 0 19.02 4.9 9.8 9.8 0 0 0 12.04 2zm0 18.05h-.01a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.1.81.83-3.02-.2-.31a8.15 8.15 0 0 1-1.25-4.34c0-4.52 3.68-8.2 8.2-8.2a8.15 8.15 0 0 1 5.8 2.4 8.15 8.15 0 0 1 2.4 5.8c0 4.53-3.68 8.2-8.2 8.2z" />
-              <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.07-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.07-.79.38-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35z" />
-            </svg>
-            Fazer minha encomenda
-          </a>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12.04 2C6.6 2 2.17 6.43 2.17 11.87c0 1.74.46 3.44 1.32 4.94L2 22l5.33-1.4a9.83 9.83 0 0 0 4.71 1.2h.01c5.43 0 9.86-4.43 9.86-9.87A9.8 9.8 0 0 0 19.02 4.9 9.8 9.8 0 0 0 12.04 2zm0 18.05h-.01a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.1.81.83-3.02-.2-.31a8.15 8.15 0 0 1-1.25-4.34c0-4.52 3.68-8.2 8.2-8.2a8.15 8.15 0 0 1 5.8 2.4 8.15 8.15 0 0 1 2.4 5.8c0 4.53-3.68 8.2-8.2 8.2z" />
+                <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.07-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.07-.79.38-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35z" />
+              </svg>
+              Quero 1 peça com nome ou frase
+            </LinkWhatsApp>
+            <LinkWhatsApp
+              origem="encomendas-empresa-evento"
+              href={linkWhatsApp("Olá! Quero fazer uma encomenda para empresa ou evento, com 20 unidades ou mais.")}
+              className="inline-flex items-center gap-3 rounded-2xl border-2 border-borda-campo px-6 py-4 font-display text-lg font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12.04 2C6.6 2 2.17 6.43 2.17 11.87c0 1.74.46 3.44 1.32 4.94L2 22l5.33-1.4a9.83 9.83 0 0 0 4.71 1.2h.01c5.43 0 9.86-4.43 9.86-9.87A9.8 9.8 0 0 0 19.02 4.9 9.8 9.8 0 0 0 12.04 2zm0 18.05h-.01a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.1.81.83-3.02-.2-.31a8.15 8.15 0 0 1-1.25-4.34c0-4.52 3.68-8.2 8.2-8.2a8.15 8.15 0 0 1 5.8 2.4 8.15 8.15 0 0 1 2.4 5.8c0 4.53-3.68 8.2-8.2 8.2z" />
+                <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.07-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.07-.79.38-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35z" />
+              </svg>
+              Quero para empresa ou evento (20 ou mais)
+            </LinkWhatsApp>
+          </div>
           <p className="mt-5 text-sm text-texto-suave">
             Prefere e-mail?{" "}
             <a href={`mailto:${EMAILS.encomendas}`} className="break-all font-semibold text-texto underline underline-offset-4">
@@ -84,7 +102,7 @@ export default function Encomendas() {
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
-            Como funciona a personalização
+            Regras de quantidade
           </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             <div className="rounded-2xl border border-borda bg-superficie p-6">
@@ -144,18 +162,18 @@ export default function Encomendas() {
               </p>
             </div>
           </div>
+          <p className="mt-6 max-w-2xl leading-relaxed text-texto-suave">
+            Mais pedidos: chaveiro, bloquinho, lápis plantável, caneta e kit
+            ecológico.
+          </p>
         </div>
       </section>
 
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
-            Como funciona
+            Passo a passo
           </h2>
-          <p className="mt-4 max-w-2xl leading-relaxed text-texto-suave">
-            Mais pedidos: chaveiro, bloquinho, lápis plantável, caneta e kit
-            ecológico.
-          </p>
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {PASSOS_ENCOMENDA.map((passo, i) => (
               <li key={passo.titulo} className="rounded-2xl border border-borda bg-superficie p-5">

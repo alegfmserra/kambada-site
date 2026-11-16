@@ -55,7 +55,7 @@ export function PerfilHud() {
   const feitas = perfil.diarias.filter((d) => d.feita).length;
 
   return (
-    <div className="absolute left-4 top-[6.75rem] z-20 w-56 font-body text-kambada-cream">
+    <div className="absolute left-4 top-[7.5rem] z-20 w-56 font-body text-kambada-cream">
       <button
         type="button"
         onClick={() => setAberto((a) => !a)}
@@ -63,7 +63,7 @@ export function PerfilHud() {
         aria-label={`Nível ${perfil.nivel}, ${perfil.titulo}. ${perfil.xpDoNivel ? `${perfil.xpNoNivel} de ${perfil.xpDoNivel} XP.` : "Nível máximo."} Missões do dia: ${feitas} de ${perfil.diarias.length}. Abrir detalhes.`}
         className="w-full rounded-xl bg-kambada-noite/80 px-3 py-2 text-left backdrop-blur-sm"
       >
-        <span className="flex items-center justify-between text-[12px] font-bold">
+        <span className="flex items-center justify-between gap-2 text-sm font-bold">
           <span>
             Nível {perfil.nivel} · {perfil.titulo}
           </span>
@@ -72,13 +72,13 @@ export function PerfilHud() {
         <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-kambada-cream/20" aria-hidden>
           <span className="block h-full rounded-full bg-kambada-gold transition-all duration-500" style={{ width: `${pct}%` }} />
         </span>
-        <span className="mt-1 block text-[10px] text-kambada-cream/70">
+        <span className="mt-1 block text-xs text-kambada-cream/80">
           {perfil.xpDoNivel ? `${perfil.xpNoNivel}/${perfil.xpDoNivel} XP para o nível ${perfil.nivel + 1}` : "Nível máximo"} · missões do dia {feitas}/{perfil.diarias.length}
         </span>
       </button>
 
       {aberto ? (
-        <div className="mt-1 rounded-xl bg-kambada-noite/90 p-3 text-[12px] backdrop-blur-sm">
+        <div className="mt-1 rounded-xl bg-kambada-noite/90 p-3 text-sm backdrop-blur-sm">
           <p className="font-bold text-kambada-gold">Missões do dia</p>
           <ul className="mt-1 space-y-1.5">
             {perfil.diarias.map((d) => (
@@ -104,14 +104,14 @@ export function PerfilHud() {
       <button
         type="button"
         onClick={() => setColecao(true)}
-        className="mt-1 w-full rounded-xl bg-kambada-noite/80 px-3 py-1.5 text-left text-[12px] font-bold backdrop-blur-sm"
+        className="mt-1 min-h-11 w-full rounded-xl bg-kambada-noite/80 px-3 py-1.5 text-left text-sm font-bold backdrop-blur-sm"
       >
         🎒 Meu brincante{perfil.bauPronto ? " · 🎁 baú do dia pronto!" : ""}
       </button>
       {colecao ? <Colecao perfil={perfil} aoFechar={() => setColecao(false)} /> : null}
 
       {aviso ? (
-        <p role="status" className="mt-1 rounded-xl bg-kambada-gold px-3 py-1.5 text-[12px] font-bold text-kambada-ink shadow-xl">
+        <p role="status" className="mt-1 rounded-xl bg-kambada-gold px-3 py-1.5 text-sm font-bold text-kambada-ink shadow-xl">
           {aviso}
         </p>
       ) : null}

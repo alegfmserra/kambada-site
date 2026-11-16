@@ -78,12 +78,12 @@ export function MapaDaFesta({
           </h2>
           <button
             onClick={onFechar}
-            className="toque-matraca rounded-full px-3 py-2 font-body text-xs font-semibold text-kambada-cream/85 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
+            className="toque-matraca min-h-11 rounded-full px-4 py-2 font-body text-sm font-semibold text-kambada-cream/85 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
           >
             {textos.mapaFechar}
           </button>
         </div>
-        <p className="mb-3 font-body text-[13px] leading-snug text-kambada-cream/75">
+        <p className="mb-3 font-body text-sm leading-snug text-kambada-cream/80">
           {textos.mapaInstrucao}
         </p>
         <ul className="max-h-[52vh] space-y-1.5 overflow-y-auto pr-1">
@@ -108,11 +108,11 @@ export function MapaDaFesta({
                       <span className="block font-body text-sm font-bold">
                         {l.nome}
                       </span>
-                      <span className="block truncate font-body text-xs text-kambada-cream/70">
+                      <span className="block truncate font-body text-sm text-kambada-cream/75">
                         {l.resumo}
                       </span>
                     </span>
-                    <span className="shrink-0 rounded-full bg-kambada-cream/10 px-2 py-0.5 font-body text-[10px] font-semibold uppercase tracking-wide text-kambada-cream/70">
+                    <span className="shrink-0 rounded-full bg-kambada-cream/10 px-2 py-0.5 font-body text-xs font-semibold uppercase tracking-wide text-kambada-cream/80">
                       {ROTULO_TIPO[l.tipo]}
                     </span>
                   </button>

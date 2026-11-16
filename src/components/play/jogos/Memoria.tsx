@@ -232,7 +232,8 @@ export function Memoria() {
           setErrosSeguidos(erros);
         }
         travado.current = false;
-      }, 900);
+        // No fácil (crianças menores) as duas cartas ficam à vista por mais tempo antes de virar de volta.
+      }, nivel === "facil" ? 1500 : 900);
     }
   }
 

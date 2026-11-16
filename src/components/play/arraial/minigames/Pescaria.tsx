@@ -190,7 +190,7 @@ export function Pescaria({ touch, onVitoria, onFechar }: PescariaProps) {
         <div className="flex items-center justify-between">
           <p className="font-display text-lg font-black text-kambada-blue">{t.titulo}</p>
           {resultado === "jogando" && (
-            <p className="font-body text-xs font-semibold text-kambada-cream/80">
+            <p className="font-body text-sm font-semibold text-kambada-cream/80">
               {t.tentativas(tentativas)}
             </p>
           )}
@@ -198,7 +198,7 @@ export function Pescaria({ touch, onVitoria, onFechar }: PescariaProps) {
 
         {resultado === "jogando" && (
           <>
-            <p className="mt-1 font-body text-[13px] leading-snug text-kambada-cream/80">
+            <p className="mt-1 font-body text-sm leading-snug text-kambada-cream/80">
               {touch ? t.instrucaoTouch : t.instrucaoDesktop}
             </p>
 
@@ -244,7 +244,7 @@ export function Pescaria({ touch, onVitoria, onFechar }: PescariaProps) {
             </div>
 
             {mensagemErro && (
-              <p role="status" className="mt-2 font-body text-xs font-semibold text-kambada-cream/70">
+              <p role="status" className="mt-2 font-body text-sm font-semibold text-kambada-cream/80">
                 {t.erro}
               </p>
             )}

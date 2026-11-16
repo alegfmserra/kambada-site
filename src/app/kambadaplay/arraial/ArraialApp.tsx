@@ -343,7 +343,7 @@ export default function ArraialApp() {
           touch ? textos.mapaBotao : `${textos.mapaBotao}. Atalho: tecla M`
         }
         data-botao-mapa
-        className="toque-matraca absolute left-4 top-16 z-20 flex items-center gap-2 rounded-full bg-kambada-noite/85 px-3.5 py-2 font-body text-xs font-semibold text-kambada-cream backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
+        className="toque-matraca absolute left-4 top-16 z-20 flex min-h-11 items-center gap-2 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-sm font-semibold text-kambada-cream backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
       >
         <svg
           aria-hidden
@@ -385,7 +385,7 @@ export default function ArraialApp() {
             <path d="M19.5 8 23 4.8v6.4L19.5 8Z" />
             <circle cx="7.2" cy="7.2" r="0.4" fill="currentColor" />
           </svg>
-          <span className="font-body text-[11px] font-semibold text-kambada-cream">
+          <span className="font-body text-sm font-semibold text-kambada-cream">
             {textosPescaria.seloNome}
           </span>
         </div>
@@ -396,7 +396,7 @@ export default function ArraialApp() {
       <div className="pointer-events-none absolute inset-x-0 bottom-36 z-10 flex justify-center px-6 sm:bottom-16">
         <p
           aria-hidden={jaAndou}
-          className={`hint-arraial rounded-full bg-kambada-noite/80 px-4 py-1.5 text-center font-body text-[13px] text-kambada-cream/90 backdrop-blur-sm ${
+          className={`hint-arraial rounded-full bg-kambada-noite/80 px-4 py-1.5 text-center font-body text-sm text-kambada-cream/90 backdrop-blur-sm ${
             jaAndou ? "opacity-0" : "opacity-100"
           }`}
         >
@@ -405,7 +405,7 @@ export default function ArraialApp() {
       </div>
       <Link
         href="/kambadaplay"
-        className="toque-matraca pointer-events-auto absolute bottom-24 right-4 z-20 sm:bottom-4 sm:right-24 rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-xs font-semibold text-kambada-cream/90 backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
+        className="toque-matraca pointer-events-auto absolute bottom-24 right-4 z-20 sm:bottom-4 sm:right-24 inline-flex min-h-11 items-center rounded-full bg-kambada-noite/85 px-4 py-2 font-body text-sm font-semibold text-kambada-cream/90 backdrop-blur-sm transition-colors hover:bg-kambada-noite/95 hover:text-kambada-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
       >
         ← Kambada Play
       </Link>
@@ -473,7 +473,7 @@ export default function ArraialApp() {
       )}
       {avisoMissao && !dialogo && !desafio && (
         <div className="pointer-events-none absolute inset-x-0 top-28 z-20 flex justify-center px-6">
-          <p role="status" className="rounded-full bg-kambada-gold px-4 py-1.5 text-center font-body text-[13px] font-bold text-kambada-ink shadow-xl">
+          <p role="status" className="rounded-full bg-kambada-gold px-4 py-1.5 text-center font-body text-sm font-bold text-kambada-ink shadow-xl">
             {avisoMissao}
           </p>
         </div>

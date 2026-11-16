@@ -71,11 +71,11 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-base font-bold text-kambada-gold">Meu brincante</h2>
-            <p className="text-[12px] text-kambada-cream/70">
+            <p className="text-sm text-kambada-cream/70">
               Nível {perfil.nivel} · {perfil.titulo} · {tens}/{perfil.colecao.length} itens
             </p>
           </div>
-          <button ref={fechar} type="button" onClick={aoFechar} className="rounded-lg bg-kambada-cream/10 px-3 py-1 text-[12px] font-bold">
+          <button ref={fechar} type="button" onClick={aoFechar} className="min-h-11 rounded-lg bg-kambada-cream/10 px-4 text-sm font-bold">
             Fechar
           </button>
         </div>
@@ -84,17 +84,17 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
           type="button"
           onClick={abrirBau}
           disabled={!perfil.bauPronto || ocupado}
-          className="mt-3 w-full rounded-xl bg-kambada-gold px-3 py-2 text-[13px] font-bold text-kambada-ink disabled:bg-kambada-cream/15 disabled:text-kambada-cream/60"
+          className="mt-3 w-full rounded-xl bg-kambada-gold px-3 py-2 text-sm font-bold text-kambada-ink disabled:bg-kambada-cream/15 disabled:text-kambada-cream/60"
         >
           {perfil.bauPronto ? "🎁 Abrir o baú do dia" : "🎁 Baú de hoje já aberto — volte amanhã"}
         </button>
         {msg ? (
-          <p role="status" className="mt-2 rounded-lg bg-kambada-cream/10 p-2 text-[12px]">
+          <p role="status" className="mt-2 rounded-lg bg-kambada-cream/10 p-2 text-sm">
             {msg}
           </p>
         ) : null}
 
-        <div role="tablist" aria-label="Seções" className="mt-3 flex flex-wrap gap-2 text-[12px] font-bold">
+        <div role="tablist" aria-label="Seções" className="mt-3 flex flex-wrap gap-2 text-sm font-bold">
           {(["missoes", "vestir", "colecao", "amigos", "atividades"] as const).map((a) => (
             <button
               key={a}
@@ -110,7 +110,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
         </div>
 
         {aba === "missoes" ? (
-          <div className="mt-3 space-y-3 text-[12px]">
+          <div className="mt-3 space-y-3 text-sm">
             <section>
               <h3 className="font-bold text-kambada-gold">Em andamento</h3>
               {perfil.recados.ativas.length === 0 ? <p className="mt-1 text-kambada-cream/60">Nenhuma ainda. Fale com os personagens que têm um ! verde.</p> : null}
@@ -146,13 +146,13 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
                 ))}
               </ul>
             </section>
-            <p className="text-[11px] text-kambada-cream/60">Algumas missões têm passos sem seta: só a dica do diário mostra o caminho. {!RECADOS_REVISADOS ? "Falas em revisão com mestres e brincantes." : ""}</p>
+            <p className="text-sm text-kambada-cream/60">Algumas missões têm passos sem seta: só a dica do diário mostra o caminho. {!RECADOS_REVISADOS ? "Falas em revisão com mestres e brincantes." : ""}</p>
           </div>
         ) : aba === "vestir" ? (
           <div className="mt-3 space-y-3">
             {SLOTS.map((slot) => (
               <fieldset key={slot}>
-                <legend className="text-[12px] font-bold text-kambada-gold">{NOME_DO_SLOT[slot]}</legend>
+                <legend className="text-sm font-bold text-kambada-gold">{NOME_DO_SLOT[slot]}</legend>
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {doSlot(slot).map((i) => (
                     <BotaoDeItem key={i.id} item={i} vestido={perfil.visual[slot] === i.id} aoClicar={() => vestir(slot, i.id)} />
@@ -160,12 +160,12 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
                 </div>
               </fieldset>
             ))}
-            <p className="text-[11px] text-kambada-cream/60">Itens novos chegam com o nível, com dias seguidos e no baú do dia.</p>
+            <p className="text-sm text-kambada-cream/60">Itens novos chegam com o nível, com dias seguidos e no baú do dia.</p>
           </div>
         ) : aba === "atividades" ? (
           <ul className="mt-3 space-y-2">
             {MINIS.map((m) => (
-              <li key={m.id} className="rounded-lg bg-kambada-cream/10 p-2 text-[12px]">
+              <li key={m.id} className="rounded-lg bg-kambada-cream/10 p-2 text-sm">
                 <p className="font-bold">
                   {m.nome} {perfil.minisHoje.includes(m.id) ? "✓ XP de hoje ganho" : `· até +${XP_MINI_PERFEITA} XP hoje`}
                 </p>
@@ -175,12 +175,12 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
                 </button>
               </li>
             ))}
-            <li className="text-[11px] text-kambada-cream/60">Cada atividade paga XP uma vez por dia; jogar de novo é só pela brincadeira.</li>
+            <li className="text-sm text-kambada-cream/60">Cada atividade paga XP uma vez por dia; jogar de novo é só pela brincadeira.</li>
           </ul>
         ) : aba === "amigos" ? (
           <ul className="mt-3 space-y-2">
             {perfil.amigos.map((a) => (
-              <li key={a.id} className="rounded-lg bg-kambada-cream/10 p-2 text-[12px]">
+              <li key={a.id} className="rounded-lg bg-kambada-cream/10 p-2 text-sm">
                 <p className="font-bold">
                   {a.nome}{" "}
                   <span aria-label={`${a.coracoes} de 5 corações`} className="text-kambada-gold">
@@ -200,12 +200,12 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
                 {a.fechadas ? <p className="mt-1 text-kambada-cream/50">🔒 {a.fechadas === 1 ? "1 história" : `${a.fechadas} histórias`} para abrir</p> : null}
               </li>
             ))}
-            {!HISTORIAS_REVISADAS ? <li className="text-[11px] text-kambada-cream/60">Histórias em revisão com mestres e brincantes: algumas palavras ainda podem mudar.</li> : null}
+            {!HISTORIAS_REVISADAS ? <li className="text-sm text-kambada-cream/60">Histórias em revisão com mestres e brincantes: algumas palavras ainda podem mudar.</li> : null}
           </ul>
         ) : (
           <ul className="mt-3 space-y-2">
             {[...colecionaveis, ...perfil.colecao.filter((i) => i.slot)].map((i) => (
-              <li key={i.id} className={`rounded-lg p-2 text-[12px] ${i.tem ? "bg-kambada-cream/10" : "bg-kambada-cream/5 text-kambada-cream/50"}`}>
+              <li key={i.id} className={`rounded-lg p-2 text-sm ${i.tem ? "bg-kambada-cream/10" : "bg-kambada-cream/5 text-kambada-cream/50"}`}>
                 <p className="font-bold">
                   {i.tem ? "✓ " : "🔒 "}
                   {i.nome}
@@ -214,7 +214,7 @@ export function Colecao({ perfil, aoFechar }: { perfil: PerfilPublico; aoFechar:
                 {i.tem ? <p className="mt-0.5 text-kambada-cream/80">{i.ficha}</p> : null}
               </li>
             ))}
-            {!FICHAS_REVISADAS ? <li className="text-[11px] text-kambada-cream/60">Fichas em revisão com mestres e brincantes: algumas palavras ainda podem mudar.</li> : null}
+            {!FICHAS_REVISADAS ? <li className="text-sm text-kambada-cream/60">Fichas em revisão com mestres e brincantes: algumas palavras ainda podem mudar.</li> : null}
           </ul>
         )}
       </div>
@@ -231,7 +231,7 @@ function BotaoDeItem({ item, vestido, aoClicar }: { item: ItemPublico; vestido: 
       aria-pressed={vestido}
       onClick={aoClicar}
       title={item.tem ? item.ficha : `Desbloqueia em: ${item.requisito}`}
-      className={`rounded-lg px-2.5 py-1.5 text-[12px] ${
+      className={`rounded-lg px-2.5 py-1.5 text-sm ${
         vestido ? "bg-kambada-gold font-bold text-kambada-ink" : item.tem ? "bg-kambada-cream/15" : "bg-kambada-cream/5 text-kambada-cream/50"
       }`}
     >

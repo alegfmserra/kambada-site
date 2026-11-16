@@ -77,9 +77,14 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
       return;
     }
     evento("sign_up", { method: "email" });
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- navegação completa: o cookie novo precisa passar pelo porteiro
+    // A conta nova passa primeiro pela "Minha conta", que dá as boas-vindas e avisa do
+    // e-mail de confirmação. O destino pedido (`de`, já validado no servidor por
+    // destinoSeguro) vai junto e vira o botão "Continuar" de lá, para ninguém ficar
+    // parado na conta depois de se cadastrar para jogar.
     const conta = de.startsWith("/conta") ? "/conta" : "/kambadaplay/conta";
-    window.location.assign(`${conta}?bemvindo=1${r.emailEnviado ? "" : "&semEmail=1"}`);
+    const continuar = de.startsWith("/kambadaplay") ? `&de=${encodeURIComponent(de)}` : "";
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- navegação completa: o cookie novo precisa passar pelo porteiro
+    window.location.assign(`${conta}?bemvindo=1${r.emailEnviado ? "" : "&semEmail=1"}${continuar}`);
   }
 
   async function esqueci(e: React.FormEvent) {

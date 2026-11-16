@@ -20,10 +20,13 @@ export function MinhaConta({
   bemvindo,
   semEmail,
   senhaTrocada,
+  continuar,
 }: {
   bemvindo: boolean;
   semEmail: boolean;
   senhaTrocada: boolean;
+  /** Conta recém-criada: para onde a pessoa ia (endereço de dentro do Play, já validado na página). */
+  continuar?: string;
 }) {
   const [conta, setConta] = useState<Conta | null | undefined>(undefined);
   const [demonstracao, setDemonstracao] = useState(false);
@@ -112,6 +115,14 @@ export function MinhaConta({
             ? "Não conseguimos mandar o e-mail de confirmação agora; você pode pedir de novo abaixo."
             : "Mandamos um e-mail para confirmar seu endereço. Confirme para seus pontos valerem cupom."}
         </p>
+      ) : null}
+      {bemvindo && continuar ? (
+        <a
+          href={continuar}
+          className="block rounded-full bg-kambada-amarelo px-8 py-4 text-center text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+        >
+          {continuar === "/kambadaplay" ? "Ir para o Kambada Play" : "Continuar para o jogo"}
+        </a>
       ) : null}
       {senhaTrocada ? (
         <p role="status" className="rounded-xl border-2 border-kambada-amarelo bg-kambada-amarelo/15 p-4 text-texto">

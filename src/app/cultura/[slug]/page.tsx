@@ -41,6 +41,9 @@ export async function generateMetadata({
     alternates: { canonical: `/cultura/${artigo.slug}` },
     openGraph: {
       type: "article",
+      url: `/cultura/${artigo.slug}`,
+      siteName: SITE.nomeCompleto,
+      locale: "pt_BR",
       title: artigo.titulo,
       description: artigo.descricaoSeo ?? artigo.resumo,
       publishedTime: artigo.data,

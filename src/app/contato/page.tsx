@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { og } from "@/lib/seo/og";
 import { EMAILS, REDES, SITE, linkWhatsApp } from "@/lib/site";
 
 /**
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
   description:
     "Se achega: fale com a Kambada pelo WhatsApp ou pelas nossas redes. Atendimento direto com quem faz a marca.",
   alternates: { canonical: "/contato" },
+  openGraph: og("/contato"),
 };
 
 export default function Contato() {

@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { og } from "@/lib/seo/og";
 import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import FaixaBeneficios from "@/components/FaixaBeneficios";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
 import SeloNotaDoSite from "@/components/loja/SeloNotaDoSite";
 import { buscarCatalogo } from "@/lib/bling/produtos";
-import { linkWhatsApp } from "@/lib/site";
+import { linkWhatsApp, SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Loja",
+  title: "Loja: camisas, matracas e arte maranhense",
   description:
     "Camisas, matracas, ecobags, bonés, pareôs e papelaria feitos à mão em São Luís. Pix, cartão em até 3x e frete grátis a partir de R$ 250.",
   alternates: { canonical: "/loja" },
+  openGraph: og("/loja"),
 };
 
 export const revalidate = 600;
@@ -34,8 +36,37 @@ export default async function Loja() {
     return { mostrados: ordenada.slice(0, DESTAQUES), total: lista.length };
   };
 
+  // Para o Google: onde a loja fica no site e quais categorias ela tem.
+  const dadosEstruturados = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Início", item: SITE.url },
+          { "@type": "ListItem", position: 2, name: "Loja", item: `${SITE.url}/loja` },
+        ],
+      },
+      {
+        "@type": "ItemList",
+        name: "Categorias da loja",
+        numberOfItems: categorias.length,
+        itemListElement: categorias.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: c.nome,
+          url: `${SITE.url}/loja/${c.slug}`,
+        })),
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados).replace(/</g, "\\u003c") }}
+      />
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <h1 className="font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">

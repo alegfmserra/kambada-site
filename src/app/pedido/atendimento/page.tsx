@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Reclamação, troca ou devolução",
   description: "Fale com a Kambada sobre um pedido: entrega, reclamação, troca, defeito ou devolução.",
   alternates: { canonical: "/pedido/atendimento" },
+  // Formulário de pós-venda: não é página de busca. O robots.txt deixou de
+  // bloquear /pedido (15/11/2026), então o "noindex" fica aqui.
+  robots: { index: false, follow: false },
 };
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };

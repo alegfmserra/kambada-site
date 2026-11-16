@@ -172,7 +172,8 @@ test("o menu superior leva a cada categoria da loja", async ({
 
   await submenu.getByRole("link", { name: "Matracas" }).click();
   await expect(page).toHaveURL(/\/loja\/matracas$/);
-  await expect(page.locator("h1")).toHaveText("Matracas");
+  // O h1 da categoria passou a ser o título de busca dela (15/11/2026).
+  await expect(page.locator("h1")).toContainText("Matracas");
 });
 
 test("cada página de categoria abre e lista produtos", async ({

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import FaixaBeneficios from "@/components/FaixaBeneficios";
@@ -5,7 +6,14 @@ import LinkPlayHome from "@/components/LinkPlayHome";
 import { ARTIGOS } from "@/lib/artigos";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { FOTOS } from "@/lib/fotos";
+import { og } from "@/lib/seo/og";
 import { REDES, SITE, WHATSAPP } from "@/lib/site";
+
+// Título e descrição são os do layout raiz; aqui só o endereço próprio da home.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: og("/"),
+};
 
 /** Quem somos para o Google (organização e site), só na home. Sem endereço: o ateliê não tem endereço público. */
 const DADOS_ESTRUTURADOS = {

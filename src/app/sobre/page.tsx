@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { og } from "@/lib/seo/og";
 import { FOTOS, GALERIA_SOBRE } from "@/lib/fotos";
 
 /**
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   description:
     "A Kambada nasceu de uma brincadeira em família e do Arraial da Cambada na Roça. Conheça a história da marca maranhense que veste cultura.",
   alternates: { canonical: "/sobre" },
+  openGraph: og("/sobre"),
 };
 
 const NUMEROS = [

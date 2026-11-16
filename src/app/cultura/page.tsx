@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { og } from "@/lib/seo/og";
 import Image from "next/image";
 import Link from "next/link";
 import { ARTIGOS, dataPorExtenso } from "@/lib/artigos";
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Histórias, tradições e o Maranhão do jeito Kambada: Tambor de Crioula, capoeira, Bumba Meu Boi, reggae e o que fazer em São Luís.",
   alternates: { canonical: "/cultura" },
+  openGraph: og("/cultura"),
 };
 
 export default function Cultura() {

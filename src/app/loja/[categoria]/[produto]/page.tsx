@@ -64,11 +64,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // estouravam o limite (1.874 caracteres em 02/11/2026); entram só as que couberem.
   const baseDescricao = `${produto.nome} — ${precoExibido(produto)}. Peça da Kambada, de São Luís do Maranhão.`;
   const comVariacoes = `${baseDescricao} ${produto.variacoes.slice(0, 3).join(", ")}.`;
-  const descricao = produto.variacoes.length && comVariacoes.length <= 155 ? comVariacoes : baseDescricao;
+  const semTextoProprio = produto.variacoes.length && comVariacoes.length <= 155 ? comVariacoes : baseDescricao;
+  // Com texto próprio da peça (a descrição curta do Bling), é ele que vai para o
+  // Google: o começo, cortado em palavra inteira, mais o preço.
+  const inicio = inicioDoTexto(produto.descricao ?? "", 150);
+  const descricao = inicio ? `${inicio} ${precoExibido(produto)}.` : semTextoProprio;
   const foto = fotoDoProduto(produto);
+  // "Nome — Categoria" quando couber no resultado de busca (o layout ainda soma "| Somos Kambada").
+  const comCategoria = categoria ? `${produto.nome} — ${categoria.nome}` : produto.nome;
 
   return {
-    title: produto.nome,
+    title: comCategoria.length <= 48 ? comCategoria : produto.nome,
     description: descricao,
     alternates: { canonical: `/loja/${catSlug}/${prodSlug}` },
     // Produto de teste: abre pelo link, mas não vai para o Google.
@@ -79,14 +85,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       url: `/loja/${catSlug}/${prodSlug}`,
       siteName: SITE.nomeCompleto,
+      locale: "pt_BR",
       // A foto da peça no link compartilhado (WhatsApp, Instagram). Sem foto,
       // vai a logo — antes o link saía sem imagem nenhuma.
       images: foto
         ? [{ url: foto.src, width: foto.largura, height: foto.altura, alt: produto.nome }]
         : [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: SITE.nomeCompleto }],
     },
-    other: categoria ? { "product:category": categoria.nome } : undefined,
+    other: {
+      ...(categoria ? { "product:category": categoria.nome } : {}),
+      // Preço da peça para quem lê Open Graph de produto (catálogos e redes): o menor, em reais.
+      "product:price:amount": produto.preco.toFixed(2),
+      "product:price:currency": "BRL",
+    },
   };
+}
+
+/** Começo de um texto, sem quebra de linha, cortado em palavra inteira até `max` caracteres. */
+function inicioDoTexto(texto: string, max: number): string {
+  const limpo = texto.replace(/\s+/g, " ").trim();
+  if (!limpo) return "";
+  if (limpo.length <= max) return /[.!?…]$/.test(limpo) ? limpo : `${limpo}.`;
+  const corte = limpo.slice(0, max + 1);
+  const ate = corte.lastIndexOf(" ");
+  return `${corte.slice(0, ate > 0 ? ate : max).replace(/[\s,;:.\-–—]+$/, "")}…`;
 }
 
 export default async function PaginaProduto({ params }: Props) {
@@ -139,35 +161,63 @@ export default async function PaginaProduto({ params }: Props) {
    * faz a peça aparecer com preço e disponibilidade no resultado de busca.
    */
   const descricaoDaPagina = `${produto.nome}, peça da Kambada, de São Luís do Maranhão.`;
-  const dadosEstruturados = {
-    "@context": "https://schema.org",
+  const urlDaPeca = `${SITE.url}/loja/${catSlug}/${prodSlug}`;
+  const disponibilidadeSchema = produto.sobEncomenda
+    ? "https://schema.org/BackOrder"
+    : estoque.disponivel
+      ? "https://schema.org/InStock"
+      : "https://schema.org/OutOfStock";
+  // Desistência em 7 dias (CDC art. 49), como em /trocas-e-devolucoes.
+  const politicaDeDevolucao = {
+    "@type": "MerchantReturnPolicy",
+    applicableCountry: "BR",
+    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+    merchantReturnDays: 7,
+    merchantReturnLink: `${SITE.url}/trocas-e-devolucoes`,
+  };
+  const migalhas = {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE.url },
+      { "@type": "ListItem", position: 2, name: "Loja", item: `${SITE.url}/loja` },
+      { "@type": "ListItem", position: 3, name: categoria.nome, item: `${SITE.url}/loja/${categoria.slug}` },
+      { "@type": "ListItem", position: 4, name: produto.nome, item: urlDaPeca },
+    ],
+  };
+  const peca = {
     "@type": "Product",
     name: produto.nome,
+    url: urlDaPeca,
+    // Sem código próprio no catálogo do site: o identificador é o do produto no ERP.
+    ...(produto.idBling ? { sku: String(produto.idBling) } : {}),
     category: categoria.nome,
     // O Google exige descrição; sem texto próprio do produto, cai na da página.
     description: produto.descricao?.trim() || descricaoDaPagina,
     brand: { "@type": "Brand", name: SITE.nome },
     ...(foto ? { image: `${SITE.url}${foto.src}` } : {}),
-    offers: {
-      "@type": "Offer",
-      price: produto.preco,
-      priceCurrency: "BRL",
-      // "MadeToOrder" não existe na lista do Google (aviso do Search Console,
-      // 26/10): peça sob encomenda vai como BackOrder.
-      availability: produto.sobEncomenda
-        ? "https://schema.org/BackOrder"
-        : estoque.disponivel
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-      // Desistência em 7 dias (CDC art. 49), como em /trocas-e-devolucoes.
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "BR",
-        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7,
-        merchantReturnLink: `${SITE.url}/trocas-e-devolucoes`,
-      },
-    },
+    // "MadeToOrder" não existe na lista do Google (aviso do Search Console,
+    // 26/10): peça sob encomenda vai como BackOrder.
+    // Peça com faixa de preço (opções de valores diferentes) vai como
+    // AggregateOffer, com o menor e o maior; preço único, como Offer.
+    offers: temFaixa
+      ? {
+          "@type": "AggregateOffer",
+          lowPrice: produto.preco,
+          highPrice: produto.precoMaximo,
+          offerCount: produto.opcoes?.length || produto.variacoes.length || 1,
+          priceCurrency: "BRL",
+          url: urlDaPeca,
+          availability: disponibilidadeSchema,
+          hasMerchantReturnPolicy: politicaDeDevolucao,
+        }
+      : {
+          "@type": "Offer",
+          price: produto.preco,
+          priceCurrency: "BRL",
+          url: urlDaPeca,
+          availability: disponibilidadeSchema,
+          hasMerchantReturnPolicy: politicaDeDevolucao,
+        },
     // Só avaliação de peça, de compra verificada, aprovada e autorizada —
     // a nota do SITE (selo) nunca entra aqui.
     ...(avaliacoes.media !== null
@@ -183,13 +233,15 @@ export default async function PaginaProduto({ params }: Props) {
         }
       : {}),
   };
+  const dadosEstruturados = { "@context": "https://schema.org", "@graph": [migalhas, peca] };
 
   return (
     <>
       <script
         type="application/ld+json"
-        // O conteúdo é nosso, montado acima — não vem de entrada de usuário.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados) }}
+        // Nome, descrição e avaliação vêm de fora (Bling e clientes): "<" vai
+        // escapado para o texto nunca fechar a tag do script.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados).replace(/</g, "\\u003c") }}
       />
 
       <section className="border-b border-borda">

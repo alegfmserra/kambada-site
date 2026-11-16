@@ -6,6 +6,7 @@ import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { CATEGORIAS, categoriaPorSlug } from "@/lib/catalogo";
+import { og } from "@/lib/seo/og";
 import { linkWhatsApp, SITE } from "@/lib/site";
 
 /** Tipado à mão: PageProps só existe depois do build. */
@@ -31,6 +32,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: seo?.titulo ?? categoria.nome,
     description: seo?.descricao ?? categoria.chamada,
     alternates: { canonical: `/loja/${categoria.slug}` },
+    openGraph: og(
+      `/loja/${categoria.slug}`,
+      categoria.foto
+        ? { images: [{ url: categoria.foto.arquivo, width: categoria.foto.largura, height: categoria.foto.altura, alt: categoria.foto.alt }] }
+        : {},
+    ),
   };
 }
 
@@ -134,7 +141,7 @@ export default async function Categoria({ params }: Props) {
             ← Toda a loja
           </Link>
           <h1 className="mt-6 font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
-            {categoria.nome}
+            {SEO_CATEGORIA[categoria.slug]?.titulo ?? categoria.nome}
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-texto-suave">
             {categoria.chamada}

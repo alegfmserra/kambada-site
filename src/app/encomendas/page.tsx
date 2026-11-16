@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { og } from "@/lib/seo/og";
 import { EMAILS, ENCOMENDAS_PORTFOLIO, linkWhatsApp } from "@/lib/site";
 
 /**
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
   description:
     "Leve a Kambada para o seu evento: kits, placas e porta-chaves personalizados para empresas. Fale com a gente e monte sua encomenda.",
   alternates: { canonical: "/encomendas" },
+  openGraph: og("/encomendas"),
 };
 
 /**

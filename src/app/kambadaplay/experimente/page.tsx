@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IMAGEM_OG_PLAY, og } from "@/lib/seo/og";
 import Image from "next/image";
 import { Quiz } from "@/components/play/jogos/Quiz";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   // Sem isto herdava o canonical "/" do layout raiz e o Google tratava o quiz como cópia da home.
   alternates: { canonical: "/kambadaplay/experimente" },
+  openGraph: og("/kambadaplay/experimente", { images: [IMAGEM_OG_PLAY] }),
 };
 
 const CRIAR = "/kambadaplay/entrar?modo=criar&de=/kambadaplay";

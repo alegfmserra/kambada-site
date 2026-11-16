@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IMAGEM_OG_PLAY, og } from "@/lib/seo/og";
 import { EMAILS, linkWhatsApp } from "@/lib/site";
 import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Os planos do Kambada Play: Play Família, Play Brincante e projetos personalizados para escolas, eventos e marcas.",
   alternates: { canonical: "/kambadaplay/planos" },
+  openGraph: og("/kambadaplay/planos", { images: [IMAGEM_OG_PLAY] }),
   robots: { index: true, follow: true },
 };
 
@@ -25,8 +27,23 @@ const MENSAGEM_PERSONALIZADO =
  * propósito: valores só na pesquisa de satisfação (decisão de 30/10/2026).
  */
 export default function PlanosPage() {
+  // As mesmas perguntas da tela, para o Google (FAQPage).
+  const perguntasEstruturadas = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: PERGUNTAS_PLANOS.map((q) => ({
+      "@type": "Question",
+      name: q.pergunta,
+      acceptedAnswer: { "@type": "Answer", text: q.resposta },
+    })),
+  };
+
   return (
     <div className="play-tema-site">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(perguntasEstruturadas).replace(/</g, "\\u003c") }}
+      />
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <Link href="/kambadaplay" className="text-sm font-semibold text-[var(--destaque-texto)] hover:underline">
           ← Kambada Play

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IMAGEM_OG_PLAY, og } from "@/lib/seo/og";
 import Image from "next/image";
 import Link from "next/link";
 import { InstalarApp, IconeCompartilhar, PassosIPhone } from "@/components/play/app/InstalarApp";
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Instale o Kambada Play no celular, sem App Store e sem Google Play: no Android pelo Chrome, no iPhone pelo Safari (Compartilhar → Adicionar à Tela de Início).",
   alternates: { canonical: "/kambadaplay/instalar" },
+  openGraph: og("/kambadaplay/instalar", { images: [IMAGEM_OG_PLAY] }),
   robots: { index: true, follow: true },
 };
 

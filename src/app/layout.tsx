@@ -45,13 +45,14 @@ export const metadata: Metadata = {
     template: "%s | Somos Kambada",
   },
   description: SITE.descricao,
+  // Sem `url` e sem canonical aqui, de propósito: o que o layout declara é
+  // herdado por todas as páginas, e toda página acabava dizendo ao Google que
+  // o endereço dela era o da home. Cada página indexável declara os seus.
   openGraph: {
     type: "website",
     locale: "pt_BR",
     siteName: SITE.nomeCompleto,
-    url: SITE.url,
   },
-  alternates: { canonical: "/" },
   robots: EH_PRODUCAO
     ? { index: true, follow: true }
     : { index: false, follow: false },

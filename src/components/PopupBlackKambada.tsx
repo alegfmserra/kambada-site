@@ -19,7 +19,7 @@ export default function PopupBlackKambada() {
   const caminho = usePathname();
   const [aberto, setAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
-  const botao = useRef<HTMLAnchorElement>(null);
+  const dialogo = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     if (!podeAparecerEm(caminho)) return;
@@ -46,15 +46,24 @@ export default function PopupBlackKambada() {
     }
   }
 
+  /* <dialog> com showModal(): o navegador prende o foco dentro, deixa o resto
+     da página inerte para leitor de tela e devolve o foco a quem estava com
+     ele quando fecha. O elemento fica sempre montado; só o conteúdo entra e sai. */
+  useEffect(() => {
+    const d = dialogo.current;
+    if (!d) return;
+    if (aberto && !d.open) d.showModal();
+    if (!aberto && d.open) d.close();
+  }, [aberto]);
+
   useEffect(() => {
     if (!aberto) return;
     evento("view_promotion", { promotion_name: "Black Kambada 2026" });
-    botao.current?.focus();
-    const tecla = (e: KeyboardEvent) => {
-      if (e.key === "Escape") fechar();
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = anterior;
     };
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
   }, [aberto]);
 
   async function copiar() {
@@ -66,19 +75,30 @@ export default function PopupBlackKambada() {
     }
   }
 
-  if (!aberto) return null;
   const jaVale = ativaEm(hojeSaoLuis());
   const inicio = BLACK.inicio.split("-").reverse().slice(0, 2).join("/");
   const fim = BLACK.fim.split("-").reverse().slice(0, 2).join("/");
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4" onClick={fechar}>
+    <dialog
+      ref={dialogo}
+      aria-labelledby="black-titulo"
+      // Esc: o navegador dispara "cancel"; fechamos pelo estado para gravar a hora.
+      onCancel={(e) => {
+        e.preventDefault();
+        fechar();
+      }}
+      // Clique fora do cartão (no próprio <dialog>, que cobre a tela) fecha.
+      onClick={(e) => {
+        if (e.target === e.currentTarget) fechar();
+      }}
+      className="fixed inset-0 z-[70] m-0 h-dvh max-h-none w-screen max-w-none place-items-center bg-black/70 p-4 backdrop:bg-transparent open:grid"
+    >
+      {aberto && (
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="black-titulo"
-        onClick={(e) => e.stopPropagation()}
-        className="relative aspect-square w-[min(480px,92vw)] overflow-hidden rounded-3xl bg-[#1d1e20] text-white shadow-2xl"
+        // No celular a altura segue o conteúdo e rola por dentro se faltar tela;
+        // o quadrado de 5 × 5 polegadas vale de 640 px para cima.
+        className="relative max-h-[92dvh] w-[min(480px,92vw)] overflow-x-hidden overflow-y-auto overscroll-contain rounded-3xl bg-[#1d1e20] text-white shadow-2xl sm:aspect-square"
       >
         <svg aria-hidden className="absolute -right-24 -top-24 h-72 w-72 text-[#F5821F]" viewBox="0 0 200 200">
           <circle cx="100" cy="100" r="46" fill="currentColor" />
@@ -89,7 +109,7 @@ export default function PopupBlackKambada() {
         <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/60 text-xl font-bold hover:bg-black">
           ×
         </button>
-        <div className="relative flex h-full flex-col justify-between p-[6%]">
+        <div className="relative flex min-h-full flex-col justify-between gap-5 p-[6%]">
           <Image src="/marca/kambada-logo-horizontal-amarelo.png" alt="Somos Kambada" width={160} height={48} className="h-auto w-[34%]" />
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#FFCC29]">Black Friday{jaVale ? "" : ` · a partir de ${inicio}`}</p>
@@ -107,7 +127,6 @@ export default function PopupBlackKambada() {
               <span className="text-xs font-bold text-white/80">{copiado ? "Copiado ✓" : "Toque para copiar"}</span>
             </button>
             <Link
-              ref={botao}
               href={BLACK.link}
               onClick={() => {
                 evento("select_promotion", { promotion_name: "Black Kambada 2026" });
@@ -118,11 +137,12 @@ export default function PopupBlackKambada() {
               Ir para a loja →
             </Link>
             <p className="text-center text-[11px] text-white/60">
-              {jaVale ? "Use no carrinho" : `Guarde o código: vale a partir de ${inicio}`} · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
+              {jaVale ? "Use ao finalizar a compra" : `Guarde o código: vale a partir de ${inicio}`} · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
             </p>
           </div>
         </div>
       </div>
-    </div>
+      )}
+    </dialog>
   );
 }

@@ -5,6 +5,7 @@ import { evento } from "@/lib/analytics/eventos";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { precoSorteado } from "@/lib/pesquisa/precosTeste";
+import { prenderFoco } from "@/lib/play/focusTrap";
 
 /**
  * Pesquisa de satisfação (20/10/2026).
@@ -80,6 +81,7 @@ export default function PesquisaSatisfacao() {
   const [gatilho, setGatilho] = useState("navegacao");
   const visitas = useRef(0);
   const inicio = useRef(0);
+  const caixaModal = useRef<HTMLDivElement>(null);
 
   const convidar = useCallback((g: string, abrirDireto: boolean) => {
     if (!abrirDireto && !podeConvidar()) return;
@@ -160,6 +162,24 @@ export default function PesquisaSatisfacao() {
     };
   }, [fase, fechar]);
 
+  /* Modal aberto: o foco entra pelo botão de fechar, o Tab roda só dentro
+     dele e, ao fechar, o foco volta para onde estava. */
+  const modalAberto = fase === "aberta" || fase === "enviada";
+  useEffect(() => {
+    if (!modalAberto) return;
+    const anterior = document.activeElement as HTMLElement | null;
+    const caixa = caixaModal.current;
+    caixa?.querySelector<HTMLElement>("[data-fechar-pesquisa]")?.focus();
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (caixaModal.current) prenderFoco(e, caixaModal.current);
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("keydown", aoTeclar);
+      if (anterior && document.contains(anterior)) anterior.focus();
+    };
+  }, [modalAberto]);
+
   if (fase === "oculta") return null;
 
   if (fase === "convite") {
@@ -190,9 +210,11 @@ export default function PesquisaSatisfacao() {
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 sm:items-center" onClick={() => fechar(true)}>
       <div
+        ref={caixaModal}
         role="dialog"
         aria-modal="true"
         aria-labelledby="pesquisa-titulo"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="max-h-[94dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-3xl border border-borda bg-fundo p-6 shadow-2xl sm:rounded-3xl sm:p-10"
       >
@@ -371,7 +393,7 @@ function Formulario({
           <h2 id="pesquisa-titulo" className="font-display text-xl font-bold sm:text-3xl">Como foi sua visita?</h2>
           <p className="text-sm sm:text-base text-texto-suave">Uns 2 minutos. Responda só o que quiser.</p>
         </div>
-        <button type="button" onClick={aoFechar} aria-label="Fechar pesquisa" className="rounded-full p-2 text-texto-suave hover:bg-superficie">
+        <button type="button" data-fechar-pesquisa onClick={aoFechar} aria-label="Fechar pesquisa" className="rounded-full p-2 text-texto-suave hover:bg-superficie">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M5 5l14 14M19 5L5 19" />
           </svg>
@@ -776,7 +798,7 @@ function Formulario({
         Não coloque outros dados pessoais. Para falar com a gente, use o WhatsApp.
       </p>
 
-      {erro && <p role="alert" className="text-sm sm:text-base text-red-500">{erro}</p>}
+      {erro && <p role="alert" className="text-sm sm:text-base text-erro">{erro}</p>}
 
       <button
         type="submit"

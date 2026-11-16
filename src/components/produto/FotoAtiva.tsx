@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import FotoEmoldurada from "@/components/FotoEmoldurada";
 import type { FotoProduto } from "@/lib/fotoDoProduto";
@@ -89,8 +90,7 @@ export default function FotoAtiva({
                 aria-current={f.src === foto.src ? "true" : undefined}
                 className={`block h-20 w-16 overflow-hidden rounded-xl border-2 ${f.src === foto.src ? "border-kambada-amarelo" : "border-transparent hover:border-borda"}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={f.src} alt="" loading="lazy" className="h-full w-full object-cover" />
+                <Image src={f.src} alt="" width={64} height={80} sizes="64px" className="h-full w-full object-cover" />
               </button>
             </li>
           ))}

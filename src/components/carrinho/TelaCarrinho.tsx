@@ -140,16 +140,26 @@ export default function TelaCarrinho({
           <span aria-hidden="true">💳</span> {textoParcelas(Math.round(subtotal * 100))}
         </p>
 
-        <p className="mt-4 rounded-xl bg-fundo px-4 py-3 text-sm" aria-live="polite">
-          {falta > 0 ? (
-            <>
-              Faltam <strong>{formatarReais(falta)}</strong> para o frete grátis (a partir de{" "}
-              {formatarReais(FRETE_GRATIS_A_PARTIR_DE)}).
-            </>
-          ) : (
-            <>🎉 Você ganhou <strong>frete grátis</strong> na entrega mais econômica.</>
-          )}
-        </p>
+        <div className="mt-4 rounded-xl bg-fundo px-4 py-3 text-sm">
+          <p aria-live="polite">
+            {falta > 0 ? (
+              <>
+                Faltam <strong>{formatarReais(falta)}</strong> para o frete grátis (a partir de{" "}
+                {formatarReais(FRETE_GRATIS_A_PARTIR_DE)}).
+              </>
+            ) : (
+              <>
+                <span aria-hidden="true">🎉</span> Você ganhou <strong>frete grátis</strong> na entrega mais econômica.
+              </>
+            )}
+          </p>
+          <progress
+            max={FRETE_GRATIS_A_PARTIR_DE}
+            value={Math.max(0, FRETE_GRATIS_A_PARTIR_DE - falta)}
+            aria-label="Quanto do valor para o frete grátis já está no carrinho"
+            className="mt-2 block h-2 w-full appearance-none overflow-hidden rounded-full bg-borda [&::-moz-progress-bar]:bg-realce [&::-webkit-progress-bar]:bg-borda [&::-webkit-progress-value]:bg-realce"
+          />
+        </div>
 
         {freteOnline ? (
           <Link

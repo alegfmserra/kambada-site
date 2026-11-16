@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { fotoDoItem } from "@/lib/fotoDoProduto";
-import { faltaParaFreteGratis } from "@/lib/frete/regras";
+import { faltaParaFreteGratis, FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { useCarrinho } from "./ProvedorCarrinho";
 
@@ -119,6 +119,12 @@ export default function AvisoAdicionado() {
               <>Você ganhou frete grátis na entrega mais econômica.</>
             )}
           </p>
+          <progress
+            max={FRETE_GRATIS_A_PARTIR_DE}
+            value={Math.max(0, FRETE_GRATIS_A_PARTIR_DE - falta)}
+            aria-label="Quanto do valor para o frete grátis já está no carrinho"
+            className="mt-1.5 block h-2 w-full appearance-none overflow-hidden rounded-full bg-borda [&::-moz-progress-bar]:bg-realce [&::-webkit-progress-bar]:bg-borda [&::-webkit-progress-value]:bg-realce"
+          />
 
           <div className="mt-4 grid gap-2">
             <Link

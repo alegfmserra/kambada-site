@@ -6,15 +6,16 @@ const data = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { month:
 /**
  * "Avaliações de quem comprou" na página da peça. Só entram as aprovadas e
  * autorizadas pelo cliente; todas vieram de um pedido do site (compra
- * verificada). Sem nenhuma, explica como a avaliação chega.
+ * verificada). Sem nenhuma, a seção não aparece: um bloco só para dizer que
+ * não há avaliação pesava contra a peça.
  */
 export default function AvaliacoesDaPeca({ media, lista }: { media: number | null; lista: Avaliacao[] }) {
+  if (media === null) return null;
   return (
     <section id="avaliacoes" className="border-b border-borda">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <h2 className="font-display text-2xl font-extrabold">Avaliações de quem comprou</h2>
-        {media !== null ? (
-          <>
+        <>
             <p className="mt-2 flex flex-wrap items-center gap-x-3 text-texto-suave">
               <span aria-hidden="true" className="text-xl text-realce">
                 {estrelas(media)}
@@ -38,12 +39,7 @@ export default function AvaliacoesDaPeca({ media, lista }: { media: number | nul
                 </li>
               ))}
             </ul>
-          </>
-        ) : (
-          <p className="mt-2 text-texto-suave">
-            Esta peça ainda não tem avaliação. Quem compra pelo site recebe o convite para avaliar quando o pedido chega.
-          </p>
-        )}
+        </>
       </div>
     </section>
   );

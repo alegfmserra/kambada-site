@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { notFound, permanentRedirect } from "next/navigation";
 import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
 import FotoAtiva from "@/components/produto/FotoAtiva";
@@ -320,18 +321,20 @@ export default async function PaginaProduto({ params }: Props) {
                     opcoes={opcoesCompraveis}
                     sobEncomenda={produto.sobEncomenda || produto.estoqueLivre}
                     temGuiaDeTamanhos={Boolean(medidas)}
+                    fotosPorOpcao={Object.fromEntries(Object.entries(fotosPorOpcao).map(([id, f]) => [id, f.src]))}
                   />
                   {medidas && <GuiaDeTamanhos tabela={medidas} />}
                   <p className="mt-2 text-sm text-texto-suave">
                     Prefere conversar antes?{" "}
-                    <a
+                    <LinkWhatsApp
+                      origem="produto-duvida"
                       href={linkWhatsApp(`Oi! Tenho uma dúvida sobre a peça "${produto.nome}".`)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
                     >
                       Chame no WhatsApp
-                    </a>
+                    </LinkWhatsApp>
                   </p>
                 </>
               )}
@@ -362,7 +365,8 @@ export default async function PaginaProduto({ params }: Props) {
               {!(opcoesCompraveis.length > 0 && estoque.disponivel) && (
               <div className="mt-10">
                 {estoque.disponivel ? (
-                  <a
+                  <LinkWhatsApp
+                    origem="produto-pedir"
                     href={linkWhatsApp(
                       `Oi! Quero esta peça: ${produto.nome} — ${precoEmReais(produto.preco)}${
                         umaVariacaoSo
@@ -375,7 +379,7 @@ export default async function PaginaProduto({ params }: Props) {
                     className="inline-block rounded-full bg-kambada-amarelo px-8 py-4 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
                   >
                     Pedir pelo WhatsApp
-                  </a>
+                  </LinkWhatsApp>
                 ) : (
                   <>
                     <p className="inline-block rounded-full border border-borda px-8 py-4 font-display font-semibold text-texto-tenue">
@@ -383,7 +387,8 @@ export default async function PaginaProduto({ params }: Props) {
                     </p>
                     <p className="mt-4 text-sm text-texto-suave">
                       Esta peça é feita em lote pequeno.{" "}
-                      <a
+                      <LinkWhatsApp
+                        origem="produto-esgotado"
                         href={linkWhatsApp(
                           `Oi! A peça "${produto.nome}" está esgotada no site. Me avisa quando voltar?`,
                         )}
@@ -392,7 +397,7 @@ export default async function PaginaProduto({ params }: Props) {
                         className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
                       >
                         Me avise quando voltar
-                      </a>
+                      </LinkWhatsApp>
                     </p>
                   </>
                 )}

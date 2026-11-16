@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { evento } from "@/lib/analytics/eventos";
@@ -32,9 +33,46 @@ type Props = {
   sobEncomenda?: boolean;
   /** A página tem guia de tamanhos: mostra "Qual meu tamanho?" junto da escolha. */
   temGuiaDeTamanhos?: boolean;
+  /** Foto de cada opção (ID no Bling → endereço da foto), para a miniatura no botão da estampa. */
+  fotosPorOpcao?: Record<number, string>;
 };
 
-export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sobEncomenda = false, temGuiaDeTamanhos = false }: Props) {
+const SEM_FOTOS: Record<number, string> = {};
+
+/** Botão de opção com miniatura: a foto 48 × 48 à esquerda do nome. */
+const CLASSE_COM_MINIATURA = "inline-flex items-center gap-2 py-1.5 pr-4 pl-1.5";
+const CLASSE_SEM_MINIATURA = "px-4 py-2.5";
+
+function Miniatura({ src }: { src: string }) {
+  return <Image src={src} alt="" width={48} height={48} sizes="48px" className="h-12 w-12 shrink-0 rounded-full bg-white object-cover" />;
+}
+
+/**
+ * Foto de cada valor de um grupo de opções, ou null se a miniatura não ajuda:
+ * só vale quando a foto depende daquele grupo (cada valor tem uma foto só) e
+ * há pelo menos duas fotos diferentes. Tamanho (P, M, G) e suporte ficam sem.
+ */
+function fotosDosValores(opcoes: Opcao[], fotos: Record<number, string>, valorDe: (o: Opcao) => string | undefined): Record<string, string> | null {
+  const porValor: Record<string, string> = {};
+  for (const o of opcoes) {
+    const valor = valorDe(o);
+    const src = fotos[o.idBling];
+    if (valor === undefined || !src) continue;
+    if (porValor[valor] && porValor[valor] !== src) return null;
+    porValor[valor] = src;
+  }
+  return new Set(Object.values(porValor)).size > 1 ? porValor : null;
+}
+
+export default function AdicionarAoCarrinho({
+  slug,
+  categoria,
+  nome,
+  opcoes,
+  sobEncomenda = false,
+  temGuiaDeTamanhos = false,
+  fotosPorOpcao = SEM_FOTOS,
+}: Props) {
   const { adicionar, itens } = useCarrinho();
   const fotoAtiva = useOpcaoAtiva();
   const idGrupo = useId();
@@ -79,6 +117,9 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
   const teto = opcao ? Math.max(0, Math.min(disponivelNaOpcao(opcao), MAXIMO_POR_ITEM) - noCarrinho) : 0;
   const esgotada = opcao !== null && disponivelNaOpcao(opcao) <= 0;
   const ehTamanho = opcoes.some((o) => /(^|\s)(PP|P|M|G|GG|XG|XGG|EG|\d+\s*anos?)$/i.test(o.rotulo.trim()));
+
+  // Lista simples (uma estampa por opção): miniatura quando as fotos diferem entre as opções.
+  const miniaturasSimples = eixos || unica ? null : fotosDosValores(opcoes, fotosPorOpcao, (o) => o.rotulo);
 
   function escolher(id: number) {
     setEscolhida(id);
@@ -141,6 +182,7 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
       {eixos &&
         eixos.map((eixo) => {
           const mostrarPreco = eixoMudaPreco(opcoes, eixo);
+          const miniaturas = fotosDosValores(opcoes, fotosPorOpcao, (o) => o.atributos?.[eixo.chave]);
           return (
             <fieldset key={eixo.chave} className="mt-6 first:mt-0">
               <legend className="font-display text-sm font-semibold text-texto-tenue uppercase">
@@ -160,7 +202,9 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                     <label
                       key={valor}
                       htmlFor={id}
-                      className={`min-h-11 cursor-pointer rounded-full border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
+                      className={`min-h-11 cursor-pointer rounded-full border text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
+                        miniaturas?.[valor] ? CLASSE_COM_MINIATURA : CLASSE_SEM_MINIATURA
+                      } ${
                         marcado
                           ? "border-kambada-amarelo-escuro bg-kambada-amarelo font-semibold text-kambada-grafite"
                           : "border-borda-campo hover:border-kambada-amarelo-escuro"
@@ -175,8 +219,11 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                         onChange={() => escolherNoEixo(eixo.chave, valor)}
                         className="sr-only"
                       />
-                      {rotuloDoValor(eixo.chave, valor)}
-                      {preco !== null && <span className={`ml-1 ${marcado ? "" : "text-texto-suave"}`}>· {formatarReais(preco)}</span>}
+                      {miniaturas?.[valor] ? <Miniatura src={miniaturas[valor]} /> : null}
+                      <span>
+                        {rotuloDoValor(eixo.chave, valor)}
+                        {preco !== null && <span className={`ml-1 ${marcado ? "" : "text-texto-suave"}`}>· {formatarReais(preco)}</span>}
+                      </span>
                       {!existe && <span className="sr-only"> (não existe nesta combinação)</span>}
                     </label>
                   );
@@ -207,7 +254,9 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                 <label
                   key={o.idBling}
                   htmlFor={id}
-                  className={`min-h-11 cursor-pointer rounded-full border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
+                  className={`min-h-11 cursor-pointer rounded-full border text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-kambada-amarelo-escuro ${
+                    miniaturasSimples?.[o.rotulo] ? CLASSE_COM_MINIATURA : CLASSE_SEM_MINIATURA
+                  } ${
                     escolhida === o.idBling
                       ? "border-kambada-amarelo-escuro bg-kambada-amarelo font-semibold text-kambada-grafite"
                       : "border-borda-campo hover:border-kambada-amarelo-escuro"
@@ -222,7 +271,8 @@ export default function AdicionarAoCarrinho({ slug, categoria, nome, opcoes, sob
                     onChange={() => escolher(o.idBling)}
                     className="sr-only"
                   />
-                  {o.rotulo}
+                  {miniaturasSimples?.[o.rotulo] ? <Miniatura src={miniaturasSimples[o.rotulo]} /> : null}
+                  <span>{o.rotulo}</span>
                   {semEstoque && <span className="sr-only"> (esgotada)</span>}
                 </label>
               );

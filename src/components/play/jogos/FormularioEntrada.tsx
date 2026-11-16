@@ -329,7 +329,7 @@ export function FormularioEntrada({ de, aviso, modo }: { de: string; aviso?: str
 
 function Erro({ texto }: { texto: string }) {
   return (
-    <p role="alert" className="rounded-md bg-kambada-grafite/10 px-3 py-2 text-sm font-semibold text-texto">
+    <p role="alert" className="rounded-md border border-erro bg-kambada-grafite/10 px-3 py-2 text-sm font-semibold text-erro">
       {texto}
     </p>
   );

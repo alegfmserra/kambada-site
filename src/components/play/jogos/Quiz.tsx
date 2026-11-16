@@ -201,7 +201,11 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
                     ativo ? "border-kambada-amarelo bg-kambada-amarelo/20" : "border-borda hover:border-kambada-amarelo"
                   }`}
                 >
-                  <span className="block font-display text-lg font-extrabold text-texto">{n.rotulo}</span>
+                  <span className="block font-display text-lg font-extrabold text-texto">
+                    {/* O sinal marca a escolha sem depender da cor da borda. */}
+                    {ativo ? <span aria-hidden="true">✓ </span> : null}
+                    {n.rotulo}
+                  </span>
                   <span className="block text-xs text-texto-suave">{n.descricao}</span>
                   <span className="mt-2 block text-xs font-semibold text-texto-tenue">
                     {r.tempoBonusS}s de bônus · pontos ×{r.multiplicador}
@@ -326,6 +330,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
 
       {mostrandoResposta ? (
         <div className="mt-6 rounded-xl border-2 border-borda bg-superficie p-5">
+          <div role="status">
           <p className="font-display text-xl font-extrabold text-texto">
             {resultado.certa
               ? `Éguas, acertou! +${resultado.pontosDaPergunta}`
@@ -334,6 +339,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
                 : "Vixe, não foi dessa vez."}
           </p>
           <p className="mt-2 text-texto-suave">{resultado.explicacao}</p>
+          </div>
           <button
             type="button"
             autoFocus

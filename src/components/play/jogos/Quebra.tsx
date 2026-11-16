@@ -156,7 +156,11 @@ export function Quebra() {
                     ativo ? "border-kambada-amarelo bg-kambada-amarelo/20" : "border-borda hover:border-kambada-amarelo"
                   }`}
                 >
-                  <span className="block font-display text-lg font-extrabold text-texto">{n.rotulo}</span>
+                  <span className="block font-display text-lg font-extrabold text-texto">
+                    {/* O sinal marca a escolha sem depender da cor da borda. */}
+                    {ativo ? <span aria-hidden="true">✓ </span> : null}
+                    {n.rotulo}
+                  </span>
                   <span className="mt-1 block text-xs font-semibold text-texto-tenue">
                     {r.colunas * r.linhas} peças · pontos ×{r.multiplicador}
                   </span>
@@ -177,6 +181,7 @@ export function Quebra() {
                 arte === "surpresa" ? "border-kambada-amarelo bg-kambada-amarelo/20" : "border-borda hover:border-kambada-amarelo"
               }`}
             >
+              {arte === "surpresa" ? <span aria-hidden="true">✓&nbsp;</span> : null}
               Surpresa
             </button>
             {ARTES.map((a, i) => (
@@ -186,11 +191,17 @@ export function Quebra() {
                 onClick={() => setArte(i)}
                 aria-pressed={arte === i}
                 aria-label={a.nome}
-                className={`aspect-square rounded-lg border-2 bg-cover bg-center ${
+                className={`relative aspect-square rounded-lg border-2 bg-cover bg-center ${
                   arte === i ? "border-kambada-amarelo ring-2 ring-kambada-amarelo" : "border-borda hover:border-kambada-amarelo"
                 }`}
                 style={{ backgroundImage: `url(${a.imagem})` }}
-              />
+              >
+                {arte === i ? (
+                  <span aria-hidden="true" className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-kambada-grafite text-sm font-bold text-kambada-amarelo">
+                    ✓
+                  </span>
+                ) : null}
+              </button>
             ))}
           </div>
         </fieldset>

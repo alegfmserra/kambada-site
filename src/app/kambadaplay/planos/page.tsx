@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IMAGEM_OG_PLAY, og } from "@/lib/seo/og";
 import { EMAILS, linkWhatsApp } from "@/lib/site";
-import { PERGUNTAS_PLANOS, PLANOS, PRECOS, itemEmProducao, textoDoItem } from "@/lib/play/planos";
+import { PERGUNTAS_PLANOS, PLANOS, PRECOS } from "@/lib/play/planos";
 
 export const metadata: Metadata = {
   title: "Planos",
@@ -83,7 +83,8 @@ export default function PlanosPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-texto-suave">
           <strong className="text-texto">Hoje, a conta abre tudo o que já está pronto no Kambada Play:</strong> os
-          jogos, o Arraial em 3D, as HQs e a animação. O que aparece como “Em produção” ainda está sendo feito.
+          jogos, o Arraial em 3D, as HQs, a animação e o cordel. Os planos Família e Brincante ainda não estão
+          disponíveis.
         </p>
 
         {/* Para escolas: logo abaixo do título, com âncora (#escolas) para os links "Sou escola". */}
@@ -165,22 +166,11 @@ export default function PlanosPage() {
                 }`}
               >
                 {p.inclui.map((item) => (
-                  <li key={textoDoItem(item)} className="flex gap-2">
+                  <li key={item} className="flex gap-2">
                     <span aria-hidden className={p.destaque ? "text-kambada-amarelo" : "text-[var(--destaque-texto)]"}>
                       ✦
                     </span>
-                    <span>
-                      {textoDoItem(item)}
-                      {itemEmProducao(item) ? (
-                        <span
-                          className={`ml-2 inline-block rounded-full border px-2 py-0.5 align-middle text-[11px] font-semibold whitespace-nowrap ${
-                            p.destaque ? "border-kambada-branco/50 text-kambada-branco" : "border-borda-campo text-texto"
-                          }`}
-                        >
-                          Em produção
-                        </span>
-                      ) : null}
-                    </span>
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>

@@ -18,21 +18,21 @@
 export type PlanoId = "gratis" | "familia" | "brincante" | "personalizado" | "licenca";
 
 /**
- * Um item do plano. Texto simples = já existe no Play. `emProducao` = está
- * prometido, mas ainda não existe no código (conferido em 15/11/2026): a tela
- * mostra o selo "Em produção" ao lado, em vez de vender como pronto. Ficou
- * pronto? Troque o objeto pelo texto.
+ * REGRA DE 17/11/2026 (ordem do Alexandre: "tira essas coisas, a gente está
+ * estruturando isso"): a lista de um plano só cita conteúdo que EXISTE no
+ * código. Saíram histórias em áudio, atividades para imprimir, perfis na mesma
+ * conta, arquivos para impressora 3D, "todas as animações" (há uma), voto no
+ * próximo episódio com nome nos créditos, "conversas novas todo mês" no Arraial
+ * e "episódios e jogos novos antes de todo mundo". Voltam quando existirem.
+ * Benefício comercial dos planos pagos (cupom, frete, pré-venda, oficina,
+ * visita ao ateliê) pode ficar: o plano inteiro leva o selo "Em breve".
  */
-export type ItemDoPlano = string | { texto: string; emProducao: true };
-
-export const textoDoItem = (item: ItemDoPlano): string => (typeof item === "string" ? item : item.texto);
-export const itemEmProducao = (item: ItemDoPlano): boolean => typeof item !== "string" && item.emProducao;
 
 export type Plano = {
   id: PlanoId;
   nome: string;
   paraQuem: string;
-  inclui: ItemDoPlano[];
+  inclui: string[];
   /** Já dá para usar hoje (sem cobrança)? */
   disponivel: boolean;
   /** Plano em evidência na tela. */
@@ -54,7 +54,7 @@ export const PLANOS: Plano[] = [
     inclui: [
       "Quiz em todos os níveis e memória das estampas",
       "Ranking da semana: o top 3 ganha cupom de até 10 % na loja",
-      "1º episódio da animação e a 1ª HQ",
+      "A animação A Hora dos Guarás e a 1ª HQ",
       "Novidades e promoções por e-mail (se quiser)",
     ],
     disponivel: true,
@@ -65,14 +65,9 @@ export const PLANOS: Plano[] = [
     nome: "Play Família",
     paraQuem: "Para a casa toda",
     inclui: [
-      "Tudo do Básico, sem limite",
-      "Arraial da Kambada em 3D, com conversas novas todo mês",
-      "Todas as HQs",
-      // Hoje há uma animação no ar (content/play/videos.ts); as próximas estão sendo feitas.
-      { texto: "Todas as animações", emProducao: true },
-      { texto: "Histórias em áudio para dormir", emProducao: true },
-      { texto: "Desenhos e atividades para imprimir", emProducao: true },
-      { texto: "Até 4 perfis na mesma conta", emProducao: true },
+      "Tudo do Básico",
+      "Arraial da Kambada em 3D",
+      "Todas as HQs e o cordel O Auto do Boi",
       "1 cupom de 10 % por mês na loja",
     ],
     disponivel: false,
@@ -86,11 +81,8 @@ export const PLANOS: Plano[] = [
       "Tudo do Família",
       "2 cupons de 10 % por mês na loja, sem limite de valor",
       "1 frete grátis por mês na loja",
-      "Episódios e jogos novos antes de todo mundo",
       "Pré-venda de lançamentos e estampas limitadas",
       "15 % de desconto em oficinas da Kambada",
-      { texto: "Arquivos para impressora 3D", emProducao: true },
-      { texto: "Vote no próximo episódio e veja seu nome nos créditos", emProducao: true },
       "No plano anual: uma visita ao ateliê da Kambada, com hora marcada",
     ],
     disponivel: false,
@@ -126,14 +118,19 @@ export const PLANOS: Plano[] = [
 
 export const PERGUNTAS_PLANOS: { pergunta: string; resposta: string }[] = [
   {
-    pergunta: "Como funcionam os cupons da loja?",
+    pergunta: "Os planos Família e Brincante já estão disponíveis?",
     resposta:
-      "Aparecem em \"Minha conta\" e valem até o fim do mês. Não somam com cupons de parceiros nem com o de boas-vindas; somam com o do ranking da semana.",
+      "Ainda não: estão marcados como \"Em breve\". Hoje, a conta abre tudo o que já está pronto no Kambada Play: os jogos, o Arraial em 3D, as HQs, a animação e o cordel.",
+  },
+  {
+    pergunta: "Como vão funcionar os cupons dos planos?",
+    resposta:
+      "Os cupons do mês valem na loja da Kambada até o fim do mês. Não somam com cupons de parceiros nem com o de boas-vindas; somam com o do ranking da semana.",
   },
   {
     pergunta: "Quem tem só a conta básica perde alguma coisa?",
     resposta:
-      "Não. Quiz, memória, ranking com cupom do top 3, o 1º episódio e a 1ª HQ seguem abertos. Os planos acrescentam, não tiram.",
+      "Não. Quiz, memória, ranking com cupom do top 3, a animação e a 1ª HQ seguem abertos. Os planos acrescentam, não tiram.",
   },
   {
     pergunta: "Como funciona para escola, evento ou marca?",

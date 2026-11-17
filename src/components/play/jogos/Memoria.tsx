@@ -3,10 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { MEMORIA_NIVEL, NIVEIS, type Nivel } from "@/lib/play/jogos/tipos";
+import { ESTRELAS_DO_NIVEL, MEMORIA_NIVEL, NIVEIS, type Nivel } from "@/lib/play/jogos/tipos";
 import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
+import { ProximosJogos } from "./ProximosJogos";
 
 /**
  * Memória das estampas: pares com as nossas artes (camisas, matracas,
@@ -129,8 +131,9 @@ function esperar(lista: number[], ms: number, fazer: () => void) {
 
 export function Memoria() {
   const [fase, setFase] = useState<"inicio" | "jogando" | "fim">("inicio");
-  const [nivel, setNivel] = useState<Nivel>("medio");
-  const [pares, setPares] = useState(MEMORIA_NIVEL.medio.pares);
+  // Abre no fácil (17/11/2026): quem chega é criança pequena; os maiores trocam logo abaixo.
+  const [nivel, setNivel] = useState<Nivel>("facil");
+  const [pares, setPares] = useState(MEMORIA_NIVEL.facil.pares);
   // A mesa mora no servidor: aqui só se sabe a carta de uma posição depois de virá-la.
   const [mapa, setMapa] = useState<(number | null)[]>([]); // posição -> carta conhecida
   const [abertas, setAbertas] = useState<number[]>([]); // posições viradas na jogada em andamento
@@ -245,12 +248,25 @@ export function Memoria() {
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight text-texto sm:text-5xl">
           Memória das <span className="destaque">estampas</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
+        <p className="mx-auto mt-3 max-w-lg text-base text-texto-suave sm:mt-5 sm:text-lg">
           Ache os pares das artes da Kambada. Menos jogadas e menos tempo, mais pontos.
         </p>
+        <BotaoOuvir id="memoria-como-jogar" className="mt-3" />
+
+        {/* O botão de jogar vem antes da escolha do nível: aparece sem rolar a tela no celular. */}
+        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={comecar}
+            className="min-h-14 w-full max-w-xs rounded-full bg-kambada-amarelo px-10 py-4 text-xl font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+          >
+            Jogar
+          </button>
+        </div>
 
         <fieldset className="mx-auto mt-8 max-w-lg text-left">
-          <legend className="text-sm font-semibold text-texto-suave">Escolha o nível</legend>
+          <legend className="text-sm font-semibold text-texto-suave">Nível (já vem no fácil)</legend>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
             {NIVEIS.map((n) => {
               const r = MEMORIA_NIVEL[n.id];
@@ -261,11 +277,18 @@ export function Memoria() {
                   type="button"
                   onClick={() => setNivel(n.id)}
                   aria-pressed={ativo}
-                  className={`rounded-xl border-2 p-3 text-left transition-colors ${
+                  className={`min-h-11 rounded-xl border-2 p-3 text-left transition-colors ${
                     ativo ? "border-kambada-amarelo bg-kambada-amarelo/20" : "border-borda hover:border-kambada-amarelo"
                   }`}
                 >
-                  <span className="block font-display text-lg font-extrabold text-texto">{n.rotulo}</span>
+                  <span className="block font-display text-lg font-extrabold text-texto">
+                    {/* O sinal marca a escolha sem depender da cor da borda. */}
+                    {ativo ? <span aria-hidden="true">✓ </span> : null}
+                    {n.rotulo}{" "}
+                    <span aria-hidden="true" className="text-[var(--destaque-texto)]">
+                      {ESTRELAS_DO_NIVEL[n.id]}
+                    </span>
+                  </span>
                   <span className="block text-xs text-texto-suave">{n.descricao}</span>
                   <span className="mt-2 block text-xs font-semibold text-texto-tenue">
                     {r.pares} pares · pontos ×{r.multiplicador}
@@ -276,15 +299,6 @@ export function Memoria() {
             })}
           </div>
         </fieldset>
-
-        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
-        <button
-          type="button"
-          onClick={comecar}
-          className="mt-8 rounded-full bg-kambada-amarelo px-10 py-4 text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-        >
-          Bora!
-        </button>
       </div>
     );
   }
@@ -331,6 +345,7 @@ export function Memoria() {
             Ver essas artes na loja
           </Link>
         </div>
+        <ProximosJogos atual="memoria" />
       </div>
     );
   }
@@ -403,6 +418,7 @@ export function Memoria() {
           <>
             <p className="font-display text-lg font-extrabold text-texto">Éguas, um par! {ficha.nome}</p>
             <p className="mt-1 text-sm text-texto-suave">{ficha.ficha}</p>
+            <BotaoOuvir id={`memoria-ficha-${ficha.id}`} className="mt-2" />
           </>
         ) : (
           <p className="text-sm text-texto-tenue">Vire duas cartas. Cada par conta de onde vem a arte.</p>

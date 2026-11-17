@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NIVEIS, QUEBRA_NIVEL, type Nivel } from "@/lib/play/jogos/tipos";
+import { ESTRELAS_DO_NIVEL, NIVEIS, QUEBRA_NIVEL, type Nivel } from "@/lib/play/jogos/tipos";
 import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
+import { ProximosJogos } from "./ProximosJogos";
 import { CARTAS } from "./Memoria";
 
 /**
@@ -31,10 +33,11 @@ function estiloDaPeca(imagem: string, peca: number, colunas: number, linhas: num
 
 export function Quebra() {
   const [fase, setFase] = useState<"inicio" | "jogando" | "fim">("inicio");
-  const [nivel, setNivel] = useState<Nivel>("medio");
+  // Abre no fácil (17/11/2026): quem chega é criança pequena; os maiores trocam logo abaixo.
+  const [nivel, setNivel] = useState<Nivel>("facil");
   const [arte, setArte] = useState<number | "surpresa">("surpresa");
   const [ativa, setAtiva] = useState(0);
-  const [grade, setGrade] = useState({ colunas: 5, linhas: 4 });
+  const [grade, setGrade] = useState({ colunas: QUEBRA_NIVEL.facil.colunas, linhas: QUEBRA_NIVEL.facil.linhas });
   const [ordem, setOrdem] = useState<number[]>([]); // posição -> peça
   const [escolhida, setEscolhida] = useState<number | null>(null);
   const [trocas, setTrocas] = useState(0);
@@ -132,9 +135,22 @@ export function Quebra() {
           Monte a <span className="destaque">arte</span>
         </h1>
         <p className="mt-2 text-texto-suave">Toque numa peça e depois em outra para trocar de lugar. Quanto menos trocas e mais rápido, mais pontos.</p>
+        <BotaoOuvir id="quebra-como-jogar" className="mt-3" />
 
-        <fieldset className="mt-6">
-          <legend className="text-sm font-bold text-texto">Nível</legend>
+        {/* O botão de jogar vem antes das escolhas: aparece sem rolar a tela no celular. */}
+        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={comecar}
+            className="min-h-14 w-full max-w-xs rounded-full bg-kambada-amarelo px-10 py-4 text-xl font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+          >
+            Jogar
+          </button>
+        </div>
+
+        <fieldset className="mt-8">
+          <legend className="text-sm font-bold text-texto">Nível (já vem no fácil)</legend>
           <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {NIVEIS.map((n) => {
               const r = QUEBRA_NIVEL[n.id];
@@ -152,7 +168,10 @@ export function Quebra() {
                   <span className="block font-display text-lg font-extrabold text-texto">
                     {/* O sinal marca a escolha sem depender da cor da borda. */}
                     {ativo ? <span aria-hidden="true">✓ </span> : null}
-                    {n.rotulo}
+                    {n.rotulo}{" "}
+                    <span aria-hidden="true" className="text-[var(--destaque-texto)]">
+                      {ESTRELAS_DO_NIVEL[n.id]}
+                    </span>
                   </span>
                   <span className="mt-1 block text-xs font-semibold text-texto-tenue">
                     {r.colunas * r.linhas} peças · pontos ×{r.multiplicador}
@@ -199,14 +218,6 @@ export function Quebra() {
           </div>
         </fieldset>
 
-        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
-        <button
-          type="button"
-          onClick={comecar}
-          className="mt-8 rounded-full bg-kambada-amarelo px-10 py-4 text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-        >
-          Bora!
-        </button>
       </div>
     );
   }
@@ -257,6 +268,7 @@ export function Quebra() {
             Ver essa arte na loja
           </Link>
         </div>
+        <ProximosJogos atual="quebra" />
       </div>
     );
   }

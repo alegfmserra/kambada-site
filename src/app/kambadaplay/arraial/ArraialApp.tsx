@@ -21,6 +21,7 @@ import { Pescaria } from "@/components/play/arraial/minigames/Pescaria";
 import { CartaoLugar, MapaDaFesta } from "@/components/play/arraial/MapaFesta";
 import { pontoDeParada } from "@/components/play/arraial/mundo/layout";
 import { PosterArraial } from "@/components/play/arraial/PosterArraial";
+import { ProximosJogos } from "@/components/play/jogos/ProximosJogos";
 import { useSaida } from "@/components/play/arraial/useSaida";
 
 export default function ArraialApp() {
@@ -287,7 +288,7 @@ export default function ArraialApp() {
 
   if (falhaWebgl) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-5 overflow-y-auto bg-kambada-noite px-6 py-16 text-center text-kambada-cream">
+      <div className="fixed inset-0 flex flex-col items-center gap-5 overflow-y-auto bg-kambada-noite px-6 py-16 text-center text-kambada-cream">
         {/* A praça continua visível como imagem, por trás do texto. */}
         <PosterArraial posicao="fixed" className="opacity-45" />
         <p className="relative font-display text-2xl font-bold italic">
@@ -302,12 +303,24 @@ export default function ArraialApp() {
             <li key={npc.id}>{npc.nome}</li>
           ))}
         </ul>
-        <Link
-          href="/kambadaplay/matraca"
-          className="toque-matraca relative rounded-full bg-kambada-gold px-6 py-3 font-body font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold"
-        >
-          Conhecer a matraca
-        </Link>
+        {/* Sem 3D não pode virar beco sem saída: os outros jogos e o cordel funcionam em qualquer aparelho. */}
+        <div className="relative w-full max-w-md">
+          <ProximosJogos atual="arraial" quantos={4} fora={["palavra"]} titulo="Enquanto isso, bora brincar de outra coisa?" escuro />
+        </div>
+        <div className="relative flex flex-wrap justify-center gap-3">
+          <Link
+            href="/kambadaplay/jogos"
+            className="toque-matraca inline-flex min-h-12 items-center rounded-full bg-kambada-gold px-8 py-3 font-body text-lg font-bold text-kambada-ink transition-colors hover:bg-kambada-amarelo-escuro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-cream focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
+          >
+            Ver todos os jogos
+          </Link>
+          <Link
+            href="/kambadaplay/matraca"
+            className="toque-matraca inline-flex min-h-12 items-center rounded-full border-2 border-kambada-cream/60 px-8 py-3 font-body text-lg font-bold text-kambada-cream transition-colors hover:border-kambada-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kambada-gold focus-visible:ring-offset-2 focus-visible:ring-offset-kambada-noite"
+          >
+            Conhecer a matraca
+          </Link>
+        </div>
       </div>
     );
   }

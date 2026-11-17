@@ -2,6 +2,7 @@ import { assinar, idAleatorio, permutacaoSecreta, verificar } from "./seguranca"
 import { registrarResposta } from "./usoUnico";
 import {
   QUIZ_NIVEL,
+  QUIZ_PONTOS_SEM_RELOGIO,
   QUIZ_PERGUNTAS_POR_PARTIDA,
   nivelValido,
   type Nivel,
@@ -379,10 +380,15 @@ export function iniciarPartida(
   return { estado: assinar(estado), pergunta: publica(estado), nivel };
 }
 
-/** Acerto: (100 + bônus de velocidade) × multiplicador do nível. Erro: 0, ou desconto no difícil. */
+/**
+ * Acerto: (100 + bônus de velocidade) × multiplicador do nível. Erro: 0, ou desconto no difícil.
+ * No fácil não há relógio: o acerto vale sempre 125 (o meio do caminho entre os antigos 100 e 148),
+ * sem desconto por demora.
+ */
 export function pontosDaResposta(nivel: Nivel, certa: boolean, tempoMs: number): number {
   const { tempoBonusS, multiplicador, penalidadeErro } = QUIZ_NIVEL[nivel];
   if (!certa) return penalidadeErro ? -penalidadeErro : 0;
+  if (tempoBonusS === null) return Math.round(QUIZ_PONTOS_SEM_RELOGIO * multiplicador);
   const s = Math.max(TEMPO_MINIMO_MS, tempoMs) / 1000;
   const bonus = Math.round(BONUS_MAX * Math.max(0, 1 - s / tempoBonusS));
   return Math.round((PONTOS_ACERTO + bonus) * multiplicador);

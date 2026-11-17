@@ -58,8 +58,10 @@ describe("quiz", () => {
     expect(pontosDaResposta("medio", false, 500)).toBe(0);
     expect(pontosDaResposta("medio", true, 100)).toBe(222); // (100 + 48) × 1,5 — tempo mínimo de 0,7 s
     expect(pontosDaResposta("medio", true, 15_000)).toBe(150);
-    expect(pontosDaResposta("facil", true, 100)).toBe(148);
-    expect(pontosDaResposta("facil", true, 60_000)).toBe(100);
+    // No fácil não há relógio: o acerto vale o mesmo, rápido ou devagar.
+    expect(pontosDaResposta("facil", true, 100)).toBe(125);
+    expect(pontosDaResposta("facil", true, 60_000)).toBe(125);
+    expect(pontosDaResposta("facil", false, 60_000)).toBe(0);
     expect(pontosDaResposta("dificil", true, 100)).toBe(294); // (100 + 47) × 2 com 10 s de bônus
     expect(pontosDaResposta("dificil", false, 500)).toBe(-25); // no difícil, errar desconta
   });
@@ -86,8 +88,7 @@ describe("quiz", () => {
     expect(r && "prova" in r && r.prova).toBeTruthy();
     const prova = verificar<{ pontos: number; acertos: number }>((r as { prova: string }).prova);
     expect(prova?.acertos).toBe(acertos);
-    expect(prova?.pontos).toBeGreaterThanOrEqual(acertos * 100);
-    expect(prova?.pontos).toBeLessThanOrEqual(acertos * 150);
+    expect(prova?.pontos).toBe(acertos * 125); // fácil: sem bônus nem desconto de tempo
   });
 
   it("sorteia por nível: fácil só puxa perguntas fáceis; difícil começa pelas difíceis", () => {

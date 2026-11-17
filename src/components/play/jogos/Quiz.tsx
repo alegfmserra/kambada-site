@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  ESTRELAS_DO_NIVEL,
   NIVEIS,
   QUIZ_NIVEL,
   type Nivel,
@@ -9,8 +10,10 @@ import {
   type RespostaQuiz,
 } from "@/lib/play/jogos/tipos";
 import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
+import { ProximosJogos } from "./ProximosJogos";
 
 type Fase = "inicio" | "carregando" | "pergunta" | "resposta" | "fim";
 
@@ -31,16 +34,17 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
   const [acertos, setAcertos] = useState(0);
   const [prova, setProva] = useState("");
   const [erro, setErro] = useState("");
-  const [restante, setRestante] = useState(QUIZ_NIVEL.medio.tempoBonusS);
+  const [restante, setRestante] = useState(0);
   const inicio = useRef(0);
 
   const regras = QUIZ_NIVEL[nivel];
 
   // Relógio do bônus (só enfeite: o servidor é quem mede o tempo de verdade).
+  // No fácil não há relógio: nem barra, nem desconto por demora.
   useEffect(() => {
-    if (fase !== "pergunta") return;
-    inicio.current = Date.now();
     const total = QUIZ_NIVEL[nivel].tempoBonusS;
+    if (fase !== "pergunta" || total === null) return;
+    inicio.current = Date.now();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reinicia o relógio do bônus a cada pergunta
     setRestante(total);
     const t = window.setInterval(() => {
@@ -113,7 +117,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           Éguas! <span className="destaque">Quanto tu sabes do Maranhão?</span>
         </h2>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
-          10 perguntas sobre boi, tambor, matraca e São Luís, em 2 minutinhos. Cada resposta traz uma curiosidade.
+          10 perguntas sobre boi, tambor, matraca e São Luís, sem relógio. Cada resposta traz uma curiosidade.
         </p>
         {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
         <button
@@ -183,8 +187,10 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           Éguas! <span className="destaque">Quem é quem?</span>
         </h1>
         <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
-          10 perguntas sobre a cultura maranhense. Quanto mais rápido, mais pontos.
+          10 perguntas sobre a cultura maranhense. No fácil, sem relógio. No médio e no difícil, quanto mais
+          rápido, mais pontos.
         </p>
+        <BotaoOuvir id="quiz-como-jogar" className="mt-4" />
 
         <fieldset className="mx-auto mt-8 max-w-lg text-left">
           <legend className="text-sm font-semibold text-texto-suave">Escolha o nível</legend>
@@ -205,11 +211,14 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
                   <span className="block font-display text-lg font-extrabold text-texto">
                     {/* O sinal marca a escolha sem depender da cor da borda. */}
                     {ativo ? <span aria-hidden="true">✓ </span> : null}
-                    {n.rotulo}
+                    {n.rotulo}{" "}
+                    <span aria-hidden="true" className="text-[var(--destaque-texto)]">
+                      {ESTRELAS_DO_NIVEL[n.id]}
+                    </span>
                   </span>
                   <span className="block text-xs text-texto-suave">{n.descricao}</span>
                   <span className="mt-2 block text-xs font-semibold text-texto-tenue">
-                    {r.tempoBonusS}s de bônus · pontos ×{r.multiplicador}
+                    {r.tempoBonusS === null ? "sem relógio" : `${r.tempoBonusS}s de bônus`} · pontos ×{r.multiplicador}
                     {r.penalidadeErro ? ` · erro −${r.penalidadeErro}` : ""}
                   </span>
                 </button>
@@ -265,6 +274,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
             Trocar o nível
           </button>
         </div>
+        <ProximosJogos atual="quiz" />
       </div>
     );
   }
@@ -294,7 +304,7 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
         {pergunta.enunciado}
       </h2>
 
-      {fase === "pergunta" ? (
+      {fase === "pergunta" && regras.tempoBonusS !== null ? (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-borda" aria-hidden title="Tempo de bônus">
           <div
             className="h-full bg-kambada-amarelo-escuro"

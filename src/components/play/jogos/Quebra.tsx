@@ -12,22 +12,11 @@ import { CARTAS } from "./Memoria";
  * Quebra-cabeça das estampas: as artes da Kambada (placas, matracas, camisas)
  * em 12, 20 ou 40 peças quadradas. Toque numa peça e depois em outra para
  * trocá-las de lugar; a peça que cai no lugar certo fica marcada. O servidor
- * mede o tempo e calcula os pontos.
+ * embaralha o tabuleiro, mede o tempo e calcula os pontos: no fim, a tela manda
+ * a lista de trocas feitas e ele as refaz (17/11/2026).
  */
 
 const ARTES = CARTAS.slice(0, 8);
-
-function embaralhar(total: number): number[] {
-  // Nenhuma peça começa no lugar certo, para toda partida pedir pelo menos meia troca por peça.
-  for (;;) {
-    const a = Array.from({ length: total }, (_, i) => i);
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    if (a.every((p, i) => p !== i)) return a;
-  }
-}
 
 /** Fatia da imagem quadrada para a peça (col, linha), com corte centralizado no tabuleiro retangular. */
 function estiloDaPeca(imagem: string, peca: number, colunas: number, linhas: number): React.CSSProperties {
@@ -57,6 +46,8 @@ export function Quebra() {
   const [erro, setErro] = useState("");
   const [modelo, setModelo] = useState(false);
   const inicio = useRef(0);
+  /** Todas as trocas da partida, na ordem: é o que o servidor confere no fim. */
+  const feitas = useRef<[number, number][]>([]);
 
   useEffect(() => {
     if (fase !== "jogando") return;
@@ -66,7 +57,7 @@ export function Quebra() {
 
   async function comecar() {
     setErro("");
-    const r = await chamar<{ token: string; nivel: Nivel; colunas: number; linhas: number }>("/api/play/quebra", { acao: "iniciar", nivel });
+    const r = await chamar<{ token: string; nivel: Nivel; colunas: number; linhas: number; ordem: number[] }>("/api/play/quebra", { acao: "iniciar", nivel });
     if (!r.ok) {
       setErro(r.mensagem ?? "Não deu para começar.");
       return;
@@ -76,7 +67,8 @@ export function Quebra() {
     setAtiva(escolhidaArte);
     setToken(r.token);
     setGrade({ colunas: r.colunas, linhas: r.linhas });
-    setOrdem(embaralhar(r.colunas * r.linhas));
+    setOrdem(r.ordem);
+    feitas.current = [];
     setEscolhida(null);
     setTrocas(0);
     setSegundos(0);
@@ -87,11 +79,11 @@ export function Quebra() {
   }
 
   const terminar = useCallback(
-    async (totalTrocas: number) => {
-      const r = await chamar<{ prova: string; pontos: number; segundos: number }>("/api/play/quebra", {
+    async () => {
+      const r = await chamar<{ prova: string; pontos: number; segundos: number; trocas: number }>("/api/play/quebra", {
         acao: "finalizar",
         token,
-        trocas: totalTrocas,
+        trocas: feitas.current,
       });
       if (!r.ok) {
         setErro(r.mensagem ?? "Não deu para registrar o resultado.");
@@ -100,6 +92,7 @@ export function Quebra() {
       }
       setProva(r.prova);
       setPontos(r.pontos);
+      setTrocas(r.trocas);
       setSegundosFinais(r.segundos);
       setFase("fim");
       window.setTimeout(() => pedirPesquisa("quebra"), 3000);
@@ -119,11 +112,11 @@ export function Quebra() {
     }
     const nova = [...ordem];
     [nova[escolhida], nova[pos]] = [nova[pos], nova[escolhida]];
-    const totalTrocas = trocas + 1;
+    feitas.current.push([escolhida, pos]);
     setOrdem(nova);
-    setTrocas(totalTrocas);
+    setTrocas(trocas + 1);
     setEscolhida(null);
-    if (nova.every((p, i) => p === i)) void terminar(totalTrocas);
+    if (nova.every((p, i) => p === i)) void terminar();
   }
 
   const total = grade.colunas * grade.linhas;

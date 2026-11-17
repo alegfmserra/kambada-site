@@ -8,8 +8,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * Quebra-cabeça das estampas.
- *   { acao: "iniciar", nivel }              -> largada assinada (horário + nível)
- *   { acao: "finalizar", token, trocas }    -> pontos calculados aqui + prova assinada
+ *   { acao: "iniciar", nivel }              -> largada assinada (horário, nível e o tabuleiro
+ *                                              embaralhado aqui) + a ordem das peças
+ *   { acao: "finalizar", token, trocas }    -> `trocas` é a LISTA de trocas feitas, [[a, b], ...]
+ *                                              (posições); o servidor as refaz, conta e pontua
  */
 export async function POST(requisicao: Request) {
   if (!dentroDoLimite(ipDaRequisicao(requisicao), "quebra", 60, 10 * 60 * 1000)) {
@@ -20,7 +22,7 @@ export async function POST(requisicao: Request) {
   const conta = await contaDaRequisicao(requisicao).catch(() => null);
 
   if (corpo.acao === "iniciar") {
-    const r = iniciarQuebra(corpo.nivel);
+    const r = iniciarQuebra(corpo.nivel, Date.now(), conta?.id ?? null);
     await registrarEventoPartida({ jogo: "quebra", tipo: "inicio", nivel: r.nivel, conta: conta?.id });
     return NextResponse.json({ ok: true, ...r });
   }

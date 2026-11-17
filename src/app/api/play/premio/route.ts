@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { corpoJson, dentroDoLimite, ipDaRequisicao } from "@/lib/play/jogos/limite";
-import { resgatarPremio, situacaoDoPremio } from "@/lib/play/jogos/placar";
+import { jogadorDaConta, resgatarPremio, situacaoDoPremio } from "@/lib/play/jogos/placar";
 import { urlDoSite } from "@/lib/loja/urlDoSite";
 import { contaDaRequisicao } from "@/lib/play/contas";
 import { enviarCupom } from "@/lib/play/emails";
@@ -9,7 +9,7 @@ import { chaveValida, resumoDaChave } from "@/lib/play/jogos/seguranca";
 /** Quem é o jogador: a conta (se entrou com e-mail) ou a chave do navegador. */
 async function jogadorDa(requisicao: Request, chave: unknown): Promise<string | null> {
   const conta = await contaDaRequisicao(requisicao);
-  if (conta) return resumoDaChave(`conta:${conta.id}`);
+  if (conta) return jogadorDaConta(conta.id);
   return chaveValida(chave) ? resumoDaChave(chave) : null;
 }
 
@@ -19,8 +19,9 @@ export const dynamic = "force-dynamic";
  * Prêmio da semana que fechou: cupom de 10% para o 1º lugar, 8% para o 2º e 5%
  * para o 3º (PREMIOS_SEMANAIS). Desde 02/11/2026 a rotina de manutenção emite os
  * cupons sozinha na segunda-feira (lib/play/premiosDaSemana.ts); este POST segue
- * valendo como reserva e devolve o cupom já emitido. Sem e-mail e sem cadastro:
- * quem joga prova que é o vencedor com a chave guardada no próprio navegador.
+ * valendo como reserva e devolve o cupom já emitido. Desde 17/11/2026 só recebe
+ * cupom a conta com e-mail confirmado até o fechamento da semana (jogos/placar.ts);
+ * quem ficou no top 3 sem confirmar recebe `semConfirmacao` e o prêmio passa adiante.
  *
  * GET  ?chave=...      -> está entre os 3 primeiros da última semana?
  * POST { chave }       -> emite (ou devolve) o cupom

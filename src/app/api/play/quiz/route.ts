@@ -29,7 +29,7 @@ export async function POST(requisicao: Request) {
   const visitante = !(sessao?.v === 1 || contaLogada);
 
   if (corpo.acao === "iniciar") {
-    const partida = iniciarPartida(visitante ? "facil" : corpo.nivel);
+    const partida = iniciarPartida(visitante ? "facil" : corpo.nivel, Date.now(), contaLogada?.id ?? null);
     await registrarEventoPartida({ jogo: "quiz", tipo: "inicio", nivel: visitante ? "facil" : String(corpo.nivel ?? ""), conta: contaLogada?.id });
     return NextResponse.json({ ok: true, ...partida });
   }

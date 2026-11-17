@@ -298,12 +298,16 @@ type EstadoPartida = {
   tq: number;
   /** Quando a partida começou. */
   t0: number;
+  /** Conta que começou a partida (null = sem conta). Ausente só em partida anterior a 17/11/2026. */
+  conta?: string | null;
 };
 
 export type ProvaQuiz = {
   v: 1;
   jogo: "quiz";
   partida: string;
+  /** A prova só pontua para a conta que jogou. Ausente só em prova anterior a 17/11/2026. */
+  conta?: string | null;
   nivel: Nivel;
   pontos: number;
   acertos: number;
@@ -356,6 +360,7 @@ export function sortearPerguntas(nivel: Nivel, sorteio: () => number = aleatorio
 export function iniciarPartida(
   nivelBruto: unknown,
   agora = Date.now(),
+  conta: string | null = null,
 ): { estado: string; pergunta: PerguntaPublica; nivel: Nivel } {
   const nivel = nivelValido(nivelBruto);
   const ordem = sortearPerguntas(nivel);
@@ -369,6 +374,7 @@ export function iniciarPartida(
     acertos: 0,
     tq: agora,
     t0: agora,
+    conta,
   };
   return { estado: assinar(estado), pergunta: publica(estado), nivel };
 }
@@ -437,6 +443,7 @@ export function responder(
       v: 1,
       jogo: "quiz",
       partida: estado.id,
+      ...("conta" in estado ? { conta: estado.conta ?? null } : {}),
       nivel,
       pontos: proximoEstado.pontos,
       acertos: proximoEstado.acertos,

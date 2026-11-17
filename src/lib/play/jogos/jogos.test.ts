@@ -2,7 +2,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { finalizarMemoria, iniciarMemoria, pontosDaMemoria } from "./memoria";
+import { pontosDaMemoria } from "./memoria";
 import {
   apelidoValido,
   lerPlacar,
@@ -129,24 +129,7 @@ describe("memória", () => {
     expect(pontosDaMemoria("dificil", 14, 60)).toBe(1750); // −50 jogadas, −75 tempo, × 2
   });
 
-  it("calcula os pontos com o relógio do servidor e recusa resultado impossível", () => {
-    const t0 = Date.parse("2026-10-14T15:00:00Z");
-    const { token, pares } = iniciarMemoria("medio", t0);
-    expect(pares).toBe(8);
-    const ok = finalizarMemoria(token, 10, t0 + 25_000);
-    expect(ok).toHaveProperty("prova");
-    expect(finalizarMemoria(token, 10, t0 + 3_000)).toHaveProperty("erro"); // rápido demais
-    expect(finalizarMemoria(token, 7, t0 + 25_000)).toHaveProperty("erro"); // menos de 8 jogadas
-    expect(finalizarMemoria(token, 200, t0 + 25_000)).toHaveProperty("erro");
-    expect(finalizarMemoria("adulterado", 10, t0 + 25_000)).toHaveProperty("erro");
-    // O nível vai assinado na largada: no fácil, 6 jogadas já é partida completa
-    const facil = iniciarMemoria("facil", t0);
-    expect(facil.pares).toBe(6);
-    expect(finalizarMemoria(facil.token, 6, t0 + 10_000)).toMatchObject({ nivel: "facil", pontos: 1000 });
-    const dificil = iniciarMemoria("dificil", t0);
-    expect(dificil.pares).toBe(12);
-    expect(finalizarMemoria(dificil.token, 12, t0 + 40_000)).toMatchObject({ nivel: "dificil", pontos: 2000 });
-  });
+  // A partida em si (mesa no servidor, virar carta a carta) está em memoria.test.ts.
 });
 
 describe("semana", () => {
@@ -159,6 +142,7 @@ describe("semana", () => {
   });
 });
 
+// O "todos" desliga o filtro de e-mail confirmado (testado em premiosConfirmados.test.ts): aqui valem posição, mínimo e prazo.
 describe("placar e prêmios da semana", () => {
   const durante = new Date("2026-10-14T15:00:00Z"); // semana de 12/10
   const depois = new Date("2026-10-20T15:00:00Z"); // semana seguinte
@@ -201,23 +185,23 @@ describe("placar e prêmios da semana", () => {
   });
 
   it("durante a semana ninguém ganha prêmio; depois que fecha, top 3 com 10%, 8% e 5%", async () => {
-    expect((await situacaoDoPremio(A, durante)).elegivel).toBe(false);
-    const sA = await situacaoDoPremio(A, depois);
+    expect((await situacaoDoPremio(A, durante, "todos")).elegivel).toBe(false);
+    const sA = await situacaoDoPremio(A, depois, "todos");
     expect(sA).toMatchObject({ elegivel: true, posicao: 1, percentual: 10 });
-    expect(await situacaoDoPremio(B, depois)).toMatchObject({ elegivel: true, posicao: 2, percentual: 8 });
-    expect(await situacaoDoPremio(C, depois)).toMatchObject({ elegivel: true, posicao: 3, percentual: 5 });
-    expect((await situacaoDoPremio(D, depois)).elegivel).toBe(false); // 4º lugar
-    expect((await situacaoDoPremio(E, depois)).elegivel).toBe(false); // abaixo do mínimo
+    expect(await situacaoDoPremio(B, depois, "todos")).toMatchObject({ elegivel: true, posicao: 2, percentual: 8 });
+    expect(await situacaoDoPremio(C, depois, "todos")).toMatchObject({ elegivel: true, posicao: 3, percentual: 5 });
+    expect((await situacaoDoPremio(D, depois, "todos")).elegivel).toBe(false); // 4º lugar
+    expect((await situacaoDoPremio(E, depois, "todos")).elegivel).toBe(false); // abaixo do mínimo
   });
 
   it("emite um cupom de uso único e devolve o mesmo código se pedir de novo", async () => {
-    const r = await resgatarPremio(A, depois);
+    const r = await resgatarPremio(A, depois, "todos");
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.codigo).toMatch(/^PLAY-[A-Z0-9]{6}$/);
     expect(r.percentual).toBe(10);
     expect(r.jaEmitido).toBe(false);
-    const de2 = await resgatarPremio(A, depois);
+    const de2 = await resgatarPremio(A, depois, "todos");
     expect(de2).toMatchObject({ ok: true, codigo: r.codigo, jaEmitido: true });
 
     const cupons = JSON.parse(await readFile(process.env.CUPONS_ARQUIVO!, "utf8")) as {
@@ -234,14 +218,14 @@ describe("placar e prêmios da semana", () => {
   });
 
   it("2º lugar recebe 8% e quem ficou de fora não resgata", async () => {
-    const r = await resgatarPremio(B, depois);
+    const r = await resgatarPremio(B, depois, "todos");
     expect(r).toMatchObject({ ok: true, percentual: 8, posicao: 2 });
-    expect(await resgatarPremio(D, depois)).toMatchObject({ ok: false });
+    expect(await resgatarPremio(D, depois, "todos")).toMatchObject({ ok: false });
   });
 
   it("depois do prazo de 14 dias o prêmio não pode mais ser resgatado", async () => {
     const tarde = new Date("2026-11-10T15:00:00Z"); // semana de 12/10 fechou; prazo vai até 02/11
     // a semana "fechada" nessa data já é outra: ninguém é elegível para a antiga
-    expect((await situacaoDoPremio(C, tarde)).elegivel).toBe(false);
+    expect((await situacaoDoPremio(C, tarde, "todos")).elegivel).toBe(false);
   });
 });

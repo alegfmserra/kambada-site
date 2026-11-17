@@ -10,6 +10,7 @@ const QUARTA = new Date("2026-10-28T15:00:00Z");
 const SEGUNDA = new Date("2026-11-02T13:00:00Z"); // 10h em São Luís
 const jog = (n: string) => ({ jogador: `jogador-${n}`, apelido: `Apelido${n}`, avatar: "boi" as never, jogo: "quiz" as const });
 
+// "todos" desliga o filtro de e-mail confirmado, que tem teste próprio (premiosConfirmados.test.ts).
 describe("fechamento automático do ranking semanal", () => {
   beforeAll(async () => {
     const dir = await mkdtemp(join(tmpdir(), "kambada-premios-"));
@@ -31,7 +32,7 @@ describe("fechamento automático do ranking semanal", () => {
 
   it("emite 10 %, 8 % e 5 % para o top 3, sem esperar ninguém resgatar", async () => {
     expect(PREMIOS_SEMANAIS).toEqual([10, 8, 5]);
-    const r = await emitirPremiosDaSemanaFechada(SEGUNDA);
+    const r = await emitirPremiosDaSemanaFechada(SEGUNDA, "todos");
     expect(r.semana).toBe("2026-10-26");
     expect(r.top.map((t) => t.apelido)).toEqual(["ApelidoA", "ApelidoB", "ApelidoC"]);
     expect(r.novos.map((n) => [n.posicao, n.percentual])).toEqual([[1, 10], [2, 8], [3, 5]]);
@@ -44,17 +45,17 @@ describe("fechamento automático do ranking semanal", () => {
   });
 
   it("não duplica: rodar de novo (cron a cada 6 h) não emite nada", async () => {
-    const r = await emitirPremiosDaSemanaFechada(new Date("2026-11-02T19:00:00Z"));
+    const r = await emitirPremiosDaSemanaFechada(new Date("2026-11-02T19:00:00Z"), "todos");
     expect(r.novos).toEqual([]);
-    const r2 = await emitirPremiosDaSemanaFechada(new Date("2026-11-03T13:00:00Z"));
+    const r2 = await emitirPremiosDaSemanaFechada(new Date("2026-11-03T13:00:00Z"), "todos");
     expect(r2.novos).toEqual([]);
   });
 
   it("o cupom já aparece na tela do jogador e quem ficou de fora segue de fora", async () => {
-    const a = await situacaoDoPremio("jogador-A", SEGUNDA);
+    const a = await situacaoDoPremio("jogador-A", SEGUNDA, "todos");
     expect(a).toMatchObject({ elegivel: true, posicao: 1, percentual: 10, expirou: false });
     expect(a.elegivel && a.codigo).toBeTruthy();
-    expect((await situacaoDoPremio("jogador-D", SEGUNDA)).elegivel).toBe(false); // 4º lugar
-    expect((await situacaoDoPremio("jogador-E", SEGUNDA)).elegivel).toBe(false); // abaixo do mínimo
+    expect((await situacaoDoPremio("jogador-D", SEGUNDA, "todos")).elegivel).toBe(false); // 4º lugar
+    expect((await situacaoDoPremio("jogador-E", SEGUNDA, "todos")).elegivel).toBe(false); // abaixo do mínimo
   });
 });

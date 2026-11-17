@@ -79,6 +79,12 @@ export const PREMIOS_SEMANAIS = [10, 8, 5] as const;
 /** Mínimo de pontos na semana para o prêmio valer (evita cupom por uma partida qualquer). */
 export const PONTOS_MINIMOS_PREMIO = 300;
 
+/**
+ * Teto de partidas que a mesma conta manda ao ranking por jogo, por dia (17/11/2026).
+ * Generoso de propósito: criança que joga a tarde inteira não chega perto.
+ */
+export const PARTIDAS_NO_RANKING_POR_DIA = 30;
+
 export const REGRAS_PREMIO = {
   validadeCupomDias: 30,
   prazoParaResgatarDias: 14,

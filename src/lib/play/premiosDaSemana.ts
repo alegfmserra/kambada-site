@@ -1,8 +1,7 @@
 import { alertar } from "../manutencao/alertas";
 import { listarContas } from "./contas";
 import { enviarCupom } from "./emails";
-import { emitirPremiosDaSemanaFechada } from "./jogos/placar";
-import { resumoDaChave } from "./jogos/seguranca";
+import { emitirPremiosDaSemanaFechada, jogadorDaConta } from "./jogos/placar";
 
 /**
  * Fechamento automático do ranking semanal do Kambada Play (02/11/2026).
@@ -12,10 +11,14 @@ import { resumoDaChave } from "./jogos/seguranca";
  * pontuações) e aqui o cupom de cada um dos 3 primeiros é emitido SEM esperar a pessoa
  * voltar ao site (10 % / 8 % / 5 %, mínimo de pontos, uso único, validade de 30 dias).
  *
- * Aviso: quem tem conta confirmada e aceitou novidades recebe o cupom por e-mail (a
- * mesma regra de sempre para e-mail do Play). Quem joga sem conta não tem e-mail
- * guardado: o cupom já fica pronto e aparece na tela do Play assim que a pessoa
- * voltar. A loja recebe um resumo por e-mail. Idempotente: só emite e avisa o que
+ * Desde 17/11/2026 só recebe cupom a conta com e-mail confirmado até o fechamento da
+ * semana; o prêmio de quem não confirmou passa ao próximo confirmado (regra em
+ * jogos/placar.ts, `confirmadosAte`).
+ *
+ * Aviso: quem aceitou novidades recebe o cupom por e-mail (a mesma regra de sempre para
+ * e-mail do Play); para os demais, o cupom aparece na tela do ranking assim que a pessoa
+ * entrar na conta. A loja recebe um resumo por e-mail, com quem ficou sem cupom por não
+ * ter confirmado. Idempotente: só emite e avisa o que
  * ainda não tinha sido emitido.
  */
 export type FechamentoSemanal = {
@@ -31,7 +34,7 @@ export async function fecharSemanaDoRanking(base = process.env.URL_DO_SITE ?? "h
   if (r.novos.length) {
     const contas = await listarContas();
     for (const n of r.novos) {
-      const conta = contas.find((c) => resumoDaChave(`conta:${c.id}`) === n.jogador);
+      const conta = contas.find((c) => jogadorDaConta(c.id) === n.jogador);
       const avisoPorEmail = conta ? await enviarCupom(url, conta, n).catch(() => false) : false;
       emitidos.push({ posicao: n.posicao, apelido: n.apelido, percentual: n.percentual, codigo: n.codigo, avisoPorEmail });
     }
@@ -45,6 +48,10 @@ export async function fecharSemanaDoRanking(base = process.env.URL_DO_SITE ?? "h
         emitidos
           .map((e) => `• ${e.posicao}º ${e.apelido}: ${e.percentual} % — ${e.codigo} — ${e.avisoPorEmail ? "avisado por e-mail" : "sem e-mail (aparece no Play quando a pessoa entrar)"}`)
           .join("\n") +
+        (r.semConfirmacao.length
+          ? `\n\nFicaram sem cupom por não terem o e-mail confirmado até o fechamento (o prêmio passou adiante):\n` +
+            r.semConfirmacao.map((s) => `• ${s.apelido} — ${s.pontos} pontos`).join("\n")
+          : "") +
         `\n\nOs cupons ficam em ${url}/admin/cupons.`,
     ).catch(() => undefined);
   }

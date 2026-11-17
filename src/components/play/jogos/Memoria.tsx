@@ -146,6 +146,10 @@ export function Memoria() {
   const [pontos, setPontos] = useState(0);
   const [erro, setErro] = useState("");
   const travado = useRef(false);
+  // Toque dado enquanto o servidor ainda responde à carta anterior: fica guardado e vale em seguida
+  // (criança toca nas duas cartas de uma vez; sem isso o segundo toque se perdia).
+  const emPedido = useRef(false);
+  const naFila = useRef<number | null>(null);
   const inicio = useRef(0);
   const estado = useRef("");
   const esperas = useRef<number[]>([]);
@@ -164,7 +168,17 @@ export function Memoria() {
     return () => lista.forEach((t) => window.clearTimeout(t));
   }, []);
 
+  // Depois que a primeira carta abre, vale o toque que ficou guardado.
+  useEffect(() => {
+    if (fase !== "jogando" || travado.current || naFila.current === null || abertas.length !== 1) return;
+    const pos = naFila.current;
+    naFila.current = null;
+    if (pos !== abertas[0]) void virar(pos);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só reage à carta recém-aberta
+  }, [abertas, fase]);
+
   async function comecar() {
+    naFila.current = null;
     setErro("");
     const r = await chamar<{ estado: string; pares: number; nivel: Nivel }>("/api/play/memoria", { acao: "iniciar", nivel });
     if (!r.ok) {
@@ -189,11 +203,18 @@ export function Memoria() {
 
   async function virar(pos: number) {
     const conhecida = mapa[pos];
-    if (travado.current || abertas.includes(pos) || (conhecida !== null && achadas.includes(conhecida))) return;
+    if (travado.current) {
+      if (emPedido.current && abertas.length === 0 && !abertas.includes(pos)) naFila.current = pos;
+      return;
+    }
+    if (abertas.includes(pos) || (conhecida !== null && achadas.includes(conhecida))) return;
     travado.current = true;
+    emPedido.current = true;
     const r = await chamar<Virada>("/api/play/memoria", { acao: "virar", estado: estado.current, pos });
+    emPedido.current = false;
     if (!r.ok) {
       travado.current = false;
+      naFila.current = null;
       // Sem conexão (ou pedidos demais): a partida continua, é só tocar de novo na carta.
       if (!r.mensagem || r.mensagem.startsWith("Sem conexão") || r.mensagem.startsWith("Calma")) {
         setAviso(r.mensagem ?? "Não deu para virar a carta. Toque de novo.");

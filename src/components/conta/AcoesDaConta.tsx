@@ -67,6 +67,7 @@ export function AcoesDaConta({
         <button
           type="button"
           onClick={reenviar}
+          data-alvo="reenviar-confirmacao"
           className="font-semibold text-[var(--destaque-texto)] underline-offset-2 hover:underline"
         >
           Reenviar e-mail de confirmação
@@ -131,6 +132,7 @@ export function AcoesDaConta({
       <button
         type="button"
         onClick={sair}
+        data-alvo="sair-da-conta"
         className="rounded-full border-2 border-borda px-5 py-2 font-bold transition-colors hover:border-kambada-amarelo"
       >
         Sair da conta

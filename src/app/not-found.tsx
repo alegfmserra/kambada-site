@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import Registrar404 from "@/components/Registrar404";
 import { linkWhatsApp } from "@/lib/site";
 
@@ -40,14 +41,14 @@ export default function NaoEncontrada() {
           >
             Página inicial
           </Link>
-          <a
+          <LinkWhatsApp origem="pagina-nao-encontrada"
             href={linkWhatsApp("Oi! Cheguei numa página que não existe no site da Kambada.")}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold whitespace-nowrap text-texto transition-colors hover:border-kambada-amarelo-escuro"
           >
             Falar no WhatsApp
-          </a>
+          </LinkWhatsApp>
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AcoesDaConta } from "@/components/conta/AcoesDaConta";
@@ -99,6 +100,7 @@ export default async function ContaPage({
             </p>
             <Link
               href="/kambadaplay/planos"
+              data-alvo="play-conhecer-os-planos"
               className="mt-4 inline-block rounded-full bg-kambada-amarelo px-6 py-2.5 text-sm font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
             >
               Conhecer os planos
@@ -146,6 +148,7 @@ export default async function ContaPage({
                     {pedido.rastreio ? (
                       <a
                         href={linkDeRastreio(pedido.rastreio.codigo)}
+                        data-alvo="rastrear-entrega"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-1 inline-block text-[var(--destaque-texto)] hover:underline"
@@ -158,6 +161,7 @@ export default async function ContaPage({
                     <p className="font-display text-lg font-bold">{formatarReais(pedido.total)}</p>
                     <Link
                       href={`/pedido?ref=${pedido.ref}`}
+                      data-alvo="detalhes-do-pedido"
                       className="text-[var(--destaque-texto)] hover:underline"
                     >
                       Detalhes
@@ -175,14 +179,14 @@ export default async function ContaPage({
             Quer as mesmas peças com frequência (brindes, revenda, presentes do mês)? Por enquanto, a gente combina
             pelo WhatsApp.
           </p>
-          <a
+          <LinkWhatsApp origem="conta-pedido-recorrente"
             href={recorrencia}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-block rounded-full border-2 border-borda px-6 py-2.5 text-sm font-bold transition-colors hover:border-kambada-amarelo"
           >
             Combinar pedido recorrente
-          </a>
+          </LinkWhatsApp>
         </article>
       </div>
     </section>

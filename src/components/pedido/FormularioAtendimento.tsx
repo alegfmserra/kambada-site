@@ -128,6 +128,7 @@ export default function FormularioAtendimento({ refInicial }: { refInicial: stri
       <div>
         <button
           type="submit"
+          data-alvo="atendimento-enviar-pelo-whatsapp"
           className="rounded-full bg-kambada-amarelo px-8 py-4 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
         >
           Enviar pelo WhatsApp

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import EventoCompra from "@/components/checkout/EventoCompra";
 import EsvaziarCarrinho from "@/components/carrinho/EsvaziarCarrinho";
 import BlocoEntregaLocal from "@/components/checkout/BlocoEntregaLocal";
@@ -76,6 +77,7 @@ export default async function PaginaSucesso({ searchParams }: Props) {
           <p className="mt-6 text-sm">
             <Link
               href={`/pedido?ref=${encodeURIComponent(ref)}`}
+              data-alvo="acompanhar-pedido"
               className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
             >
               Acompanhar este pedido
@@ -85,19 +87,20 @@ export default async function PaginaSucesso({ searchParams }: Props) {
         {(falhou || (resultado && !resultado.ok && resultado.motivo !== "nao_aprovado")) && (
           <p className="mx-auto mt-6 max-w-xl rounded-xl bg-superficie px-4 py-3 text-sm">
             Se algo parecer estranho, fale com a gente pelo{" "}
-            <a
+            <LinkWhatsApp origem="pedido-pago"
               href={linkWhatsApp(`Oi! Acabei de pagar um pedido${ref ? ` (${ref})` : ""} pelo site.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold underline"
             >
               WhatsApp
-            </a>{" "}
+            </LinkWhatsApp>{" "}
             com o número do pedido.
           </p>
         )}
         <Link
           href="/loja"
+          data-alvo="voltar-a-loja"
           className="mt-10 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
         >
           Voltar à loja

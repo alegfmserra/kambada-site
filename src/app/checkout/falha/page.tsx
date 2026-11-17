@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { linkWhatsApp } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -22,18 +23,19 @@ export default function PaginaFalha() {
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
             href="/checkout"
+            data-alvo="tentar-de-novo"
             className="rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Tentar de novo
           </Link>
-          <a
+          <LinkWhatsApp origem="pagamento-falhou"
             href={linkWhatsApp("Oi! Tentei pagar um pedido no site e não consegui. Pode me ajudar?")}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-borda px-7 py-3.5 font-display font-semibold hover:border-kambada-amarelo-escuro whitespace-nowrap"
           >
             Falar no WhatsApp
-          </a>
+          </LinkWhatsApp>
         </div>
       </div>
     </section>

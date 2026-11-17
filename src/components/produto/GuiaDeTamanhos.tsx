@@ -7,7 +7,7 @@ export const ANCORA_GUIA_DE_TAMANHOS = "guia-de-tamanhos";
 export default function GuiaDeTamanhos({ tabela }: { tabela: TabelaDeMedidas }) {
   return (
     <details open id={ANCORA_GUIA_DE_TAMANHOS} className="mt-6 scroll-mt-24 rounded-2xl border border-borda bg-superficie p-4">
-      <summary className="cursor-pointer font-display text-sm font-semibold uppercase text-texto-tenue">
+      <summary data-alvo="guia-de-tamanhos" className="cursor-pointer font-display text-sm font-semibold uppercase text-texto-tenue">
         Guia de tamanhos · {tabela.titulo}
       </summary>
       <div className="mt-3 overflow-x-auto">

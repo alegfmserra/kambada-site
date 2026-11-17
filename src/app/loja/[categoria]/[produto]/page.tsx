@@ -249,7 +249,7 @@ export default async function PaginaProduto({ params }: Props) {
 
       <section className="border-b border-borda">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-          <nav aria-label="Trilha" className="font-display text-sm font-semibold">
+          <nav aria-label="Trilha" data-area="produto-trilha" className="font-display text-sm font-semibold">
             <Link
               href="/loja"
               className="text-texto-tenue hover:text-kambada-amarelo-escuro"
@@ -303,7 +303,7 @@ export default async function PaginaProduto({ params }: Props) {
                 {estoque.texto}
               </p>
               {avaliacoes.media !== null ? (
-                <a href="#avaliacoes" className="mt-3 inline-flex w-fit items-center gap-2 text-sm text-texto-suave hover:underline">
+                <a href="#avaliacoes" data-alvo="ver-avaliacoes" className="mt-3 inline-flex w-fit items-center gap-2 text-sm text-texto-suave hover:underline">
                   <span aria-hidden="true" className="text-kambada-amarelo-escuro">★</span>
                   <span>
                     <strong className="font-display text-texto">{avaliacoes.media.toFixed(1).replace(".", ",")}</strong> de 5 ·{" "}
@@ -431,7 +431,7 @@ export default async function PaginaProduto({ params }: Props) {
                 <li><span aria-hidden="true">💳</span> {TEXTO_REGRA_PARCELAS}</li>
                 <li>
                   <span aria-hidden="true">↩️</span> Trocas e devoluções pelo Código de Defesa do Consumidor —{" "}
-                  <Link href="/trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">
+                  <Link href="/trocas-e-devolucoes" data-alvo="trocas-e-devolucoes" className="font-semibold text-texto underline underline-offset-4">
                     veja como
                   </Link>
                   .
@@ -453,6 +453,7 @@ export default async function PaginaProduto({ params }: Props) {
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <Link
             href={`/loja/${categoria.slug}`}
+            data-alvo="ver-todas-da-categoria"
             className="font-display font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
           >
             ← Ver todas as peças de {categoria.nome}

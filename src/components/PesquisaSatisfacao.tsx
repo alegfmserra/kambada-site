@@ -187,6 +187,7 @@ export default function PesquisaSatisfacao() {
       <div
         role="dialog"
         aria-label="Pesquisa de satisfação"
+        data-area="pesquisa-convite"
         className="fixed bottom-4 left-4 right-20 z-50 max-w-sm rounded-2xl border border-borda bg-fundo p-4 shadow-xl shadow-black/25 sm:bottom-5 sm:left-5"
       >
         <p className="font-display font-semibold">Topa 1 minuto pra avaliar o site?</p>
@@ -195,11 +196,12 @@ export default function PesquisaSatisfacao() {
           <button
             type="button"
             onClick={() => setFase("aberta")}
+            data-alvo="bora"
             className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm sm:text-base font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
           >
             Bora
           </button>
-          <button type="button" onClick={() => fechar(true)} className="rounded-full px-4 py-2 text-sm sm:text-base text-texto-suave hover:bg-superficie">
+          <button type="button" onClick={() => fechar(true)} data-alvo="agora-nao" className="rounded-full px-4 py-2 text-sm sm:text-base text-texto-suave hover:bg-superficie">
             Agora não
           </button>
         </div>
@@ -208,7 +210,7 @@ export default function PesquisaSatisfacao() {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 sm:items-center" onClick={() => fechar(true)}>
+    <div data-sem-medicao className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 sm:items-center" onClick={() => fechar(true)}>
       <div
         ref={caixaModal}
         role="dialog"
@@ -814,7 +816,7 @@ function Formulario({
 /** Link do rodapé: abre a pesquisa direto, mesmo para quem já respondeu. */
 export function BotaoAvaliarSite({ className }: { className?: string }) {
   return (
-    <button type="button" onClick={() => pedirPesquisa("rodape", true)} className={className}>
+    <button type="button" onClick={() => pedirPesquisa("rodape", true)} data-alvo="avalie-o-site" className={className}>
       Avalie o site
     </button>
   );

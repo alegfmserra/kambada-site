@@ -74,7 +74,7 @@ export default function Cabecalho() {
   return (
     <header className="sticky top-0 z-40 border-b border-borda bg-fundo/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 lg:gap-4 py-4 sm:px-6">
-        <Link href="/" aria-label="Kambada — página inicial" className="shrink-0">
+        <Link href="/" aria-label="Kambada — página inicial" data-alvo="logo" className="shrink-0">
           {/* Escuro: logo toda amarela. Claro: logo toda preta (arquivo do Alexandre, 20/10/2026). */}
           <Image
             src="/marca/kambada-logo-horizontal-amarelo.png"
@@ -104,6 +104,7 @@ export default function Cabecalho() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      data-alvo={`menu-${item.rotulo}`}
                       className="text-sm font-medium text-texto-suave transition-colors hover-marca"
                     >
                       {item.rotulo}
@@ -117,6 +118,7 @@ export default function Cabecalho() {
                   <span className="flex items-center gap-1">
                     <Link
                       href={item.href}
+                      data-alvo={`menu-${item.rotulo}`}
                       className="text-sm font-medium text-texto-suave transition-colors hover-marca"
                     >
                       {item.rotulo}
@@ -126,6 +128,7 @@ export default function Cabecalho() {
                       onClick={() => setSubmenu((v) => !v)}
                       aria-expanded={submenu}
                       aria-controls="submenu-loja"
+                      data-alvo={submenu ? "menu-loja-fechar-categorias" : "menu-loja-abrir-categorias"}
                       className="inline-flex h-8 w-8 items-center justify-center rounded text-texto-tenue transition-colors hover-marca"
                     >
                       <span className="sr-only">
@@ -159,6 +162,7 @@ export default function Cabecalho() {
                         <Link
                           href="/loja"
                           onClick={() => setSubmenu(false)}
+                          data-alvo="menu-loja-toda-a-loja"
                           className="block rounded-xl px-4 py-2.5 text-sm font-medium text-texto-suave hover:bg-superficie hover-marca"
                         >
                           Toda a loja
@@ -169,6 +173,7 @@ export default function Cabecalho() {
                           <Link
                             href={`/loja/${categoria.slug}`}
                             onClick={() => setSubmenu(false)}
+                            data-alvo={`menu-loja-${categoria.slug}`}
                             className="block rounded-xl px-4 py-2.5 text-sm font-medium text-texto-suave hover:bg-superficie hover-marca"
                           >
                             {categoria.nome}
@@ -310,6 +315,7 @@ export default function Cabecalho() {
                 <Link
                   href={item.href}
                   onClick={() => setAberto(false)}
+                  data-alvo={`menu-${item.rotulo}`}
                   className="block py-3 font-medium text-texto-suave hover-marca"
                 >
                   {item.rotulo}
@@ -323,6 +329,7 @@ export default function Cabecalho() {
                         <Link
                           href={`/loja/${categoria.slug}`}
                           onClick={() => setAberto(false)}
+                          data-alvo={`menu-loja-${categoria.slug}`}
                           className="block py-2.5 text-sm text-texto-tenue hover-marca"
                         >
                           {categoria.nome}

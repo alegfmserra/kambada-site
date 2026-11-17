@@ -14,6 +14,7 @@ export default function IconeCarrinho() {
     <Link
       href="/carrinho"
       aria-label={rotulo}
+      data-alvo="carrinho"
       className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover:text-kambada-amarelo-escuro"
     >
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import FormularioAvaliacao from "@/components/avaliacoes/FormularioAvaliacao";
 import { lerTokenDeAvaliacao, nomeDeExibicao } from "@/lib/avaliacoes/avaliacoes";
 import { pecasDoPedido, pedidoPodeAvaliar } from "@/lib/avaliacoes/pedido";
@@ -39,17 +40,17 @@ export default async function PaginaAvaliar({ searchParams }: { searchParams: Pr
               : "Este pedido ainda não pode ser avaliado: a avaliação abre quando o pedido é entregue ou retirado."}
           </p>
           <p className="mt-6 flex flex-wrap gap-4 text-sm">
-            <Link href="/loja" className="font-semibold underline underline-offset-4">
+            <Link href="/loja" data-alvo="voltar-para-a-loja" className="font-semibold underline underline-offset-4">
               Voltar para a loja
             </Link>
-            <a
+            <LinkWhatsApp origem="avaliar-link-quebrado"
               href={linkWhatsApp("Oi! Quero avaliar meu pedido, mas o link não abriu.")}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold underline underline-offset-4"
             >
               Falar no WhatsApp
-            </a>
+            </LinkWhatsApp>
           </p>
         </>
       )}

@@ -64,6 +64,7 @@ export default async function PaginaPendente({ searchParams }: Props) {
         <div>
           <Link
             href="/loja"
+            data-alvo="voltar-a-loja"
             className="mt-10 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Voltar à loja

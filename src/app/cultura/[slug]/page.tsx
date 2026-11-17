@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { notFound } from "next/navigation";
 import {
   ARTIGOS,
@@ -295,18 +296,19 @@ export default async function Artigo({ params }: Props) {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 href="/loja"
+                data-alvo="ver-a-loja"
                 className="rounded-full bg-kambada-grafite px-6 py-3 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-preto"
               >
                 Ver a loja
               </Link>
-              <a
+              <LinkWhatsApp origem="artigo"
                 href={linkWhatsApp()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border-2 border-kambada-grafite px-6 py-3 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-grafite hover:text-kambada-amarelo"
               >
                 Falar no WhatsApp
-              </a>
+              </LinkWhatsApp>
             </div>
           </div>
 
@@ -320,12 +322,14 @@ export default async function Artigo({ params }: Props) {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 href="/kambadaplay/experimente"
+                data-alvo="play-jogar-o-quiz"
                 className="rounded-full bg-kambada-amarelo px-6 py-3 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-branco"
               >
                 Jogar o quiz
               </Link>
               <Link
                 href="/kambadaplay/planos"
+                data-alvo="play-conhecer"
                 className="rounded-full border-2 border-kambada-amarelo px-6 py-3 font-display font-semibold text-kambada-amarelo transition-colors hover:bg-kambada-amarelo hover:text-kambada-grafite"
               >
                 Conhecer o Play

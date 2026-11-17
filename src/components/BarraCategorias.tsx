@@ -9,7 +9,7 @@ export default function BarraCategorias({ ativa }: { ativa?: string }) {
   const itens = [{ slug: "", nome: "Tudo" }, ...CATEGORIAS];
 
   return (
-    <nav aria-label="Categorias da loja" className="border-b border-borda">
+    <nav aria-label="Categorias da loja" data-area="barra-categorias" className="border-b border-borda">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <ul className="-mx-1 flex gap-2 overflow-x-auto py-3">
           {itens.map((item) => {
@@ -20,6 +20,7 @@ export default function BarraCategorias({ ativa }: { ativa?: string }) {
                 <Link
                   href={href}
                   aria-current={selecionada ? "page" : undefined}
+                  data-alvo={item.slug || "tudo"}
                   className={
                     selecionada
                       ? "block rounded-full bg-kambada-amarelo px-5 py-2 font-display text-sm font-semibold text-kambada-grafite"

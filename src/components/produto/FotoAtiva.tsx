@@ -80,12 +80,13 @@ export default function FotoAtiva({
         className="aspect-[3/4] rounded-3xl"
       />
       {todas.length > 1 && (
-        <ul aria-label="Mais fotos" className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <ul aria-label="Mais fotos" data-area="produto-fotos" className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {todas.map((f, i) => (
             <li key={f.src} className="shrink-0">
               <button
                 type="button"
                 onClick={() => escolher(f)}
+                data-alvo="miniatura"
                 aria-label={`Foto ${i + 1} de ${todas.length}`}
                 aria-current={f.src === foto.src ? "true" : undefined}
                 className={`block h-20 w-16 overflow-hidden rounded-xl border-2 ${f.src === foto.src ? "border-kambada-amarelo" : "border-transparent hover:border-borda"}`}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { useActionState } from "react";
 import { consultarPedido, pedirCancelamento, type RespostaCancelamento, type RespostaConsulta } from "@/app/pedido/acoes";
 import { formatarReais } from "@/lib/loja/dinheiro";
@@ -53,6 +54,7 @@ export default function ConsultaPedido({ refInicial }: { refInicial: string }) {
         <button
           type="submit"
           disabled={consultando}
+          data-alvo="ver-meu-pedido"
           className="w-full rounded-full bg-kambada-amarelo px-6 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro disabled:opacity-50"
         >
           {consultando ? "Consultando…" : "Ver meu pedido"}
@@ -73,14 +75,14 @@ export default function ConsultaPedido({ refInicial }: { refInicial: string }) {
               Confira o número (começa com KMB-) e o e-mail usado na compra. Comprou pelo WhatsApp?
               Aí o acompanhamento é por lá mesmo.
             </p>
-            <a
+            <LinkWhatsApp origem="pedido-nao-encontrado"
               href={linkWhatsApp("Oi! Queria saber como está o meu pedido.")}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 inline-block font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
             >
               Falar no WhatsApp
-            </a>
+            </LinkWhatsApp>
           </div>
         )}
         {resposta.estado === "limite" && (
@@ -140,6 +142,7 @@ function Resultado({ resposta }: { resposta: Extract<RespostaConsulta, { estado:
                 {r.servico ? `${r.servico}: ` : ""}
                 <a
                   href={`https://www.melhorrastreio.com.br/rastreio/${encodeURIComponent(r.codigo)}`}
+                  data-alvo="rastrear-entrega"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono font-semibold underline underline-offset-4"
@@ -193,12 +196,14 @@ function Resultado({ resposta }: { resposta: Extract<RespostaConsulta, { estado:
       <div className="flex flex-wrap gap-3">
         <Link
           href={`/pedido/atendimento?ref=${encodeURIComponent(dados.ref)}`}
+          data-alvo="reclamacao-troca-devolucao"
           className="rounded-full bg-kambada-amarelo px-6 py-3 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
         >
           Reclamação, troca ou devolução
         </Link>
         <Link
           href="/trocas-e-devolucoes"
+          data-alvo="politica-de-trocas"
           className="rounded-full border border-borda px-6 py-3 font-display font-semibold hover:border-kambada-amarelo-escuro"
         >
           Política de trocas
@@ -249,6 +254,7 @@ function PedirCancelamento({ refPedido, email }: { refPedido: string; email: str
         <button
           type="submit"
           disabled={enviando}
+          data-alvo="pedir-cancelamento"
           className="rounded-full border border-red-500 px-6 py-3 font-display font-semibold text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-60"
         >
           {enviando ? "Enviando…" : "Pedir cancelamento"}

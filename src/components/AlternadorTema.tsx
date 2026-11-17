@@ -30,6 +30,7 @@ export default function AlternadorTema() {
     <button
       type="button"
       onClick={trocar}
+      data-alvo="trocar-tema"
       className="rounded-full border border-borda p-2.5 text-texto-suave transition-colors hover:text-kambada-amarelo-escuro"
     >
       <span className="sr-only so-escuro">Mudar para o tema claro</span>

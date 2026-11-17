@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { assinar } from "./seguranca";
-import { avaliar, BANCO, iniciarDoDia, normalizar, numeroDaEdicao, palavraDoDia, palpitar, TAMANHO, TENTATIVAS } from "./palavra";
+import { avaliar, BANCO, iniciarDoDia, normalizar, numeroDaEdicao, palavraDoDia, palavrasAtivas, palpitar, TAMANHO, TENTATIVAS } from "./palavra";
 
 describe("Palavra do dia — antes do lançamento", () => {
   it("a palavra muda todo dia mesmo antes do dia 1 (pré-visualização), e a edição mostrada fica em 1", () => {
@@ -120,5 +120,60 @@ describe("Palavra do dia — partida", () => {
     expect(palpitar(ini.estado, "punga", new Date("2026-11-04T15:00:00Z")).ok).toBe(false);
     const forjado = assinar({ v: 1, jogo: "quiz", dia: "2026-11-03", palpites: [] });
     expect(palpitar(forjado, "punga", agora).ok).toBe(false);
+  });
+});
+
+describe("Palavra do dia — só as revisadas vão ao ar", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  const emProducao = () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("PLAY_PALAVRAS_NAO_REVISADAS", "");
+    vi.stubEnv("PLAY_SEGREDO", "segredo-so-de-teste");
+  };
+
+  it("em produção, sem a chave de liberar tudo, a lista ativa é exatamente a das revisadas", () => {
+    emProducao();
+    const ativas = palavrasAtivas();
+    expect(ativas).toEqual(BANCO.filter((p) => p.revisado));
+    expect(ativas.every((p) => p.revisado)).toBe(true);
+    // Rodízio com folga: pelo menos três semanas sem repetir.
+    expect(ativas.filter((p) => !p.dia).length).toBeGreaterThanOrEqual(21);
+  });
+
+  it("palavra com data fixa precisa estar revisada, senão o dia dela cai no rodízio sem aviso", () => {
+    for (const p of BANCO.filter((x) => x.dia)) expect(p.revisado).toBe(true);
+  });
+
+  it("com a lista parcial, o jogo abre todo dia, não repete em dias seguidos e passa por todas antes de voltar", () => {
+    emProducao();
+    const rodizio = palavrasAtivas().filter((p) => !p.dia);
+    const fixas = palavrasAtivas().filter((p) => p.dia);
+    const dias = Array.from({ length: 120 }, (_, i) =>
+      new Date(Date.parse("2026-11-01T00:00:00Z") + i * 86_400_000).toISOString().slice(0, 10),
+    );
+    const palavras = dias.map((d) => palavraDoDia(d));
+    palavras.forEach((p) => {
+      expect(p).not.toBeNull();
+      expect(p!.revisado).toBe(true);
+    });
+    for (let i = 1; i < palavras.length; i++) expect(palavras[i]!.palavra).not.toBe(palavras[i - 1]!.palavra);
+    // Tirando os dias de palavra fixa, cada janela do tamanho do rodízio traz todas as palavras, uma vez cada.
+    const comuns = dias.filter((d) => !fixas.some((f) => f.dia === d)).map((d) => palavraDoDia(d)!.palavra);
+    for (let i = 0; i + rodizio.length <= comuns.length; i += rodizio.length) {
+      expect(new Set(comuns.slice(i, i + rodizio.length)).size).toBe(rodizio.length);
+    }
+    expect(palavraDoDia("2026-11-20")?.palavra).toBe("PUNGA");
+    const r = iniciarDoDia(new Date("2026-11-17T15:00:00Z"));
+    expect(r.ok).toBe(true);
+  });
+
+  it("palavra não revisada nunca é sorteada em produção", () => {
+    emProducao();
+    const fora = new Set(BANCO.filter((p) => !p.revisado).map((p) => p.palavra));
+    for (let i = 0; i < 400; i++) {
+      const dia = new Date(Date.parse("2026-11-01T00:00:00Z") + i * 86_400_000).toISOString().slice(0, 10);
+      expect(fora.has(palavraDoDia(dia)!.palavra)).toBe(false);
+    }
   });
 });

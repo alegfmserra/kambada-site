@@ -8,8 +8,11 @@ import { hojeEmSaoLuis } from "../../cupons/cupons";
  * a partida acabar. Cada palpite é conferido aqui e só as cores voltam. O
  * estado da partida (palpites já feitos) viaja assinado, como no quiz.
  *
- * Lista inicial de 5 letras: `revisado` só vira true depois que mestres e
- * brincantes conferirem significado e exemplo (regra de todo texto do Play).
+ * Lista inicial de 5 letras: `revisado` só vira true depois de conferidos
+ * significado e exemplo (regra de todo texto do Play). Revisão de 17/11/2026,
+ * a pedido do Alexandre: entraram as palavras da cultura maranhense com texto
+ * conferido; as de uso geral, sem vínculo com o Maranhão, ficaram de fora com
+ * o motivo anotado na linha de cima. O rodízio anda só pelas revisadas.
  */
 
 export const TAMANHO = 5;
@@ -26,43 +29,52 @@ export type Palavra = {
 };
 
 export const BANCO: Palavra[] = [
-  { palavra: "ÉGUAS", significado: "Exclamação maranhense de surpresa, espanto ou admiração; serve para quase tudo.", exemplo: "Éguas, que calor é esse!", revisado: false },
+  { palavra: "ÉGUAS", significado: "Exclamação maranhense de surpresa, espanto ou admiração; serve para quase tudo.", exemplo: "Éguas, que calor é esse!", revisado: true },
   // 20/11, Dia da Consciência Negra: palavra do tambor de crioula, manifestação de matriz africana.
-  { palavra: "PUNGA", significado: "A umbigada do tambor de crioula: o toque de barriga com que a dançarina convida outra para o meio da roda.", exemplo: "Ela deu a punga e a roda inteira vibrou.", revisado: false, dia: "2026-11-20" },
+  { palavra: "PUNGA", significado: "A umbigada do tambor de crioula: o toque de barriga com que a coreira convida outra para o meio da roda.", exemplo: "Ela deu a punga e a roda inteira vibrou.", revisado: true, dia: "2026-11-20" },
   // Novembro é o mês do Tambor de Crioula: as primeiras do rodízio são dele.
-  { palavra: "SAIAS", significado: "As saias rodadas e coloridas das coreiras, que giram no tambor de crioula.", exemplo: "As saias rodaram forte quando os tambores esquentaram.", revisado: false },
-  { palavra: "COURO", significado: "A pele esticada do tambor, que dá o som; também o couro bordado que veste o boi.", exemplo: "O tambor foi aquecido na fogueira para o couro ficar firme.", revisado: false },
-  { palavra: "DANÇA", significado: "Movimento ao ritmo da música. No tambor de crioula, as coreiras dançam em roda, uma de cada vez.", exemplo: "A dança só termina quando o último tambor cala.", revisado: false },
-  { palavra: "TOADA", significado: "A canção do bumba-meu-boi. Cada grupo tem as suas, e o amo é quem puxa.", exemplo: "O amo puxou a toada e o terreiro respondeu.", revisado: false },
-  { palavra: "COCAL", significado: "Mata de palmeiras, sobretudo de babaçu. Dá nome à região dos Cocais, no Maranhão e no Piauí.", exemplo: "A quebradeira de coco trabalha no cocal desde cedo.", revisado: false },
-  { palavra: "BEIJU", significado: "Massa de tapioca ou de mandioca assada em forma de disco fino, comida do café da manhã.", exemplo: "No café teve beiju com manteiga.", revisado: false },
-  { palavra: "FITAS", significado: "Tiras coloridas que enfeitam o chapéu do vaqueiro e o boi nas festas juninas.", exemplo: "O chapéu dele estava coberto de fitas de todas as cores.", revisado: false },
-  { palavra: "CANOA", significado: "Barco pequeno e estreito, movido a remo ou a vela, muito usado nos rios e baías do Maranhão.", exemplo: "Atravessamos a baía de canoa.", revisado: false },
-  { palavra: "PIRÃO", significado: "Papa feita com o caldo do peixe e farinha de mandioca; acompanha peixe e carne.", exemplo: "Pirão quentinho com peixe frito não tem erro.", revisado: false },
-  { palavra: "GUARÁ", significado: "Ave de plumagem vermelho-vivo que habita os manguezais do litoral maranhense.", exemplo: "No fim da tarde, os guarás cobrem o céu do mangue de vermelho.", revisado: false },
-  { palavra: "LENDA", significado: "História tradicional contada de geração em geração, com parte de fato e parte de encanto.", exemplo: "Dizem que a lenda da serpente vem do tempo dos antigos.", revisado: false },
+  { palavra: "SAIAS", significado: "As saias rodadas e coloridas das coreiras, que giram no tambor de crioula.", exemplo: "As saias rodaram forte quando os tambores esquentaram.", revisado: true },
+  { palavra: "COURO", significado: "A pele esticada do tambor, que dá o som; também o couro bordado que veste o boi.", exemplo: "O tambor foi aquecido na fogueira para o couro ficar firme.", revisado: true },
+  { palavra: "DANÇA", significado: "Movimento ao ritmo da música. No tambor de crioula, as coreiras dançam na roda e vão ao centro uma de cada vez.", exemplo: "A dança só termina quando o último tambor cala.", revisado: true },
+  { palavra: "TOADA", significado: "A canção do bumba-meu-boi. Cada grupo tem as suas, e o amo é quem puxa.", exemplo: "O amo puxou a toada e o terreiro respondeu.", revisado: true },
+  { palavra: "COCAL", significado: "Mata de palmeiras, sobretudo de babaçu. Dá nome à região dos Cocais, no Maranhão e no Piauí.", exemplo: "A quebradeira de coco trabalha no cocal desde cedo.", revisado: true },
+  { palavra: "BEIJU", significado: "Massa de tapioca ou de mandioca assada em forma de disco fino, comida do café da manhã.", exemplo: "No café teve beiju com manteiga.", revisado: true },
+  { palavra: "FITAS", significado: "Tiras coloridas que enfeitam o chapéu do vaqueiro e o boi nas festas juninas.", exemplo: "O chapéu dele estava coberto de fitas de todas as cores.", revisado: true },
+  { palavra: "CANOA", significado: "Barco pequeno e estreito, movido a remo ou a vela, muito usado nos rios e baías do Maranhão.", exemplo: "Atravessamos a baía de canoa.", revisado: true },
+  { palavra: "PIRÃO", significado: "Papa feita com o caldo do peixe e farinha de mandioca; acompanha peixe e carne.", exemplo: "Pirão quentinho com peixe frito não tem erro.", revisado: true },
+  { palavra: "GUARÁ", significado: "Ave de plumagem vermelho-vivo que habita os manguezais do litoral maranhense.", exemplo: "No fim da tarde, os guarás cobrem o céu do mangue de vermelho.", revisado: true },
+  { palavra: "LENDA", significado: "História tradicional contada de geração em geração, com parte de fato e parte de encanto.", exemplo: "Dizem que a lenda da serpente vem do tempo dos antigos.", revisado: true },
+  // Não revisada (17/11/2026): palavra do português geral, não é regionalismo maranhense nem termo da cultura local; o dono decide se entra.
   { palavra: "FUZUÊ", significado: "Confusão alegre ou festa barulhenta, com muita gente e muito movimento.", exemplo: "Foi um fuzuê no arraial quando o boi chegou.", revisado: false },
+  // Não revisada (17/11/2026): palavra do português geral (mais ligada à Bahia), sem vínculo com o Maranhão no texto; o dono decide se entra.
   { palavra: "DENGO", significado: "Carinho, manha, graça no jeito de ser; também o ato de mimar alguém.", exemplo: "A vovó enche o neto de dengo.", revisado: false },
-  { palavra: "ARROZ", significado: "Cereal base da mesa maranhense. O arroz de cuxá, feito com vinagreira, é o prato mais conhecido do estado.", exemplo: "Domingo é dia de arroz de cuxá na casa da família.", revisado: false },
+  { palavra: "ARROZ", significado: "Cereal base da mesa maranhense. O arroz de cuxá, feito com vinagreira, é um dos pratos mais conhecidos do estado.", exemplo: "Domingo é dia de arroz de cuxá na casa da família.", revisado: true },
+  // Não revisada (17/11/2026): nordestino em geral, não especificamente maranhense; o dono decide se entra.
   { palavra: "FORRÓ", significado: "Festa dançante e também o ritmo nordestino de sanfona, zabumba e triângulo.", exemplo: "O forró de ontem só acabou de manhã.", revisado: false },
+  // Não revisada (17/11/2026): viola de repentista é do sertão nordestino; falta conferir o uso no Maranhão.
   { palavra: "VIOLA", significado: "Instrumento de cordas, parente do violão, presente em cantorias e festas populares.", exemplo: "O repentista afinou a viola e começou o verso.", revisado: false },
+  // Não revisada (17/11/2026): palavra do português geral, sem vínculo com o Maranhão no texto.
   { palavra: "BREJO", significado: "Terreno baixo e encharcado, de terra úmida, onde a água fica empoçada.", exemplo: "O gado desceu até o brejo para beber.", revisado: false },
-  { palavra: "RITMO", significado: "A batida que organiza o som e a dança. Cada sotaque do bumba-meu-boi tem o seu.", exemplo: "O ritmo da matraca acelera quando o boi entra na roda.", revisado: false },
+  { palavra: "RITMO", significado: "A batida que organiza o som e a dança. Cada sotaque do bumba-meu-boi tem o seu.", exemplo: "Pelo ritmo das matracas, a gente sabe que o boi é da Ilha.", revisado: true },
+  // Não revisada (17/11/2026): "terno de reis" é mais da Bahia e do Sul; falta conferir com mestres se o termo é usado no Maranhão.
   { palavra: "TERNO", significado: "Conjunto de pessoas que formam um grupo cantado ou dançado; também o traje completo.", exemplo: "O terno de reis saiu cantando de casa em casa.", revisado: false },
-  { palavra: "BUMBA", significado: "A palavra que abre o nome do bumba-meu-boi, a brincadeira mais conhecida das festas juninas do Maranhão.", exemplo: "No São João, o bumba chega com o boi, o amo e os vaqueiros.", revisado: false },
+  { palavra: "BUMBA", significado: "A palavra que abre o nome do bumba-meu-boi, a brincadeira mais conhecida das festas juninas do Maranhão.", exemplo: "No São João, o bumba-meu-boi chega com o boi, o amo e os vaqueiros.", revisado: true },
+  // Não revisada (17/11/2026): definição genérica; se entrar, vale amarrar à Folia do Divino (conferir com brincantes).
   { palavra: "FOLIA", significado: "Festa animada, com música, dança e muita gente reunida.", exemplo: "A folia do arraial varou a madrugada.", revisado: false },
+  // Não revisada (17/11/2026): nordestino em geral, não especificamente maranhense; o dono decide se entra.
   { palavra: "BAIÃO", significado: "Ritmo nordestino de sanfona e zabumba; também o nome do baião de dois, prato de arroz com feijão.", exemplo: "Teve baião de dois e baião de viola na festa.", revisado: false },
-  { palavra: "MARÉS", significado: "O sobe e desce do mar. As marés de São Luís estão entre as maiores do Brasil e mudam o desenho da praia.", exemplo: "Com as marés de lua cheia, a água invade a praia toda.", revisado: false },
-  { palavra: "CHITA", significado: "Tecido de algodão estampado de flores, símbolo das festas juninas e das roupas de quadrilha.", exemplo: "O vestido de chita rodou no meio do arraial.", revisado: false },
-  { palavra: "PALHA", significado: "Fibra seca de palmeira, como o buriti e o babaçu, usada em chapéus, esteiras e cestos.", exemplo: "O chapéu de palha protege do sol da roça.", revisado: false },
-  { palavra: "SANTO", significado: "Figura de devoção. Em junho se festejam Santo Antônio, São João, São Pedro e São Marçal.", exemplo: "Cada santo de junho tem a sua fogueira e a sua festa.", revisado: false },
-  { palavra: "FAROL", significado: "Torre com luz que guia os barcos. O Farol de São Marcos fica na costa de São Luís.", exemplo: "Do farol se vê a entrada da baía.", revisado: false },
-  { palavra: "MANGA", significado: "Fruta de polpa doce e suculenta, muito comum nos quintais de São Luís.", exemplo: "A mangueira do quintal carrega manga o ano todo.", revisado: false },
+  { palavra: "MARÉS", significado: "O sobe e desce do mar. As marés de São Luís estão entre as maiores do Brasil e mudam o desenho da praia.", exemplo: "Com as marés de lua cheia, a água invade a praia toda.", revisado: true },
+  { palavra: "CHITA", significado: "Tecido de algodão estampado de flores, símbolo das festas juninas e das roupas de quadrilha.", exemplo: "O vestido de chita rodou no meio do arraial.", revisado: true },
+  { palavra: "PALHA", significado: "Fibra seca de palmeira, como o buriti e o babaçu, usada em chapéus, esteiras e cestos.", exemplo: "O chapéu de palha protege do sol da roça.", revisado: true },
+  { palavra: "SANTO", significado: "Figura de devoção. Em junho se festejam Santo Antônio, São João, São Pedro e São Marçal.", exemplo: "Cada santo de junho tem o seu dia de festa.", revisado: true },
+  { palavra: "FAROL", significado: "Torre com luz que guia os barcos. O Farol de São Marcos fica na costa de São Luís.", exemplo: "Do farol se vê a entrada da baía.", revisado: true },
+  { palavra: "MANGA", significado: "Fruta de polpa doce e suculenta, muito comum nos quintais de São Luís.", exemplo: "A mangueira do quintal ficou carregada de manga.", revisado: true },
+  // Não revisada (17/11/2026): "brabo" como elogio é gíria nacional recente, não fala maranhense; conferir.
   { palavra: "BRABO", significado: "Forte, intenso; no falar nordestino também vale como elogio.", exemplo: "Esse tambor é brabo, não deixa ninguém parado.", revisado: false },
-  { palavra: "CANTO", significado: "A voz que conduz a brincadeira: no boi, é o amo quem puxa o canto.", exemplo: "O canto do amo atravessou o terreiro.", revisado: false },
-  { palavra: "PRETO", significado: "A cor do boi mais tradicional de muitos grupos, coberto de bordados de miçangas e canutilhos.", exemplo: "O boi preto brilhou de estrelas bordadas.", revisado: false },
-  { palavra: "FESTA", significado: "Dia de encontro, com comida, música e dança. No Maranhão, o calendário de festas do ano é longo.", exemplo: "A festa de São Marçal reúne bois de várias partes da ilha.", revisado: false },
-  { palavra: "TRAJE", significado: "A roupa que o grupo veste para se apresentar, pensada nas cores e no tema da brincadeira.", exemplo: "O traje novo da turma foi bordado à mão.", revisado: false },
+  { palavra: "CANTO", significado: "A voz que conduz a brincadeira: no boi, é o amo quem puxa o canto.", exemplo: "O canto do amo atravessou o terreiro.", revisado: true },
+  { palavra: "PRETO", significado: "A cor do couro de veludo de muitos bois do bumba-meu-boi, coberto de bordados de miçangas e canutilhos.", exemplo: "O boi preto brilhou de estrelas bordadas.", revisado: true },
+  { palavra: "FESTA", significado: "Dia de encontro, com comida, música e dança. No Maranhão, o calendário de festas do ano é longo.", exemplo: "A festa de São Marçal reúne bois de várias partes da ilha.", revisado: true },
+  { palavra: "TRAJE", significado: "A roupa que o grupo veste para se apresentar, pensada nas cores e no tema da brincadeira.", exemplo: "O traje novo da turma foi bordado à mão.", revisado: true },
 ];
 
 /** Tira acentos e deixa só A–Z maiúsculo: é assim que palpite e palavra são comparados. */
@@ -74,7 +86,10 @@ export function normalizar(texto: string): string {
     .replace(/[^A-Z]/g, "");
 }
 
-/** Em produção, só palavras revisadas, a não ser que `PLAY_PALAVRAS_NAO_REVISADAS=1`. */
+/**
+ * Em produção, só palavras revisadas. `PLAY_PALAVRAS_NAO_REVISADAS=1` (liberar tudo) deixou de ser
+ * necessária em 17/11/2026, com a lista revisada; fica só como chave de teste e não deve estar ligada no ar.
+ */
 export function palavrasAtivas(): Palavra[] {
   const liberarTudo = process.env.NODE_ENV !== "production" || process.env.PLAY_PALAVRAS_NAO_REVISADAS === "1";
   return BANCO.filter((p) => (liberarTudo || p.revisado) && normalizar(p.palavra).length === TAMANHO);

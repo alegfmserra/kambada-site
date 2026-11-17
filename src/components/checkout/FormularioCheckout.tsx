@@ -8,6 +8,7 @@ import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica"
 import { evento } from "@/lib/analytics/eventos";
 import { gaDoNavegador } from "@/lib/analytics/cookiesGoogle";
 import { rastrear } from "@/lib/visitas/rastrear";
+import { lerCupomGuardado } from "@/lib/campanhas/black";
 import { explicacaoLocal } from "@/lib/frete/entregaLocal";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
 import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
@@ -125,6 +126,17 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
     } catch {
       /* sem armazenamento: começa em branco */
     }
+  }, []);
+
+  // Código guardado pelo pop-up ou pela faixa da promoção: o campo de cupom já
+  // abre preenchido. NÃO é aplicado sozinho: a pessoa confere e toca em "Aplicar".
+  useEffect(() => {
+    const guardado = lerCupomGuardado();
+    if (!guardado) return;
+    // O código guardado só existe no navegador; por isso é lido depois de montar.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCodigoCupom((atual) => atual || guardado);
+    setMsgCupom((atual) => atual ?? `Código ${guardado} preenchido. Toque em Aplicar para usar.`);
   }, []);
 
   useEffect(() => {

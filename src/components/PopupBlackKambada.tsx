@@ -4,37 +4,90 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { evento } from "@/lib/analytics/eventos";
-import { BLACK, ativaEm, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
+import { BLACK, GATILHO, diaMes, faseDaBlack, fracaoRolada, guardarCupom, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
+import { linkWhatsApp } from "@/lib/site";
 
 const CHAVE = "kambada-black-2026";
+const CHAVE_PAGINAS = "kambada-black-paginas";
 const VOLTA_EM_MS = 6 * 3_600_000;
+
+/** Conta as páginas desta visita (por aba). Sem armazenamento, toda página conta como a 1ª. */
+function contarPagina(): number {
+  try {
+    const n = Number(sessionStorage.getItem(CHAVE_PAGINAS) ?? 0) + 1;
+    sessionStorage.setItem(CHAVE_PAGINAS, String(n));
+    return n;
+  } catch {
+    return 1;
+  }
+}
 
 /**
  * Pop-up da Black Kambada: quadrado de 5 × 5 polegadas (480 px; no celular encolhe para caber),
- * centralizado, com o cupom e o botão para a loja. Aparece até 4 vezes ao dia (de 6 em 6 horas) por navegador, só dentro
+ * centralizado. Aparece até 4 vezes ao dia (de 6 em 6 horas) por navegador, só dentro
  * da janela da promoção. `?black=1` na URL força a abertura para conferir o visual.
+ *
+ * Duas fases (17/11/2026):
+ *  - antes de 22/11, lista de espera: o botão é "Me avisa no WhatsApp" e o código não aparece;
+ *  - de 22 a 30/11, o código para copiar e o botão para a loja.
+ *
+ * Gatilho com intenção: abre na 2ª página da visita, ou ao rolar metade da página,
+ * ou depois de 25 s na mesma página. Antes abria 1,2 s depois de qualquer carregamento.
  */
 export default function PopupBlackKambada() {
-  const caminho = usePathname();
+  const caminho = usePathname() ?? "/";
   const [aberto, setAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const dialogo = useRef<HTMLDialogElement>(null);
+  const ultimoContado = useRef<string | null>(null);
+  const paginas = useRef(0);
 
   useEffect(() => {
-    if (!podeAparecerEm(caminho)) return;
-    const forcado = new URLSearchParams(window.location.search).get("black") === "1";
-    if (!forcado) {
-      if (!popupNoAr(hojeSaoLuis())) return;
-      try {
-        const ultima = Number(localStorage.getItem(CHAVE) ?? 0);
-        if (Date.now() - ultima < VOLTA_EM_MS) return;
-      } catch {
-        /* sem armazenamento: mostra, só não lembra */
-      }
+    // No Play nada é contado nem guardado.
+    if (caminho.startsWith("/kambadaplay")) return;
+    // Cada página conta uma vez (em desenvolvimento o efeito roda duas vezes).
+    if (ultimoContado.current !== caminho) {
+      ultimoContado.current = caminho;
+      paginas.current = contarPagina();
     }
-    const t = setTimeout(() => setAberto(true), 1200);
-    return () => clearTimeout(t);
+    if (!podeAparecerEm(caminho)) return;
+
+    const forcado = new URLSearchParams(window.location.search).get("black") === "1";
+    if (forcado) {
+      const t = setTimeout(() => setAberto(true), 300);
+      return () => clearTimeout(t);
+    }
+    if (!popupNoAr(hojeSaoLuis())) return;
+    try {
+      const ultima = Number(localStorage.getItem(CHAVE) ?? 0);
+      if (Date.now() - ultima < VOLTA_EM_MS) return;
+    } catch {
+      /* sem armazenamento: mostra, só não lembra */
+    }
+
+    // 2ª página da visita em diante: a pessoa já está passeando; abre depois de a página assentar.
+    if (paginas.current >= GATILHO.paginas) {
+      const t = setTimeout(() => setAberto(true), 1200);
+      return () => clearTimeout(t);
+    }
+    // 1ª página: espera metade da rolagem ou 25 s, o que vier primeiro. Abre uma vez só:
+    // depois de fechado, continuar rolando a mesma página não o traz de volta.
+    const t = setTimeout(() => abrir(), GATILHO.esperaMs);
+    const limpar = () => {
+      clearTimeout(t);
+      window.removeEventListener("scroll", aoRolar);
+    };
+    const abrir = () => {
+      limpar();
+      setAberto(true);
+    };
+    function aoRolar() {
+      if (fracaoRolada(window.scrollY, document.documentElement.scrollHeight, window.innerHeight) >= GATILHO.rolagem) abrir();
+    }
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    return limpar;
   }, [caminho]);
 
   function fechar() {
@@ -58,7 +111,11 @@ export default function PopupBlackKambada() {
 
   useEffect(() => {
     if (!aberto) return;
-    evento("view_promotion", { promotion_name: "Black Kambada 2026" });
+    evento("view_promotion", {
+      promotion_name: BLACK.nome,
+      creative_slot: "popup",
+      creative_name: faseDaBlack(hojeSaoLuis()) === "aberta" ? "codigo" : "lista-de-espera",
+    });
     const anterior = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -67,6 +124,8 @@ export default function PopupBlackKambada() {
   }, [aberto]);
 
   async function copiar() {
+    guardarCupom(BLACK.codigo);
+    evento("select_promotion", { promotion_name: BLACK.nome, creative_slot: "popup", creative_name: "copiar-codigo" });
     try {
       await navigator.clipboard.writeText(BLACK.codigo);
       setCopiado(true);
@@ -75,14 +134,17 @@ export default function PopupBlackKambada() {
     }
   }
 
-  const jaVale = ativaEm(hojeSaoLuis());
-  const inicio = BLACK.inicio.split("-").reverse().slice(0, 2).join("/");
-  const fim = BLACK.fim.split("-").reverse().slice(0, 2).join("/");
+  // `?black=1` antes da janela mostra a fase de espera (serve para conferir o visual).
+  const jaVale = faseDaBlack(hojeSaoLuis()) === "aberta";
+  const inicio = diaMes(BLACK.inicio);
+  const fim = diaMes(BLACK.fim);
 
   return (
     <dialog
       ref={dialogo}
       aria-labelledby="black-titulo"
+      aria-describedby="black-texto"
+      data-area="popup-black"
       // Esc: o navegador dispara "cancel"; fechamos pelo estado para gravar a hora.
       onCancel={(e) => {
         e.preventDefault();
@@ -106,7 +168,14 @@ export default function PopupBlackKambada() {
             <rect key={i} x="96" y="6" width="8" height="30" rx="4" fill="currentColor" transform={`rotate(${i * 22.5} 100 100)`} />
           ))}
         </svg>
-        <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/60 text-xl font-bold hover:bg-black">
+        {/* O cartão é escuro nos dois temas: o contorno de foco aqui dentro é sempre claro. */}
+        <button
+          type="button"
+          onClick={fechar}
+          aria-label="Fechar"
+          data-alvo="fechar"
+          className="absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-xl font-bold hover:bg-black focus-visible:outline-[#FFCC29]"
+        >
           ×
         </button>
         <div className="relative flex min-h-full flex-col justify-between gap-5 p-[6%]">
@@ -119,27 +188,56 @@ export default function PopupBlackKambada() {
             <p className="mt-2 font-display text-[clamp(1.6rem,7vw,2.6rem)] font-extrabold leading-none">
               {BLACK.percentual}% <span className="text-[#F5821F]">OFF</span>
             </p>
-            <p className="mt-2 text-[clamp(0.8rem,3.4vw,1rem)] text-white/80">Matracas, camisas e peças feitas à mão no Maranhão, com desconto de verdade.</p>
-          </div>
-          <div className="space-y-2">
-            <button type="button" onClick={copiar} className="flex w-full items-center justify-between rounded-2xl border-2 border-dashed border-[#FFCC29] px-4 py-2 text-left">
-              <span className="font-mono text-lg font-extrabold tracking-wider text-[#FFCC29]">{BLACK.codigo}</span>
-              <span className="text-xs font-bold text-white/80">{copiado ? "Copiado ✓" : "Toque para copiar"}</span>
-            </button>
-            <Link
-              href={BLACK.link}
-              onClick={() => {
-                evento("select_promotion", { promotion_name: "Black Kambada 2026" });
-                fechar();
-              }}
-              className="block rounded-full bg-[#FFCC29] px-5 py-3 text-center font-extrabold text-[#1d1e20] hover:bg-[#e0af14]"
-            >
-              Ir para a loja →
-            </Link>
-            <p className="text-center text-[11px] text-white/60">
-              {jaVale ? "Use ao finalizar a compra" : `Guarde o código: vale a partir de ${inicio}`} · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
+            <p id="black-texto" className="mt-2 text-[clamp(0.8rem,3.4vw,1rem)] text-white/80">
+              {jaVale
+                ? "Matracas, camisas e peças feitas à mão no Maranhão, com desconto de verdade."
+                : `De ${inicio} a ${fim}, matracas, camisas e peças feitas à mão no Maranhão com desconto de verdade. Peça o aviso e a gente manda o lembrete no dia.`}
             </p>
           </div>
+          {jaVale ? (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={copiar}
+                data-evento="select_promotion"
+                className="flex min-h-11 w-full items-center justify-between rounded-2xl border-2 border-dashed border-[#FFCC29] px-4 py-2 text-left focus-visible:outline-white"
+              >
+                <span className="font-mono text-lg font-extrabold tracking-wider text-[#FFCC29]">{BLACK.codigo}</span>
+                <span className="text-xs font-bold text-white/80" aria-live="polite">
+                  {copiado ? "Copiado ✓" : "Toque para copiar"}
+                </span>
+              </button>
+              <Link
+                href={BLACK.link}
+                data-evento="select_promotion"
+                onClick={() => {
+                  guardarCupom(BLACK.codigo);
+                  evento("select_promotion", { promotion_name: BLACK.nome, creative_slot: "popup", creative_name: "ir-para-a-loja" });
+                  fechar();
+                }}
+                className="block rounded-full bg-[#FFCC29] px-5 py-3 text-center font-extrabold text-[#1d1e20] hover:bg-[#e0af14] focus-visible:outline-white"
+              >
+                Ir para a loja →
+              </Link>
+              <p className="text-center text-[11px] text-white/70">
+                Use ao finalizar a compra · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <LinkWhatsApp
+                origem="black-aviso"
+                href={linkWhatsApp(BLACK.mensagemAviso)}
+                onClick={fechar}
+                className="block rounded-full bg-[#FFCC29] px-5 py-3 text-center font-extrabold text-[#1d1e20] hover:bg-[#e0af14] focus-visible:outline-white"
+              >
+                Me avisa no WhatsApp
+              </LinkWhatsApp>
+              <p className="text-center text-[11px] text-white/70">
+                Vale de {inicio} a {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
+              </p>
+            </div>
+          )}
         </div>
       </div>
       )}

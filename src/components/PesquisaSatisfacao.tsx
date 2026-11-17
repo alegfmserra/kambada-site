@@ -17,6 +17,15 @@ import { prenderFoco } from "@/lib/play/focusTrap";
  *  - pelo link "Avalie o site" do rodapé (abre direto o formulário).
  * Nunca no carrinho/checkout em andamento, na área de controle nem no arraial 3D.
  * Respondeu → não aparece mais. "Agora não" → volta só em 21 dias.
+ *
+ * DENTRO DO KAMBADA PLAY (17/11/2026): quem está na tela é criança. A pesquisa
+ * continua existindo (é indicador obrigatório do projeto na FAPEMA), mas:
+ *  - não abre sozinha nem conta páginas nas telas de brincar: no fim da partida
+ *    fica um convite parado na própria tela (`ConviteAdulto`), que só abre ao toque;
+ *  - o convite fala com o adulto ("Tem um adulto por perto?");
+ *  - antes dos campos (que pedem nome, idade e cidade de quem responde) vem a
+ *    tela "Esta parte é para o adulto responsável".
+ * Na loja, nada muda.
  */
 
 const CHAVE = "kambada-pesquisa";
@@ -52,6 +61,36 @@ function podeConvidar(): boolean {
 
 const FORA = [/^\/admin/, /^\/carrinho/, /^\/checkout(?!\/sucesso)/, /^\/kambadaplay\/arraial/];
 
+const NO_PLAY = /^\/kambadaplay(\/|$)/;
+/** Telas do Play que são de adulto (apresentação, planos, instalar, entrar, conta, termos): aqui o convite por navegação continua. */
+const PLAY_DE_ADULTO = /^\/kambadaplay\/(conheca|planos|instalar|entrar|conta|termos|confirmar|redefinir)(\/|$)/;
+
+/**
+ * Convite parado na tela de fim de partida do Play. Não pula na frente da criança:
+ * só abre a pesquisa se alguém tocar, e a primeira tela avisa que é para o adulto.
+ * Some para quem já respondeu.
+ */
+export function ConviteAdulto({ gatilho, className = "" }: { gatilho: string; className?: string }) {
+  const [mostrar, setMostrar] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- leitura única do localStorage no mount (não existe no servidor)
+    setMostrar(lerEstado()?.situacao !== "respondida");
+  }, []);
+  if (!mostrar) return null;
+  return (
+    <aside className={`rounded-xl border border-borda px-4 py-3 text-center text-sm text-texto-suave ${className}`} aria-label="Pesquisa para o adulto responsável">
+      <p>Tem um adulto por perto? Ele pode avaliar o Kambada Play.</p>
+      <button
+        type="button"
+        onClick={() => pedirPesquisa(gatilho, true)}
+        className="mt-2 inline-flex min-h-11 items-center rounded-full border-2 border-borda-campo px-5 py-2 font-bold text-texto transition-colors hover:border-kambada-amarelo"
+      >
+        Avaliar (para o adulto)
+      </button>
+    </aside>
+  );
+}
+
 const CURTIU = [
   ["loja", "Loja"],
   ["cultura", "Cultura"],
@@ -79,6 +118,9 @@ export default function PesquisaSatisfacao() {
   const caminho = usePathname() ?? "/";
   const [fase, setFase] = useState<"oculta" | "convite" | "aberta" | "enviada">("oculta");
   const [gatilho, setGatilho] = useState("navegacao");
+  const noPlay = NO_PLAY.test(caminho);
+  /** No Play, os campos só aparecem depois de a pessoa dizer que é o adulto responsável. */
+  const [adulto, setAdulto] = useState(false);
   const visitas = useRef(0);
   const inicio = useRef(0);
   const caixaModal = useRef<HTMLDivElement>(null);
@@ -128,8 +170,10 @@ export default function PesquisaSatisfacao() {
   }, [caminho, convidar]);
 
   // Navegação: 3 páginas + 45 s; compra concluída: na hora.
+  // Nas telas de brincar do Play não conta: lá o convite fica parado no fim da partida.
   useEffect(() => {
     if (FORA.some((r) => r.test(caminho))) return;
+    if (NO_PLAY.test(caminho) && !PLAY_DE_ADULTO.test(caminho)) return;
     if (caminho.startsWith("/checkout/sucesso")) {
       const t = setTimeout(() => convidar("compra", false), 4000);
       return () => clearTimeout(t);
@@ -146,6 +190,7 @@ export default function PesquisaSatisfacao() {
     (adiar: boolean) => {
       if (adiar && fase !== "enviada") gravarEstado("adiada");
       setFase("oculta");
+      setAdulto(false);
     },
     [fase],
   );
@@ -178,7 +223,8 @@ export default function PesquisaSatisfacao() {
       document.removeEventListener("keydown", aoTeclar);
       if (anterior && document.contains(anterior)) anterior.focus();
     };
-  }, [modalAberto]);
+    // `adulto`: no Play, ao passar da tela do adulto para o formulário, o foco entra de novo.
+  }, [modalAberto, adulto]);
 
   if (fase === "oculta") return null;
 
@@ -190,18 +236,20 @@ export default function PesquisaSatisfacao() {
         data-area="pesquisa-convite"
         className="fixed bottom-4 left-4 right-20 z-50 max-w-sm rounded-2xl border border-borda bg-fundo p-4 shadow-xl shadow-black/25 sm:bottom-5 sm:left-5"
       >
-        <p className="font-display font-semibold">Topa 1 minuto pra avaliar o site?</p>
-        <p className="mt-1 text-sm sm:text-base text-texto-suave">Sua opinião decide o que vem no site e no Kambada Play.</p>
+        <p className="font-display font-semibold">{noPlay ? "Tem um adulto por perto?" : "Topa 1 minuto pra avaliar o site?"}</p>
+        <p className="mt-1 text-sm sm:text-base text-texto-suave">
+          {noPlay ? "Ele pode avaliar o Kambada Play. Leva uns 2 minutos." : "Sua opinião decide o que vem no site e no Kambada Play."}
+        </p>
         <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={() => setFase("aberta")}
             data-alvo="bora"
-            className="rounded-full bg-kambada-amarelo px-4 py-2 text-sm sm:text-base font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+            className="min-h-11 rounded-full bg-kambada-amarelo px-4 py-2 text-sm sm:text-base font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
           >
-            Bora
+            {noPlay ? "Avaliar (para o adulto)" : "Bora"}
           </button>
-          <button type="button" onClick={() => fechar(true)} data-alvo="agora-nao" className="rounded-full px-4 py-2 text-sm sm:text-base text-texto-suave hover:bg-superficie">
+          <button type="button" onClick={() => fechar(true)} data-alvo="agora-nao" className="min-h-11 rounded-full px-4 py-2 text-sm sm:text-base text-texto-suave hover:bg-superficie">
             Agora não
           </button>
         </div>
@@ -232,6 +280,33 @@ export default function PesquisaSatisfacao() {
             >
               Fechar
             </button>
+          </div>
+        ) : noPlay && !adulto ? (
+          <div className="py-4 text-center">
+            <h2 id="pesquisa-titulo" className="font-display text-2xl font-bold sm:text-3xl">
+              Esta parte é para o adulto responsável
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-texto-suave">
+              É uma pesquisa de uns 2 minutos sobre o Kambada Play. Ela pergunta a opinião e alguns dados de quem
+              responde. Se você é criança, chame um adulto ou feche esta janela e continue brincando.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <button
+                type="button"
+                data-fechar-pesquisa
+                onClick={() => fechar(true)}
+                className="min-h-11 rounded-full border-2 border-borda-campo px-6 py-2.5 font-semibold text-texto hover:border-kambada-amarelo"
+              >
+                Fechar e voltar a brincar
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdulto(true)}
+                className="min-h-11 rounded-full bg-kambada-amarelo px-6 py-2.5 font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
+              >
+                Sou o adulto responsável
+              </button>
+            </div>
           </div>
         ) : (
           <Formulario

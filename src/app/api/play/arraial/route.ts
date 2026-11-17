@@ -108,9 +108,11 @@ export async function POST(requisicao: Request) {
   // Quantas pistas a partida já tinha: só pista NOVA rende XP (conversa relida não).
   const pistasAntes = corpo.acao === "pista" ? (verificar<{ pistas?: NpcId[] }>(corpo.estado)?.pistas?.length ?? -1) : -1;
 
+  // A conta entra no estado da partida: a prova do desafio só pontua para quem jogou.
+  const contaDaPartida = corpo.acao === "iniciar" ? await contaDaRequisicao(requisicao).catch(() => null) : null;
   const r =
     corpo.acao === "iniciar"
-      ? iniciarMissao()
+      ? iniciarMissao(Date.now(), contaDaPartida?.id ?? null)
       : corpo.acao === "pista"
         ? anotarPista(corpo.estado, corpo.npc)
         : corpo.acao === "desafio"

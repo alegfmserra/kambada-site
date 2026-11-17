@@ -9,7 +9,7 @@ import {
 import { contaDaSessao } from "@/lib/play/contas";
 
 /**
- * Porteiro do Kambada Play: só a degustação (quiz fácil), os planos e as telas de conta abrem sem login.
+ * Porteiro do Kambada Play: só a apresentação, a degustação (quiz fácil), os planos e as telas de conta abrem sem login.
  * Páginas mandam para /kambadaplay/entrar; a API responde 401.
  * (O resto do site não passa por aqui: ver `matcher`.)
  */
@@ -26,8 +26,9 @@ export async function proxy(requisicao: NextRequest) {
     return NextResponse.json({ ok: false, mensagem: "Entre no Kambada Play para jogar." }, { status: 401 });
   }
 
-  // Quem chega ao Play sem conta cai direto na degustação (quiz fácil), não num formulário.
-  if (pathname === "/kambadaplay") return NextResponse.redirect(new URL("/kambadaplay/experimente", requisicao.url));
+  // Quem chega ao Play sem conta cai na apresentação (o que é, para quem, como funciona), que
+  // leva à degustação (/kambadaplay/experimente) e ao cadastro. Não num formulário.
+  if (pathname === "/kambadaplay") return NextResponse.redirect(new URL("/kambadaplay/conheca", requisicao.url));
 
   const destino = new URL("/kambadaplay/entrar", requisicao.url);
   destino.searchParams.set("de", `${pathname}${search}`);

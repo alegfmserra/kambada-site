@@ -97,13 +97,13 @@ export function destinoSeguro(de: unknown): string {
   if (de.startsWith("//") || de.includes("\\") || de.includes("://")) return "/kambadaplay";
   if (de === "/conta" || de.startsWith("/conta?")) return de.slice(0, 200);
   if (!de.startsWith("/kambadaplay")) return "/kambadaplay";
-  if (/^\/kambadaplay\/(entrar|confirmar|redefinir|planos)/.test(de)) return "/kambadaplay";
+  if (/^\/kambadaplay\/(entrar|confirmar|redefinir|planos|conheca)/.test(de)) return "/kambadaplay";
   return de.slice(0, 200);
 }
 
 /** Arquivos estáticos (imagens, vídeo, .wasm) passam direto: o que fica atrás do login são as páginas e a API. */
 export function ehArquivoEstatico(caminho: string): boolean {
-  return /\.(?:webp|png|jpe?g|gif|svg|mp4|webm|wasm|js|css|json|ico|woff2?|glb)$/i.test(caminho);
+  return /\.(?:webp|png|jpe?g|gif|svg|mp4|webm|vtt|wasm|js|css|json|ico|woff2?|glb)$/i.test(caminho);
 }
 
 export const ROTAS_PUBLICAS = [
@@ -112,6 +112,8 @@ export const ROTAS_PUBLICAS = [
   "/kambadaplay/redefinir",
   // Planos ficam fora do login: escola e família precisam ver as condições antes de criar a conta.
   "/kambadaplay/planos",
+  // Apresentação pública do Play (17/11/2026): é para onde vai quem pede /kambadaplay sem conta.
+  "/kambadaplay/conheca",
   // Degustação sem cadastro: só o quiz no nível fácil, sem ranking (a API confere o nível e corta a prova).
   "/kambadaplay/experimente",
   // App instalável (30/10/2026): "Como instalar" vai para as famílias por WhatsApp/QR code; "Sem internet" é a tela do service worker.

@@ -2,32 +2,23 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NIVEIS, QUEBRA_NIVEL, type Nivel } from "@/lib/play/jogos/tipos";
-import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { ESTRELAS_DO_NIVEL, NIVEIS, QUEBRA_NIVEL, type Nivel } from "@/lib/play/jogos/tipos";
+import { ConviteAdulto } from "@/components/PesquisaSatisfacao";
+import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
+import { ProximosJogos } from "./ProximosJogos";
 import { CARTAS } from "./Memoria";
 
 /**
  * Quebra-cabeça das estampas: as artes da Kambada (placas, matracas, camisas)
  * em 12, 20 ou 40 peças quadradas. Toque numa peça e depois em outra para
  * trocá-las de lugar; a peça que cai no lugar certo fica marcada. O servidor
- * mede o tempo e calcula os pontos.
+ * embaralha o tabuleiro, mede o tempo e calcula os pontos: no fim, a tela manda
+ * a lista de trocas feitas e ele as refaz (17/11/2026).
  */
 
 const ARTES = CARTAS.slice(0, 8);
-
-function embaralhar(total: number): number[] {
-  // Nenhuma peça começa no lugar certo, para toda partida pedir pelo menos meia troca por peça.
-  for (;;) {
-    const a = Array.from({ length: total }, (_, i) => i);
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    if (a.every((p, i) => p !== i)) return a;
-  }
-}
 
 /** Fatia da imagem quadrada para a peça (col, linha), com corte centralizado no tabuleiro retangular. */
 function estiloDaPeca(imagem: string, peca: number, colunas: number, linhas: number): React.CSSProperties {
@@ -42,10 +33,11 @@ function estiloDaPeca(imagem: string, peca: number, colunas: number, linhas: num
 
 export function Quebra() {
   const [fase, setFase] = useState<"inicio" | "jogando" | "fim">("inicio");
-  const [nivel, setNivel] = useState<Nivel>("medio");
+  // Abre no fácil (17/11/2026): quem chega é criança pequena; os maiores trocam logo abaixo.
+  const [nivel, setNivel] = useState<Nivel>("facil");
   const [arte, setArte] = useState<number | "surpresa">("surpresa");
   const [ativa, setAtiva] = useState(0);
-  const [grade, setGrade] = useState({ colunas: 5, linhas: 4 });
+  const [grade, setGrade] = useState({ colunas: QUEBRA_NIVEL.facil.colunas, linhas: QUEBRA_NIVEL.facil.linhas });
   const [ordem, setOrdem] = useState<number[]>([]); // posição -> peça
   const [escolhida, setEscolhida] = useState<number | null>(null);
   const [trocas, setTrocas] = useState(0);
@@ -57,6 +49,8 @@ export function Quebra() {
   const [erro, setErro] = useState("");
   const [modelo, setModelo] = useState(false);
   const inicio = useRef(0);
+  /** Todas as trocas da partida, na ordem: é o que o servidor confere no fim. */
+  const feitas = useRef<[number, number][]>([]);
 
   useEffect(() => {
     if (fase !== "jogando") return;
@@ -66,7 +60,7 @@ export function Quebra() {
 
   async function comecar() {
     setErro("");
-    const r = await chamar<{ token: string; nivel: Nivel; colunas: number; linhas: number }>("/api/play/quebra", { acao: "iniciar", nivel });
+    const r = await chamar<{ token: string; nivel: Nivel; colunas: number; linhas: number; ordem: number[] }>("/api/play/quebra", { acao: "iniciar", nivel });
     if (!r.ok) {
       setErro(r.mensagem ?? "Não deu para começar.");
       return;
@@ -76,7 +70,8 @@ export function Quebra() {
     setAtiva(escolhidaArte);
     setToken(r.token);
     setGrade({ colunas: r.colunas, linhas: r.linhas });
-    setOrdem(embaralhar(r.colunas * r.linhas));
+    setOrdem(r.ordem);
+    feitas.current = [];
     setEscolhida(null);
     setTrocas(0);
     setSegundos(0);
@@ -87,11 +82,11 @@ export function Quebra() {
   }
 
   const terminar = useCallback(
-    async (totalTrocas: number) => {
-      const r = await chamar<{ prova: string; pontos: number; segundos: number }>("/api/play/quebra", {
+    async () => {
+      const r = await chamar<{ prova: string; pontos: number; segundos: number; trocas: number }>("/api/play/quebra", {
         acao: "finalizar",
         token,
-        trocas: totalTrocas,
+        trocas: feitas.current,
       });
       if (!r.ok) {
         setErro(r.mensagem ?? "Não deu para registrar o resultado.");
@@ -100,9 +95,9 @@ export function Quebra() {
       }
       setProva(r.prova);
       setPontos(r.pontos);
+      setTrocas(r.trocas);
       setSegundosFinais(r.segundos);
       setFase("fim");
-      window.setTimeout(() => pedirPesquisa("quebra"), 3000);
     },
     [token],
   );
@@ -119,11 +114,11 @@ export function Quebra() {
     }
     const nova = [...ordem];
     [nova[escolhida], nova[pos]] = [nova[pos], nova[escolhida]];
-    const totalTrocas = trocas + 1;
+    feitas.current.push([escolhida, pos]);
     setOrdem(nova);
-    setTrocas(totalTrocas);
+    setTrocas(trocas + 1);
     setEscolhida(null);
-    if (nova.every((p, i) => p === i)) void terminar(totalTrocas);
+    if (nova.every((p, i) => p === i)) void terminar();
   }
 
   const total = grade.colunas * grade.linhas;
@@ -139,9 +134,22 @@ export function Quebra() {
           Monte a <span className="destaque">arte</span>
         </h1>
         <p className="mt-2 text-texto-suave">Toque numa peça e depois em outra para trocar de lugar. Quanto menos trocas e mais rápido, mais pontos.</p>
+        <BotaoOuvir id="quebra-como-jogar" className="mt-3" />
 
-        <fieldset className="mt-6">
-          <legend className="text-sm font-bold text-texto">Nível</legend>
+        {/* O botão de jogar vem antes das escolhas: aparece sem rolar a tela no celular. */}
+        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={comecar}
+            className="min-h-14 w-full max-w-xs rounded-full bg-kambada-amarelo px-10 py-4 text-xl font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+          >
+            Jogar
+          </button>
+        </div>
+
+        <fieldset className="mt-8">
+          <legend className="text-sm font-bold text-texto">Nível (já vem no fácil)</legend>
           <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {NIVEIS.map((n) => {
               const r = QUEBRA_NIVEL[n.id];
@@ -159,7 +167,10 @@ export function Quebra() {
                   <span className="block font-display text-lg font-extrabold text-texto">
                     {/* O sinal marca a escolha sem depender da cor da borda. */}
                     {ativo ? <span aria-hidden="true">✓ </span> : null}
-                    {n.rotulo}
+                    {n.rotulo}{" "}
+                    <span aria-hidden="true" className="text-[var(--destaque-texto)]">
+                      {ESTRELAS_DO_NIVEL[n.id]}
+                    </span>
                   </span>
                   <span className="mt-1 block text-xs font-semibold text-texto-tenue">
                     {r.colunas * r.linhas} peças · pontos ×{r.multiplicador}
@@ -206,14 +217,6 @@ export function Quebra() {
           </div>
         </fieldset>
 
-        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
-        <button
-          type="button"
-          onClick={comecar}
-          className="mt-8 rounded-full bg-kambada-amarelo px-10 py-4 text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-        >
-          Bora!
-        </button>
       </div>
     );
   }
@@ -264,6 +267,9 @@ export function Quebra() {
             Ver essa arte na loja
           </Link>
         </div>
+        <ProximosJogos atual="quebra" />
+        {/* A pesquisa não pula na frente da criança: fica aqui, para o adulto abrir se quiser. */}
+        <ConviteAdulto gatilho="quebra" />
       </div>
     );
   }

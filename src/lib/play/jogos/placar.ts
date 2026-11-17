@@ -10,7 +10,8 @@ import {
   salvarCupons,
   type Cupom,
 } from "../../cupons/cupons";
-import { idAleatorio } from "./seguranca";
+import { listarContas } from "../contas";
+import { idAleatorio, resumoDaChave } from "./seguranca";
 import {
   AVATARES,
   JOGOS,
@@ -26,9 +27,9 @@ import {
 /**
  * Placar e prêmios do Kambada Play (somente servidor).
  *
- * Sem conta e sem dado pessoal: cada jogador é um resumo da chave que o próprio
- * navegador gera (o servidor nunca guarda a chave). O que fica no arquivo é
- * apelido, avatar, jogo e pontos. O arquivo mora na mesma pasta persistente dos
+ * Cada jogador é um resumo: da conta (`jogadorDaConta`) ou, no acesso de
+ * demonstração, da chave que o próprio navegador gera (o servidor nunca guarda
+ * a chave). O que fica no arquivo é apelido, avatar, jogo e pontos. O arquivo mora na mesma pasta persistente dos
  * pedidos e dos cupons, então sobrevive a cada deploy.
  *
  * Ranking semanal = soma da MELHOR pontuação da semana em cada jogo. A semana
@@ -77,6 +78,14 @@ export function semanaDe(agora = new Date()): string {
 export function semanaFechada(agora = new Date()): string {
   const segundaAtual = Date.parse(`${semanaDe(agora)}T00:00:00Z`);
   return new Date(segundaAtual - 7 * DIA_MS).toISOString().slice(0, 10);
+}
+
+/** Como a conta aparece no placar e nos prêmios (nunca o id em si). */
+export const jogadorDaConta = (contaId: string): string => resumoDaChave(`conta:${contaId}`);
+
+/** Quando a semana (segunda-feira AAAA-MM-DD) fecha: 00:00 da segunda seguinte, em São Luís. */
+export function fimDaSemana(semana: string): Date {
+  return new Date(Date.parse(`${somarDias(semana, 7)}T00:00:00Z`) + FUSO_MS);
 }
 
 function somarDias(dataIso: string, dias: number): string {
@@ -280,11 +289,37 @@ export async function posicaoNaSemana(jogador: string, agora = new Date()): Prom
 // Prêmios (cupons) da semana fechada
 // ---------------------------------------------------------------------------
 
+/**
+ * Quem pode receber cupom (17/11/2026): só conta com e-mail confirmado ATÉ o
+ * fechamento da semana. Quem não confirmou aparece no ranking, mas o prêmio
+ * passa para o próximo confirmado. O corte é o fim da semana (e não "agora")
+ * para a lista de premiados não mudar depois de fechada: confirmar na terça
+ * não tira o cupom de quem já recebeu. Conta por usuário (sem e-mail) e jogador
+ * sem conta (demonstração) não recebem.
+ *
+ * "todos" desliga o filtro: existe só para os testes das outras regras.
+ */
+export type Confirmados = ReadonlySet<string> | "todos";
+
+export async function confirmadosAte(limite: Date): Promise<Set<string>> {
+  const corte = limite.toISOString();
+  const contas = await listarContas();
+  return new Set(
+    contas.filter((c) => !c.usuario && typeof c.confirmadoEm === "string" && c.confirmadoEm < corte).map((c) => jogadorDaConta(c.id)),
+  );
+}
+
 export type SituacaoPremio =
-  | { elegivel: false; semana: string }
+  | {
+      elegivel: false;
+      semana: string;
+      /** Ficou entre os 3 primeiros, mas a conta não tinha o e-mail confirmado quando a semana fechou. */
+      semConfirmacao?: true;
+    }
   | {
       elegivel: true;
       semana: string;
+      /** Qual prêmio (1º, 2º ou 3º). Pode ser melhor que a posição no ranking, se alguém acima não tinha e-mail confirmado. */
       posicao: number;
       percentual: number;
       codigo?: string;
@@ -298,28 +333,39 @@ function percentualDaPosicao(posicao: number): number | null {
   return PREMIOS_SEMANAIS[posicao - 1] ?? null;
 }
 
-function topDaSemana(d: Dados, semana: string): Agregado[] {
-  return agregar(d.pontuacoes.filter((x) => x.semana === semana))
-    .filter((a) => a.pontos >= PONTOS_MINIMOS_PREMIO)
+/** Ranking da semana com o mínimo de pontos, na ordem (com ou sem e-mail confirmado). */
+function candidatosDaSemana(d: Dados, semana: string): Agregado[] {
+  return agregar(d.pontuacoes.filter((x) => x.semana === semana)).filter((a) => a.pontos >= PONTOS_MINIMOS_PREMIO);
+}
+
+/** Os premiados: os primeiros CONFIRMADOS do ranking da semana. */
+function topDaSemana(d: Dados, semana: string, confirmados: Confirmados): Agregado[] {
+  return candidatosDaSemana(d, semana)
+    .filter((a) => confirmados === "todos" || confirmados.has(a.jogador))
     .slice(0, PREMIOS_SEMANAIS.length);
 }
 
-export async function situacaoDoPremio(jogador: string, agora = new Date()): Promise<SituacaoPremio> {
+export async function situacaoDoPremio(jogador: string, agora = new Date(), confirmados?: Confirmados): Promise<SituacaoPremio> {
   const semana = semanaFechada(agora);
   const d = await ler();
-  const top = topDaSemana(d, semana);
-  const idx = top.findIndex((a) => a.jogador === jogador);
-  if (idx < 0) return { elegivel: false, semana };
-  const posicao = idx + 1;
   const emitido = d.premios.find((p) => p.semana === semana && p.jogador === jogador);
+  const idx = emitido
+    ? emitido.posicao - 1
+    : topDaSemana(d, semana, confirmados ?? (await confirmadosAte(fimDaSemana(semana)))).findIndex((a) => a.jogador === jogador);
+  // Sem cupom emitido, o prêmio dessa posição só é dele se ainda não saiu para outra pessoa.
+  const jaSaiu = !emitido && idx >= 0 && d.premios.some((p) => p.semana === semana && p.posicao === idx + 1);
+  if (idx < 0 || jaSaiu) {
+    const noTop = candidatosDaSemana(d, semana).slice(0, PREMIOS_SEMANAIS.length).some((a) => a.jogador === jogador);
+    return noTop && idx < 0 ? { elegivel: false, semana, semConfirmacao: true } : { elegivel: false, semana };
+  }
   const resgatarAte = somarDias(semana, 7 + REGRAS_PREMIO.prazoParaResgatarDias - 1);
   const hoje = hojeEmSaoLuis(agora);
   const cupom = emitido ? (await listarCupons()).find((c) => c.codigo === emitido.codigo) : undefined;
   return {
     elegivel: true,
     semana,
-    posicao,
-    percentual: PREMIOS_SEMANAIS[idx],
+    posicao: idx + 1,
+    percentual: emitido?.percentual ?? PREMIOS_SEMANAIS[idx],
     codigo: emitido?.codigo,
     validoAte: cupom?.validoAte,
     resgatarAte,
@@ -346,14 +392,20 @@ function codigoNovo(existentes: Set<string>): string {
 export function resgatarPremio(
   jogador: string,
   agora = new Date(),
+  confirmados?: Confirmados,
 ): Promise<
   | { ok: true; codigo: string; percentual: number; posicao: number; validoAte: string; jaEmitido: boolean }
   | { ok: false; mensagem: string }
 > {
   return naFila(async () => {
-    const situacao = await situacaoDoPremio(jogador, agora);
+    const situacao = await situacaoDoPremio(jogador, agora, confirmados);
     if (!situacao.elegivel) {
-      return { ok: false as const, mensagem: "Você não ficou entre os 3 primeiros da última semana." };
+      return {
+        ok: false as const,
+        mensagem: situacao.semConfirmacao
+          ? "O prêmio da semana só vale para conta com e-mail confirmado até o domingo. Confirme o seu para valer na próxima."
+          : "Você não ficou entre os 3 primeiros da última semana.",
+      };
     }
     const d = await ler();
     const existente = d.premios.find((p) => p.semana === situacao.semana && p.jogador === jogador);
@@ -410,23 +462,73 @@ async function emitirCupomDoPremio(
 
 export type PremioNovo = { jogador: string; apelido: string; pontos: number; semana: string; codigo: string; percentual: number; posicao: number; validoAte: string };
 
+export type FechamentoDoPlacar = {
+  semana: string;
+  /** Os premiados (até 3): os primeiros do ranking com e-mail confirmado. */
+  top: { posicao: number; apelido: string; pontos: number }[];
+  /** Quem estava à frente de um premiado e ficou sem cupom por não ter o e-mail confirmado. */
+  semConfirmacao: { apelido: string; pontos: number }[];
+  novos: PremioNovo[];
+};
+
 /**
  * Fechamento automático da semana (02/11/2026): emite o cupom de cada um dos 3 primeiros
  * da semana que fechou (mínimo de pontos incluso) que ainda não tenha cupom. Pode rodar
  * quantas vezes quiser: só emite o que falta, então não duplica. Devolve os cupons NOVOS
  * (quem os envia por e-mail é lib/play/premiosDaSemana.ts).
+ *
+ * Desde 17/11/2026 só premia conta com e-mail confirmado até o fechamento (`confirmadosAte`);
+ * o prêmio de quem não confirmou passa ao próximo confirmado. Cada posição sai uma vez só por
+ * semana: se o 1º prêmio já foi emitido (mesmo pela regra antiga), ninguém mais o recebe.
  */
-export function emitirPremiosDaSemanaFechada(agora = new Date()): Promise<{ semana: string; top: { posicao: number; apelido: string; pontos: number }[]; novos: PremioNovo[] }> {
+export function emitirPremiosDaSemanaFechada(agora = new Date(), confirmados?: Confirmados): Promise<FechamentoDoPlacar> {
   return naFila(async () => {
     const semana = semanaFechada(agora);
+    const quem = confirmados ?? (await confirmadosAte(fimDaSemana(semana)));
     const d = await ler();
-    const top = topDaSemana(d, semana);
+    const top = topDaSemana(d, semana, quem);
     const novos: PremioNovo[] = [];
     for (const [i, a] of top.entries()) {
-      if (d.premios.some((p) => p.semana === semana && p.jogador === a.jogador)) continue;
+      if (d.premios.some((p) => p.semana === semana && (p.jogador === a.jogador || p.posicao === i + 1))) continue;
       const c = await emitirCupomDoPremio(d, semana, a.jogador, i + 1, agora);
       if (c) novos.push({ jogador: a.jogador, apelido: a.apelido, pontos: a.pontos, semana, ...c });
     }
-    return { semana, top: top.map((a, i) => ({ posicao: i + 1, apelido: a.apelido, pontos: a.pontos })), novos };
+    // Quem ficou à frente do último premiado sem ser premiado: não tinha o e-mail confirmado.
+    const candidatos = candidatosDaSemana(d, semana);
+    const ultimo = top.length ? candidatos.findIndex((a) => a.jogador === top[top.length - 1].jogador) : candidatos.length - 1;
+    const corte = top.length >= PREMIOS_SEMANAIS.length ? ultimo : candidatos.length - 1;
+    const semConfirmacao = candidatos
+      .slice(0, corte + 1)
+      .filter((a) => !top.some((t) => t.jogador === a.jogador))
+      .map((a) => ({ apelido: a.apelido, pontos: a.pontos }));
+    return { semana, top: top.map((a, i) => ({ posicao: i + 1, apelido: a.apelido, pontos: a.pontos })), semConfirmacao, novos };
+  });
+}
+
+/**
+ * Tira uma conta do placar (exclusão da conta, 17/11/2026). As pontuações ficam, para o
+ * ranking passado não mudar, mas deixam de apontar para a conta: o jogador vira um
+ * identificador novo e sem volta, e o apelido vira "Brincante". Os prêmios já emitidos
+ * seguem o mesmo caminho (o cupom continua na lista da loja). Devolve quantas linhas mudou.
+ */
+export function anonimizarJogador(jogador: string): Promise<number> {
+  return naFila(async () => {
+    const d = await ler();
+    const anonimo = `apagado-${idAleatorio(12)}`;
+    let mudou = 0;
+    for (const p of d.pontuacoes) {
+      if (p.jogador !== jogador) continue;
+      p.jogador = anonimo;
+      p.apelido = "Brincante";
+      p.avatar = "kambadinha";
+      mudou += 1;
+    }
+    for (const p of d.premios) {
+      if (p.jogador !== jogador) continue;
+      p.jogador = anonimo;
+      mudou += 1;
+    }
+    if (mudou) await gravar(d);
+    return mudou;
   });
 }

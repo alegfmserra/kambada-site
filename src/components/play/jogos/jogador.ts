@@ -42,6 +42,15 @@ export function chaveDoJogador(): string {
   return c;
 }
 
+/** Conta excluída: o navegador também esquece o apelido, o avatar e a chave. */
+export function esquecerJogador() {
+  try {
+    for (const k of [CHAVE, APELIDO, AVATAR]) window.localStorage.removeItem(k);
+  } catch {
+    // sem armazenamento, não havia o que esquecer
+  }
+}
+
 export function useJogador() {
   const [apelido, setApelido] = useState("");
   const [avatar, setAvatar] = useState<AvatarId>("kambadinha");

@@ -2,17 +2,24 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { MEMORIA_NIVEL, NIVEIS, type Nivel } from "@/lib/play/jogos/tipos";
-import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { useEffect, useRef, useState } from "react";
+import { ESTRELAS_DO_NIVEL, MEMORIA_NIVEL, NIVEIS, type Nivel } from "@/lib/play/jogos/tipos";
+import { ConviteAdulto } from "@/components/PesquisaSatisfacao";
+import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
+import { ProximosJogos } from "./ProximosJogos";
 
 /**
  * Memória das estampas: pares com as nossas artes (camisas, matracas,
  * placas pintadas à mão, bonés, ecobags). Ao achar um par, a carta conta de
  * onde a arte vem. Três níveis: 6, 8 ou 12 pares; no difícil, três erros
  * seguidos embaralham as cartas que ainda não foram achadas.
+ *
+ * Desde 17/11/2026 a mesa fica no servidor: a tela pede "virar a carta da
+ * posição i" e o servidor responde qual é (o ranking vale cupom, e a partida
+ * não pode ser inventada no navegador). A ordem de CARTAS é o número da carta
+ * no servidor: carta nova entra no FIM da lista.
  */
 type Carta = { id: string; nome: string; ficha: string; imagem: string; href?: string };
 
@@ -104,49 +111,44 @@ export const CARTAS: Carta[] = [
   },
 ];
 
-type Peca = { chave: string; carta: Carta };
+/** O que o servidor responde a cada carta virada (ver lib/play/jogos/memoria.ts). */
+type Virada = {
+  carta: number;
+  par?: boolean;
+  embaralhou?: boolean;
+  jogadas: number;
+  estado?: string;
+  fim?: { prova: string; pontos: number; jogadas: number; segundos: number };
+};
 
-function embaralhar<T>(lista: T[]): T[] {
-  const a = [...lista];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+/** Relógio da tela (só enfeite: quem mede o tempo de verdade é o servidor). Chamado só em resposta a toque. */
+const relogio = () => Date.now();
 
-function montarMesa(pares: number): Peca[] {
-  const baralho = CARTAS.slice(0, pares);
-  return embaralhar(baralho.flatMap((c) => [{ chave: `${c.id}-a`, carta: c }, { chave: `${c.id}-b`, carta: c }]));
-}
-
-/** No difícil: as cartas ainda não achadas trocam de lugar entre si. */
-function embaralharNaoAchadas(mesa: Peca[], achadas: string[]): Peca[] {
-  const livres = mesa.map((p, i) => (achadas.includes(p.carta.id) ? -1 : i)).filter((i) => i >= 0);
-  const pecas = embaralhar(livres.map((i) => mesa[i]));
-  const nova = [...mesa];
-  livres.forEach((pos, k) => (nova[pos] = pecas[k]));
-  return nova;
+/** Espera com registro, para cancelar tudo se a pessoa sair da tela no meio. */
+function esperar(lista: number[], ms: number, fazer: () => void) {
+  lista.push(window.setTimeout(fazer, ms));
 }
 
 export function Memoria() {
   const [fase, setFase] = useState<"inicio" | "jogando" | "fim">("inicio");
-  const [nivel, setNivel] = useState<Nivel>("medio");
-  const [pares, setPares] = useState(MEMORIA_NIVEL.medio.pares);
-  const [mesa, setMesa] = useState<Peca[]>([]);
-  const [viradas, setViradas] = useState<string[]>([]);
-  const [achadas, setAchadas] = useState<string[]>([]); // ids de carta
+  // Abre no fácil (17/11/2026): quem chega é criança pequena; os maiores trocam logo abaixo.
+  const [nivel, setNivel] = useState<Nivel>("facil");
+  const [pares, setPares] = useState(MEMORIA_NIVEL.facil.pares);
+  // A mesa mora no servidor: aqui só se sabe a carta de uma posição depois de virá-la.
+  const [mapa, setMapa] = useState<(number | null)[]>([]); // posição -> carta conhecida
+  const [abertas, setAbertas] = useState<number[]>([]); // posições viradas na jogada em andamento
+  const [achadas, setAchadas] = useState<number[]>([]); // cartas (números) já achadas
   const [jogadas, setJogadas] = useState(0);
-  const [errosSeguidos, setErrosSeguidos] = useState(0);
   const [aviso, setAviso] = useState("");
   const [segundos, setSegundos] = useState(0);
-  const [token, setToken] = useState("");
   const [ficha, setFicha] = useState<Carta | null>(null);
   const [prova, setProva] = useState("");
   const [pontos, setPontos] = useState(0);
   const [erro, setErro] = useState("");
   const travado = useRef(false);
   const inicio = useRef(0);
+  const estado = useRef("");
+  const esperas = useRef<number[]>([]);
 
   const regras = MEMORIA_NIVEL[nivel];
 
@@ -156,85 +158,86 @@ export function Memoria() {
     return () => window.clearInterval(t);
   }, [fase]);
 
+  // Saiu da tela no meio de uma espera: nada de mexer no estado depois.
+  useEffect(() => {
+    const lista = esperas.current;
+    return () => lista.forEach((t) => window.clearTimeout(t));
+  }, []);
+
   async function comecar() {
     setErro("");
-    const r = await chamar<{ token: string; pares: number }>("/api/play/memoria", { acao: "iniciar", nivel });
+    const r = await chamar<{ estado: string; pares: number; nivel: Nivel }>("/api/play/memoria", { acao: "iniciar", nivel });
     if (!r.ok) {
       setErro(r.mensagem ?? "Não deu para começar.");
       return;
     }
-    setToken(r.token);
+    estado.current = r.estado;
+    setNivel(r.nivel);
     setPares(r.pares);
-    setMesa(montarMesa(r.pares));
-    setViradas([]);
+    setMapa(Array.from({ length: r.pares * 2 }, () => null));
+    setAbertas([]);
     setAchadas([]);
     setJogadas(0);
-    setErrosSeguidos(0);
     setAviso("");
     setSegundos(0);
     setFicha(null);
     setProva("");
     travado.current = false;
-    inicio.current = Date.now();
+    inicio.current = relogio();
     setFase("jogando");
   }
 
-  const terminar = useCallback(
-    async (totalJogadas: number) => {
-      const r = await chamar<{ prova: string; pontos: number }>("/api/play/memoria", {
-        acao: "finalizar",
-        token,
-        jogadas: totalJogadas,
-      });
-      if (!r.ok) {
-        setErro(r.mensagem ?? "Não deu para registrar o resultado.");
-        setFase("inicio");
+  async function virar(pos: number) {
+    const conhecida = mapa[pos];
+    if (travado.current || abertas.includes(pos) || (conhecida !== null && achadas.includes(conhecida))) return;
+    travado.current = true;
+    const r = await chamar<Virada>("/api/play/memoria", { acao: "virar", estado: estado.current, pos });
+    if (!r.ok) {
+      travado.current = false;
+      // Sem conexão (ou pedidos demais): a partida continua, é só tocar de novo na carta.
+      if (!r.mensagem || r.mensagem.startsWith("Sem conexão") || r.mensagem.startsWith("Calma")) {
+        setAviso(r.mensagem ?? "Não deu para virar a carta. Toque de novo.");
         return;
       }
-      setProva(r.prova);
-      setPontos(r.pontos);
-      setFase("fim");
-      setTimeout(() => pedirPesquisa("memoria"), 3000);
-    },
-    [token],
-  );
-
-  function virar(p: Peca) {
-    if (travado.current || viradas.includes(p.chave) || achadas.includes(p.carta.id)) return;
-    const novas = [...viradas, p.chave];
-    setViradas(novas);
-    if (novas.length < 2) return;
-
-    travado.current = true;
-    const total = jogadas + 1;
-    setJogadas(total);
-    const [a, b] = novas.map((k) => mesa.find((m) => m.chave === k)!);
-    if (a.carta.id === b.carta.id) {
-      window.setTimeout(() => {
-        const todas = [...achadas, a.carta.id];
-        setAchadas(todas);
-        setViradas([]);
-        setFicha(a.carta);
-        setErrosSeguidos(0);
-        setAviso("");
-        travado.current = false;
-        if (todas.length === pares) void terminar(total);
-      }, 450);
-    } else {
-      const erros = errosSeguidos + 1;
-      window.setTimeout(() => {
-        setViradas([]);
-        if (regras.embaralhaApos && erros >= regras.embaralhaApos) {
-          setMesa((m) => embaralharNaoAchadas(m, achadas));
-          setErrosSeguidos(0);
-          setAviso("Vixe! Três erros seguidos: o Cazumbá embaralhou as cartas.");
-        } else {
-          setErrosSeguidos(erros);
-        }
-        travado.current = false;
-        // No fácil (crianças menores) as duas cartas ficam à vista por mais tempo antes de virar de volta.
-      }, nivel === "facil" ? 1500 : 900);
+      setErro(r.mensagem);
+      setFase("inicio");
+      return;
     }
+    if (r.estado) estado.current = r.estado;
+    setAviso("");
+    setMapa((m) => m.map((c, i) => (i === pos ? r.carta : c)));
+    setJogadas(r.jogadas);
+    const achadasAgora = achadas;
+    setAbertas([...abertas, pos]);
+    if (r.par === undefined) {
+      travado.current = false;
+      return;
+    }
+
+    if (r.par) {
+      esperar(esperas.current, 450, () => {
+        setAchadas((a) => [...a, r.carta]);
+        setAbertas([]);
+        setFicha(CARTAS[r.carta] ?? null);
+        travado.current = false;
+        if (r.fim) {
+          setProva(r.fim.prova);
+          setPontos(r.fim.pontos);
+          setJogadas(r.fim.jogadas);
+          setSegundos(r.fim.segundos);
+          setFase("fim");
+        }
+      });
+      return;
+    }
+    // No fácil (crianças menores) as duas cartas ficam à vista por mais tempo antes de virar de volta.
+    esperar(esperas.current, nivel === "facil" ? 1500 : 900, () => {
+      setAbertas([]);
+      // Embaralhou (difícil): o que a tela sabia das cartas viradas para baixo não vale mais.
+      if (r.embaralhou) setMapa((m) => m.map((c) => (c !== null && achadasAgora.includes(c) ? c : null)));
+      if (r.embaralhou) setAviso(`Vixe! ${regras.embaralhaApos ?? 3} erros seguidos: o Cazumbá embaralhou as cartas.`);
+      travado.current = false;
+    });
   }
 
   if (fase === "inicio") {
@@ -244,12 +247,25 @@ export function Memoria() {
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight text-texto sm:text-5xl">
           Memória das <span className="destaque">estampas</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-lg text-lg text-texto-suave">
+        <p className="mx-auto mt-3 max-w-lg text-base text-texto-suave sm:mt-5 sm:text-lg">
           Ache os pares das artes da Kambada. Menos jogadas e menos tempo, mais pontos.
         </p>
+        <BotaoOuvir id="memoria-como-jogar" className="mt-3" />
+
+        {/* O botão de jogar vem antes da escolha do nível: aparece sem rolar a tela no celular. */}
+        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={comecar}
+            className="min-h-14 w-full max-w-xs rounded-full bg-kambada-amarelo px-10 py-4 text-xl font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+          >
+            Jogar
+          </button>
+        </div>
 
         <fieldset className="mx-auto mt-8 max-w-lg text-left">
-          <legend className="text-sm font-semibold text-texto-suave">Escolha o nível</legend>
+          <legend className="text-sm font-semibold text-texto-suave">Nível (já vem no fácil)</legend>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
             {NIVEIS.map((n) => {
               const r = MEMORIA_NIVEL[n.id];
@@ -260,11 +276,18 @@ export function Memoria() {
                   type="button"
                   onClick={() => setNivel(n.id)}
                   aria-pressed={ativo}
-                  className={`rounded-xl border-2 p-3 text-left transition-colors ${
+                  className={`min-h-11 rounded-xl border-2 p-3 text-left transition-colors ${
                     ativo ? "border-kambada-amarelo bg-kambada-amarelo/20" : "border-borda hover:border-kambada-amarelo"
                   }`}
                 >
-                  <span className="block font-display text-lg font-extrabold text-texto">{n.rotulo}</span>
+                  <span className="block font-display text-lg font-extrabold text-texto">
+                    {/* O sinal marca a escolha sem depender da cor da borda. */}
+                    {ativo ? <span aria-hidden="true">✓ </span> : null}
+                    {n.rotulo}{" "}
+                    <span aria-hidden="true" className="text-[var(--destaque-texto)]">
+                      {ESTRELAS_DO_NIVEL[n.id]}
+                    </span>
+                  </span>
                   <span className="block text-xs text-texto-suave">{n.descricao}</span>
                   <span className="mt-2 block text-xs font-semibold text-texto-tenue">
                     {r.pares} pares · pontos ×{r.multiplicador}
@@ -275,15 +298,6 @@ export function Memoria() {
             })}
           </div>
         </fieldset>
-
-        {erro ? <p role="alert" className="mt-4 font-semibold text-texto">{erro}</p> : null}
-        <button
-          type="button"
-          onClick={comecar}
-          className="mt-8 rounded-full bg-kambada-amarelo px-10 py-4 text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
-        >
-          Bora!
-        </button>
       </div>
     );
   }
@@ -330,6 +344,9 @@ export function Memoria() {
             Ver essas artes na loja
           </Link>
         </div>
+        <ProximosJogos atual="memoria" />
+        {/* A pesquisa não pula na frente da criança: fica aqui, para o adulto abrir se quiser. */}
+        <ConviteAdulto gatilho="memoria" />
       </div>
     );
   }
@@ -349,35 +366,45 @@ export function Memoria() {
           {jogadas} jogadas · {segundos}s
         </span>
       </div>
+      {/* As artes do baralho carregam antes, fora da vista: a carta abre sem esperar a imagem. */}
+      <div aria-hidden className="pointer-events-none absolute h-0 w-0 overflow-hidden">
+        {CARTAS.slice(0, pares).map((c) => (
+          <span key={c.id} className="relative block h-36 w-36">
+            <Image src={c.imagem} alt="" fill loading="eager" sizes="(min-width: 640px) 9rem, 50vw" />
+          </span>
+        ))}
+      </div>
       <ul className={`mt-4 grid gap-2 sm:gap-3 ${colunas}`}>
-        {mesa.map((p) => {
-          const aberta = viradas.includes(p.chave) || achadas.includes(p.carta.id);
+        {mapa.map((numero, pos) => {
+          const carta = numero === null ? null : (CARTAS[numero] ?? null);
+          const achada = numero !== null && achadas.includes(numero);
+          const aberta = carta !== null && (achada || abertas.includes(pos));
           return (
-            <li key={p.chave} className="aspect-square">
+            <li key={pos} className="aspect-square">
               <button
                 type="button"
-                onClick={() => virar(p)}
-                aria-label={aberta ? p.carta.nome : "Carta virada para baixo"}
+                onClick={() => void virar(pos)}
+                aria-label={aberta && carta ? `Carta ${pos + 1}: ${carta.nome}${achada ? ", par achado" : ""}` : `Carta ${pos + 1}, virada para baixo`}
                 aria-pressed={aberta}
                 className="relative h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kambada-amarelo"
               >
                 {/* Costas: amarelo da marca, com a estrela de cordel */}
                 <span
-                  className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-kambada-grafite bg-kambada-amarelo transition-all duration-300"
+                  className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-kambada-grafite bg-kambada-amarelo transition-all duration-300 motion-reduce:transition-none"
                   style={{ opacity: aberta ? 0 : 1, transform: aberta ? "scale(0.9)" : "none" }}
                 >
                   <svg viewBox="0 0 40 40" className="h-1/2 w-1/2 text-kambada-grafite" aria-hidden>
                     <path fill="currentColor" d="M20 2l4 12 12-4-8 10 8 10-12-4-4 12-4-12-12 4 8-10-8-10 12 4z" />
                   </svg>
                 </span>
-                {/* Frente: a arte da Kambada */}
+                {/* Frente: a arte da Kambada (só existe depois que o servidor diz qual é) */}
                 <span
-                  className={`absolute inset-0 overflow-hidden rounded-lg border-2 transition-all duration-300 ${
-                    achadas.includes(p.carta.id) ? "border-kambada-amarelo" : "border-kambada-grafite"
+                  className={`absolute inset-0 overflow-hidden rounded-lg border-2 transition-all duration-300 motion-reduce:transition-none ${
+                    achada ? "border-kambada-amarelo" : "border-kambada-grafite"
                   }`}
                   style={{ opacity: aberta ? 1 : 0, transform: aberta ? "none" : "scale(0.9)" }}
                 >
-                  <Image src={p.carta.imagem} alt="" fill sizes="(min-width: 640px) 9rem, 50vw" className="object-cover" />
+                  {carta ? <Image src={carta.imagem} alt="" fill sizes="(min-width: 640px) 9rem, 50vw" className="object-cover" /> : null}
                 </span>
               </button>
             </li>
@@ -392,6 +419,7 @@ export function Memoria() {
           <>
             <p className="font-display text-lg font-extrabold text-texto">Éguas, um par! {ficha.nome}</p>
             <p className="mt-1 text-sm text-texto-suave">{ficha.ficha}</p>
+            <BotaoOuvir id={`memoria-ficha-${ficha.id}`} className="mt-2" />
           </>
         ) : (
           <p className="text-sm text-texto-tenue">Vire duas cartas. Cada par conta de onde vem a arte.</p>

@@ -74,6 +74,17 @@ async function gravar(d: Dados): Promise<void> {
   await gravarEm(arquivoTemporario(), d);
 }
 
+/** Apaga o perfil do Arraial de uma conta (exclusão da conta). Devolve true se havia perfil. */
+export function apagarPerfil(contaId: string): Promise<boolean> {
+  return naFila(async () => {
+    const d = await ler();
+    if (!(contaId in d.perfis)) return false;
+    delete d.perfis[contaId];
+    await gravar(d);
+    return true;
+  });
+}
+
 /** Perfil público da conta (sem gravar nada). */
 export async function lerPerfil(contaId: string, agora = new Date()): Promise<PerfilPublico> {
   const d = await ler();

@@ -11,7 +11,9 @@ import { arquivoTokens } from "../../bling/tokens";
  * para pontuar mais de uma vez, em qualquer conta. Como o ranking vale cupom,
  * o servidor passa a lembrar, por pouco tempo:
  *   - até que pergunta cada partida já respondeu (quiz e Arraial);
- *   - qual jogador já usou a prova de cada partida (ranking).
+ *   - até que carta cada partida da memória já virou (17/11/2026);
+ *   - qual jogador já usou a prova de cada partida (ranking);
+ *   - quantas partidas de cada jogo o jogador já mandou ao ranking no dia.
  *
  * Guarda na memória do processo e num arquivo ao lado dos outros do Play
  * (sobrevive a reinício). Nada aqui é dado pessoal: id aleatório da partida e
@@ -112,6 +114,38 @@ export function registrarResposta(jogo: "quiz" | "arraial", partida: string, ind
   if (ultima !== null && Number(ultima) >= indice) return false;
   gravarMarca(chave, String(indice), validadeMs, agora);
   return true;
+}
+
+/**
+ * Passo de uma partida em que cada pedido revela algo (memória: virar a carta).
+ * Cada passo vale uma vez: sem isto, dava para virar uma carta, ver qual era e
+ * reenviar o estado anterior para "desvirar" sem gastar jogada. O MESMO pedido
+ * repetido (mesmo passo, mesma marca) é aceito: é a resposta que se perdeu na
+ * rede, e quem chama devolve o mesmo resultado.
+ */
+export function registrarPasso(jogo: "memoria", partida: string, passo: number, marca: string, validadeMs: number, agora = Date.now()): boolean {
+  const chave = `${jogo}:${partida}`;
+  const ultima = lerMarca(chave, agora);
+  if (ultima !== null) {
+    const [n, m] = ultima.split("|");
+    if (Number(n) > passo) return false;
+    if (Number(n) === passo) return m === marca;
+  }
+  gravarMarca(chave, `${passo}|${marca}`, validadeMs, agora);
+  return true;
+}
+
+/** Soma um à contagem da chave e devolve o total (a contagem vence junto com a primeira marca). */
+export function contarMarca(chave: string, validadeMs: number, agora = Date.now()): number {
+  const atual = carregar(agora).get(chave);
+  if (!atual || atual.exp <= agora) {
+    gravarMarca(chave, "1", validadeMs, agora);
+    return 1;
+  }
+  const total = (Number(atual.v) || 0) + 1;
+  atual.v = String(total);
+  anotar({ k: chave, v: atual.v, exp: atual.exp });
+  return total;
 }
 
 const chaveDaProva = (jogo: string, partida: string) => `prova:${jogo}:${partida}`;

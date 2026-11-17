@@ -68,6 +68,8 @@ type Estado = {
   id: string;
   missao: string;
   t0: number;
+  /** Conta que começou a partida (null = sem conta). Ausente só em partida anterior a 17/11/2026. */
+  conta?: string | null;
   pistas: NpcId[];
   /** Hora do último evento que fechou uma conversa (início ou pista nova). Ausente = t0. */
   tu?: number;
@@ -101,6 +103,8 @@ export type ProvaArraial = {
   v: 1;
   jogo: "arraial";
   partida: string;
+  /** A prova só pontua para a conta que jogou. Ausente só em prova anterior a 17/11/2026. */
+  conta?: string | null;
   missao: string;
   pontos: number;
   acertos: number;
@@ -138,10 +142,10 @@ function lerEstado(token: unknown, agora: number): { estado: Estado; missao: Mis
   return { estado, missao };
 }
 
-export function iniciarMissao(agora = Date.now()): { estado: string; missao: MissaoPublica } {
+export function iniciarMissao(agora = Date.now(), conta: string | null = null): { estado: string; missao: MissaoPublica } {
   const ativas = missoesAtivas(new Date(agora));
   const m = ativas[Math.floor(Math.random() * ativas.length)];
-  const estado: Estado = { v: 1, id: idAleatorio(), missao: m.id, t0: agora, pistas: [] };
+  const estado: Estado = { v: 1, id: idAleatorio(), missao: m.id, t0: agora, conta, pistas: [] };
   return {
     estado: assinar(estado),
     missao: { id: m.id, titulo: m.titulo, anfitriao: m.anfitriao, conversas: m.conversas, falasDoDesafio: m.falasDoDesafio },
@@ -232,6 +236,7 @@ export function responderDesafio(
       v: 1,
       jogo: "arraial",
       partida: estado.id,
+      ...("conta" in estado ? { conta: estado.conta ?? null } : {}),
       missao: missao.id,
       pontos,
       acertos: prox.acertos,

@@ -20,13 +20,22 @@ export const NIVEIS: { id: Nivel; rotulo: string; descricao: string }[] = [
   { id: "dificil", rotulo: "Difícil", descricao: "Só pra quem é maranhense que só." },
 ];
 
+/** Sinal do nível além do texto (uma, duas ou três estrelas), para quem ainda não lê. */
+export const ESTRELAS_DO_NIVEL: Record<Nivel, string> = { facil: "★", medio: "★★", dificil: "★★★" };
+
 export function nivelValido(v: unknown): Nivel {
   return v === "facil" || v === "dificil" ? v : "medio";
 }
 
-/** Quiz: tempo de bônus, multiplicador de pontos e desconto por erro. */
-export const QUIZ_NIVEL: Record<Nivel, { tempoBonusS: number; multiplicador: number; penalidadeErro: number }> = {
-  facil: { tempoBonusS: 20, multiplicador: 1, penalidadeErro: 0 },
+/**
+ * Quiz: tempo de bônus, multiplicador de pontos e desconto por erro.
+ * No fácil não há relógio (`tempoBonusS: null`, 17/11/2026): é o nível dos pequenos,
+ * e todo acerto vale o mesmo, responda rápido ou devagar (`QUIZ_PONTOS_SEM_RELOGIO`).
+ */
+export const QUIZ_PONTOS_SEM_RELOGIO = 125;
+
+export const QUIZ_NIVEL: Record<Nivel, { tempoBonusS: number | null; multiplicador: number; penalidadeErro: number }> = {
+  facil: { tempoBonusS: null, multiplicador: 1, penalidadeErro: 0 },
   medio: { tempoBonusS: 15, multiplicador: 1.5, penalidadeErro: 0 },
   dificil: { tempoBonusS: 10, multiplicador: 2, penalidadeErro: 25 },
 };
@@ -78,6 +87,12 @@ export const PREMIOS_SEMANAIS = [10, 8, 5] as const;
 
 /** Mínimo de pontos na semana para o prêmio valer (evita cupom por uma partida qualquer). */
 export const PONTOS_MINIMOS_PREMIO = 300;
+
+/**
+ * Teto de partidas que a mesma conta manda ao ranking por jogo, por dia (17/11/2026).
+ * Generoso de propósito: criança que joga a tarde inteira não chega perto.
+ */
+export const PARTIDAS_NO_RANKING_POR_DIA = 30;
 
 export const REGRAS_PREMIO = {
   validadeCupomDias: 30,

@@ -1,4 +1,4 @@
-import { appendFile, mkdir, readFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { arquivoTokens } from "../../bling/tokens";
@@ -42,6 +42,43 @@ export async function registrarEventoPartida(e: Omit<EventoPartida, "em">, agora
       /* medição nunca pode quebrar o jogo */
     }
   }
+}
+
+/**
+ * Exclusão da conta (17/11/2026): tira o id da conta das partidas registradas.
+ * As linhas ficam (são a contagem de partidas iniciadas e concluídas, indicador
+ * do projeto), mas sem nada que leve de volta à conta. Devolve quantas mudaram.
+ */
+export async function desvincularPartidasDaConta(contaId: string): Promise<number> {
+  let mudou = 0;
+  for (const caminho of [arquivo(), arquivoTemporario()]) {
+    let texto: string;
+    try {
+      texto = await readFile(caminho, "utf8");
+    } catch {
+      continue; // arquivo ainda não existe
+    }
+    if (!texto.includes(contaId)) continue;
+    let aqui = 0;
+    const linhas = texto.split("\n").map((l) => {
+      if (!l.includes(contaId)) return l;
+      try {
+        const e = JSON.parse(l) as EventoPartida;
+        if (e.conta !== contaId) return l;
+        delete e.conta;
+        aqui += 1;
+        return JSON.stringify(e);
+      } catch {
+        return l;
+      }
+    });
+    if (!aqui) continue;
+    const tmp = `${caminho}.${process.pid}.tmp`;
+    await writeFile(tmp, linhas.join("\n"), "utf8");
+    await rename(tmp, caminho);
+    mudou += aqui;
+  }
+  return mudou;
 }
 
 export async function listarEventosPartida(): Promise<EventoPartida[]> {

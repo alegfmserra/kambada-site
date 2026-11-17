@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { iniciarDesafio, iniciarMissao, responderDesafio } from "./arraial";
 import { iniciarPartida, responder } from "./quiz";
 import { permutacaoSecreta, verificar } from "./seguranca";
-import { liberarProva, lerMarca, registrarResposta, reiniciarUsoUnico, reservarProva } from "./usoUnico";
+import { contarMarca, liberarProva, lerMarca, registrarPasso, registrarResposta, reiniciarUsoUnico, reservarProva } from "./usoUnico";
 
 const MEIA_HORA = 30 * 60 * 1000;
 
@@ -23,6 +23,22 @@ describe("uso único: marcas", () => {
     // Outra partida e outro jogo não se misturam.
     expect(registrarResposta("quiz", "p2", 0, MEIA_HORA, 4000)).toBe(true);
     expect(registrarResposta("arraial", "p1", 0, MEIA_HORA, 4000)).toBe(true);
+  });
+
+  it("passo da memória: vale uma vez, mas o mesmo pedido repetido é aceito", () => {
+    expect(registrarPasso("memoria", "m1", 0, "4", MEIA_HORA, 1000)).toBe(true);
+    expect(registrarPasso("memoria", "m1", 0, "7", MEIA_HORA, 1100)).toBe(false); // mesmo passo, outra carta: espiar
+    expect(registrarPasso("memoria", "m1", 0, "4", MEIA_HORA, 1200)).toBe(true); // o mesmo pedido de novo
+    expect(registrarPasso("memoria", "m1", 1, "7", MEIA_HORA, 1300)).toBe(true);
+    expect(registrarPasso("memoria", "m1", 0, "4", MEIA_HORA, 1400)).toBe(false); // voltar atrás
+    expect(registrarPasso("memoria", "m2", 0, "7", MEIA_HORA, 1400)).toBe(true); // outra partida
+  });
+
+  it("contagem: soma um por vez e vence junto com a primeira marca", () => {
+    expect(contarMarca("dia:x", 1000, 10_000)).toBe(1);
+    expect(contarMarca("dia:x", 1000, 10_500)).toBe(2);
+    expect(lerMarca("dia:x", 10_900)).toBe("2");
+    expect(contarMarca("dia:x", 1000, 11_001)).toBe(1); // venceu: recomeça
   });
 
   it("a marca vence sozinha", () => {

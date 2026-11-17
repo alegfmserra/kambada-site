@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 
 /**
  * Assinaturas dos jogos do Kambada Play (somente servidor).
@@ -51,6 +51,63 @@ export function verificar<T>(token: unknown): T | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Estado que o navegador carrega mas NÃO pode ler (17/11/2026): cifrado e
+ * autenticado (AES-256-GCM). Serve à memória das estampas, em que o estado da
+ * partida leva a posição de todas as cartas. Assinar só não bastava: a carga
+ * assinada é legível, e quem a lesse saberia onde está cada par.
+ */
+function chaveDaCifra(): Buffer {
+  return createHash("sha256").update(`cifra|${segredo()}`).digest();
+}
+
+export function cifrar(dados: unknown): string {
+  const iv = randomBytes(12);
+  const c = createCipheriv("aes-256-gcm", chaveDaCifra(), iv);
+  const corpo = Buffer.concat([c.update(JSON.stringify(dados), "utf8"), c.final()]);
+  return `${base64url(iv)}.${base64url(corpo)}.${base64url(c.getAuthTag())}`;
+}
+
+/** Abre o que `cifrar` fechou, ou null se foi adulterado (ou não é nosso). */
+export function decifrar<T>(token: unknown): T | null {
+  if (typeof token !== "string" || token.length > 8000) return null;
+  const [iv, corpo, marca] = token.split(".");
+  if (!iv || !corpo || !marca) return null;
+  try {
+    const d = createDecipheriv("aes-256-gcm", chaveDaCifra(), Buffer.from(iv, "base64url"));
+    d.setAuthTag(Buffer.from(marca, "base64url"));
+    const claro = Buffer.concat([d.update(Buffer.from(corpo, "base64url")), d.final()]).toString("utf8");
+    return JSON.parse(claro) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** Embaralha com o sorteio do sistema (não previsível pelo navegador). */
+export function embaralharSeguro<T>(lista: readonly T[]): T[] {
+  const a = [...lista];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Embaralha sempre do mesmo jeito para o mesmo rótulo (derivado do segredo do
+ * servidor). Serve quando o mesmo pedido pode chegar duas vezes (resposta
+ * perdida na rede) e precisa dar o mesmo resultado. Até 32 itens.
+ */
+export function embaralharPorRotulo<T>(lista: readonly T[], rotulo: string): T[] {
+  const bytes = createHmac("sha256", segredo()).update(`embaralhar|${rotulo}`).digest();
+  const a = [...lista];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = bytes[i % bytes.length] % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 /** O servidor nunca guarda a chave do jogador: só este resumo. */

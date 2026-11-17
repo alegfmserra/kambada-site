@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
+import { evento } from "@/lib/analytics/eventos";
+import type { ItemCarrinho } from "@/lib/carrinho/logica";
 import CalculoDeFrete from "@/components/frete/CalculoDeFrete";
 import { entregaMaisEmConta, precoDaEntrega, type OpcaoFreteNaTela } from "@/lib/frete/exibir";
 import { textoParcelas } from "@/lib/loja/parcelas";
@@ -18,6 +21,16 @@ import { useCarrinho } from "./ProvedorCarrinho";
  * `pagamentoOnline`: dá também para pagar no site. Sem ele, o checkout cota o
  * frete e entrega o pedido pronto no WhatsApp.
  */
+/** Peça do carrinho no formato do Google Analytics (nome, categoria, preço e quantidade; nada de quem compra). */
+const itemGa = (i: ItemCarrinho, quantidade: number) => ({
+  item_id: String(i.idBling),
+  item_name: i.nome,
+  item_category: i.categoria,
+  item_variant: i.rotulo,
+  price: i.preco,
+  quantity: quantidade,
+});
+
 export default function TelaCarrinho({
   pagamentoOnline,
   freteOnline,
@@ -29,6 +42,16 @@ export default function TelaCarrinho({
   // Frete cotado aqui mesmo, pelo CEP (17/11/2026): antes só aparecia dentro do checkout.
   const [entregas, setEntregas] = useState<OpcaoFreteNaTela[] | null>(null);
   const paraCotar = useMemo(() => itens.map((i) => ({ idBling: i.idBling, quantidade: i.quantidade })), [itens]);
+
+  // Medição (17/11/2026): carrinho visto (uma vez por abertura da página), peça tirada e peça somada.
+  const jaViu = useRef(false);
+  useEffect(() => {
+    if (!pronto || jaViu.current || itens.length === 0) return;
+    jaViu.current = true;
+    evento("view_cart", { currency: "BRL", value: subtotal, items: itens.map((i) => itemGa(i, i.quantidade)) });
+  }, [pronto, itens, subtotal]);
+  const medir = (nome: "add_to_cart" | "remove_from_cart", i: ItemCarrinho, quantidade: number) =>
+    evento(nome, { currency: "BRL", value: i.preco * quantidade, items: [itemGa(i, quantidade)] });
 
   if (!pronto) {
     return <p className="text-texto-suave">Carregando o carrinho…</p>;
@@ -44,6 +67,7 @@ export default function TelaCarrinho({
         <p className="mt-2 text-texto-suave">As peças que você escolher aparecem aqui.</p>
         <Link
           href="/loja"
+          data-alvo="carrinho-vazio-ver-a-loja"
           className="mt-6 inline-block rounded-full bg-kambada-amarelo px-7 py-3.5 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
         >
           Ver a loja
@@ -58,7 +82,7 @@ export default function TelaCarrinho({
   const precoMaisEmConta = maisEmConta ? precoDaEntrega(maisEmConta) : null;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
+    <div className="grid gap-10 lg:grid-cols-[1fr_22rem]" data-area="carrinho">
       <ul className="divide-y divide-borda border-y border-borda">
         {itens.map((i) => {
           const teto = Math.min(i.estoque, MAXIMO_POR_ITEM);
@@ -85,6 +109,7 @@ export default function TelaCarrinho({
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/loja/${i.categoria}/${i.slug}`}
+                  data-alvo="peca"
                   className="font-display font-semibold hover:text-kambada-amarelo-escuro"
                 >
                   {i.nome}
@@ -98,8 +123,12 @@ export default function TelaCarrinho({
                   <div className="flex items-center rounded-full border border-borda" role="group" aria-label={`Quantidade de ${i.nome}`}>
                     <button
                       type="button"
-                      onClick={() => alterarQuantidade(i.idBling, i.quantidade - 1)}
+                      onClick={() => {
+                        medir("remove_from_cart", i, 1);
+                        alterarQuantidade(i.idBling, i.quantidade - 1);
+                      }}
                       aria-label="Diminuir"
+                      data-evento="remove_from_cart"
                       className="h-11 w-11 rounded-full text-lg"
                     >
                       −
@@ -107,9 +136,13 @@ export default function TelaCarrinho({
                     <span className="w-8 text-center font-display font-semibold">{i.quantidade}</span>
                     <button
                       type="button"
-                      onClick={() => alterarQuantidade(i.idBling, i.quantidade + 1)}
+                      onClick={() => {
+                        medir("add_to_cart", i, 1);
+                        alterarQuantidade(i.idBling, i.quantidade + 1);
+                      }}
                       disabled={i.quantidade >= teto}
                       aria-label="Aumentar"
+                      data-evento="add_to_cart"
                       className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
                     >
                       +
@@ -117,7 +150,11 @@ export default function TelaCarrinho({
                   </div>
                   <button
                     type="button"
-                    onClick={() => remover(i.idBling)}
+                    onClick={() => {
+                      medir("remove_from_cart", i, i.quantidade);
+                      remover(i.idBling);
+                    }}
+                    data-evento="remove_from_cart"
                     className="min-h-11 text-sm text-texto-tenue underline hover:text-texto"
                   >
                     Remover
@@ -185,30 +222,29 @@ export default function TelaCarrinho({
         {freteOnline ? (
           <Link
             href="/checkout"
+            data-alvo="finalizar-compra"
             className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             {pagamentoOnline ? "Finalizar compra" : "Calcular frete e finalizar"}
           </Link>
         ) : (
-          <a
+          <LinkWhatsApp
+            origem="carrinho-finalizar"
             href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
             className="mt-6 block rounded-full bg-kambada-amarelo px-6 py-4 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
           >
             Finalizar pelo WhatsApp
-          </a>
+          </LinkWhatsApp>
         )}
 
         {freteOnline && (
-          <a
+          <LinkWhatsApp
+            origem="carrinho-prefere-whatsapp"
             href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
             className="mt-3 block text-center text-sm text-texto-suave underline hover:text-texto"
           >
             Prefere fechar pelo WhatsApp?
-          </a>
+          </LinkWhatsApp>
         )}
         {!pagamentoOnline && (
           <p className="mt-3 text-center text-xs text-texto-tenue">

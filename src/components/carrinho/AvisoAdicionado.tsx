@@ -61,6 +61,7 @@ export default function AvisoAdicionado() {
           key={ultimaAdicao.vez}
           role="region"
           aria-label="Peça adicionada ao carrinho"
+          data-area="aviso-carrinho"
           onMouseEnter={() => setPausado(true)}
           onMouseLeave={() => setPausado(false)}
           onFocus={() => setPausado(true)}
@@ -83,6 +84,7 @@ export default function AvisoAdicionado() {
               type="button"
               onClick={fecharAviso}
               aria-label="Fechar aviso"
+              data-alvo="fechar"
               className="-mt-1 -mr-1 h-9 w-9 shrink-0 rounded-full text-xl leading-none text-texto-tenue hover:bg-fundo hover:text-texto"
             >
               ×
@@ -129,6 +131,7 @@ export default function AvisoAdicionado() {
           <div className="mt-4 grid gap-2">
             <Link
               href="/carrinho"
+              data-alvo="ver-carrinho-e-finalizar"
               className="rounded-full bg-kambada-amarelo px-5 py-3 text-center font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro whitespace-nowrap"
             >
               Ver carrinho e finalizar
@@ -136,6 +139,7 @@ export default function AvisoAdicionado() {
             <button
               type="button"
               onClick={fecharAviso}
+              data-alvo="continuar-comprando"
               className="min-h-11 rounded-full border border-borda px-5 py-2.5 font-display text-sm font-semibold hover:border-kambada-amarelo-escuro whitespace-nowrap"
             >
               Continuar comprando

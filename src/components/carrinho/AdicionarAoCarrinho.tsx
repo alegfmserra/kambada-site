@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { evento } from "@/lib/analytics/eventos";
+import { alvoDoTexto } from "@/lib/analytics/cliques";
 import { rastrear } from "@/lib/visitas/rastrear";
 import { MAXIMO_POR_ITEM } from "@/lib/carrinho/logica";
 import type { Opcao } from "@/lib/catalogo";
@@ -121,7 +122,13 @@ export default function AdicionarAoCarrinho({
   // Lista simples (uma estampa por opção): miniatura quando as fotos diferem entre as opções.
   const miniaturasSimples = eixos || unica ? null : fotosDosValores(opcoes, fotosPorOpcao, (o) => o.rotulo);
 
+  /** Escolha de opção (tamanho, estampa, suporte): é botão de rádio, então o ouvinte geral de cliques não vê. */
+  function medirEscolha(tipo: string, valor: string) {
+    evento("clique", { area: "produto-opcoes", alvo: alvoDoTexto(`${tipo} ${valor}`), pagina: "produto" });
+  }
+
   function escolher(id: number) {
+    medirEscolha(ehTamanho ? "tamanho" : "opcao", opcoes.find((o) => o.idBling === id)?.rotulo ?? "");
     setEscolhida(id);
     fotoAtiva?.escolher(id);
     setQuantidade(1);
@@ -130,6 +137,7 @@ export default function AdicionarAoCarrinho({
 
   function escolherNoEixo(chave: string, valor: string) {
     if (!eixos) return;
+    medirEscolha(chave, valor);
     const nova = escolherValor(opcoes, eixos, escolha, chave, valor);
     setEscolha(nova);
     // A foto acompanha a estampa assim que ela é escolhida, mesmo sem o suporte.
@@ -171,6 +179,7 @@ export default function AdicionarAoCarrinho({
   const linkMedidas = temGuiaDeTamanhos ? (
     <a
       href={`#${ANCORA_GUIA_DE_TAMANHOS}`}
+      data-alvo="ver-medidas"
       className="mt-3 inline-block text-sm font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
     >
       <span aria-hidden="true">📏</span> Qual meu tamanho? Ver as medidas
@@ -178,7 +187,7 @@ export default function AdicionarAoCarrinho({
   ) : null;
 
   return (
-    <div className="mt-8">
+    <div className="mt-8" data-area="produto-compra">
       {eixos &&
         eixos.map((eixo) => {
           const mostrarPreco = eixoMudaPreco(opcoes, eixo);
@@ -299,6 +308,7 @@ export default function AdicionarAoCarrinho({
               onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
               disabled={quantidade <= 1}
               aria-label="Diminuir quantidade"
+              data-alvo="quantidade-menos"
               className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
             >
               −
@@ -311,6 +321,7 @@ export default function AdicionarAoCarrinho({
               onClick={() => setQuantidade((q) => Math.min(teto, q + 1))}
               disabled={quantidade >= teto}
               aria-label="Aumentar quantidade"
+              data-alvo="quantidade-mais"
               className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
             >
               +
@@ -321,6 +332,7 @@ export default function AdicionarAoCarrinho({
             type="button"
             onClick={aoAdicionar}
             disabled={!opcao || teto <= 0}
+            data-evento="add_to_cart"
             className="min-h-12 rounded-full bg-kambada-amarelo px-8 py-3.5 font-display font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
           >
             Adicionar ao carrinho
@@ -347,7 +359,7 @@ export default function AdicionarAoCarrinho({
         {adicionado && (
           <>
             Pronto, está no carrinho.{" "}
-            <Link href="/carrinho" className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro">
+            <Link href="/carrinho" data-alvo="ver-carrinho" className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro">
               Ver carrinho
             </Link>
           </>

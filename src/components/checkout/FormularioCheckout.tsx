@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { lerOrigemSalva } from "@/components/Atribuicao";
 import { useCarrinho } from "@/components/carrinho/ProvedorCarrinho";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { mensagemWhatsApp, mensagemWhatsAppPedido } from "@/lib/carrinho/logica";
 import { evento } from "@/lib/analytics/eventos";
 import { gaDoNavegador } from "@/lib/analytics/cookiesGoogle";
@@ -246,10 +247,14 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       const d = (await r.json()) as { ok: boolean; codigo?: string; percentual?: number; desconto?: number; mensagem?: string };
       if (d.ok && d.codigo && d.percentual && d.desconto) {
         setCupom({ codigo: d.codigo, percentual: d.percentual, desconto: d.desconto });
+        // Medição: qual cupom funcionou (o código é da loja, não é dado de quem compra).
+        evento("cupom_aplicado", { cupom: d.codigo, valido: true, percentual: d.percentual });
         carrinhoDoCupom.current = chaveCarrinho;
         setMsgCupom(`Cupom ${d.codigo} aplicado: ${d.percentual}% de desconto nas peças.`);
       } else {
         setCupom(null);
+        // Cupom recusado: o código digitado NÃO vai para a medição (é texto livre).
+        evento("cupom_aplicado", { valido: false });
         setMsgCupom(d.mensagem ?? "Cupom não encontrado.");
       }
     } catch {
@@ -278,6 +283,11 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
       return;
     }
 
+    // Medição: a entrega escolhida ao enviar o pedido (tipo e valor; nada de endereço).
+    const itensGa = itens.map((i) => ({ item_id: String(i.idBling), item_name: i.nome, price: i.preco, quantity: i.quantidade }));
+    const entregaGa = freteEscolhido.retirada ? "Retirada no ateliê" : freteEscolhido.local ? "Entrega por aplicativo" : freteEscolhido.servico;
+    evento("add_shipping_info", { currency: "BRL", value: total, shipping_tier: entregaGa, ...(cupom ? { coupon: cupom.codigo } : {}), items: itensGa });
+
     // Pagamento pelo site ainda não ligado: o pedido vai pronto para o
     // WhatsApp. Pede só o que a mensagem usa — o resto a conversa resolve.
     if (!pagamentoOnline) {
@@ -287,6 +297,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         refAviso.current?.focus();
         return;
       }
+      evento("generate_lead", { origem: "checkout-pedido-whatsapp" });
       window.open(
         linkWhatsApp(
           mensagemWhatsAppPedido(
@@ -324,6 +335,8 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         motivo?: string;
       };
       if (r.ok && d.url) {
+        // Vai para a página de pagamento: Pix ou cartão é escolhido lá, no Mercado Pago.
+        evento("add_payment_info", { currency: "BRL", value: total, payment_type: "Mercado Pago", ...(cupom ? { coupon: cupom.codigo } : {}), items: itensGa });
         window.location.assign(d.url);
         return;
       }
@@ -349,7 +362,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
     return (
       <p>
         Seu carrinho está vazio.{" "}
-        <Link href="/loja" className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro">
+        <Link href="/loja" data-alvo="checkout-vazio-ver-a-loja" className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro">
           Ver a loja
         </Link>
       </p>
@@ -388,7 +401,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
   );
 
   return (
-    <form onSubmit={aoPagar} noValidate className="grid gap-10 lg:grid-cols-[1fr_22rem]">
+    <form onSubmit={aoPagar} noValidate className="grid gap-10 lg:grid-cols-[1fr_22rem]" data-area="checkout">
       <div className="space-y-10">
         {!pagamentoOnline && (
           <p className="rounded-xl bg-superficie px-4 py-3 text-sm text-texto-suave">
@@ -407,7 +420,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
               {campo("cpf", "CPF (para a nota fiscal)", { modo: "numeric", largura: "" })}
               <p className="text-xs leading-relaxed text-texto-suave sm:col-span-2">
                 Usamos seus dados só para entregar o pedido, emitir a nota fiscal e falar com você.{" "}
-                <Link href="/privacidade" target="_blank" className="font-semibold text-texto underline underline-offset-4">
+                <Link href="/privacidade" target="_blank" data-alvo="politica-de-privacidade" className="font-semibold text-texto underline underline-offset-4">
                   Política de Privacidade
                 </Link>
                 .
@@ -566,7 +579,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                 <span>
                   Cupom <strong>{cupom.codigo}</strong> aplicado
                 </span>
-                <button type="button" onClick={removerCupom} className="min-h-11 underline underline-offset-4">
+                <button type="button" onClick={removerCupom} data-alvo="cupom-remover" className="min-h-11 underline underline-offset-4">
                   Remover
                 </button>
               </p>
@@ -594,6 +607,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                     type="button"
                     onClick={() => void aplicarCupom()}
                     disabled={aplicandoCupom || !codigoCupom.trim()}
+                    data-evento="cupom_aplicado"
                     className="min-h-11 shrink-0 rounded-xl border border-borda px-4 text-sm font-semibold hover:border-kambada-amarelo-escuro disabled:opacity-50"
                   >
                     {aplicandoCupom ? "…" : "Aplicar"}
@@ -652,6 +666,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
         <button
           type="submit"
           disabled={enviando || cotando || !freteEscolhido}
+          data-evento={pagamentoOnline ? "add_payment_info" : "generate_lead"}
           className="mt-6 w-full rounded-full bg-kambada-amarelo px-6 py-4 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
         >
           {!pagamentoOnline
@@ -665,19 +680,18 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
             <p className="mt-3 text-center text-xs text-texto-tenue">
               Pix ou cartão em até 3x. Você paga na página segura do Mercado Pago. Ao pagar, você
               concorda com os{" "}
-              <Link href="/termos" target="_blank" className="font-semibold text-texto underline underline-offset-4">
+              <Link href="/termos" target="_blank" data-alvo="termos-de-compra" className="font-semibold text-texto underline underline-offset-4">
                 Termos de Compra
               </Link>
               .
             </p>
-            <a
+            <LinkWhatsApp
+              origem="checkout-prefere-whatsapp"
               href={whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
               className="mt-4 block text-center text-sm text-texto-suave underline hover:text-texto"
             >
               Prefere fechar pelo WhatsApp?
-            </a>
+            </LinkWhatsApp>
           </>
         ) : (
           <p className="mt-3 text-center text-xs text-texto-tenue">

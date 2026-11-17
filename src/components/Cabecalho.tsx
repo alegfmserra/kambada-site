@@ -1,17 +1,37 @@
 "use client";
 
+import Form from "next/form";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AlternadorTema from "@/components/AlternadorTema";
 import IconeCarrinho from "@/components/carrinho/IconeCarrinho";
 import { CATEGORIAS } from "@/lib/catalogo";
+import { TAMANHO_MAXIMO_DO_TERMO } from "@/lib/loja/busca";
 import { NAV } from "@/lib/site";
 
 export default function Cabecalho() {
   const [aberto, setAberto] = useState(false);
   const [submenu, setSubmenu] = useState(false);
   const itemLoja = useRef<HTMLLIElement>(null);
+  // Busca da loja (17/11/2026): a lupa abre um campo logo abaixo do cabeçalho.
+  const [busca, setBusca] = useState(false);
+  const botaoBusca = useRef<HTMLButtonElement>(null);
+  // No Kambada Play a lupa não aparece: a busca é da loja.
+  const noPlay = (usePathname() ?? "/").startsWith("/kambadaplay");
+
+  /* Busca aberta: Escape fecha e devolve o foco à lupa. */
+  useEffect(() => {
+    if (!busca) return;
+    function aoTeclar(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      setBusca(false);
+      botaoBusca.current?.focus();
+    }
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [busca]);
 
   /* O submenu abre por clique, não por passagem do mouse. Menu que abre no
      hover não existe em tela de toque, atrapalha quem navega por teclado e
@@ -164,12 +184,35 @@ export default function Cabecalho() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Sem estado no cliente: /conta manda para /entrar quem não está logado. */}
+          {!noPlay && (
+            <button
+              ref={botaoBusca}
+              type="button"
+              onClick={() => {
+                setBusca((v) => !v);
+                setAberto(false);
+              }}
+              aria-expanded={busca}
+              aria-controls="busca-cabecalho"
+              aria-label={busca ? "Fechar a busca" : "Buscar na loja"}
+              title="Buscar na loja"
+              data-alvo={busca ? "busca-fechar" : "busca-abrir"}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover-marca"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="M16 16l4.5 4.5" />
+              </svg>
+            </button>
+          )}
+          {/* Sem estado no cliente: /conta manda para /entrar quem não está logado.
+              No celular o ícone dá lugar à lupa (não cabem os cinco); a conta fica no menu. */}
           <Link
             href="/conta"
             aria-label="Minha conta"
             title="Minha conta"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover-marca"
+            data-alvo="minha-conta"
+            className="hidden h-11 w-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-superficie hover-marca sm:inline-flex"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="3.5" />
@@ -180,10 +223,14 @@ export default function Cabecalho() {
           <AlternadorTema />
           <button
             type="button"
-            onClick={() => setAberto((v) => !v)}
+            onClick={() => {
+              setAberto((v) => !v);
+              setBusca(false);
+            }}
             aria-expanded={aberto}
             aria-controls="menu-mobile"
-            className="rounded-md p-2 text-texto md:hidden"
+            data-alvo={aberto ? "menu-fechar" : "menu-abrir"}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-texto md:hidden"
           >
             <span className="sr-only">
               {aberto ? "Fechar menu" : "Abrir menu"}
@@ -214,6 +261,41 @@ export default function Cabecalho() {
           </button>
         </div>
       </div>
+
+      {busca && !noPlay && (
+        <div id="busca-cabecalho" className="border-t border-borda" data-area="cabecalho-busca">
+          <Form
+            action="/loja/busca"
+            role="search"
+            onSubmit={() => setBusca(false)}
+            className="mx-auto flex max-w-6xl gap-2 px-4 py-3 sm:px-6"
+          >
+            <label htmlFor="busca-campo" className="sr-only">
+              O que você procura na loja?
+            </label>
+            <input
+              id="busca-campo"
+              type="search"
+              name="q"
+              required
+              maxLength={TAMANHO_MAXIMO_DO_TERMO}
+              placeholder="Camisa, matraca, boné…"
+              autoComplete="off"
+              enterKeyHint="search"
+              // Quem abriu a busca quer digitar: o foco já entra no campo.
+              autoFocus
+              className="min-h-11 w-full min-w-0 rounded-full border border-borda-campo bg-superficie px-5 py-2 text-texto outline-none placeholder:text-texto-tenue focus:border-kambada-amarelo-escuro"
+            />
+            <button
+              type="submit"
+              data-alvo="buscar"
+              className="min-h-11 shrink-0 rounded-full bg-kambada-amarelo px-5 font-display text-sm font-semibold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro"
+            >
+              Buscar
+            </button>
+          </Form>
+        </div>
+      )}
 
       {aberto && (
         <nav
@@ -251,6 +333,17 @@ export default function Cabecalho() {
                 )}
               </li>
             ))}
+            {/* No celular o ícone da conta saiu do topo para caber a lupa. */}
+            <li className="sm:hidden">
+              <Link
+                href="/conta"
+                onClick={() => setAberto(false)}
+                data-alvo="minha-conta"
+                className="block py-3 font-medium text-texto-suave hover-marca"
+              >
+                Minha conta
+              </Link>
+            </li>
           </ul>
         </nav>
       )}

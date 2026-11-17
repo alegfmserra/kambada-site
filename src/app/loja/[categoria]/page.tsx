@@ -6,6 +6,8 @@ import AvisoDemonstracao from "@/components/AvisoDemonstracao";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
 import VitrineFiltrada from "@/components/loja/VitrineFiltrada";
+import VistaDeLista from "@/components/loja/VistaDeLista";
+import { itensDeLista } from "@/lib/analytics/cliques";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { CATEGORIAS, categoriaPorSlug } from "@/lib/catalogo";
 import { itensFiltraveis } from "@/lib/loja/filtros";
@@ -139,6 +141,7 @@ export default async function Categoria({ params }: Props) {
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
           <Link
             href="/loja"
+            data-alvo="toda-a-loja"
             className="font-display text-sm font-semibold text-texto-tenue hover:text-kambada-amarelo-escuro"
           >
             ← Toda a loja
@@ -163,6 +166,7 @@ export default async function Categoria({ params }: Props) {
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           {/* Os cartões são h3: sem este h2, a hierarquia pularia um nível. */}
           <h2 className="sr-only">Peças de {categoria.nome}</h2>
+          <VistaDeLista nome={`Categoria: ${categoria.nome}`} itens={itensDeLista(produtos)} />
           {/* Ordenação em toda categoria; nas Camisas, também público e tamanho (17/11/2026).
               Os cartões são montados aqui, no servidor; o componente só escolhe e ordena. */}
           <VitrineFiltrada

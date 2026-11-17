@@ -5,6 +5,8 @@ import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
 import LinkWhatsApp from "@/components/LinkWhatsApp";
 import EventoBusca from "@/components/loja/EventoBusca";
+import VistaDeLista from "@/components/loja/VistaDeLista";
+import { itensDeLista } from "@/lib/analytics/cliques";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { buscarProdutos, lerTermo, TAMANHO_MAXIMO_DO_TERMO } from "@/lib/loja/busca";
 import { linkWhatsApp } from "@/lib/site";
@@ -85,6 +87,7 @@ export default async function Busca({ searchParams }: Props) {
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
             {/* Os cartões são h3: sem este h2, a hierarquia pularia um nível. */}
             <h2 className="sr-only">Resultado da busca</h2>
+            <VistaDeLista nome="Busca" itens={itensDeLista(achados)} />
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-lista="Busca">
               {achados.map((produto) => (
                 <CartaoProduto key={produto.slug} produto={produto} />

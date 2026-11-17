@@ -4,6 +4,8 @@ import Link from "next/link";
 import CartaoProduto from "@/components/CartaoProduto";
 import FaixaBeneficios from "@/components/FaixaBeneficios";
 import BlocoPlay from "@/components/home/BlocoPlay";
+import VistaDeLista from "@/components/loja/VistaDeLista";
+import { itensDeLista } from "@/lib/analytics/cliques";
 import { ARTIGOS } from "@/lib/artigos";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { fotoDoProduto } from "@/lib/fotoDoProduto";
@@ -138,6 +140,7 @@ export default async function Home() {
                 Ver tudo →
               </Link>
             </div>
+            <VistaDeLista nome="Home: da nossa lojinha" itens={itensDeLista(vitrine)} />
             <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-lista="Home: da nossa lojinha">
               {vitrine.map((produto) => (
                 <CartaoProduto key={produto.slug} produto={produto} />
@@ -227,7 +230,7 @@ export default async function Home() {
       </section>
 
       {/* --- Quem somos --------------------------------------------------- */}
-      <section className="border-b border-borda">
+      <section className="border-b border-borda" data-area="home-quem-somos">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:gap-16">
           <div className="grid grid-cols-2 gap-4">
             <Image
@@ -274,7 +277,7 @@ export default async function Home() {
       </section>
 
       {/* --- Feito à mão --------------------------------------------------- */}
-      <section className="border-b border-borda">
+      <section className="border-b border-borda" data-area="home-feito-a-mao">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:gap-16">
           <div className="order-2 lg:order-1">
             <p className="font-display text-sm font-semibold tracking-[0.2em] text-texto-tenue uppercase">
@@ -308,7 +311,7 @@ export default async function Home() {
       </section>
 
       {/* --- Blog ---------------------------------------------------------- */}
-      <section className="border-b border-borda">
+      <section className="border-b border-borda" data-area="home-blog">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <div className="flex flex-wrap items-baseline justify-between gap-4">
             <h2 className="font-display text-3xl font-bold sm:text-4xl">
@@ -348,7 +351,7 @@ export default async function Home() {
       </section>
 
       {/* --- Chamada final -------------------------------------------------- */}
-      <section>
+      <section data-area="home-chamada-final">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <div className="rounded-3xl bg-kambada-amarelo px-8 py-14 text-kambada-grafite sm:px-14">
             <h2 className="max-w-2xl font-display text-3xl leading-tight font-extrabold text-balance sm:text-4xl">

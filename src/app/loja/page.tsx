@@ -8,6 +8,8 @@ import FaixaBeneficios from "@/components/FaixaBeneficios";
 import BarraCategorias from "@/components/BarraCategorias";
 import CartaoProduto from "@/components/CartaoProduto";
 import SeloNotaDoSite from "@/components/loja/SeloNotaDoSite";
+import VistaDeLista from "@/components/loja/VistaDeLista";
+import { itensDeLista } from "@/lib/analytics/cliques";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { linkWhatsApp, SITE } from "@/lib/site";
 
@@ -84,12 +86,16 @@ export default async function Loja() {
       </section>
 
       <BarraCategorias />
+      {/* Medição: a vitrine geral conta como uma lista só (as peças em destaque de cada categoria). */}
+      <VistaDeLista nome="Loja: vitrine geral" itens={itensDeLista(categorias.flatMap((c) => destaques(c.slug).mostrados))} />
 
       {categorias.map((categoria) => (
         <section
           key={categoria.slug}
           id={categoria.slug}
           className="border-b border-borda scroll-mt-24"
+          data-area={`loja-${categoria.slug}`}
+          data-lista={`Loja: ${categoria.nome}`}
         >
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -98,6 +104,7 @@ export default async function Loja() {
               </h2>
               <Link
                 href={`/loja/${categoria.slug}`}
+                data-alvo="ver-so-a-categoria"
                 className="font-display text-sm font-semibold text-texto-suave underline underline-offset-4 hover:text-kambada-amarelo-escuro"
               >
                 Ver só {categoria.nome.toLowerCase()} →
@@ -109,6 +116,7 @@ export default async function Loja() {
             {categoria.foto && (
               <Link
                 href={`/loja/${categoria.slug}`}
+                data-alvo="foto-da-categoria"
                 // A foto grande da categoria só entra de 640 px para cima: no
                 // celular ela empurrava as peças uma tela inteira para baixo.
                 className="group mt-7 hidden overflow-hidden rounded-2xl sm:block"
@@ -134,6 +142,7 @@ export default async function Loja() {
               <p className="mt-8 text-center">
                 <Link
                   href={`/loja/${categoria.slug}`}
+                  data-alvo="ver-todas"
                   className="inline-block rounded-full border border-borda px-7 py-3.5 font-display font-semibold whitespace-nowrap text-texto transition-colors hover:border-kambada-amarelo-escuro"
                 >
                   Ver todas · {destaques(categoria.slug).total} peças →

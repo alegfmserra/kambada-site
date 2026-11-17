@@ -124,5 +124,10 @@ export function cliqueDoElemento(lido: Lido, caminho: string): Clique | null {
 /** Peça como o GA4 espera numa lista (`view_item_list`, `select_item`). Sem preço: o cartão pode mostrar faixa. */
 export type ItemDeLista = { item_id: string; item_name: string; item_category: string; index?: number };
 
+/** Peças do catálogo no formato de lista. O identificador é o do produto no Bling; sem ele (catálogo de reserva), o endereço. */
+export function itensDeLista(produtos: { idBling?: number; slug: string; nome: string; categoria: string }[]): ItemDeLista[] {
+  return produtos.map((p) => ({ item_id: String(p.idBling ?? p.slug), item_name: p.nome, item_category: p.categoria }));
+}
+
 /** Quantas peças vão num `view_item_list` (o Google corta evento grande demais). */
 export const MAXIMO_DE_ITENS_NA_LISTA = 24;

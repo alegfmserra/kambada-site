@@ -4,7 +4,13 @@
  * dado pessoal nos parâmetros — só números e rótulos genéricos.
  *
  * Eventos usados (nomes padrão do GA4, para os relatórios de e-commerce funcionarem):
- *   add_to_cart · begin_checkout · purchase · sign_up (conta do Play) · generate_lead (gestor interessado)
+ *   view_item_list · select_item · view_item · add_to_cart · remove_from_cart · view_cart ·
+ *   begin_checkout · add_shipping_info · add_payment_info · purchase · search ·
+ *   view_promotion · select_promotion · generate_lead (WhatsApp, com a origem; gestor interessado) ·
+ *   sign_up (conta do Play, disparado fora do Play)
+ * Eventos próprios: clique { area, alvo, pagina } (todo o resto; regras em ./cliques.ts) ·
+ *   frete_calculado · cupom_aplicado · play_cta_home
+ * O mapa completo, página por página, está em site-novo/02-auditorias-e-relatorios/MAPA-DE-CLIQUES_2026-11-17.md.
  */
 type Gtag = (comando: "event", nome: string, parametros?: Record<string, unknown>) => void;
 

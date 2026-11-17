@@ -21,6 +21,8 @@ export default function LinkWhatsApp({
     <a
       target="_blank"
       rel="noopener noreferrer"
+      // Evento próprio (generate_lead): o ouvinte geral de cliques não conta de novo.
+      data-evento="generate_lead"
       {...resto}
       onClick={(e) => {
         evento("generate_lead", { origem });

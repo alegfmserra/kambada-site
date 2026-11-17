@@ -73,6 +73,11 @@ export default function CartaoProduto({ produto }: { produto: Produto }) {
         */}
         <Link
           href={href}
+          // Medição: o clique no cartão vira `select_item` (ver lib/analytics/cliques.ts).
+          data-evento="select_item"
+          data-item-id={String(produto.idBling ?? produto.slug)}
+          data-item-nome={produto.nome}
+          data-item-categoria={produto.categoria}
           className="after:absolute after:inset-0 group-hover:text-kambada-amarelo-escuro"
         >
           {produto.nome}

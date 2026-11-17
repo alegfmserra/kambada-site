@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ConfirmarEmail } from "./ConfirmarEmail";
 import { chamar } from "./jogador";
 
 type Conta = {
@@ -31,7 +32,6 @@ export function MinhaConta({
   const [conta, setConta] = useState<Conta | null | undefined>(undefined);
   const [demonstracao, setDemonstracao] = useState(false);
   const [aviso, setAviso] = useState("");
-  const [linkTeste, setLinkTeste] = useState("");
 
   useEffect(() => {
     let vivo = true;
@@ -45,24 +45,6 @@ export function MinhaConta({
       vivo = false;
     };
   }, []);
-
-  async function reenviar() {
-    setAviso("");
-    const r = await chamar<{ emailEnviado?: boolean; jaConfirmado?: boolean; linkDeConfirmacao?: string }>(
-      "/api/play/conta",
-      { acao: "reenviar-confirmacao" },
-    );
-    if (!r.ok) {
-      setAviso(r.mensagem ?? "Não deu para reenviar.");
-      return;
-    }
-    if (r.jaConfirmado) {
-      setAviso("Seu e-mail já está confirmado.");
-      return;
-    }
-    setAviso(r.emailEnviado ? "Enviamos de novo. Confira também a caixa de spam." : "E-mail não configurado neste ambiente.");
-    if (r.linkDeConfirmacao) setLinkTeste(r.linkDeConfirmacao);
-  }
 
   async function mudarNovidades(quer: boolean) {
     if (!conta) return;
@@ -113,7 +95,7 @@ export function MinhaConta({
           <strong>Éguas, {conta.nome}, bem-vindo ao Kambada Play!</strong>{" "}
           {semEmail
             ? "Não conseguimos mandar o e-mail de confirmação agora; você pode pedir de novo abaixo."
-            : "Mandamos um e-mail para confirmar seu endereço. Confirme para seus pontos valerem cupom."}
+            : "Mandamos um e-mail para confirmar seu endereço. Confirme para valer o prêmio do ranking."}
         </p>
       ) : null}
       {bemvindo && continuar ? (
@@ -160,26 +142,7 @@ export function MinhaConta({
         )}
       </dl>
 
-      {!conta.confirmadoEm && !conta.usuario ? (
-        <div className="rounded-xl border-2 border-dashed border-borda p-4 text-sm text-texto-suave">
-          Sem confirmação, seus pontos entram no ranking, mas o cupom e as novidades não chegam.{" "}
-          <button
-            type="button"
-            onClick={reenviar}
-            className="font-semibold text-[var(--destaque-texto)] underline-offset-2 hover:underline"
-          >
-            Reenviar e-mail de confirmação
-          </button>
-          {linkTeste ? (
-            <p className="mt-2 break-all text-xs">
-              Ambiente de testes:{" "}
-              <a className="underline" href={linkTeste}>
-                abrir link de confirmação
-              </a>
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      {!conta.confirmadoEm && !conta.usuario ? <ConfirmarEmail /> : null}
 
       <label className="flex items-start gap-3 rounded-xl border-2 border-borda bg-superficie p-4 text-sm text-texto">
         <input

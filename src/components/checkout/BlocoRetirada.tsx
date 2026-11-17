@@ -1,4 +1,5 @@
 import { enderecoAtelieEmUmaLinha } from "@/lib/loja/enderecoAtelie";
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { linkWhatsApp } from "@/lib/site";
 
 /**
@@ -15,7 +16,8 @@ export default function BlocoRetirada({ refPedido }: { refPedido?: string }) {
       <p className="mt-3 text-sm text-texto-suave">
         Combine o dia e o horário antes de vir, para a peça estar pronta.
       </p>
-      <a
+      <LinkWhatsApp
+        origem="pedido-combinar-retirada"
         href={linkWhatsApp(
           `Oi! Quero combinar a retirada do meu pedido${refPedido ? ` ${refPedido}` : ""} no ateliê.`,
         )}
@@ -24,7 +26,7 @@ export default function BlocoRetirada({ refPedido }: { refPedido?: string }) {
         className="mt-4 inline-block rounded-full bg-kambada-amarelo px-6 py-3 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
       >
         Combinar a retirada no WhatsApp
-      </a>
+      </LinkWhatsApp>
     </div>
   );
 }

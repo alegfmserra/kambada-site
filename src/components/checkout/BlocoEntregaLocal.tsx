@@ -1,3 +1,4 @@
+import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { linkWhatsApp } from "@/lib/site";
 
 /**
@@ -12,14 +13,15 @@ export default function BlocoEntregaLocal({ refPedido }: { refPedido?: string })
         Vamos cotar a corrida no app e combinar o horário com você pelo WhatsApp. A corrida é paga por Pix, na hora; em São Luís, pedidos a partir de R$ 180 em produtos têm a corrida por nossa conta.
       </p>
       <p className="mt-3 text-sm text-texto-suave">Pedido pago até as 15h, de pronta entrega, sai no mesmo dia. Peça de produção própria sai quando ficar pronta.</p>
-      <a
+      <LinkWhatsApp
+        origem="pedido-combinar-entrega"
         href={linkWhatsApp(`Oi! Quero combinar a entrega por aplicativo do meu pedido${refPedido ? ` ${refPedido}` : ""}.`)}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 inline-block rounded-full bg-kambada-amarelo px-6 py-3 font-display font-semibold text-kambada-grafite hover:bg-kambada-amarelo-escuro"
       >
         Combinar a entrega no WhatsApp
-      </a>
+      </LinkWhatsApp>
     </div>
   );
 }

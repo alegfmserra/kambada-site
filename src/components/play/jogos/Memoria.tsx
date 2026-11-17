@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ESTRELAS_DO_NIVEL, MEMORIA_NIVEL, NIVEIS, type Nivel } from "@/lib/play/jogos/tipos";
-import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { ConviteAdulto } from "@/components/PesquisaSatisfacao";
 import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
@@ -226,7 +226,6 @@ export function Memoria() {
           setJogadas(r.fim.jogadas);
           setSegundos(r.fim.segundos);
           setFase("fim");
-          setTimeout(() => pedirPesquisa("memoria"), 3000);
         }
       });
       return;
@@ -346,6 +345,8 @@ export function Memoria() {
           </Link>
         </div>
         <ProximosJogos atual="memoria" />
+        {/* A pesquisa não pula na frente da criança: fica aqui, para o adulto abrir se quiser. */}
+        <ConviteAdulto gatilho="memoria" />
       </div>
     );
   }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ESTRELAS_DO_NIVEL, NIVEIS, QUEBRA_NIVEL, type Nivel } from "@/lib/play/jogos/tipos";
-import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { ConviteAdulto } from "@/components/PesquisaSatisfacao";
 import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
@@ -98,7 +98,6 @@ export function Quebra() {
       setTrocas(r.trocas);
       setSegundosFinais(r.segundos);
       setFase("fim");
-      window.setTimeout(() => pedirPesquisa("quebra"), 3000);
     },
     [token],
   );
@@ -269,6 +268,8 @@ export function Quebra() {
           </Link>
         </div>
         <ProximosJogos atual="quebra" />
+        {/* A pesquisa não pula na frente da criança: fica aqui, para o adulto abrir se quiser. */}
+        <ConviteAdulto gatilho="quebra" />
       </div>
     );
   }

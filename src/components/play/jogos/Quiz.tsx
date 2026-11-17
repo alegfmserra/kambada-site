@@ -9,7 +9,7 @@ import {
   type PerguntaPublica,
   type RespostaQuiz,
 } from "@/lib/play/jogos/tipos";
-import { pedirPesquisa } from "@/components/PesquisaSatisfacao";
+import { ConviteAdulto } from "@/components/PesquisaSatisfacao";
 import { BotaoOuvir } from "./BotaoOuvir";
 import { EnviarPontuacao } from "./EnviarPontuacao";
 import { chamar } from "./jogador";
@@ -102,7 +102,6 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
       setFase("pergunta");
     } else {
       setFase("fim");
-      setTimeout(() => pedirPesquisa("quiz"), 3000);
     }
   }
 
@@ -275,6 +274,8 @@ export function Quiz({ visitante = false }: { visitante?: boolean } = {}) {
           </button>
         </div>
         <ProximosJogos atual="quiz" />
+        {/* A pesquisa não pula na frente da criança: fica aqui, para o adulto abrir se quiser. */}
+        <ConviteAdulto gatilho="quiz" />
       </div>
     );
   }

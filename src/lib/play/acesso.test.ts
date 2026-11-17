@@ -70,6 +70,7 @@ describe("destino depois do login", () => {
     expect(destinoSeguro("/kambadaplay\\..\\x")).toBe("/kambadaplay");
     expect(destinoSeguro("/kambadaplay/entrar")).toBe("/kambadaplay");
     expect(destinoSeguro("/kambadaplay/planos")).toBe("/kambadaplay");
+    expect(destinoSeguro("/kambadaplay/conheca")).toBe("/kambadaplay");
     expect(destinoSeguro(undefined)).toBe("/kambadaplay");
   });
 });
@@ -88,6 +89,7 @@ describe("arquivos estáticos", () => {
 describe("rotas públicas", () => {
   it("planos, entrada e exportação ficam fora do login; o hub e os jogos não", () => {
     expect(ROTAS_PUBLICAS).toContain("/kambadaplay/planos");
+    expect(ROTAS_PUBLICAS).toContain("/kambadaplay/conheca");
     expect(ROTAS_PUBLICAS).toContain("/kambadaplay/entrar");
     expect(ROTAS_PUBLICAS).toContain("/api/play/contas");
     expect(ROTAS_PUBLICAS).not.toContain("/kambadaplay");

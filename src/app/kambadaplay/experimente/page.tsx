@@ -50,6 +50,11 @@ export default function ExperimentePage() {
             Sou escola
           </Link>
         </nav>
+        <p className="mt-4 text-sm">
+          <Link href="/kambadaplay/conheca" className="font-semibold text-texto underline underline-offset-4 decoration-kambada-amarelo decoration-2">
+            Conhecer o Kambada Play
+          </Link>
+        </p>
       </header>
 
       <div id="quiz" className="mx-auto max-w-2xl scroll-mt-24 px-4 pt-8 pb-10 sm:px-6">

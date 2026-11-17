@@ -69,9 +69,14 @@ export default function PlanosPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(perguntasEstruturadas).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-        <Link href="/kambadaplay" className="text-sm font-semibold text-[var(--destaque-texto)] hover:underline">
-          ← Kambada Play
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <Link href="/kambadaplay" className="text-sm font-semibold text-[var(--destaque-texto)] hover:underline">
+            ← Kambada Play
+          </Link>
+          <Link href="/kambadaplay/conheca" className="text-sm font-semibold text-[var(--destaque-texto)] hover:underline">
+            Conhecer o Kambada Play
+          </Link>
+        </div>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">Planos</p>
         <h1 className="mt-2 max-w-3xl font-display text-4xl font-extrabold leading-tight text-texto sm:text-5xl">
           A cultura do Maranhão, <span className="destaque">do tamanho da sua casa</span> ou da sua escola.

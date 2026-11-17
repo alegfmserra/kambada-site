@@ -26,6 +26,7 @@ import {
   redefinirSenha,
 } from "@/lib/play/contas";
 import { enviarConfirmacao, enviarRedefinicao } from "@/lib/play/emails";
+import { excluirContaDoPlay } from "@/lib/play/excluirConta";
 import { contarErro, corpoJson, dentroDoLimite, errosEsgotados, ipDaRequisicao } from "@/lib/play/jogos/limite";
 
 export const dynamic = "force-dynamic";
@@ -170,6 +171,25 @@ export async function POST(requisicao: Request) {
       if (valor === null) return NextResponse.json({ ok: false, mensagem: "Essa data não existe. Confira o dia e o mês." }, { status: 400 });
       const ok = await definirAniversario(conta.id, valor);
       return NextResponse.json({ ok, aniversario: valor || null, ...(ok ? {} : { mensagem: "Esta conta não recebe parabéns por e-mail." }) });
+    }
+
+    // Excluir a conta (17/11/2026): pede a senha de novo, apaga a conta e o que está ligado a ela
+    // (lib/play/excluirConta.ts) e encerra a sessão.
+    case "excluir": {
+      const conta = await contaDaRequisicao(requisicao);
+      if (!conta) return NextResponse.json({ ok: false, mensagem: "Entre primeiro." }, { status: 401 });
+      if (errosEsgotados(ip, "conta-excluir", 5, DEZ_MIN)) {
+        return NextResponse.json({ ok: false, mensagem: "Muitas tentativas. Espere alguns minutos." }, { status: 429 });
+      }
+      const r = await excluirContaDoPlay(conta.id, corpo.senha, base);
+      if (!r.ok) {
+        contarErro(ip, "conta-excluir", DEZ_MIN);
+        return NextResponse.json({ ok: false, mensagem: r.mensagem }, { status: 400 });
+      }
+      if (r.falhas.length) console.error(`[play/contas] conta ${conta.id} excluída, mas com falhas na limpeza: ${r.falhas.join(" | ")}`);
+      const resposta = NextResponse.json({ ok: true, emailEnviado: r.emailEnviado });
+      resposta.cookies.set({ name: COOKIE_SESSAO, value: "", path: "/", maxAge: 0 });
+      return resposta;
     }
 
     default:

@@ -148,6 +148,26 @@ export async function enviarLembreteCupomAniversario(
   return true;
 }
 
+/**
+ * Confirmação de que a conta foi excluída (17/11/2026). Vai para o e-mail que a conta
+ * tinha; a conta já não existe, então não há link de descadastro nem de volta.
+ */
+export async function enviarContaExcluida(base: string, conta: Pick<Conta, "nome" | "email">): Promise<boolean> {
+  if (!emailConfigurado()) return false;
+  await enviarEmail({
+    remetente: "Kambada Play",
+    para: conta.email,
+    assunto: "Sua conta no Kambada Play foi excluída",
+    texto: `Olá, ${conta.nome}. Sua conta no Kambada Play foi excluída, a seu pedido.\n\nApagamos o nome, o e-mail e a senha da conta e o perfil do Arraial. O apelido saiu do ranking: as pontuações antigas ficaram sem ligação com você.\n\nPedidos feitos na loja não são apagados (a loja guarda o registro por obrigação legal).\n\nSe não foi você quem pediu, escreva para contato@somoskambada.com.br.\n\nQuando quiser voltar, é só criar uma conta nova: ${base}/kambadaplay`,
+    html: moldura(
+      "Conta excluída",
+      `<p>Olá, ${escaparHtml(conta.nome)}. Sua conta no Kambada Play foi excluída, a seu pedido.</p><p>Apagamos o nome, o e-mail e a senha da conta e o perfil do Arraial. O apelido saiu do ranking: as pontuações antigas ficaram sem ligação com você.</p><p style="font-size:13px;color:#5e6266">Pedidos feitos na loja não são apagados: a loja guarda o registro por obrigação legal.</p><p style="font-size:13px;color:#5e6266">Se não foi você quem pediu, escreva para contato@somoskambada.com.br.</p>`,
+      "Você recebe este e-mail porque tinha uma conta no Kambada Play (somoskambada.com.br). É a última mensagem enviada a este endereço por causa dela. Somos Kambada LTDA · São Luís – MA.",
+    ),
+  });
+  return true;
+}
+
 export async function enviarRedefinicao(base: string, conta: Conta): Promise<{ enviado: boolean; link: string }> {
   const link = `${base}/kambadaplay/redefinir?token=${encodeURIComponent(tokenDeEmail("redefinir", conta))}`;
   if (!emailConfigurado()) return { enviado: false, link };

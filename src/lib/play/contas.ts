@@ -364,6 +364,36 @@ export function atualizarNovidades(id: string, quer: boolean, agora = new Date()
 }
 
 // ---------------------------------------------------------------------------
+// Exclusão da conta pelo titular (17/11/2026)
+// ---------------------------------------------------------------------------
+
+export type ResultadoExclusao =
+  | { ok: true; conta: Conta }
+  | { ok: false; motivo: "senha" | "nao-encontrada" | "demo"; mensagem: string };
+
+/**
+ * Apaga a conta do arquivo, conferindo a senha. Só a conta: o que está ligado a
+ * ela em outros arquivos (ranking, perfil do Arraial, partidas) é tratado por
+ * `excluirContaDoPlay` (excluirConta.ts), que chama esta função primeiro.
+ * Conta de demonstração não se apaga (ela é recriada sozinha).
+ */
+export function excluirConta(id: string, senha: unknown): Promise<ResultadoExclusao> {
+  return naFila(async () => {
+    const d = await ler();
+    const i = d.contas.findIndex((c) => c.id === id);
+    if (i < 0) return { ok: false as const, motivo: "nao-encontrada" as const, mensagem: "Conta não encontrada. Entre de novo." };
+    const conta = d.contas[i];
+    if (conta.demo) return { ok: false as const, motivo: "demo" as const, mensagem: "Conta de demonstração não pode ser excluída." };
+    if (typeof senha !== "string" || senha.length > 100 || !senhaConfere(senha, conta.senhaHash)) {
+      return { ok: false as const, motivo: "senha" as const, mensagem: "Senha incorreta." };
+    }
+    d.contas.splice(i, 1);
+    await gravar(d);
+    return { ok: true as const, conta };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Tokens de e-mail (confirmação, redefinição de senha, descadastro)
 // ---------------------------------------------------------------------------
 

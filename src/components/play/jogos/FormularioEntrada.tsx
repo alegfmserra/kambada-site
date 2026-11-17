@@ -348,6 +348,8 @@ function avisoInicial(aviso?: string): string {
       return "Esse link não vale mais. Entre na sua conta para ajustar o recebimento de novidades.";
     case "saiu":
       return "Você saiu da sua conta.";
+    case "conta-excluida":
+      return "Sua conta foi excluída. Quando quiser voltar, é só criar outra.";
     default:
       return "";
   }

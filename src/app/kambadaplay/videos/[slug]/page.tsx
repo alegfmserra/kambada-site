@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { VideoComConvite } from "@/components/play/VideoComConvite";
-import { VIDEOS, arquivoDoVideo, capaDoVideo, videoPorSlug } from "@/content/play/videos";
+import { VIDEOS, arquivoDoVideo, capaDoVideo, legendaDoVideo, videoPorSlug } from "@/content/play/videos";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -31,7 +31,7 @@ export default async function VideoPage({ params }: Props) {
         ← Kambada Play
       </Link>
       <div className="mt-5 overflow-hidden rounded-xl bg-kambada-preto">
-        <VideoComConvite poster={capaDoVideo(v)} src={arquivoDoVideo(v)} />
+        <VideoComConvite poster={capaDoVideo(v)} src={arquivoDoVideo(v)} legenda={legendaDoVideo(v)} />
       </div>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-[var(--destaque-texto)]">
         Animação · {v.duracao}
@@ -45,6 +45,28 @@ export default async function VideoPage({ params }: Props) {
         ) : null}
       </h1>
       <p className="mt-4 max-w-2xl text-base leading-relaxed text-texto-suave">{v.descricao}</p>
+      {v.transcricao?.length ? (
+        <details className="mt-6 max-w-2xl rounded-lg border-2 border-borda px-4 py-3 text-texto">
+          <summary className="cursor-pointer py-1 text-sm font-bold text-texto">Ler a história</summary>
+          <p className="mt-3 text-sm text-texto-suave">
+            Tudo o que se fala na animação, na ordem.
+            {v.legenda ? " O vídeo também tem legenda: ela liga e desliga no próprio player." : null}
+          </p>
+          <ul className="mt-3 space-y-2 text-base leading-relaxed">
+            {v.transcricao.map((t, i) => (
+              <li key={i}>
+                {t.quem ? (
+                  <>
+                    <span className="font-bold">{t.quem}:</span> {t.texto}
+                  </>
+                ) : (
+                  <span className="text-texto-suave">{t.texto}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </div>
     </div>
   );

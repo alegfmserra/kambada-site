@@ -3,6 +3,7 @@ import Link from "next/link";
 import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { notFound, permanentRedirect } from "next/navigation";
 import AdicionarAoCarrinho from "@/components/carrinho/AdicionarAoCarrinho";
+import FreteDaPeca from "@/components/frete/FreteDaPeca";
 import FotoAtiva from "@/components/produto/FotoAtiva";
 import { fotosDosSuportes } from "@/lib/fotosSuportes";
 import GuiaDeTamanhos from "@/components/produto/GuiaDeTamanhos";
@@ -23,6 +24,7 @@ import {
   type Produto,
 } from "@/lib/catalogo";
 import { ehPintadaAMao, TEXTO_POSTAGEM, textoDeProducao } from "@/lib/loja/prazos";
+import { freteConfigurado } from "@/lib/frete/melhorEnvio";
 import { FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
 import { TEXTO_REGRA_PARCELAS } from "@/lib/loja/parcelas";
 import { formatarReais } from "@/lib/loja/dinheiro";
@@ -336,6 +338,13 @@ export default async function PaginaProduto({ params }: Props) {
                       Chame no WhatsApp
                     </LinkWhatsApp>
                   </p>
+                  {/* Frete antes do carrinho (17/11/2026). Sem a cotação ligada, o campo não aparece. */}
+                  {freteConfigurado() && (
+                    <FreteDaPeca
+                      opcoes={opcoesCompraveis.map((o) => ({ idBling: o.idBling, quantidade: o.quantidade }))}
+                      semLimite={Boolean(produto.sobEncomenda || produto.estoqueLivre)}
+                    />
+                  )}
                 </>
               )}
 

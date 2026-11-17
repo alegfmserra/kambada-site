@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useMemo, useState } from "react";
+import CalculoDeFrete from "@/components/frete/CalculoDeFrete";
+import { entregaMaisEmConta, precoDaEntrega, type OpcaoFreteNaTela } from "@/lib/frete/exibir";
 import { textoParcelas } from "@/lib/loja/parcelas";
 import Link from "next/link";
 import { MAXIMO_POR_ITEM, mensagemWhatsApp } from "@/lib/carrinho/logica";
@@ -23,6 +26,9 @@ export default function TelaCarrinho({
   freteOnline: boolean;
 }) {
   const { itens, pronto, alterarQuantidade, remover, subtotal, pecas } = useCarrinho();
+  // Frete cotado aqui mesmo, pelo CEP (17/11/2026): antes só aparecia dentro do checkout.
+  const [entregas, setEntregas] = useState<OpcaoFreteNaTela[] | null>(null);
+  const paraCotar = useMemo(() => itens.map((i) => ({ idBling: i.idBling, quantidade: i.quantidade })), [itens]);
 
   if (!pronto) {
     return <p className="text-texto-suave">Carregando o carrinho…</p>;
@@ -48,6 +54,8 @@ export default function TelaCarrinho({
 
   const falta = faltaParaFreteGratis(subtotal);
   const whatsapp = linkWhatsApp(mensagemWhatsApp(itens));
+  const maisEmConta = entregas ? entregaMaisEmConta(entregas) : null;
+  const precoMaisEmConta = maisEmConta ? precoDaEntrega(maisEmConta) : null;
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
@@ -133,9 +141,22 @@ export default function TelaCarrinho({
           </div>
           <div className="flex justify-between text-texto-suave">
             <dt>Frete</dt>
-            <dd>calculado no próximo passo</dd>
+            <dd className="text-right">
+              {!freteOnline
+                ? "calculado no próximo passo"
+                : !maisEmConta || !precoMaisEmConta
+                  ? "informe o CEP abaixo"
+                  : maisEmConta.local || precoMaisEmConta.gratis
+                    ? precoMaisEmConta.texto
+                    : `a partir de ${precoMaisEmConta.texto}`}
+            </dd>
           </div>
         </dl>
+        {freteOnline && (
+          <div className="mt-4 border-t border-borda pt-4">
+            <CalculoDeFrete itens={paraCotar} local="carrinho" aoCotar={setEntregas} cotarAoAbrir />
+          </div>
+        )}
         <p className="mt-3 text-sm text-texto-suave" aria-live="polite">
           <span aria-hidden="true">💳</span> {textoParcelas(Math.round(subtotal * 100))}
         </p>

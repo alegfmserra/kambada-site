@@ -9,9 +9,9 @@ import { evento } from "@/lib/analytics/eventos";
 import { gaDoNavegador } from "@/lib/analytics/cookiesGoogle";
 import { rastrear } from "@/lib/visitas/rastrear";
 import { lerCupomGuardado } from "@/lib/campanhas/black";
-import { explicacaoLocal } from "@/lib/frete/entregaLocal";
+import { CHAVE_RASCUNHO, mascaraCep } from "@/lib/checkout/rascunho";
+import { detalheDaEntrega } from "@/lib/frete/exibir";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
-import { POSTAGEM_DIAS_UTEIS } from "@/lib/loja/prazos";
 import { textoParcelas } from "@/lib/loja/parcelas";
 import { formatarReais } from "@/lib/loja/dinheiro";
 import { linkWhatsApp } from "@/lib/site";
@@ -61,13 +61,9 @@ const UFS = [
 const CLASSE_CAMPO =
   "mt-1 min-h-11 w-full rounded-xl border border-borda-campo bg-superficie px-4 py-2.5 text-texto outline-none focus:border-kambada-amarelo-escuro aria-[invalid=true]:border-erro";
 
-/** Rascunho do formulário só nesta aba — some ao fechar. CPF nunca é salvo. */
-const CHAVE_RASCUNHO = "kambada:checkout:rascunho";
-
-function mascaraCep(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 8);
-  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
-}
+// Rascunho do formulário só nesta aba (some ao fechar; CPF nunca é salvo): a chave e a
+// máscara do CEP moram em lib/checkout/rascunho, porque o carrinho e a página da peça
+// gravam ali o CEP calculado e o checkout já abre com ele.
 function mascaraCpf(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
   return d
@@ -523,11 +519,7 @@ export default function FormularioCheckout({ pagamentoOnline }: { pagamentoOnlin
                         {o.nome}
                       </span>
                       <span className="block text-sm text-texto-suave">
-                        {o.retirada
-                          ? RETIRADA.explicacao
-                          : o.local
-                            ? explicacaoLocal(o.gratis)
-                            : `até ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"} após a postagem · postamos em até ${POSTAGEM_DIAS_UTEIS} dias úteis`}
+                        {detalheDaEntrega(o)}
                       </span>
                     </span>
                   </span>

@@ -207,8 +207,8 @@ export function Memoria() {
     setAviso("");
     setMapa((m) => m.map((c, i) => (i === pos ? r.carta : c)));
     setJogadas(r.jogadas);
-    const viradas = [...abertas, pos];
-    setAbertas(viradas);
+    const achadasAgora = achadas;
+    setAbertas([...abertas, pos]);
     if (r.par === undefined) {
       travado.current = false;
       return;
@@ -233,8 +233,8 @@ export function Memoria() {
     // No fácil (crianças menores) as duas cartas ficam à vista por mais tempo antes de virar de volta.
     esperar(esperas.current, nivel === "facil" ? 1500 : 900, () => {
       setAbertas([]);
-      // Viraram de volta: a tela esquece quais eram (no difícil, podem até ter trocado de lugar).
-      setMapa((m) => m.map((c, i) => (viradas.includes(i) ? null : c)));
+      // Embaralhou (difícil): o que a tela sabia das cartas viradas para baixo não vale mais.
+      if (r.embaralhou) setMapa((m) => m.map((c) => (c !== null && achadasAgora.includes(c) ? c : null)));
       if (r.embaralhou) setAviso(`Vixe! ${regras.embaralhaApos ?? 3} erros seguidos: o Cazumbá embaralhou as cartas.`);
       travado.current = false;
     });

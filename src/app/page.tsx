@@ -53,7 +53,7 @@ export const revalidate = 600;
  * categorias, encomendas, quem somos. Antes a home não mostrava nenhum produto.
  *
  * 18/11/2026 (pedido do Alexandre: a lojinha na primeira tela): a abertura
- * encolheu (menos respiro, título um degrau menor, foto em retrato estreito e só em tela
+ * encolheu (menos respiro, título um degrau menor, foto em faixa baixa no celular e em retrato estreito em tela
  * larga) para a primeira fileira de peças aparecer sem rolar; a vitrine ganhou
  * os atalhos de categoria em cima; a faixa de benefícios desceu para depois das peças.
  */
@@ -83,7 +83,7 @@ export default async function Home() {
       />
       {/* --- Abertura: texto de um lado, família do outro ------------------ */}
       <section className="border-b border-borda">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_18rem] lg:gap-14">
+        <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_18rem] lg:gap-14">
           <div>
             <p className="font-display text-sm font-semibold tracking-[0.2em] text-texto-tenue uppercase">
               Camisas, matracas, ecobags e arte do Maranhão
@@ -114,16 +114,16 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Só em tela larga, e baixa: no celular a foto empurrava as peças para a terceira tela.
-              A família continua na home, em "Quem somos". */}
-          <div className="relative hidden h-[22rem] overflow-hidden rounded-3xl lg:block">
+          {/* No celular, faixa baixa (a foto inteira empurrava as peças para a terceira tela);
+              em tela larga, retrato estreito ao lado do título. */}
+          <div className="relative h-64 overflow-hidden rounded-3xl lg:h-[22rem]">
             <Image
               src={FOTOS.familiaCaminhando.arquivo}
               alt={FOTOS.familiaCaminhando.alt}
               fill
               priority
-              sizes="(max-width: 1024px) 1px, 18rem"
-              className="object-cover object-[50%_30%]"
+              sizes="(max-width: 1024px) 100vw, 18rem"
+              className="object-cover object-[50%_35%] lg:object-[50%_30%]"
             />
           </div>
         </div>
@@ -164,7 +164,7 @@ export default async function Home() {
             <VistaDeLista nome="Home: da nossa lojinha" itens={itensDeLista(vitrine)} />
             <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3" data-lista="Home: da nossa lojinha">
               {vitrine.map((produto) => (
-                <CartaoProduto key={produto.slug} produto={produto} />
+                <CartaoProduto key={produto.slug} produto={produto} compacto />
               ))}
             </ul>
             <div className="mt-10">

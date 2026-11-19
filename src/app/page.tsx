@@ -50,6 +50,11 @@ export const revalidate = 600;
  *
  * Ordem (17/11/2026): abertura, vitrine com peça e preço, Kambada Play,
  * categorias, encomendas, quem somos. Antes a home não mostrava nenhum produto.
+ *
+ * 18/11/2026 (pedido do Alexandre: a lojinha na primeira tela): a abertura
+ * encolheu (menos respiro, título um degrau menor, foto em retrato estreito e só em tela
+ * larga) para a primeira fileira de peças aparecer sem rolar; a vitrine ganhou
+ * os atalhos de categoria em cima; a faixa de benefícios desceu para depois das peças.
  */
 
 export default async function Home() {
@@ -76,20 +81,20 @@ export default async function Home() {
       />
       {/* --- Abertura: texto de um lado, família do outro ------------------ */}
       <section className="border-b border-borda">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_18rem] lg:gap-14">
           <div>
             <p className="font-display text-sm font-semibold tracking-[0.2em] text-texto-tenue uppercase">
               Camisas, matracas, ecobags e arte do Maranhão
             </p>
-            <h1 className="mt-5 font-display text-4xl leading-tight font-extrabold text-balance sm:text-6xl">
+            <h1 className="mt-3 font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
               A beleza que é ser{" "}
               <span className="destaque">maranhense que só</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-texto-suave">
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-texto-suave">
               O som da matraca, o gingado do reggae e as cores do Bumba Meu
               Boi, em peças pra levar o Maranhão no peito.
             </p>
-            <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4" data-area="home-abertura">
+            <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3" data-area="home-abertura">
               <Link
                 href="/loja"
                 data-alvo="ver-a-loja"
@@ -107,29 +112,27 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl">
+          {/* Só em tela larga, e baixa: no celular a foto empurrava as peças para a terceira tela.
+              A família continua na home, em "Quem somos". */}
+          <div className="relative hidden h-[22rem] overflow-hidden rounded-3xl lg:block">
             <Image
               src={FOTOS.familiaCaminhando.arquivo}
               alt={FOTOS.familiaCaminhando.alt}
-              width={FOTOS.familiaCaminhando.largura}
-              height={FOTOS.familiaCaminhando.altura}
+              fill
               priority
-              sizes="(max-width: 1024px) 100vw, 45vw"
-              className="h-full w-full object-cover"
+              sizes="(max-width: 1024px) 1px, 18rem"
+              className="object-cover object-[50%_30%]"
             />
           </div>
-        </div>
-        <div className="mx-auto max-w-6xl px-4 pb-14 sm:px-6">
-          <FaixaBeneficios compacta />
         </div>
       </section>
 
       {/* --- Vitrine: peça, nome e preço logo na segunda dobra -------------- */}
       {vitrine.length > 0 && (
         <section className="border-b border-borda" data-area="home-vitrine" aria-labelledby="home-vitrine-titulo">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-            <div className="flex flex-wrap items-baseline justify-between gap-4">
-              <h2 id="home-vitrine-titulo" className="font-display text-3xl font-bold sm:text-4xl">
+          <div className="mx-auto max-w-6xl px-4 pt-8 pb-14 sm:px-6 sm:pt-10 sm:pb-20">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <h2 id="home-vitrine-titulo" className="font-display text-2xl font-bold sm:text-3xl">
                 Da nossa lojinha
               </h2>
               <Link
@@ -140,12 +143,31 @@ export default async function Home() {
                 Ver tudo →
               </Link>
             </div>
+            {/* Atalhos de categoria: quem já sabe o que quer vai direto. No celular, uma linha que rola de lado. */}
+            <nav aria-label="Categorias da loja" className="mt-3">
+              <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 sm:mx-0 sm:flex-wrap sm:px-0">
+                {categorias.map((c) => (
+                  <li key={c.slug} className="shrink-0">
+                    <Link
+                      href={`/loja/${c.slug}`}
+                      data-alvo={`atalho-${c.slug}`}
+                      className="inline-flex min-h-11 items-center rounded-full border border-borda-campo px-4 font-display text-sm font-semibold text-texto transition-colors hover:border-kambada-amarelo-escuro"
+                    >
+                      {c.nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
             <VistaDeLista nome="Home: da nossa lojinha" itens={itensDeLista(vitrine)} />
-            <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-lista="Home: da nossa lojinha">
+            <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3" data-lista="Home: da nossa lojinha">
               {vitrine.map((produto) => (
                 <CartaoProduto key={produto.slug} produto={produto} />
               ))}
             </ul>
+            <div className="mt-10">
+              <FaixaBeneficios compacta />
+            </div>
           </div>
         </section>
       )}

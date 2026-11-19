@@ -29,8 +29,24 @@ export type EventoPartida = {
 const arquivo = () => process.env.PARTIDAS_ARQUIVO ?? join(dirname(arquivoTokens()), "partidas-play.jsonl");
 const arquivoTemporario = () => join(tmpdir(), "kambada-partidas-play.jsonl");
 
+/**
+ * Fila única de escrita (18/11/2026): acrescentar uma linha e reescrever o arquivo
+ * (exclusão de conta) nunca acontecem ao mesmo tempo; sem isto, a linha acrescentada
+ * no meio de uma reescrita se perdia.
+ */
+let fila: Promise<unknown> = Promise.resolve();
+function naFila<T>(trabalho: () => Promise<T>): Promise<T> {
+  const proximo = fila.then(trabalho, trabalho);
+  fila = proximo.catch(() => undefined);
+  return proximo;
+}
+
 /** Registra sem nunca atrapalhar o jogo: qualquer falha é engolida. */
-export async function registrarEventoPartida(e: Omit<EventoPartida, "em">, agora = new Date()): Promise<void> {
+export function registrarEventoPartida(e: Omit<EventoPartida, "em">, agora = new Date()): Promise<void> {
+  return naFila(() => acrescentar(e, agora));
+}
+
+async function acrescentar(e: Omit<EventoPartida, "em">, agora: Date): Promise<void> {
   const linha = JSON.stringify({ em: agora.toISOString(), ...e }) + "\n";
   try {
     await mkdir(dirname(arquivo()), { recursive: true });
@@ -49,7 +65,11 @@ export async function registrarEventoPartida(e: Omit<EventoPartida, "em">, agora
  * As linhas ficam (são a contagem de partidas iniciadas e concluídas, indicador
  * do projeto), mas sem nada que leve de volta à conta. Devolve quantas mudaram.
  */
-export async function desvincularPartidasDaConta(contaId: string): Promise<number> {
+export function desvincularPartidasDaConta(contaId: string): Promise<number> {
+  return naFila(() => desvincular(contaId));
+}
+
+async function desvincular(contaId: string): Promise<number> {
   let mudou = 0;
   for (const caminho of [arquivo(), arquivoTemporario()]) {
     let texto: string;

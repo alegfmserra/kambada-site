@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { evento } from "@/lib/analytics/eventos";
-import { BLACK, ativaEm, diaMes, guardarCupom, hojeSaoLuis } from "@/lib/campanhas/black";
+import { BLACK, ativaEm, cupomDaBlackDisponivel, diaMes, guardarCupom, hojeSaoLuis } from "@/lib/campanhas/black";
 
 const CHAVE_DISPENSADA = "kambada-black-faixa-dispensada";
 const CHAVE_VISTA = "kambada-black-faixa-vista";
@@ -33,9 +33,16 @@ export default function FaixaBlack() {
       /* sem armazenamento: mostra, só não lembra */
     }
     // A data e o armazenamento só existem no navegador; por isso a faixa entra depois de montar.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisivel(true);
-    if (!jaVista) evento("view_promotion", { promotion_name: BLACK.nome, creative_slot: "faixa-loja" });
+    // Cupom esgotado (limite de usos): a faixa não aparece.
+    let vivo = true;
+    void cupomDaBlackDisponivel().then((disponivel) => {
+      if (!vivo || !disponivel) return;
+      setVisivel(true);
+      if (!jaVista) evento("view_promotion", { promotion_name: BLACK.nome, creative_slot: "faixa-loja" });
+    });
+    return () => {
+      vivo = false;
+    };
   }, []);
 
   if (!visivel) return null;

@@ -10,6 +10,7 @@ import { evento } from "@/lib/analytics/eventos";
 import { gaDoNavegador } from "@/lib/analytics/cookiesGoogle";
 import { rastrear } from "@/lib/visitas/rastrear";
 import { lerCupomGuardado } from "@/lib/campanhas/black";
+import { SIGLAS_DAS_UFS } from "@/lib/checkout/cliente";
 import { CHAVE_RASCUNHO, mascaraCep } from "@/lib/checkout/rascunho";
 import { detalheDaEntrega } from "@/lib/frete/exibir";
 import { ID_RETIRADA, RETIRADA } from "@/lib/frete/retirada";
@@ -52,11 +53,8 @@ const VAZIO: Campos = {
   numero: "", complemento: "", bairro: "", cidade: "", uf: "",
 };
 
-/** As 27 siglas, em ordem alfabética (a mesma lista que o servidor valida). */
-const UFS = [
-  "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA",
-  "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
-];
+/** As 27 siglas: a mesma lista que o servidor valida. */
+const UFS: readonly string[] = SIGLAS_DAS_UFS;
 
 /** Campo de texto e seletor: borda com contraste de 3:1 e fundo de cartão. */
 const CLASSE_CAMPO =

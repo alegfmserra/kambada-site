@@ -96,6 +96,18 @@ export async function POST(requisicao: Request) {
       { status: 409 },
     );
   }
+  // Conta a partida do dia JÁ, antes de qualquer espera (18/11/2026): conferir antes e contar
+  // só depois de gravar deixava envios simultâneos passarem todos pelo teto.
+  if (contarPartidaNoDia(prova.jogo, jogador) > PARTIDAS_NO_RANKING_POR_DIA) {
+    liberarProva(prova.jogo, prova.partida);
+    return NextResponse.json(
+      {
+        ok: false,
+        mensagem: `Éguas! Hoje tu já mandaste ${PARTIDAS_NO_RANKING_POR_DIA} partidas deste jogo para o ranking. Amanhã tem mais.`,
+      },
+      { status: 429 },
+    );
+  }
   let resultado: Awaited<ReturnType<typeof registrarPontuacao>>;
   let posicao: number | null;
   try {
@@ -116,7 +128,6 @@ export async function POST(requisicao: Request) {
     );
   }
 
-  contarPartidaNoDia(prova.jogo, jogador);
   // Mesma pontuação, em sequência, sempre no tempo mínimo: avisa a loja (não bloqueia sozinho).
   const repeticoes = repeticoesSeguidas(prova, jogador);
   if (repeticoes >= REPETICOES_PARA_AVISAR) {

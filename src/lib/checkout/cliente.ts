@@ -24,10 +24,13 @@ export type DadosCliente = {
 
 export type ErrosCliente = Partial<Record<keyof DadosCliente, string>>;
 
-const UFS = new Set([
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
-  "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
-]);
+/** As 27 siglas, em ordem alfabética: a lista que o formulário oferece e que o servidor valida. */
+export const SIGLAS_DAS_UFS = [
+  "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA",
+  "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
+] as const;
+
+const UFS = new Set<string>(SIGLAS_DAS_UFS);
 
 const so = (v: unknown) => (typeof v === "string" ? v : "");
 const digitos = (v: unknown) => so(v).replace(/\D/g, "");

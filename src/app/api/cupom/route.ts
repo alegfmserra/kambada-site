@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buscarCatalogo } from "@/lib/bling/produtos";
 import { lerPedidoDoCliente, validarCarrinho } from "@/lib/carrinho/validar";
+import { BLACK } from "@/lib/campanhas/black";
 import { normalizarCodigo, validarCupom } from "@/lib/cupons/cupons";
 import { emReais } from "@/lib/loja/dinheiro";
 
@@ -25,6 +26,21 @@ function dentroDoLimite(ip: string): boolean {
   }
   t.vezes += 1;
   return t.vezes <= 20;
+}
+
+/**
+ * GET ?campanha=black -> o cupom da Black Kambada ainda pode ser usado? (18/11/2026)
+ * Só responde pelo código que a própria loja anuncia na faixa e no pop-up: não
+ * serve para testar outros códigos. Sem dado de ninguém na resposta.
+ */
+export async function GET(requisicao: Request) {
+  if (new URL(requisicao.url).searchParams.get("campanha") !== "black") {
+    return NextResponse.json({ ok: false }, { status: 404 });
+  }
+  // Uma peça de R$ 1 só para a conta do desconto dar positivo: o que interessa é validade e limite de usos.
+  const r = await validarCupom(BLACK.codigo, [{ p: 100, q: 1 }]).catch(() => null);
+  // Falha de leitura não esconde a promoção: quem decide de verdade é o checkout.
+  return NextResponse.json({ ok: true, disponivel: r ? r.ok : true }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(requisicao: Request) {

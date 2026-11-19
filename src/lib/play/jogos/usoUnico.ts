@@ -31,6 +31,18 @@ let carregadoDe: string | null | undefined;
 
 /** Acima disto, as marcas vencidas são varridas da memória antes de gravar outra. */
 const LIMPAR_ACIMA_DE = 5000;
+/**
+ * A cada tantas linhas acrescentadas, o arquivo é regravado só com o que ainda
+ * vale (18/11/2026). Antes ele só encolhia quando o site reiniciava, e com o
+ * processo semanas no ar cada carta virada somava uma linha para sempre.
+ */
+const COMPACTAR_A_CADA = 20000;
+let linhasDesdeACompactacao = 0;
+
+function regravar(caminho: string, mapa: Map<string, Marca>): void {
+  writeFileSync(caminho, [...mapa].map(([k, m]) => JSON.stringify({ k, v: m.v, exp: m.exp }) + "\n").join(""), "utf8");
+  linhasDesdeACompactacao = 0;
+}
 
 function arquivo(): string | null {
   if (process.env.PLAY_USO_UNICO_ARQUIVO) return process.env.PLAY_USO_UNICO_ARQUIVO;
@@ -60,7 +72,7 @@ function carregar(agora: number): Map<string, Marca> {
       }
     }
     // Ao subir, regrava só o que ainda vale: o arquivo não cresce para sempre.
-    writeFileSync(caminho, [...mapa].map(([k, m]) => JSON.stringify({ k, v: m.v, exp: m.exp }) + "\n").join(""), "utf8");
+    regravar(caminho, mapa);
   } catch {
     /* arquivo ainda não existe (ou pasta sem permissão): segue só na memória */
   }
@@ -72,6 +84,14 @@ function anotar(linha: { k: string; v: string | null; exp: number }) {
   if (!caminho) return;
   try {
     mkdirSync(dirname(caminho), { recursive: true });
+    linhasDesdeACompactacao += 1;
+    if (linhasDesdeACompactacao >= COMPACTAR_A_CADA && memoria) {
+      const agora = Date.now();
+      for (const [k, m] of memoria) if (m.exp <= agora) memoria.delete(k);
+      // A memória já reflete esta linha (quem chama mexe nela antes de anotar).
+      regravar(caminho, memoria);
+      return;
+    }
     appendFileSync(caminho, JSON.stringify(linha) + "\n", "utf8");
   } catch {
     /* sem disco, a marca vale enquanto o processo viver */
@@ -168,6 +188,7 @@ export function liberarProva(jogo: string, partida: string, agora = Date.now()):
 
 /** Só para testes: esquece a memória (o arquivo, se houver, é relido). */
 export function reiniciarUsoUnico(): void {
+  linhasDesdeACompactacao = 0;
   memoria = null;
   carregadoDe = undefined;
 }

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { evento } from "@/lib/analytics/eventos";
-import { BLACK, GATILHO, diaMes, faseDaBlack, fracaoRolada, guardarCupom, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
+import { BLACK, GATILHO, cupomDaBlackDisponivel, diaMes, faseDaBlack, fracaoRolada, guardarCupom, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
 import { linkWhatsApp } from "@/lib/site";
 
 const CHAVE = "kambada-black-2026";
@@ -67,10 +67,21 @@ export default function PopupBlackKambada() {
       /* sem armazenamento: mostra, só não lembra */
     }
 
+    // Com a promoção aberta, o pop-up mostra o código: só abre se o cupom ainda tem usos (18/11/2026).
+    let vivo = true;
+    const abrirSeDisponivel = () => {
+      if (faseDaBlack(hojeSaoLuis()) !== "aberta") return setAberto(true);
+      void cupomDaBlackDisponivel().then((disponivel) => {
+        if (vivo && disponivel) setAberto(true);
+      });
+    };
     // 2ª página da visita em diante: a pessoa já está passeando; abre depois de a página assentar.
     if (paginas.current >= GATILHO.paginas) {
-      const t = setTimeout(() => setAberto(true), 1200);
-      return () => clearTimeout(t);
+      const t = setTimeout(() => abrirSeDisponivel(), 1200);
+      return () => {
+        vivo = false;
+        clearTimeout(t);
+      };
     }
     // 1ª página: espera metade da rolagem ou 25 s, o que vier primeiro. Abre uma vez só:
     // depois de fechado, continuar rolando a mesma página não o traz de volta.
@@ -81,13 +92,16 @@ export default function PopupBlackKambada() {
     };
     const abrir = () => {
       limpar();
-      setAberto(true);
+      abrirSeDisponivel();
     };
     function aoRolar() {
       if (fracaoRolada(window.scrollY, document.documentElement.scrollHeight, window.innerHeight) >= GATILHO.rolagem) abrir();
     }
     window.addEventListener("scroll", aoRolar, { passive: true });
-    return limpar;
+    return () => {
+      vivo = false;
+      limpar();
+    };
   }, [caminho]);
 
   function fechar() {

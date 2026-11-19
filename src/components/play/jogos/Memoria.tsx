@@ -150,6 +150,8 @@ export function Memoria() {
   // (criança toca nas duas cartas de uma vez; sem isso o segundo toque se perdia).
   const emPedido = useRef(false);
   const naFila = useRef<number | null>(null);
+  /** Carta do pedido que falhou por rede: o próximo toque a repete. */
+  const repetir = useRef<number | null>(null);
   const inicio = useRef(0);
   const estado = useRef("");
   const esperas = useRef<number[]>([]);
@@ -179,6 +181,7 @@ export function Memoria() {
 
   async function comecar() {
     naFila.current = null;
+    repetir.current = null;
     setErro("");
     const r = await chamar<{ estado: string; pares: number; nivel: Nivel }>("/api/play/memoria", { acao: "iniciar", nivel });
     if (!r.ok) {
@@ -201,7 +204,11 @@ export function Memoria() {
     setFase("jogando");
   }
 
-  async function virar(pos: number) {
+  async function virar(posTocada: number) {
+    // Pedido que falhou por rede pode ter chegado ao servidor (18/11/2026): o passo já está
+    // gasto com AQUELA carta, e pedir outra encerraria a partida. O toque seguinte, seja
+    // onde for, repete a mesma carta; o servidor devolve o mesmo resultado.
+    const pos = repetir.current ?? posTocada;
     const conhecida = mapa[pos];
     if (travado.current) {
       if (emPedido.current && abertas.length === 0 && !abertas.includes(pos)) naFila.current = pos;
@@ -217,13 +224,16 @@ export function Memoria() {
       naFila.current = null;
       // Sem conexão (ou pedidos demais): a partida continua, é só tocar de novo na carta.
       if (!r.mensagem || r.mensagem.startsWith("Sem conexão") || r.mensagem.startsWith("Calma")) {
-        setAviso(r.mensagem ?? "Não deu para virar a carta. Toque de novo.");
+        repetir.current = pos;
+        setAviso("Sem conexão. Toque em qualquer carta para tentar de novo.");
         return;
       }
+      repetir.current = null;
       setErro(r.mensagem);
       setFase("inicio");
       return;
     }
+    repetir.current = null;
     if (r.estado) estado.current = r.estado;
     setAviso("");
     setMapa((m) => m.map((c, i) => (i === pos ? r.carta : c)));

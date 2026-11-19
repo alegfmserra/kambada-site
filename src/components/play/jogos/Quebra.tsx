@@ -83,11 +83,16 @@ export function Quebra() {
 
   const terminar = useCallback(
     async () => {
-      const r = await chamar<{ prova: string; pontos: number; segundos: number; trocas: number }>("/api/play/quebra", {
-        acao: "finalizar",
-        token,
-        trocas: feitas.current,
-      });
+      // Falha de rede no último toque não pode jogar fora o quebra-cabeça montado (18/11/2026):
+      // tenta de novo sozinho, com pausa. O servidor recalcula tudo, então repetir não muda o
+      // resultado (o tempo conta até o pedido que chega).
+      type Fim = { prova: string; pontos: number; segundos: number; trocas: number };
+      const enviar = () => chamar<Fim>("/api/play/quebra", { acao: "finalizar", token, trocas: feitas.current });
+      let r = await enviar();
+      for (let vez = 0; vez < 3 && !r.ok && (!r.mensagem || r.mensagem.startsWith("Sem conexão") || r.mensagem.startsWith("Calma")); vez++) {
+        await new Promise((ok) => setTimeout(ok, 2500));
+        r = await enviar();
+      }
       if (!r.ok) {
         setErro(r.mensagem ?? "Não deu para registrar o resultado.");
         setFase("inicio");

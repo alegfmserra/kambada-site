@@ -5,16 +5,21 @@
  *
  * Arquivo público (vai ao navegador): nada de módulo de servidor aqui.
  */
+const INICIO = "2026-11-22";
+
+/** "2026-11-22" → "22/11". */
+export const diaMes = (data: string) => data.split("-").reverse().slice(0, 2).join("/");
+
 export const BLACK = {
   codigo: "BLACKKAMBADA",
   percentual: 15,
   usos: 50,
   /** Janela do pop-up e do cupom, em AAAA-MM-DD (inclusive), no fuso de São Luís. */
-  inicio: "2026-11-22",
+  inicio: INICIO,
   fim: "2026-11-30",
   link: "/loja?utm_source=popup&utm_medium=site&utm_campaign=black-kambada-2026",
   /** Mensagem pronta de quem pede o aviso antes de a promoção abrir. */
-  mensagemAviso: "Oi! Quero ser avisado(a) quando a Black Kambada abrir, dia 22/11.",
+  mensagemAviso: `Oi! Quero ser avisado(a) quando a Black Kambada abrir, dia ${diaMes(INICIO)}.`,
   nome: "Black Kambada 2026",
 } as const;
 
@@ -61,9 +66,6 @@ export const faixaApareceEm = (caminho: string) => /^\/loja(\/|$)/.test(caminho)
 /** Data de hoje em São Luís (UTC−3), AAAA-MM-DD. */
 export const hojeSaoLuis = (agora = new Date()) => new Date(agora.getTime() - 3 * 3_600_000).toISOString().slice(0, 10);
 
-/** "2026-11-22" → "22/11". */
-export const diaMes = (data: string) => data.split("-").reverse().slice(0, 2).join("/");
-
 /**
  * Gatilho com intenção (17/11/2026): o pop-up só abre para quem mostrou
  * interesse. Antes abria 1,2 s depois de qualquer página carregar.
@@ -105,5 +107,22 @@ export function lerCupomGuardado(): string | null {
     return c && /^[A-Z0-9_-]{3,30}$/.test(c) ? c : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * O cupom da promoção ainda pode ser usado? (18/11/2026) O cupom tem limite de
+ * usos; esgotado, a faixa e o pop-up param de anunciar um código que o checkout
+ * recusaria. Sem resposta do servidor, vale o que a data diz (não esconde a
+ * promoção por causa de uma falha de rede).
+ */
+export async function cupomDaBlackDisponivel(): Promise<boolean> {
+  try {
+    const r = await fetch("/api/cupom?campanha=black", { cache: "no-store" });
+    if (!r.ok) return true;
+    const d = (await r.json()) as { disponivel?: boolean };
+    return d.disponivel !== false;
+  } catch {
+    return true;
   }
 }

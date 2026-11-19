@@ -11,6 +11,7 @@ import { buscarCatalogo } from "@/lib/bling/produtos";
 import { fotoDoProduto } from "@/lib/fotoDoProduto";
 import { FOTOS } from "@/lib/fotos";
 import { destaquesDaHome, pecaDeCapa } from "@/lib/loja/destaques";
+import { procuraDoSite } from "@/lib/loja/procuraDoSite";
 import { og } from "@/lib/seo/og";
 import { REDES, SITE, WHATSAPP } from "@/lib/site";
 
@@ -59,9 +60,10 @@ export const revalidate = 600;
 
 export default async function Home() {
   const destaques = ARTIGOS.slice(0, 3);
-  const { categorias, produtos } = await buscarCatalogo();
+  const [{ categorias, produtos }, procura] = await Promise.all([buscarCatalogo(), procuraDoSite()]);
   const temFoto = (p: (typeof produtos)[number]) => fotoDoProduto(p) !== null;
-  const vitrine = destaquesDaHome(produtos, categorias, temFoto);
+  // As mais procuradas dos últimos 30 dias (visita, carrinho, compra); sem dados, uma por categoria.
+  const vitrine = destaquesDaHome(produtos, categorias, temFoto, undefined, undefined, procura);
   // Capa de cada categoria: a foto própria; sem ela, a de uma peça da categoria.
   const capas = categorias.map((categoria) => {
     const peca = categoria.foto ? undefined : pecaDeCapa(produtos, categoria.slug, temFoto);

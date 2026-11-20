@@ -83,20 +83,20 @@ export default async function Home() {
       />
       {/* --- Abertura: texto de um lado, família do outro ------------------ */}
       <section className="border-b border-borda">
-        <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_18rem] lg:gap-14">
+        <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_22rem] lg:gap-14">
           <div>
             <p className="font-display text-sm font-semibold tracking-[0.2em] text-texto-tenue uppercase">
               Camisas, matracas, ecobags e arte do Maranhão
             </p>
-            <h1 className="mt-3 font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl">
+            <h1 className="mt-3 font-display text-4xl leading-tight font-extrabold text-balance sm:text-5xl lg:text-6xl">
               A beleza que é ser{" "}
               <span className="destaque">maranhense que só</span>
             </h1>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed text-texto-suave">
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-texto-suave lg:mt-6 lg:text-xl">
               O som da matraca, o gingado do reggae e as cores do Bumba Meu
               Boi, em peças pra levar o Maranhão no peito.
             </p>
-            <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3" data-area="home-abertura">
+            <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3 lg:mt-8" data-area="home-abertura">
               <Link
                 href="/loja"
                 data-alvo="ver-a-loja"
@@ -114,15 +114,17 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* No celular, faixa baixa (a foto inteira empurrava as peças para a terceira tela);
-              em tela larga, retrato estreito ao lado do título. */}
-          <div className="relative h-64 overflow-hidden rounded-3xl lg:h-[22rem]">
+          {/* No celular, faixa baixa (a foto inteira empurrava as peças para a terceira tela).
+              Em tela larga, retrato grande ao lado do título (Alexandre, 20/11/2026: a foto é a
+              identidade da Kambada, estar junto e em família, e pede destaque; título e texto
+              cresceram junto para o conjunto ficar proporcional). */}
+          <div className="relative h-64 overflow-hidden rounded-3xl lg:h-[27rem]">
             <Image
               src={FOTOS.familiaCaminhando.arquivo}
               alt={FOTOS.familiaCaminhando.alt}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 18rem"
+              sizes="(max-width: 1024px) 100vw, 22rem"
               className="object-cover object-[50%_35%] lg:object-[50%_30%]"
             />
           </div>

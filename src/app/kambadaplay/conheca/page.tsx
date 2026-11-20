@@ -26,8 +26,8 @@ const CRIAR = "/kambadaplay/entrar?modo=criar&de=/kambadaplay";
 
 const BOTAO_AMARELO =
   "inline-flex min-h-12 items-center justify-center rounded-full bg-kambada-amarelo px-8 py-3 text-center text-lg font-bold text-kambada-grafite transition-colors hover:bg-kambada-amarelo-escuro";
-const BOTAO_CONTORNO_ESCURO =
-  "inline-flex min-h-12 items-center justify-center rounded-full border-2 border-kambada-branco/60 px-8 py-3 text-center text-lg font-bold text-kambada-branco transition-colors hover:border-kambada-amarelo";
+const BOTAO_CONTORNO_GRANDE =
+  "inline-flex min-h-12 items-center justify-center rounded-full border-2 border-borda-campo px-8 py-3 text-center text-lg font-bold text-texto transition-colors hover:border-kambada-amarelo-escuro";
 const BOTAO_CONTORNO =
   "inline-flex min-h-11 items-center justify-center rounded-full border-2 border-borda-campo px-6 py-2.5 text-center font-bold text-texto transition-colors hover:border-kambada-amarelo";
 const LINK = "font-semibold text-texto underline underline-offset-4 decoration-kambada-amarelo decoration-2";
@@ -179,16 +179,17 @@ export default function ConhecaPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados).replace(/</g, "\\u003c") }}
       />
 
-      {/* Abertura: faixa escura nos dois temas, para as bandeirinhas e o contraste dos botões. */}
-      <header className="bg-kambada-grafite text-kambada-branco">
-        <Bandeirinhas className="mx-auto block h-8 w-full max-w-3xl" />
+      {/* Abertura: segue o tema (20/11/2026). Era escura nos dois temas, e no modo claro
+          parecia defeito: página clara com uma faixa preta no topo. */}
+      <header className="border-b border-borda bg-superficie text-texto">
+        <Bandeirinhas contorno className="mx-auto block h-8 w-full max-w-3xl" />
         <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-12 pt-6 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pb-16">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-kambada-amarelo">Kambada Play</p>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-texto-tenue">Kambada Play</p>
             <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight text-balance sm:text-5xl">
               Jogos, quadrinhos e animação da cultura do Maranhão para crianças
             </h1>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed text-kambada-branco/85">
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-texto-suave">
               Éguas! Aqui o Bumba Meu Boi, o tambor de crioula e as histórias de São Luís viram brincadeira, feita
               por artistas maranhenses.
             </p>
@@ -196,15 +197,15 @@ export default function ConhecaPage() {
               <Link href={JOGAR} className={BOTAO_AMARELO}>
                 Jogar agora
               </Link>
-              <a href={CRIAR} className={BOTAO_CONTORNO_ESCURO}>
+              <a href={CRIAR} className={BOTAO_CONTORNO_GRANDE}>
                 Criar conta
               </a>
             </div>
-            <p className="mt-4 text-sm text-kambada-branco/75">
+            <p className="mt-4 text-sm text-texto-suave">
               Já tem conta?{" "}
               <a
                 href="/kambadaplay/entrar"
-                className="font-semibold text-kambada-amarelo underline underline-offset-4"
+                className={LINK}
               >
                 Entrar
               </a>

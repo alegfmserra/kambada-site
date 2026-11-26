@@ -218,13 +218,13 @@ export default function PopupBlackKambada() {
                   evento("select_promotion", { promotion_name: BLACK.nome, creative_slot: "popup", creative_name: "lancamento-camisa-caranguejinho" });
                   fechar();
                 }}
-                className="flex min-h-14 items-center gap-3 rounded-2xl bg-white/10 px-3 py-2 text-left hover:bg-white/15 focus-visible:outline-white"
+                className="flex min-h-20 items-center gap-3.5 rounded-2xl bg-white/10 px-3 py-2.5 text-left ring-1 ring-[#FFCC29]/40 hover:bg-white/15 focus-visible:outline-white"
               >
-                <Image src={LANCAMENTO.foto} alt="" width={90} height={120} className="h-14 w-auto shrink-0 rounded-lg object-cover" />
+                <Image src={LANCAMENTO.foto} alt="" width={90} height={120} className="h-20 w-auto shrink-0 rounded-lg object-cover" />
                 <span className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFCC29]">Lançamento</span>
-                  <span className="block text-sm font-extrabold leading-tight">{LANCAMENTO.nome}</span>
-                  <span className="block text-xs text-white/75">{LANCAMENTO.chamada} →</span>
+                  <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[#FFCC29]">Lançamento</span>
+                  <span className="block text-base font-extrabold leading-tight">{LANCAMENTO.nome}</span>
+                  <span className="mt-0.5 block text-sm text-white/80">{LANCAMENTO.chamada} →</span>
                 </span>
               </Link>
               <button

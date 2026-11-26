@@ -797,6 +797,11 @@ export const FOTOS_PRODUTOS: Record<number, { largura: number; altura: number; v
     "largura": 900,
     "altura": 1200,
     "v": "72f32e97"
+  },
+  "16741262067": {
+    "largura": 900,
+    "altura": 1200,
+    "v": "6100636b"
   }
 };
 
@@ -1842,6 +1847,38 @@ export const GALERIA_PRODUTOS: Record<number, { n: number; largura: number; altu
       "largura": 900,
       "altura": 1200,
       "v": "3a3239ec"
+    }
+  ],
+  "16741262067": [
+    {
+      "n": 1,
+      "largura": 900,
+      "altura": 1200,
+      "v": "411e4a5d"
+    },
+    {
+      "n": 2,
+      "largura": 900,
+      "altura": 1200,
+      "v": "ad7919b7"
+    },
+    {
+      "n": 3,
+      "largura": 900,
+      "altura": 1200,
+      "v": "1b551978"
+    },
+    {
+      "n": 4,
+      "largura": 900,
+      "altura": 1200,
+      "v": "42c19ee4"
+    },
+    {
+      "n": 5,
+      "largura": 900,
+      "altura": 1200,
+      "v": "9c1f24ae"
     }
   ]
 };

@@ -174,6 +174,8 @@ export default function PopupBlackKambada() {
       <div
         // No celular a altura segue o conteúdo e rola por dentro se faltar tela;
         // o quadrado de 5 × 5 polegadas vale de 640 px para cima.
+        // Com a promoção aberta (código + cartão do lançamento de 116 px), título, logo e
+        // respiros encolhem em tela larga para tudo caber no quadrado, sem rolagem (26/11/2026).
         className="relative max-h-[92dvh] w-[min(480px,92vw)] overflow-x-hidden overflow-y-auto overscroll-contain rounded-3xl bg-[#1d1e20] text-white shadow-2xl sm:aspect-square"
       >
         <svg aria-hidden className="absolute -right-24 -top-24 h-72 w-72 text-[#F5821F]" viewBox="0 0 200 200">
@@ -192,19 +194,19 @@ export default function PopupBlackKambada() {
         >
           ×
         </button>
-        <div className="relative flex min-h-full flex-col justify-between gap-5 p-[6%]">
-          <Image src="/marca/kambada-logo-horizontal-amarelo.png" alt="Somos Kambada" width={160} height={48} className="h-auto w-[34%]" />
+        <div className={`relative flex min-h-full flex-col justify-between gap-5 p-[6%] ${jaVale ? "sm:gap-2.5 sm:p-[5%]" : ""}`}>
+          <Image src="/marca/kambada-logo-horizontal-amarelo.png" alt="Somos Kambada" width={160} height={48} className={`h-auto w-[34%] ${jaVale ? "sm:w-[26%]" : ""}`} />
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#FFCC29]">Black Friday{jaVale ? "" : ` · a partir de ${inicio}`}</p>
-            <h2 id="black-titulo" className="font-display text-[clamp(2.4rem,11vw,4.2rem)] font-extrabold leading-[0.95]">
+            <h2 id="black-titulo" className={`font-display text-[clamp(2.4rem,11vw,4.2rem)] font-extrabold leading-[0.95] ${jaVale ? "sm:text-[2.7rem]" : ""}`}>
               Black <span className="text-[#FFCC29]">Kambada</span>
             </h2>
-            <p className="mt-2 font-display text-[clamp(1.6rem,7vw,2.6rem)] font-extrabold leading-none">
+            <p className={`mt-2 font-display text-[clamp(1.6rem,7vw,2.6rem)] font-extrabold leading-none ${jaVale ? "sm:mt-1 sm:text-[1.9rem]" : ""}`}>
               {BLACK.percentual}% <span className="text-[#F5821F]">OFF</span>
             </p>
             <p id="black-texto" className="mt-2 text-[clamp(0.8rem,3.4vw,1rem)] text-white/80">
               {jaVale
-                ? "Em matracas, camisas e peças feitas no Maranhão. Vale também no lançamento:"
+                ? "Em toda a loja, e também no lançamento:"
                 : `De ${inicio} a ${fim}, matracas, camisas e peças feitas à mão no Maranhão com desconto de verdade. Peça o aviso e a gente manda o lembrete no dia.`}
             </p>
           </div>
@@ -218,9 +220,9 @@ export default function PopupBlackKambada() {
                   evento("select_promotion", { promotion_name: BLACK.nome, creative_slot: "popup", creative_name: "lancamento-camisa-caranguejinho" });
                   fechar();
                 }}
-                className="flex min-h-20 items-center gap-3.5 rounded-2xl bg-white/10 px-3 py-2.5 text-left ring-1 ring-[#FFCC29]/40 hover:bg-white/15 focus-visible:outline-white"
+                className="flex h-[116px] items-center gap-3.5 rounded-2xl bg-white/10 px-3 text-left ring-1 ring-[#FFCC29]/40 hover:bg-white/15 focus-visible:outline-white"
               >
-                <Image src={LANCAMENTO.foto} alt="" width={90} height={120} className="h-20 w-auto shrink-0 rounded-lg object-cover" />
+                <Image src={LANCAMENTO.foto} alt="" width={90} height={120} className="h-[96px] w-auto shrink-0 rounded-lg object-cover" />
                 <span className="min-w-0">
                   <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[#FFCC29]">Lançamento</span>
                   <span className="block text-base font-extrabold leading-tight">{LANCAMENTO.nome}</span>
@@ -246,12 +248,13 @@ export default function PopupBlackKambada() {
                   evento("select_promotion", { promotion_name: BLACK.nome, creative_slot: "popup", creative_name: "ir-para-a-loja" });
                   fechar();
                 }}
-                className="block rounded-full bg-[#FFCC29] px-5 py-3 text-center font-extrabold text-[#1d1e20] hover:bg-[#e0af14] focus-visible:outline-white"
+                className="block rounded-full bg-[#FFCC29] px-5 py-3 text-center font-extrabold text-[#1d1e20] hover:bg-[#e0af14] focus-visible:outline-white sm:py-2.5"
               >
                 Ir para a loja →
               </Link>
               <p className="text-center text-[11px] text-white/70">
-                Use ao finalizar a compra · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete
+                <span className="sm:hidden">Use ao finalizar a compra · até {fim} · só para os {BLACK.usos} primeiros · desconto nas peças, não no frete</span>
+                <span className="hidden sm:inline">Até {fim} · só para os {BLACK.usos} primeiros · vale nas peças, não no frete</span>
               </p>
             </div>
           ) : (

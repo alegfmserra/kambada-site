@@ -23,6 +23,18 @@ export const BLACK = {
   nome: "Black Kambada 2026",
 } as const;
 
+/**
+ * Lançamento mostrado dentro do pop-up da Black (26/11/2026, pedido do Alexandre):
+ * a camisa nova, em pré-venda. O endereço leva o ID do Bling; se a peça for
+ * renomeada lá, o site redireciona pelo ID.
+ */
+export const LANCAMENTO = {
+  nome: "Camisa Caranguejinho Maranhense que só",
+  href: "/loja/camisas/camisa-caranguejinho-maranhense-que-so-16741262067?utm_source=popup&utm_medium=site&utm_campaign=lancamento-camisa-caranguejinho",
+  foto: "/fotos/produtos/16741262067.jpg",
+  chamada: "Pré-venda · pronta em 1 a 2 dias",
+} as const;
+
 /** O pop-up fica no ar desde já até o fim; o cupom só vale a partir de `inicio` (ativaEm). */
 export const popupNoAr = (hoje: string) => hoje <= BLACK.fim;
 

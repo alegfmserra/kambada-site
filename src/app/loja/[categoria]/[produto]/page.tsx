@@ -23,7 +23,7 @@ import {
   precoExibido,
   type Produto,
 } from "@/lib/catalogo";
-import { ehPintadaAMao, TEXTO_POSTAGEM, textoDeProducao } from "@/lib/loja/prazos";
+import { ehEstampadaSobPedido, ehPintadaAMao, TEXTO_POSTAGEM, textoDeProducao } from "@/lib/loja/prazos";
 import { freteConfigurado } from "@/lib/frete/melhorEnvio";
 import { FRETE_GRATIS_A_PARTIR_DE } from "@/lib/frete/regras";
 import { TEXTO_REGRA_PARCELAS } from "@/lib/loja/parcelas";
@@ -425,6 +425,11 @@ export default async function PaginaProduto({ params }: Props) {
                 {ehPintadaAMao(produto) && (
                   <li className="rounded-xl bg-superficie px-4 py-3 font-medium text-texto">
                     <span aria-hidden="true">🎨</span> {textoDeProducao(produto)}
+                  </li>
+                )}
+                {ehEstampadaSobPedido(produto.nome) && (
+                  <li className="rounded-xl bg-superficie px-4 py-3 font-medium text-texto">
+                    <span aria-hidden="true">🆕</span> {textoDeProducao(produto)}
                   </li>
                 )}
                 <li><span aria-hidden="true">📦</span> {TEXTO_POSTAGEM}.</li>

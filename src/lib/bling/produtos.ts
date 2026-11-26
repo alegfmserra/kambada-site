@@ -1,4 +1,5 @@
 import type { Categoria, Opcao, Produto } from "../catalogo";
+import { ehEstampadaSobPedido } from "../loja/prazos";
 import {
   CATEGORIAS as CATEGORIAS_LOCAIS,
   PRODUTOS as PRODUTOS_LOCAIS,
@@ -150,7 +151,8 @@ export const ID_PRODUTO_TESTE = 16717480811;
  * ser comprada. Entrou saldo, vira peça comum: tire o ID daqui quando quiser.
  */
 export const PRODUTOS_EM_BREVE = new Set<number>([
-  16741262067, // Camisa Caranguejinho Maranhense que só
+  // 16741262067 (Camisa Caranguejinho Maranhense que só) saiu daqui no mesmo dia: virou
+  // pré-venda estampada sob pedido (lib/loja/prazos.ts), que já pode ser comprada.
 ]);
 
 /**
@@ -250,7 +252,7 @@ export function rotuloDaVariacao(
  * Retangular (20/10) e a Mandala (01/11, pintada à mão, 4 a 10 dias).
  */
 export function ehSobEncomenda(categoria: string, nome: string): boolean {
-  return categoria === "matracas" || /^placa de madeira retangular|^mandala/i.test(nome);
+  return categoria === "matracas" || /^placa de madeira retangular|^mandala/i.test(nome) || ehEstampadaSobPedido(nome);
 }
 
 /** Livrinhos feitos em casa na hora: nunca esgotam (Alexandre, 01/11/2026). */

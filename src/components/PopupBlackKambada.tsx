@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import LinkWhatsApp from "@/components/LinkWhatsApp";
 import { evento } from "@/lib/analytics/eventos";
-import { BLACK, GATILHO, cupomDaBlackDisponivel, diaMes, faseDaBlack, fracaoRolada, guardarCupom, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
+import { BLACK, GATILHO, LANCAMENTO, cupomDaBlackDisponivel, diaMes, faseDaBlack, fracaoRolada, guardarCupom, hojeSaoLuis, podeAparecerEm, popupNoAr } from "@/lib/campanhas/black";
 import { linkWhatsApp } from "@/lib/site";
 
 const CHAVE = "kambada-black-2026";
@@ -204,12 +204,29 @@ export default function PopupBlackKambada() {
             </p>
             <p id="black-texto" className="mt-2 text-[clamp(0.8rem,3.4vw,1rem)] text-white/80">
               {jaVale
-                ? "Matracas, camisas e peças feitas à mão no Maranhão, com desconto de verdade."
+                ? "Em matracas, camisas e peças feitas no Maranhão. Vale também no lançamento:"
                 : `De ${inicio} a ${fim}, matracas, camisas e peças feitas à mão no Maranhão com desconto de verdade. Peça o aviso e a gente manda o lembrete no dia.`}
             </p>
           </div>
           {jaVale ? (
             <div className="space-y-2">
+              <Link
+                href={LANCAMENTO.href}
+                data-evento="select_promotion"
+                onClick={() => {
+                  guardarCupom(BLACK.codigo);
+                  evento("select_promotion", { promotion_name: BLACK.nome, creative_slot: "popup", creative_name: "lancamento-camisa-caranguejinho" });
+                  fechar();
+                }}
+                className="flex min-h-14 items-center gap-3 rounded-2xl bg-white/10 px-3 py-2 text-left hover:bg-white/15 focus-visible:outline-white"
+              >
+                <Image src={LANCAMENTO.foto} alt="" width={90} height={120} className="h-14 w-auto shrink-0 rounded-lg object-cover" />
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFCC29]">Lançamento</span>
+                  <span className="block text-sm font-extrabold leading-tight">{LANCAMENTO.nome}</span>
+                  <span className="block text-xs text-white/75">{LANCAMENTO.chamada} →</span>
+                </span>
+              </Link>
               <button
                 type="button"
                 onClick={copiar}

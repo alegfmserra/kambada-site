@@ -16,12 +16,27 @@ export const PRODUCAO_PLACA = { min: 4, max: 10 } as const;
 
 const ehPlaca = (nome: string) => /^(placa|mandala)/i.test(nome.trim());
 
+/**
+ * Camisa estampada sob pedido em DTF (26/11/2026, Alexandre): há camisas lisas em
+ * estoque e a estampa é aplicada quando o pedido entra, em 1 a 2 dias. É assim
+ * que o lançamento vende antes de haver peça pronta contada no Bling.
+ */
+export const PRODUCAO_ESTAMPA_SOB_PEDIDO = { min: 1, max: 2 } as const;
+
+export function ehEstampadaSobPedido(nome: string): boolean {
+  return /^camisa caranguejinho\b/i.test(nome.trim());
+}
+
 export function prazoDeProducao(produto: { nome: string }): { min: number; max: number } {
+  if (ehEstampadaSobPedido(produto.nome)) return PRODUCAO_ESTAMPA_SOB_PEDIDO;
   return ehPlaca(produto.nome) ? PRODUCAO_PLACA : PRODUCAO_PINTADA_A_MAO;
 }
 
 export function textoDeProducao(produto: { nome: string }): string {
   const p = prazoDeProducao(produto);
+  if (ehEstampadaSobPedido(produto.nome)) {
+    return `Lançamento em pré-venda: a estampa é aplicada na sua camisa quando o pedido entra, em ${p.min} a ${p.max} dias, antes da postagem.`;
+  }
   return `Pintada à mão: a produção leva de ${p.min} a ${p.max} dias antes da postagem, e cada peça varia um pouco da foto.`;
 }
 

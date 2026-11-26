@@ -144,6 +144,16 @@ export const PRODUTOS_OCULTOS = new Set(["produto-teste-kambada"]);
 export const ID_PRODUTO_TESTE = 16717480811;
 
 /**
+ * Lançamentos "em breve" (26/11/2026, pedido do Alexandre): peça já cadastrada no
+ * Bling, ainda sem saldo, que deve aparecer na vitrine antes de o estoque entrar.
+ * Enquanto o saldo for zero ela fica visível, com o rótulo "Em breve", e não pode
+ * ser comprada. Entrou saldo, vira peça comum: tire o ID daqui quando quiser.
+ */
+export const PRODUTOS_EM_BREVE = new Set<number>([
+  16741262067, // Camisa Caranguejinho Maranhense que só
+]);
+
+/**
  * Bermuda Brim e Bermuda Linho continuam **fora da vitrine de propósito**: não
  * têm prateleira em `catalogo.ts`, e prateleira nova exige nome, chamada e foto
  * — curadoria humana, não decisão de código. Seguem reportadas em
@@ -508,7 +518,8 @@ export async function montarDoBling(): Promise<Catalogo> {
       opcoes,
       // Esgotado sai da vitrine, das categorias e do Google (regra do Alexandre, 20/10/2026);
       // pelo link direto a página segue mostrando "Esgotado" e o "me avise quando voltar".
-      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || (quantidade <= 0 && !sobEncomenda && !estoqueLivre) || undefined,
+      oculto: PRODUTOS_OCULTOS.has(paraSlug(p.nome)) || (quantidade <= 0 && !sobEncomenda && !estoqueLivre && !PRODUTOS_EM_BREVE.has(p.id)) || undefined,
+      emBreve: (PRODUTOS_EM_BREVE.has(p.id) && quantidade <= 0 && !sobEncomenda && !estoqueLivre) || undefined,
       sobEncomenda: sobEncomenda || undefined,
       estoqueLivre: estoqueLivre || undefined,
     });

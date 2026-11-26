@@ -392,20 +392,22 @@ export default async function PaginaProduto({ params }: Props) {
                 ) : (
                   <>
                     <p className="inline-block rounded-full border border-borda px-8 py-4 font-display font-semibold text-texto-tenue">
-                      Esgotado no momento
+                      {produto.emBreve ? "Em breve" : "Esgotado no momento"}
                     </p>
                     <p className="mt-4 text-sm text-texto-suave">
-                      Esta peça é feita em lote pequeno.{" "}
+                      {produto.emBreve ? "Lançamento: esta peça está chegando." : "Esta peça é feita em lote pequeno."}{" "}
                       <LinkWhatsApp
                         origem="produto-esgotado"
                         href={linkWhatsApp(
-                          `Oi! A peça "${produto.nome}" está esgotada no site. Me avisa quando voltar?`,
+                          produto.emBreve
+                            ? `Oi! Vi a peça "${produto.nome}" no site, como lançamento. Me avisa quando chegar?`
+                            : `Oi! A peça "${produto.nome}" está esgotada no site. Me avisa quando voltar?`,
                         )}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="font-semibold text-texto underline underline-offset-4 hover:text-kambada-amarelo-escuro"
                       >
-                        Me avise quando voltar
+                        {produto.emBreve ? "Me avise quando chegar" : "Me avise quando voltar"}
                       </LinkWhatsApp>
                     </p>
                   </>

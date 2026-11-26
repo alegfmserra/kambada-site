@@ -69,6 +69,8 @@ export type Produto = {
   opcoes?: Opcao[];
   /** Fora da vitrine: só pelo link direto (produto de teste). */
   oculto?: boolean;
+  /** Lançamento ainda sem saldo: aparece na vitrine como "Em breve" e não pode ser comprado. */
+  emBreve?: boolean;
   /** Texto da "descrição curta" do Bling, já sem HTML. */
   descricao?: string;
   /**
@@ -628,7 +630,7 @@ export function disponibilidade(produto: Produto): {
     return { texto: `Feita por encomenda · ${p.min} a ${p.max} dias`, disponivel: true };
   }
   if (produto.estoqueLivre) return { texto: "Disponível", disponivel: true };
-  if (produto.quantidade <= 0) return { texto: "Esgotado", disponivel: false };
+  if (produto.quantidade <= 0) return { texto: produto.emBreve ? "Em breve" : "Esgotado", disponivel: false };
   if (produto.quantidade <= 5)
     return { texto: "Últimas unidades", disponivel: true };
   return { texto: "Disponível", disponivel: true };
